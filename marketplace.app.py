@@ -714,5 +714,3 @@ else:
         # Buscador de saturação
         termo_busca = st.text_input("🔍 Digite um produto para analisar:", placeholder="Ex: smartwatch, fone bluetooth...")
         
-        if termo_busca:
-            col1, col2 = st.columns
