@@ -101,11 +101,16 @@ def verificar_login():
 # ============================================================
 # APIs
 # ============================================================
+HEADERS_ML = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+}
+
+
 def buscar_produtos_mercadolivre(termo, limite=5):
     try:
         url = "https://api.mercadolibre.com/sites/MLB/search"
         params = {"q": termo, "limit": limite}
-        resp = requests.get(url, params=params, timeout=10)
+        resp = requests.get(url, params=params, headers=HEADERS_ML, timeout=10)
         resp.raise_for_status()
         data = resp.json()
         produtos = []
@@ -126,7 +131,7 @@ def buscar_total_resultados_ml(termo):
     try:
         url = "https://api.mercadolibre.com/sites/MLB/search"
         params = {"q": termo, "limit": 1}
-        resp = requests.get(url, params=params, timeout=10)
+        resp = requests.get(url, params=params, headers=HEADERS_ML, timeout=10)
         resp.raise_for_status()
         data = resp.json()
         return data.get("paging", {}).get("total", 0)
@@ -333,7 +338,17 @@ with tab1:
     st.markdown("### 🔥 Produtos em Alta Agora")
     st.caption("Baseado em categorias de destaque do mês, via Mercado Livre.")
 
+    modo_debug = st.checkbox("🐞 Modo debug (mostrar erros da API)", value=False)
+
     if st.button("🔄 Buscar Produtos em Alta"):
+        if modo_debug:
+            # Chamada direta e sem try/except escondido, só para diagnóstico
+            termo_teste = "fone bluetooth"
+            url = "https://api.mercadolibre.com/sites/MLB/search"
+            resp = requests.get(url, params={"q": termo_teste, "limit": 1}, headers=HEADERS_ML, timeout=10)
+            st.write("Status code:", resp.status_code)
+            st.json(resp.json())
+
         with st.spinner("Minerando produtos..."):
             produtos_alta = minerar_produtos_em_alta()
 
