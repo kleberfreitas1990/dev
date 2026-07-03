@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 import requests
 from urllib.parse import quote
 from datetime import datetime, date
@@ -78,6 +79,59 @@ HIST_POR_MES = {
     11: ["Eletrônicos", "Eletrodomésticos", "Notebook", "Smart TV"],
     12: ["Enfeite de natal", "Presente amigo secreto", "Roupa de festa", "Espumante"],
 }
+
+# Termos padrão analisados no Minerador Pro, com categoria associada
+CATEGORIAS_TERMOS = {
+    "smartwatch": "Eletrônicos",
+    "fone bluetooth": "Eletrônicos",
+    "caixa de som": "Eletrônicos",
+    "carregador portátil": "Eletrônicos",
+    "camisa": "Moda",
+    "vestido": "Moda",
+    "tênis": "Moda",
+    "bolsa": "Moda",
+    "mochila": "Moda",
+    "cadeira gamer": "Casa",
+}
+
+
+def calcular_score_oportunidade(total_resultados, media_vendas):
+    """Score de 0 a 10: até 6 pontos por baixa saturação + até 4 pontos por vendas médias."""
+    if total_resultados <= 0:
+        score_saturacao = 0
+    else:
+        score_saturacao = max(0, 6 - (total_resultados / 100))
+    score_vendas = min(media_vendas / 20, 4)
+    return round(min(score_saturacao + score_vendas, 10), 1)
+
+
+def classificar_oportunidade(score):
+    if score >= 8:
+        return "🟢 OPORTUNIDADE EXCELENTE - Baixa concorrência e boa demanda"
+    elif score >= 6:
+        return "🟡 BOA OPORTUNIDADE - Vale a pena investir"
+    elif score >= 3:
+        return "🟠 OPORTUNIDADE MÉDIA - Analise com cautela"
+    else:
+        return "🔴 OPORTUNIDADE BAIXA - Muita concorrência ou pouca demanda"
+
+
+def analisar_oportunidade_termo(termo, categoria):
+    total_ml = buscar_total_resultados_ml(termo)
+    produtos_ml = buscar_produtos_mercadolivre(termo, 5)
+    vendas = [p.get("vendas", 0) for p in produtos_ml if p.get("vendas")]
+    media_vendas = (sum(vendas) / len(vendas)) if vendas else 0
+    saturacao_pct = min(round((total_ml / 500) * 100, 1), 100) if total_ml else 0
+    score = calcular_score_oportunidade(total_ml, media_vendas)
+    return {
+        "Produto": termo,
+        "Categoria": categoria,
+        "Score": score,
+        "Saturação (%)": saturacao_pct,
+        "Vendas Médias": round(media_vendas, 1),
+        "Recomendação": classificar_oportunidade(score),
+    }
+
 
 # ============================================================
 # LOGIN
@@ -327,10 +381,11 @@ verificar_login()
 st.title("🛒 Minerador de Produtos - Afiliados")
 st.caption("Encontre produtos em alta com baixa concorrência")
 
-tab1, tab2, tab3 = st.tabs([
+tab1, tab2, tab3, tab4 = st.tabs([
     "🔥 Em Alta Agora",
     "📅 Sugestões por Data",
     "🎯 Análise de Saturação",
+    "🛍️ Minerador Pro",
 ])
 
 # ===== TAB 1: EM ALTA AGORA =====
@@ -338,17 +393,7 @@ with tab1:
     st.markdown("### 🔥 Produtos em Alta Agora")
     st.caption("Baseado em categorias de destaque do mês, via Mercado Livre.")
 
-    modo_debug = st.checkbox("🐞 Modo debug (mostrar erros da API)", value=False)
-
     if st.button("🔄 Buscar Produtos em Alta"):
-        if modo_debug:
-            # Chamada direta e sem try/except escondido, só para diagnóstico
-            termo_teste = "fone bluetooth"
-            url = "https://api.mercadolibre.com/sites/MLB/search"
-            resp = requests.get(url, params={"q": termo_teste, "limit": 1}, headers=HEADERS_ML, timeout=10)
-            st.write("Status code:", resp.status_code)
-            st.json(resp.json())
-
         with st.spinner("Minerando produtos..."):
             produtos_alta = minerar_produtos_em_alta()
 
@@ -447,3 +492,79 @@ with tab3:
             c1, c2 = st.columns(2)
             c1.link_button("🔍 ML", f"https://lista.mercadolivre.com.br/{quote(termo_busca)}", width='stretch')
             c2.link_button("🔍 Shopee", f"https://shopee.com.br/search?keyword={quote(termo_busca)}", width='stretch')
+
+# ===== TAB 4: MINERADOR PRO =====
+with tab4:
+    st.markdown("## 🛍️ Minerador Pro - Oportunidades para Afiliados")
+    st.markdown("### 🎯 Encontre Produtos com Baixa Concorrência e Alto Potencial")
+
+    with st.expander("🔍 Metodologia de Análise"):
+        st.markdown("""
+        - 🔵 Busca produtos e volume de resultados no **Mercado Livre**
+        - 📊 Calcula a **saturação do mercado** (quanto menor, melhor)
+        - 📈 Analisa a **média de vendas** dos produtos encontrados
+        - ⭐ Gera um **Score de Oportunidade** combinando os dois fatores
+
+        **O que significa cada métrica:**
+        - **Score de Oportunidade**: de 0 a 10, quanto maior, melhor para afiliados
+        - **Saturação (%)**: proporção de concorrência no Mercado Livre (menor = melhor)
+        - **Vendas Médias**: quantidade média de vendas já registradas nos produtos encontrados
+        - **Recomendação**: leitura consolidada do score
+
+        ⚠️ *A Shopee não oferece API pública e costuma bloquear buscas automatizadas,
+        por isso esta análise usa apenas dados do Mercado Livre — para não repetir o problema
+        de métricas quebradas (100% de saturação, 0 vendas) quando a Shopee está indisponível.*
+        """)
+
+    if st.button("🚀 Buscar Oportunidades"):
+        with st.spinner("Analisando produtos..."):
+            resultados = [
+                analisar_oportunidade_termo(termo, categoria)
+                for termo, categoria in CATEGORIAS_TERMOS.items()
+            ]
+
+        df = pd.DataFrame(resultados).sort_values("Score", ascending=False).reset_index(drop=True)
+
+        st.markdown("---")
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("📦 Produtos Analisados", len(df))
+        c2.metric("🚀 Oportunidades Excelentes", int((df["Score"] >= 8).sum()))
+        c3.metric("⭐ Boas Oportunidades", int(((df["Score"] >= 6) & (df["Score"] < 8)).sum()))
+        c4.metric("🎯 Baixa Concorrência", int((df["Saturação (%)"] < 30).sum()))
+
+        st.markdown("---")
+        st.markdown("### 📊 Oportunidades por Score")
+        st.dataframe(df, width='stretch', hide_index=True)
+
+        st.markdown("---")
+        st.markdown("### 💡 Estratégia para Afiliados")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.success(
+                "**🎯 Oportunidades Excelentes (Score ≥ 8)**\n\n"
+                "- ✅ Baixa concorrência\n"
+                "- ✅ Produto já validado (vendas consistentes)\n"
+                "- ✅ Boa margem para conteúdo de nicho\n\n"
+                "**Ação:** crie conteúdo com urgência!"
+            )
+        with col2:
+            st.info(
+                "**⭐ Boas Oportunidades (Score ≥ 6)**\n\n"
+                "- ⚠️ Concorrência moderada\n"
+                "- 📈 Produto com potencial de crescimento\n\n"
+                "**Ação:** analise a concorrência e crie conteúdo diferenciado"
+            )
+
+        st.success("✅ Análise concluída! Foque nos produtos com maior score e menor saturação.")
+
+        st.markdown("---")
+        st.markdown("### 📌 Dica: Como usar essa análise")
+        st.info(
+            "**Estratégia para maximizar suas vendas:**\n\n"
+            "1. 🎯 Foque em produtos com Score ≥ 8 e baixa saturação\n"
+            "2. 📈 Crie conteúdo mostrando o produto de forma autêntica\n"
+            "3. 🔄 Teste diferentes produtos para ver qual converte melhor\n"
+            "4. 🚀 Seja rápido — produtos com alto potencial atraem concorrentes rápido"
+        )
+    else:
+        st.info("Clique em **'Buscar Oportunidades'** para iniciar a análise.")
