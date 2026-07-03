@@ -8,59 +8,62 @@ import requests
 from pytrends.request import TrendReq
 import json
 import re
+from functools import lru_cache
+import random
 
 # Configuração da página
 st.set_page_config(page_title="Minerador Pro - Produtos", page_icon="🛍️", layout="wide")
 
-# ===== CONFIGURAÇÕES DE API =====
-# IMPORTANTE: Substitua com suas chaves reais
-SERPAPI_KEY = st.secrets.get("SERPAPI_KEY", "sua-chave-serpapi-aqui")
-MERCADOLIVRE_APP_ID = st.secrets.get("MERCADOLIVRE_APP_ID", "seu-app-id-aqui")
+# ===== CONFIGURAÇÕES =====
+# Cache para evitar requisições repetidas
+CACHE_DURATION = 3600  # 1 hora
+ULTIMA_BUSCA = {}
 
-# ===== CATEGORIAS DE PRODUTOS PARA TRENDS =====
-# Códigos de categoria do Google Trends para produtos
-CATEGORIAS_PRODUTOS = {
-    "Eletrônicos": 5,
-    "Moda": 411,
-    "Casa e Decoração": 455,
-    "Beleza": 442,
-    "Saúde": 451,
-    "Esportes": 445,
-    "Brinquedos": 444,
-    "Automotivo": 447,
-    "Alimentos": 452,
-    "Livros": 443,
-    "Pet": 475,
-    "Ferramentas": 457
-}
-
-# Palavras-chave para buscar produtos populares
-PRODUTOS_BASE = [
-    "smartwatch", "fone bluetooth", "caixa de som", "carregador portátil",
-    "camisa feminina", "vestido", "tênis", "bolsa", "mochila",
-    "cadeira gamer", "mesa de escritório", "luminária led", "quadro decorativo",
-    "creme hidratante", "base", "perfume", "kit maquiagem",
-    "suplemento whey", "garrafa térmica", "tapete yoga",
-    "brinquedo educativo", "boneca", "carrinho controle remoto",
-    "capinha celular", "película protetora", "power bank"
+# Lista de produtos base para fallback (quando Google Trends falha)
+PRODUTOS_FALLBACK = [
+    {"termo": "smartwatch", "categoria": "Eletrônicos"},
+    {"termo": "fone bluetooth", "categoria": "Eletrônicos"},
+    {"termo": "caixa de som", "categoria": "Eletrônicos"},
+    {"termo": "carregador portátil", "categoria": "Eletrônicos"},
+    {"termo": "camisa feminina", "categoria": "Moda"},
+    {"termo": "vestido", "categoria": "Moda"},
+    {"termo": "tênis", "categoria": "Moda"},
+    {"termo": "bolsa", "categoria": "Moda"},
+    {"termo": "cadeira gamer", "categoria": "Casa e Decoração"},
+    {"termo": "luminária led", "categoria": "Casa e Decoração"},
+    {"termo": "quadro decorativo", "categoria": "Casa e Decoração"},
+    {"termo": "creme hidratante", "categoria": "Beleza"},
+    {"termo": "perfume", "categoria": "Beleza"},
+    {"termo": "kit maquiagem", "categoria": "Beleza"},
+    {"termo": "suplemento whey", "categoria": "Saúde"},
+    {"termo": "garrafa térmica", "categoria": "Esportes"},
+    {"termo": "brinquedo educativo", "categoria": "Brinquedos"},
+    {"termo": "capinha celular", "categoria": "Eletrônicos"},
+    {"termo": "power bank", "categoria": "Eletrônicos"},
+    {"termo": "mochila", "categoria": "Moda"}
 ]
 
+# ===== FUNÇÕES =====
 def validar_licenca_supabase(chave):
     if chave == "TESTE-AFILIADO-2026":
         return {"valido": True, "expira": "2026-12-31"}
     return {"valido": False}
 
-def buscar_trends_por_categoria(categoria_codigo, limite=10):
+@lru_cache(maxsize=100)
+def buscar_trends_por_categoria_com_cache(categoria_codigo):
     """
-    Busca tendências por categoria de produto no Google Trends
-    Usando códigos de categoria específicos para produtos
+    Busca tendências por categoria com cache para evitar 429
     """
+    time.sleep(random.uniform(1, 3))  # Delay aleatório para evitar rate limit
+    
     try:
         pytrends = TrendReq(hl='pt-BR', tz=-180)
         
-        # Busca por categoria específica
+        # Usa termos base para buscar tendências
+        termos_base = ["smartwatch", "fone", "camisa", "cadeira", "perfume"]
+        
         pytrends.build_payload(
-            kw_list=PRODUTOS_BASE[:5],  # Usa produtos base como semente
+            kw_list=termos_base,
             cat=categoria_codigo,
             timeframe='now 1-d',
             geo='BR'
@@ -71,57 +74,19 @@ def buscar_trends_por_categoria(categoria_codigo, limite=10):
         if dados.empty:
             return []
         
-        # Pega os termos mais buscados na categoria
         termos = dados.columns.tolist()
         if 'isPartial' in termos:
             termos.remove('isPartial')
         
-        return termos[:limite]
+        return termos[:3]  # Limita a 3 termos por categoria
         
     except Exception as e:
-        st.warning(f"Erro ao buscar tendências por categoria: {str(e)}")
+        if "429" in str(e):
+            st.warning(f"⏳ Limite de requisições do Google atingido. Usando produtos base.")
         return []
 
-def buscar_produtos_serpapi(termo, limite=10):
-    """
-    Busca produtos reais no Google Shopping via SerpApi
-    """
-    if not SERPAPI_KEY or SERPAPI_KEY == "sua-chave-serpapi-aqui":
-        return []
-    
-    url = "https://serpapi.com/search.json"
-    params = {
-        "q": termo,
-        "tbm": "shop",
-        "api_key": SERPAPI_KEY,
-        "gl": "br",
-        "hl": "pt",
-        "num": limite
-    }
-    
-    try:
-        response = requests.get(url, params=params, timeout=10)
-        data = response.json()
-        
-        produtos = []
-        for item in data.get("shopping_results", [])[:limite]:
-            produtos.append({
-                "nome": item.get("title", ""),
-                "preco": item.get("price", ""),
-                "loja": item.get("source", ""),
-                "link": item.get("link", ""),
-                "imagem": item.get("thumbnail", ""),
-                "avaliacao": item.get("rating", None)
-            })
-        
-        return produtos
-    except Exception as e:
-        return []
-
-def buscar_produtos_mercadolivre(termo, limite=10):
-    """
-    Busca produtos no Mercado Livre API (gratuita)
-    """
+def buscar_produtos_mercadolivre(termo, limite=5):
+    """Busca produtos no Mercado Livre API (gratuita)"""
     url = f"https://api.mercadolibre.com/sites/MLB/search"
     params = {
         "q": termo,
@@ -131,17 +96,19 @@ def buscar_produtos_mercadolivre(termo, limite=10):
     
     try:
         response = requests.get(url, params=params, timeout=10)
+        if response.status_code != 200:
+            return []
+            
         data = response.json()
         
         produtos = []
         for item in data.get("results", [])[:limite]:
             produtos.append({
-                "nome": item.get("title", ""),
+                "nome": item.get("title", "")[:60] + "...",
                 "preco": f"R$ {item.get('price', 0):.2f}",
                 "loja": "Mercado Livre",
                 "link": item.get("permalink", ""),
-                "imagem": item.get("thumbnail", ""),
-                "avaliacao": item.get("seller", {}).get("seller_reputation", {}).get("power_seller_status", None)
+                "imagem": item.get("thumbnail", "")
             })
         
         return produtos
@@ -149,7 +116,7 @@ def buscar_produtos_mercadolivre(termo, limite=10):
         return []
 
 def buscar_produtos_shopee(termo, limite=3):
-    """Busca produtos na Shopee (mantido como fallback)"""
+    """Busca produtos na Shopee"""
     url = "https://shopee.com.br/api/v4/search/search_items"
     params = {
         "keyword": termo,
@@ -187,71 +154,60 @@ def buscar_produtos_shopee(termo, limite=3):
             continue
         preco = f"R$ {preco_centavos / 100000:.2f}" if preco_centavos else "—"
         link = f"https://shopee.com.br/product/{shopid}/{itemid}"
-        produtos.append({"nome": nome, "preco": preco, "link": link, "loja": "Shopee"})
+        produtos.append({
+            "nome": nome[:60] + "...", 
+            "preco": preco, 
+            "link": link, 
+            "loja": "Shopee"
+        })
 
     return produtos
 
-def analisar_produto(termo):
+def analisar_produto(termo, categoria=""):
     """
-    Análise completa de um produto:
-    - Busca em múltiplas plataformas
-    - Calcula score de oportunidade
-    - Gera recomendações
+    Análise completa de um produto
     """
     # Busca produtos em diferentes plataformas
     produtos_shopee = buscar_produtos_shopee(termo, 3)
     produtos_ml = buscar_produtos_mercadolivre(termo, 3)
-    produtos_serp = buscar_produtos_serpapi(termo, 3) if SERPAPI_KEY != "sua-chave-serpapi-aqui" else []
     
     # Combina resultados
     todos_produtos = []
     
-    # Adiciona Shopee
     for p in produtos_shopee:
         p["plataforma"] = "Shopee"
         todos_produtos.append(p)
     
-    # Adiciona Mercado Livre
     for p in produtos_ml:
         p["plataforma"] = "Mercado Livre"
-        todos_produtos.append(p)
-    
-    # Adiciona SerpApi
-    for p in produtos_serp:
-        p["plataforma"] = "Google Shopping"
-        if "loja" in p:
-            p["loja"] = f"Google Shopping - {p['loja']}"
         todos_produtos.append(p)
     
     # Calcula score de oportunidade
     score = 0
     recomendacao = ""
     
-    # Fatores de score
     if len(todos_produtos) > 0:
-        score += 2  # Produto existe no mercado
+        score += 2
     
     if len(produtos_shopee) > 0:
-        score += 2  # Disponível na Shopee
+        score += 2
     
     if len(produtos_ml) > 0:
-        score += 1  # Disponível no Mercado Livre
+        score += 1
     
-    if len(produtos_serp) > 0:
-        score += 1  # Disponível no Google Shopping
-    
-    # Gera recomendação baseada no score
+    # Gera recomendação
     if score >= 5:
-        recomendacao = "🔥 OPORTUNIDADE EXCELENTE - Produto com alta demanda e múltiplas fontes!"
+        recomendacao = "🔥 OPORTUNIDADE EXCELENTE"
     elif score >= 3:
-        recomendacao = "⭐ BOA OPORTUNIDADE - Produto com potencial de venda"
+        recomendacao = "⭐ BOA OPORTUNIDADE"
     elif score >= 1:
-        recomendacao = "📊 OPORTUNIDADE MÉDIA - Avaliar concorrência"
+        recomendacao = "📊 OPORTUNIDADE MÉDIA"
     else:
-        recomendacao = "⚠️ OPORTUNIDADE BAIXA - Produto pode não ter boa demanda"
+        recomendacao = "⚠️ OPORTUNIDADE BAIXA"
     
     return {
         "termo": termo,
+        "categoria": categoria,
         "total_produtos": len(todos_produtos),
         "score": score,
         "recomendacao": recomendacao,
@@ -260,35 +216,53 @@ def analisar_produto(termo):
 
 def minerar_produtos_tendencias():
     """
-    Mineração avançada usando múltiplas fontes:
-    1. Google Trends por categoria
-    2. Sugestões de produtos base
-    3. Produtos populares por plataforma
+    Mineração avançada com fallback inteligente
     """
     resultados = []
     
-    # 1. Busca por categoria no Google Trends
-    with st.spinner("Buscando tendências por categoria..."):
-        for categoria, codigo in CATEGORIAS_PRODUTOS.items():
-            termos = buscar_trends_por_categoria(codigo, 3)
+    # Tenta buscar do Google Trends primeiro
+    categorias = {
+        "Eletrônicos": 5,
+        "Moda": 411,
+        "Casa e Decoração": 455,
+        "Beleza": 442,
+        "Saúde": 451,
+        "Esportes": 445,
+        "Brinquedos": 444,
+        "Automotivo": 447
+    }
+    
+    termos_encontrados = []
+    
+    # Busca por categoria (com delay e limite)
+    for categoria, codigo in categorias.items():
+        termos = buscar_trends_por_categoria_com_cache(codigo)
+        if termos:
             for termo in termos:
-                if termo and termo not in [r["termo"] for r in resultados]:
-                    analise = analisar_produto(termo)
+                if termo not in termos_encontrados:
+                    termos_encontrados.append(termo)
+                    analise = analisar_produto(termo, categoria)
                     analise["fonte"] = f"Google Trends - {categoria}"
                     resultados.append(analise)
+        
+        # Delay entre categorias para evitar rate limit
+        time.sleep(random.uniform(2, 4))
     
-    # 2. Busca produtos base populares
-    with st.spinner("Analisando produtos populares..."):
-        for produto in PRODUTOS_BASE[:10]:
-            if produto not in [r["termo"] for r in resultados]:
-                analise = analisar_produto(produto)
-                analise["fonte"] = "Produto Base"
+    # Se poucos resultados, usa fallback
+    if len(resultados) < 5:
+        st.info("📌 Usando lista de produtos populares como base...")
+        
+        # Usa produtos de fallback
+        for produto in PRODUTOS_FALLBACK[:15]:
+            if produto["termo"] not in termos_encontrados:
+                analise = analisar_produto(produto["termo"], produto["categoria"])
+                analise["fonte"] = "Produtos Populares (Base)"
                 resultados.append(analise)
     
-    # Remove duplicatas e ordena por score
+    # Ordena por score
     resultados = sorted(resultados, key=lambda x: x["score"], reverse=True)
     
-    return pd.DataFrame(resultados[:20])  # Limita a 20 resultados
+    return pd.DataFrame(resultados[:20])
 
 # ===== INTERFACE =====
 st.title("🛍️ Minerador Pro - Produtos em Alta")
@@ -318,25 +292,19 @@ else:
         st.session_state.autenticado = False
         st.rerun()
 
-    st.sidebar.markdown("---")
-    st.sidebar.markdown("### ⚙️ Configuração das APIs")
-    st.sidebar.caption("Para melhores resultados, configure:")
-    st.sidebar.code("SERPAPI_KEY = 'sua-chave'", language="python")
-    st.sidebar.caption("Obtenha em: serpapi.com")
-
     st.markdown("""
     ### 🎯 Produtos em Tendência no Brasil
     
     🔍 **Como funciona:**
-    - 🔄 Busca em **Google Trends por categoria** (Eletrônicos, Moda, Casa, etc.)
-    - 🛒 Verifica disponibilidade em **Shopee, Mercado Livre e Google Shopping**
+    - 🔄 Busca em **Google Trends** com delay inteligente para evitar bloqueios
+    - 🛒 Verifica disponibilidade em **Shopee e Mercado Livre**
     - 📊 Calcula **score de oportunidade** para afiliados
-    - 🎯 Recomenda produtos com **maior potencial de venda**
+    - 📌 Fallback automático para produtos populares se o Trends falhar
     """)
 
     col1, col2, col3 = st.columns(3)
     with col1:
-        if st.button("🚀 Minerar Produtos em Tendência", use_container_width=True):
+        if st.button("🚀 Minerar Produtos", use_container_width=True):
             st.session_state.minerar = True
     with col2:
         st.caption("Busca em múltiplas fontes")
@@ -357,37 +325,49 @@ else:
                     
                     with col2:
                         excelentes = df_resultados[df_resultados["score"] >= 5]
-                        st.metric("Oportunidades Excelentes", len(excelentes))
+                        st.metric("🔥 Excelentes", len(excelentes))
                     
                     with col3:
                         boas = df_resultados[(df_resultados["score"] >= 3) & (df_resultados["score"] < 5)]
-                        st.metric("Boas Oportunidades", len(boas))
+                        st.metric("⭐ Boas", len(boas))
                     
                     with col4:
-                        fontes = df_resultados["fonte"].nunique()
-                        st.metric("Fontes de Dados", fontes)
+                        medias = df_resultados[df_resultados["score"] < 3]
+                        st.metric("📊 Médias", len(medias))
                     
                     st.markdown("---")
                     
                     # Tabela de produtos
                     st.markdown("### 📊 Produtos com Score de Oportunidade")
                     
-                    df_exibicao = df_resultados[["termo", "score", "recomendacao", "fonte"]].copy()
-                    df_exibicao.columns = ["Produto", "Score", "Recomendação", "Fonte"]
+                    df_exibicao = df_resultados[["termo", "categoria", "score", "recomendacao", "fonte"]].copy()
+                    df_exibicao.columns = ["Produto", "Categoria", "Score", "Recomendação", "Fonte"]
+                    
+                    # Aplica cores no score
+                    def color_score(val):
+                        if val >= 5:
+                            return 'background-color: #28a745; color: white'
+                        elif val >= 3:
+                            return 'background-color: #17a2b8; color: white'
+                        elif val >= 1:
+                            return 'background-color: #ffc107; color: black'
+                        else:
+                            return 'background-color: #dc3545; color: white'
                     
                     st.dataframe(
                         df_exibicao,
                         column_config={
                             "Produto": "Produto",
+                            "Categoria": "Categoria",
                             "Score": st.column_config.NumberColumn("Score", format="%d"),
                             "Recomendação": "Recomendação",
-                            "Fonte": "Fonte do Dado"
+                            "Fonte": "Fonte"
                         },
                         use_container_width=True
                     )
                     
                     # Detalhamento dos produtos
-                    st.markdown("### 🛒 Detalhamento por Produto")
+                    st.markdown("### 🛒 Produtos Disponíveis nas Plataformas")
                     
                     # Filtro por score
                     score_filtro = st.selectbox(
@@ -396,37 +376,65 @@ else:
                     )
                     
                     df_filtrado = df_resultados.copy()
-                    if score_filtro == "Excelente (Score ≥ 5)":
+                    if "Excelente" in score_filtro:
                         df_filtrado = df_filtrado[df_filtrado["score"] >= 5]
-                    elif score_filtro == "Boa (Score ≥ 3)":
+                    elif "Boa" in score_filtro:
                         df_filtrado = df_filtrado[df_filtrado["score"] >= 3]
-                    elif score_filtro == "Média (Score ≥ 1)":
+                    elif "Média" in score_filtro:
                         df_filtrado = df_filtrado[df_filtrado["score"] >= 1]
                     
-                    # Exibe cada produto
+                    # Exibe cada produto em cards
                     for _, row in df_filtrado.iterrows():
-                        with st.expander(f"{row['termo']} - Score: {row['score']} - {row['recomendacao']}"):
+                        with st.expander(f"📦 {row['termo']} - Score: {row['score']} - {row['recomendacao']}"):
                             col_a, col_b = st.columns([2, 1])
                             
                             with col_a:
+                                st.markdown(f"**Categoria:** {row['categoria']}")
                                 st.markdown(f"**Fonte:** {row['fonte']}")
                                 st.markdown(f"**Total de produtos encontrados:** {row['total_produtos']}")
                             
                             with col_b:
                                 st.link_button(
-                                    f"🔍 Buscar na Shopee",
+                                    "🔍 Buscar na Shopee",
                                     f"https://shopee.com.br/search?keyword={quote(row['termo'])}"
+                                )
+                                st.link_button(
+                                    "🔍 Buscar no Mercado Livre",
+                                    f"https://lista.mercadolivre.com.br/{quote(row['termo'])}"
                                 )
                             
                             # Produtos encontrados
                             if row["produtos"]:
                                 st.markdown("**Produtos disponíveis:**")
                                 for p in row["produtos"][:5]:
-                                    st.markdown(f"- {p.get('nome', 'Produto')} - {p.get('preco', '')} ({p.get('plataforma', '')})")
+                                    st.markdown(f"- **{p.get('nome', 'Produto')}**")
+                                    st.markdown(f"  💰 {p.get('preco', '')} - {p.get('plataforma', '')}")
                                     if p.get('link'):
-                                        st.caption(f"  [Link]({p['link']})")
+                                        st.markdown(f"  [🔗 Ver produto]({p['link']})")
+                                    st.markdown("---")
                             else:
                                 st.info("Nenhum produto encontrado nas plataformas")
+                    
+                    # Dicas para afiliados
+                    st.markdown("---")
+                    st.markdown("### 💡 Dicas para Afiliados")
+                    
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.info("""
+                        **🔥 Produtos com Score ≥ 5**
+                        - Crie vídeos URGENTE no TikTok/Reels
+                        - Use chamadas como "PRODUTO VIRAL!"
+                        - Poste em horários de pico (19h-22h)
+                        """)
+                    
+                    with col2:
+                        st.success("""
+                        **⭐ Produtos com Score ≥ 3**
+                        - Ótimo para posts no Instagram
+                        - Faça stories mostrando o produto
+                        - Use hashtags relacionadas
+                        """)
                     
                     st.success("✅ Mineração concluída com sucesso!")
                     
@@ -439,31 +447,17 @@ else:
                 st.error(f"Erro na mineração: {str(e)}")
                 st.session_state.minerar = False
 
-    # Configuração de chaves
-    with st.expander("⚙️ Configuração Avançada"):
-        st.markdown("### Configure suas chaves de API para melhores resultados")
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            serp_key = st.text_input("SERPAPI Key", type="password", value=SERPAPI_KEY)
-            if serp_key != SERPAPI_KEY:
-                SERPAPI_KEY = serp_key
-                st.success("Chave SERPAPI atualizada!")
-        
-        with col2:
-            st.markdown("**Dicas:**")
-            st.caption("1. Obtenha SERPAPI Key em serpapi.com")
-            st.caption("2. Free tier: 100 buscas/mês")
-            st.caption("3. Mercado Livre API é gratuita")
-            st.caption("4. Shopee é scraping (pode falhar)")
-
     st.markdown("---")
-    st.markdown("### 📌 Próximos Passos para Afiliados")
+    st.markdown("### 📌 Próximas Datas para Conteúdo")
     
-    st.info("""
-    💡 **Estratégias de conteúdo:**
-    1. **Produtos com Score ≥ 5** → Crie vídeos URGENTE no TikTok/Reels
-    2. **Produtos com Score ≥ 3** → Excelente para posts no Instagram
-    3. **Produtos Sazonais** → Prepare conteúdo com antecedência
-    4. **Múltiplas fontes** → Produto consolidado, menor risco
-    """)
+    # Calendário de datas relevantes para produtos
+    hoje = datetime.now()
+    datas_produtos = [
+        ("Dia dos Pais", "presentes masculinos, ferramentas, eletrônicos"),
+        ("Dia das Crianças", "brinquedos, jogos, material escolar"),
+        ("Black Friday", "eletrônicos, moda, promoções"),
+        ("Natal", "presentes, decoração, brinquedos")
+    ]
+    
+    for evento, dica in datas_produtos:
+        st.caption(f"📅 **{evento}** → {dica}")
