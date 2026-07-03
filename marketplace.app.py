@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from pytrends.request import TrendReq
+import feedparser
 import time
 from datetime import datetime
 from urllib.parse import quote
@@ -23,18 +23,35 @@ def validar_licenca_supabase(chave):
     return {"valido": False}
 
 
-def minerar_dados_trends():
-    """Roda o motor de busca do Google Trends"""
-    pytrends = TrendReq(hl='pt-BR', tz=180)
-    # Busca tendências de hoje no Brasil
-    df_trending = pytrends.trending_searches(pn='brazil')
-    termos = df_trending[0].tolist()
+def minerar_dados_trends(geo="BR"):
+    """Lê o feed RSS oficial do Google Trends (Trending Now) para o país informado.
 
-    # Estrutura os dados para o afiliado
+    Esse feed é público e mantido pelo próprio Google, então não sofre com as
+    quebras de API que atingiam o pytrends (biblioteca não-oficial e sem
+    manutenção desde 2025).
+    """
+    url_feed = f"https://trends.google.com/trending/rss?geo={geo}"
+    feed = feedparser.parse(url_feed)
+
+    if feed.bozo and not feed.entries:
+        # bozo=True indica falha ao interpretar o XML; sem entries, não há dado usável
+        raise ValueError("Não foi possível ler o feed do Google Trends no momento.")
+
+    termos = []
+    for entrada in feed.entries:
+        titulo = entrada.get("title", "").strip()
+        if titulo and titulo not in termos:
+            termos.append(titulo)
+
+    if not termos:
+        raise ValueError("O feed do Google Trends voltou vazio.")
+
+    termos = termos[:15]
+
     resultados = {
-        "Produto / Tendência": termos[:15],  # Traz o top 15
+        "Produto / Tendência": termos,
         "Link de Busca Shopee": [
-            f"https://shopee.com.br/search?keyword={quote(t)}" for t in termos[:15]
+            f"https://shopee.com.br/search?keyword={quote(t)}" for t in termos
         ]
     }
     return pd.DataFrame(resultados)
