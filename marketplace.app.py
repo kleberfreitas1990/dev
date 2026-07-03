@@ -210,7 +210,7 @@ def buscar_produtos_mercadolivre(termo, limite=5):
             })
         
         return produtos
-    except Exception as e:
+    except Exception:
         return []
 
 def buscar_produtos_shopee(termo, limite=5):
@@ -346,14 +346,11 @@ def buscar_produtos_em_alta_ml(categoria_id=None, limite=10):
             })
         
         return produtos
-    except Exception as e:
+    except Exception:
         return []
 
 def analisar_saturacao(total_resultados):
-    """
-    Analisa a saturação baseada no número de resultados
-    Retorna: nível de saturação, cor, recomendação
-    """
+    """Analisa a saturação baseada no número de resultados"""
     if total_resultados == 0:
         return {
             "nivel": "Sem dados",
@@ -438,9 +435,9 @@ def analisar_produto_completo(termo):
     
     # Ajusta score baseado na saturação
     if total_resultados < 50:
-        score += 2  # Bônus por baixa concorrência
+        score += 2
     elif total_resultados > 500:
-        score -= 1  # Penalidade por saturação
+        score -= 1
     
     # Gera recomendação final
     if score >= 6:
@@ -483,7 +480,7 @@ def minerar_produtos_em_alta():
                     analise["fonte"] = f"Mercado Livre - {categoria}"
                     resultados.append(analise)
         
-        time.sleep(0.5)  # Delay para não sobrecarregar
+        time.sleep(0.5)
     
     # Remove duplicatas
     resultados_unicos = {}
@@ -625,14 +622,12 @@ else:
     with tab2:
         st.markdown("### 📅 Sugestões de Conteúdo por Data")
         
-        # Busca tendências do mês atual
         tendencias_mes = buscar_tendencias_por_periodo(mes_atual, 10)
         
         if evento_hoje:
             st.info(f"🎉 **Hoje é {evento_hoje.get('nome')}!**")
             st.markdown(f"**Sugestão:** {evento_hoje.get('sugestao', '')}")
             
-            # Sugestões específicas para o evento
             st.markdown("---")
             st.markdown("### 💡 Ideias de Conteúdo")
             
@@ -675,7 +670,6 @@ else:
             st.markdown(f"### 📊 Tendências para {hoje.strftime('%B').capitalize()}")
             st.markdown("Com base no que as pessoas buscaram no mesmo mês do ano passado")
             
-            # Produtos sugeridos para o mês
             st.markdown("---")
             st.markdown("### 🎯 Produtos em Tendência para este Mês")
             
@@ -695,7 +689,6 @@ else:
             
             st.dataframe(df_mes, use_container_width=True)
             
-            # Sugestões de conteúdo para o mês
             st.markdown("---")
             st.markdown("### 💡 Sugestões de Conteúdo para o Mês")
             
@@ -711,4 +704,14 @@ else:
                 st.info(f"{i}. {sug}")
 
     # ===== TAB 3: ANÁLISE DE SATURAÇÃO =====
-    with
+    with tab3:
+        st.markdown("### 🎯 Análise de Saturação de Mercado")
+        st.markdown("""
+        Esta ferramenta analisa quantos resultados existem para um produto no Mercado Livre e Shopee.
+        **Quanto menor o número de resultados, menor a concorrência!**
+        """)
+        
+        # Buscador de saturação
+        termo_busca = st.text_input("🔍 Digite um produto para analisar:", placeholder="Ex: smartwatch, fone bluetooth...")
+        
+        if termo_busca and st.button("📊 Analisar Saturação",
