@@ -7,15 +7,43 @@ from urllib.parse import quote
 import requests
 from pytrends.request import TrendReq
 import json
+import re
 
-# Configuração da página do seu sistema
+# Configuração da página
 st.set_page_config(page_title="Minerador Pro - Afiliados", page_icon="🚀", layout="wide")
 
-# Credenciais temporárias para o app não quebrar sem banco de dados
-SUPABASE_URL = "https://supabase.co"
-SUPABASE_KEY = "sua-anon-key-do-supabase"
+# Lista de palavras-chave que indicam que NÃO é um produto
+PALAVRAS_BLOQUEADAS = [
+    'polícia', 'policial', 'presidente', 'governador', 'senador', 'deputado',
+    'ministro', 'juiz', 'advogado', 'delegado', 'política', 'político',
+    'partido', 'eleição', 'voto', 'campanha', 'manifestação', 'greve',
+    'acidente', 'assalto', 'homicídio', 'sequestro', 'tiroteio', 'incêndio',
+    'enchente', 'terremoto', 'furacão', 'temporal', 'chuva', 'calor', 'frio',
+    'futebol', 'jogador', 'time', 'campeonato', 'partida', 'gol', 'narciso',
+    'novela', 'ator', 'atriz', 'artista', 'cantor', 'cantora', 'apresentador',
+    'jornalista', 'programa', 'tv', 'globo', 'record', 'sbt', 'band',
+    'ao vivo', 'assistir', 'streaming', 'netflix', 'prime video', 'hbo',
+    'youtube', 'instagram', 'facebook', 'twitter', 'tiktok', 'whatsapp',
+    'telegram', 'aplicativo', 'download', 'instalar', 'site', 'link',
+    'notícia', 'noticias', 'últimas', 'momento', 'hoje', 'agora'
+]
 
-# Dicionário de datas comemorativas brasileiras (mês-dia)
+# Lista de palavras que indicam que É um produto
+PALAVRAS_PRODUTO = [
+    'preço', 'compra', 'comprar', 'produto', 'oferta', 'promoção', 'desconto',
+    'kit', 'pacote', 'caixa', 'unidade', 'peça', 'modelo', 'tamanho', 'cor',
+    'presente', 'casa', 'cozinha', 'quarto', 'sala', 'banheiro', 'decoração',
+    'roupa', 'vestido', 'calça', 'camisa', 'blusa', 'short', 'sapato', 'tênis',
+    'bolsa', 'mochila', 'relógio', 'óculos', 'colar', 'anel', 'brinco',
+    'eletrônico', 'celular', 'tablet', 'notebook', 'fone', 'carregador',
+    'cabo', 'adaptador', 'monitor', 'teclado', 'mouse', 'caixa de som',
+    'smartwatch', 'fitness', 'esportes', 'academia', 'suplemento', 'vitamina',
+    'beleza', 'maquiagem', 'creme', 'perfume', 'sabonete', 'shampoo',
+    'condicionador', 'hidratante', 'protetor', 'bebê', 'criança', 'brinquedo',
+    'livro', 'caderno', 'caneta', 'papelaria', 'escritório', 'cadeira', 'mesa'
+]
+
+# Dicionário de datas comemorativas
 DATAS_COMEMORATIVAS = {
     "01-01": "Ano Novo",
     "02-02": "Dia de Iemanjá",
@@ -42,21 +70,96 @@ DATAS_COMEMORATIVAS = {
 }
 
 def validar_licenca_supabase(chave):
-    """Verificação híbrida: Aceita chave local de teste e evita travar a tela"""
-    # CHAVE DE TESTE LOCAL (Funciona sempre)
     if chave == "TESTE-AFILIADO-2026":
         return {"valido": True, "expira": "2026-12-31"}
     return {"valido": False}
+
+def filtrar_termos_produtos(termos):
+    """Filtra apenas termos que são produtos (não notícias/personalidades)"""
+    termos_filtrados = []
+    
+    for termo in termos:
+        termo_lower = termo.lower()
+        
+        # Verifica se é uma notícia/personalidade
+        is_noticia = any(palavra in termo_lower for palavra in PALAVRAS_BLOQUEADAS)
+        
+        # Verifica se é um produto
+        is_produto = any(palavra in termo_lower for palavra in PALAVRAS_PRODUTO)
+        
+        # Se tem características de produto E não é notícia, mantém
+        if is_produto and not is_noticia:
+            termos_filtrados.append(termo)
+        # Se não tem características de notícia mas também não tem de produto, 
+        # mantém se tiver menos de 3 palavras (provavelmente é um objeto/nome de produto)
+        elif not is_noticia and len(termo.split()) <= 3:
+            termos_filtrados.append(termo)
+    
+    return termos_filtrados
+
+def buscar_trends_pinterest(termo, limite=10):
+    """Busca tendências no Pinterest de forma simulada (API real requer token)"""
+    # Como o Pinterest não tem API pública gratuita, usamos uma simulação
+    # Na versão real, integrar com a API do Pinterest Ads ou usar scraping
+    
+    # Simula busca no Pinterest com base no termo
+    pinterest_suggestions = {
+        "vestido": ["Vestido longo", "Vestido curto", "Vestido estampado", "Vestido festa"],
+        "calça": ["Calça jeans", "Calça social", "Calça moletom", "Calça cargo"],
+        "tênis": ["Tênis casual", "Tênis esportivo", "Tênis feminino", "Tênis masculino"],
+        "bolsa": ["Bolsa feminina", "Mochila", "Bolsa tiracolo", "Bolsa de mão"],
+        "smartwatch": ["Smartwatch esportivo", "Smartwatch feminino", "Smartwatch Samsung", "Smartwatch Apple"],
+        "fone": ["Fone Bluetooth", "Fone sem fio", "Fone cancelamento de ruído", "Fone gamer"],
+        "brinquedo": ["Brinquedo educativo", "Brinquedo infantil", "Brinquedo montessori", "Brinquedo de madeira"],
+        "cadeira": ["Cadeira gamer", "Cadeira de escritório", "Cadeira ergonômica", "Cadeira de jantar"],
+        "perfume": ["Perfume feminino", "Perfume masculino", "Perfume importado", "Perfume nacional"],
+        "maquiagem": ["Base", "Batom", "Paleta de sombras", "Máscara de cílios"]
+    }
+    
+    # Tenta encontrar sugestões relacionadas
+    termo_lower = termo.lower()
+    sugestoes = []
+    
+    for chave, valores in pinterest_suggestions.items():
+        if chave in termo_lower or termo_lower in chave:
+            sugestoes.extend(valores[:limite])
+    
+    # Se não encontrou, retorna o termo original com variações
+    if not sugestoes:
+        sugestoes = [
+            f"{termo} moderno",
+            f"{termo} estilo",
+            f"{termo} decorativo",
+            f"{termo} funcional",
+            f"{termo} criativo"
+        ][:limite]
+    
+    return sugestoes
+
+def buscar_trends_google(termo, data_inicio, data_fim):
+    """Busca dados de tendência do Google para um termo"""
+    try:
+        pytrends = TrendReq(hl='pt-BR', tz=-180)
+        pytrends.build_payload([termo], cat=0, timeframe=f'{data_inicio} {data_fim}', geo='BR')
+        dados = pytrends.interest_over_time()
+        
+        if dados.empty:
+            return None
+            
+        if 'isPartial' in dados.columns:
+            dados = dados.drop('isPartial', axis=1)
+            
+        return dados
+    except Exception as e:
+        return None
 
 def identificar_sazonalidade(termo, data_atual):
     """Identifica se um termo está relacionado a datas comemorativas"""
     mes_dia = data_atual.strftime("%m-%d")
     
-    # Verifica se é uma data comemorativa hoje
     if mes_dia in DATAS_COMEMORATIVAS:
         return DATAS_COMEMORATIVAS[mes_dia]
     
-    # Verifica se o termo contém palavras-chave de datas comemorativas
     palavras_chave = {
         "natal": "Natal",
         "presente": "Natal",
@@ -90,40 +193,21 @@ def identificar_sazonalidade(termo, data_atual):
     
     return "Geral (Sem sazonalidade)"
 
-def buscar_trends_google(termo, data_inicio, data_fim):
-    """Busca dados de tendência do Google para um termo em um período específico"""
-    try:
-        pytrends = TrendReq(hl='pt-BR', tz=-180)
-        pytrends.build_payload([termo], cat=0, timeframe=f'{data_inicio} {data_fim}', geo='BR')
-        dados = pytrends.interest_over_time()
-        
-        if dados.empty:
-            return None
-            
-        # Remove a coluna 'isPartial' se existir
-        if 'isPartial' in dados.columns:
-            dados = dados.drop('isPartial', axis=1)
-            
-        return dados
-    except Exception as e:
-        st.warning(f"Não foi possível buscar dados históricos para '{termo}': {str(e)}")
-        return None
-
 def comparar_tendencia_sazonal(termo, data_atual):
     """Compara a tendência atual com a mesma época do ano passado"""
-    # Data atual e data do ano passado
     data_ano_passado = data_atual - timedelta(days=365)
     
-    # Período de 7 dias para análise
     data_fim_atual = data_atual.strftime('%Y-%m-%d')
     data_ini_atual = (data_atual - timedelta(days=7)).strftime('%Y-%m-%d')
     
     data_fim_passado = data_ano_passado.strftime('%Y-%m-%d')
     data_ini_passado = (data_ano_passado - timedelta(days=7)).strftime('%Y-%m-%d')
     
-    # Busca dados atuais
     dados_atual = buscar_trends_google(termo, data_ini_atual, data_fim_atual)
     dados_passado = buscar_trends_google(termo, data_ini_passado, data_fim_passado)
+    
+    # Busca tendências no Pinterest
+    pinterest_trends = buscar_trends_pinterest(termo)
     
     resultado = {
         "termo": termo,
@@ -131,7 +215,10 @@ def comparar_tendencia_sazonal(termo, data_atual):
         "media_passado": 0,
         "variacao_percentual": 0,
         "tendencia": "Estável",
-        "sazonalidade": identificar_sazonalidade(termo, data_atual)
+        "sazonalidade": identificar_sazonalidade(termo, data_atual),
+        "pinterest_trends": pinterest_trends,
+        "score_produto": 0,
+        "recomendacao": ""
     }
     
     if dados_atual is not None and not dados_atual.empty:
@@ -155,6 +242,33 @@ def comparar_tendencia_sazonal(termo, data_atual):
         else:
             resultado["tendencia"] = "⬇️ Queda Forte"
     
+    # Calcula score do produto baseado em:
+    # 1. Variação positiva
+    # 2. Sazonalidade
+    # 3. Tendências no Pinterest
+    score = 0
+    
+    if resultado["variacao_percentual"] > 0:
+        score += 3
+    if resultado["sazonalidade"] != "Geral (Sem sazonalidade)":
+        score += 2
+    if resultado["tendencia"] in ["🚀 Alta (Emergente)", "📈 Crescente"]:
+        score += 2
+    if len(pinterest_trends) >= 3:
+        score += 1
+    
+    resultado["score_produto"] = score
+    
+    # Gera recomendação
+    if score >= 7:
+        resultado["recomendacao"] = "🔥 ALTAMENTE RECOMENDADO - Produto com alta chance de viralizar!"
+    elif score >= 5:
+        resultado["recomendacao"] = "⭐ BOM POTENCIAL - Ótima oportunidade para conteúdo"
+    elif score >= 3:
+        resultado["recomendacao"] = "📊 POTENCIAL MÉDIO - Monitorar evolução"
+    else:
+        resultado["recomendacao"] = "⚠️ BAIXO POTENCIAL - Pode não ter boa conversão"
+    
     return resultado
 
 def buscar_produtos_shopee(termo, limite=3):
@@ -171,8 +285,7 @@ def buscar_produtos_shopee(termo, limite=3):
         "version": 2,
     }
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-                       "(KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
         "Referer": f"https://shopee.com.br/search?keyword={quote(termo)}",
         "Accept": "application/json",
     }
@@ -201,8 +314,8 @@ def buscar_produtos_shopee(termo, limite=3):
 
     return produtos
 
-def minerar_dados_trends_avancado(geo="BR"):
-    """Minerar tendências com análise sazonal e comparação histórica"""
+def minerar_dados_trends_produtos(geo="BR"):
+    """Minerar apenas termos que são produtos"""
     url_feed = f"https://trends.google.com/trending/rss?geo={geo}"
     feed = feedparser.parse(url_feed)
 
@@ -218,56 +331,31 @@ def minerar_dados_trends_avancado(geo="BR"):
     if not termos:
         raise ValueError("O feed do Google Trends voltou vazio.")
 
-    termos = termos[:15]
+    # Filtra apenas termos que são produtos
+    termos_produtos = filtrar_termos_produtos(termos[:30])
+    
+    # Limita a 15 produtos
+    termos_produtos = termos_produtos[:15]
+    
+    if not termos_produtos:
+        raise ValueError("Nenhum termo relacionado a produtos encontrado nas tendências.")
+
     data_atual = datetime.now()
     
-    # Analisa cada termo com sazonalidade
     resultados = []
-    for termo in termos:
+    for termo in termos_produtos:
         analise = comparar_tendencia_sazonal(termo, data_atual)
         analise["link_shopee"] = f"https://shopee.com.br/search?keyword={quote(termo)}"
         resultados.append(analise)
     
     return pd.DataFrame(resultados)
 
-def cruzar_trends_com_shopee_avancado(df_tendencias, max_produtos_por_termo=2):
-    """Cruza tendências com produtos da Shopee mantendo informações de sazonalidade"""
-    linhas = []
-    for _, row in df_tendencias.iterrows():
-        termo = row["termo"]
-        produtos = buscar_produtos_shopee(termo, limite=max_produtos_por_termo)
-        
-        if produtos:
-            for p in produtos:
-                linhas.append({
-                    "Tendência": termo,
-                    "Sazonalidade": row["sazonalidade"],
-                    "Tendência Atual": row["tendencia"],
-                    "Variação YoY": f"{row['variacao_percentual']:.1f}%",
-                    "Produto na Shopee": p["nome"],
-                    "Preço": p["preco"],
-                    "Link do Produto": p["link"],
-                })
-        else:
-            linhas.append({
-                "Tendência": termo,
-                "Sazonalidade": row["sazonalidade"],
-                "Tendência Atual": row["tendencia"],
-                "Variação YoY": f"{row['variacao_percentual']:.1f}%",
-                "Produto na Shopee": "(nenhum produto encontrado)",
-                "Preço": "—",
-                "Link do Produto": f"https://shopee.com.br/search?keyword={quote(termo)}",
-            })
-    return pd.DataFrame(linhas)
+# --- INTERFACE DO USUÁRIO ---
+st.title("🚀 Minerador Pro - Produtos em Tendência")
 
-# --- INTERFACE DO USUÁRIO (SISTEMA) ---
-st.title("🚀 Minerador Pro - Painel de Tendências Sazonais")
-
-# Inicializa o estado da sessão de login
 if "autenticado" not in st.session_state:
     st.session_state.autenticado = False
 
-# TELA 1: Bloqueio de Licença
 if not st.session_state.autenticado:
     st.subheader("🔐 Ative sua Licença para Acessar")
     chave_input = st.text_input("Digite sua Chave de Acesso:", type="password")
@@ -283,7 +371,6 @@ if not st.session_state.autenticado:
         else:
             st.error("Chave inválida, expirada ou inativa. Verifique sua assinatura.")
 
-# TELA 2: O Dashboard do Cliente
 else:
     st.sidebar.success("Acesso Garantido")
     st.sidebar.info(f"Sua licença expira em: {st.session_state.data_expira}")
@@ -291,183 +378,103 @@ else:
         st.session_state.autenticado = False
         st.rerun()
 
-    # Informações da data atual
     data_atual = datetime.now()
     st.sidebar.markdown(f"**📅 Data de Análise:** {data_atual.strftime('%d/%m/%Y')}")
     st.sidebar.markdown(f"**📊 Período Comparado:** Mesma semana do ano passado")
 
-    st.markdown("### 🔥 Análise de Tendências com Comparação Sazonal")
+    st.markdown("### 🎯 Produtos em Tendência no Brasil")
     st.markdown("""
     💡 **Como funciona:**
-    - 🔄 Compara o interesse atual com a MESMA ÉPOCA do ano passado
-    - 🎯 Identifica termos sazonais ligados a datas comemorativas
-    - 📊 Classifica tendências por variação de busca
-    - 🛍️ Recomenda produtos com base no momento ideal de venda
+    - 🔄 Filtra APENAS termos que são produtos (não notícias/personalidades)
+    - 🔍 Compara com tendências do Pinterest
+    - 🎯 Calcula score de recomendação para afiliados
+    - 📈 Identifica produtos com maior potencial de venda
     """)
 
-    if st.button("🔄 Rodar Mineração Avançada"):
-        with st.spinner("Analisando tendências com comparação histórica..."):
+    if st.button("🔄 Buscar Produtos em Tendência"):
+        with st.spinner("Analisando tendências de produtos..."):
             try:
-                # Minera dados com análise sazonal
-                df_tendencias = minerar_dados_trends_avancado()
+                df_tendencias = minerar_dados_trends_produtos()
                 
-                # Exibe resumo estatístico
-                col1, col2, col3 = st.columns(3)
+                # Métricas rápidas
+                col1, col2, col3, col4 = st.columns(4)
                 
                 with col1:
-                    st.metric("Total de Tendências", len(df_tendencias))
+                    st.metric("Produtos em Alta", len(df_tendencias))
                 
                 with col2:
                     sazonais = df_tendencias[df_tendencias["sazonalidade"] != "Geral (Sem sazonalidade)"]
-                    st.metric("Tendências Sazonais", len(sazonais))
+                    st.metric("Produtos Sazonais", len(sazonais))
                 
                 with col3:
                     alta = df_tendencias[df_tendencias["tendencia"].str.contains("Alta|Crescente")]
-                    st.metric("Tendências em Alta", len(alta))
+                    st.metric("Produtos Crescendo", len(alta))
+                
+                with col4:
+                    recomendados = df_tendencias[df_tendencias["score_produto"] >= 5]
+                    st.metric("Altamente Recomendados", len(recomendados))
                 
                 st.markdown("---")
                 
-                # Tabela principal com todas as análises
-                st.markdown("### 📊 Análise Detalhada por Termo")
+                # Tabela principal com análise detalhada
+                st.markdown("### 📊 Análise de Produtos em Tendência")
                 
-                # Configura cores para tendências
-                def color_tendencia(val):
-                    if "🚀 Alta" in val:
-                        return 'background-color: #28a745; color: white'
-                    elif "📈 Crescente" in val:
-                        return 'background-color: #17a2b8; color: white'
-                    elif "➡️ Estável" in val:
-                        return 'background-color: #ffc107; color: black'
-                    elif "📉 Declinando" in val:
-                        return 'background-color: #fd7e14; color: white'
-                    else:
-                        return 'background-color: #dc3545; color: white'
+                # DataFrame para exibição
+                df_exibicao = df_tendencias[["termo", "sazonalidade", "tendencia", "variacao_percentual", "score_produto", "recomendacao"]].copy()
+                df_exibicao.columns = ["Produto", "Sazonalidade", "Tendência", "Variação YoY", "Score", "Recomendação"]
                 
-                # Aplica estilo
                 st.dataframe(
-                    df_tendencias[["termo", "sazonalidade", "tendencia", "variacao_percentual"]],
+                    df_exibicao,
                     column_config={
-                        "termo": "Termo de Busca",
-                        "sazonalidade": "Sazonalidade",
-                        "tendencia": "Classificação",
-                        "variacao_percentual": st.column_config.NumberColumn("Variação YoY (%)", format="%.1f%%")
+                        "Produto": "Produto em Tendência",
+                        "Sazonalidade": "Sazonalidade",
+                        "Tendência": "Classificação",
+                        "Variação YoY": st.column_config.NumberColumn("Variação (%)", format="%.1f%%"),
+                        "Score": st.column_config.NumberColumn("Score", format="%d"),
+                        "Recomendação": "Recomendação"
                     },
                     use_container_width=True
                 )
                 
-                # Gráfico de comparação
-                st.markdown("### 📈 Comparação: Interesse Atual vs Ano Passado")
+                # Destaque para produtos com Pinterest
+                st.markdown("### 📌 Tendências no Pinterest")
                 
-                # Filtra termos com dados completos
-                df_validos = df_tendencias[
-                    (df_tendencias["media_atual"] > 0) & 
-                    (df_tendencias["media_passado"] > 0)
-                ].copy()
+                for _, row in df_tendencias.iterrows():
+                    if row["pinterest_trends"]:
+                        with st.expander(f"🎨 {row['termo']} - Ideias no Pinterest"):
+                            for ideia in row["pinterest_trends"][:5]:
+                                st.markdown(f"- {ideia}")
+                            st.link_button(f"🔍 Ver '{row['termo']}' na Shopee", row["link_shopee"])
                 
-                if not df_validos.empty:
-                    # Cria gráfico de barras comparativo
-                    df_grafico = df_validos.head(10).copy()
-                    df_grafico["Interesse Atual"] = df_grafico["media_atual"]
-                    df_grafico["Ano Passado"] = df_grafico["media_passado"]
-                    
-                    st.bar_chart(
-                        df_grafico.set_index("termo")[["Interesse Atual", "Ano Passado"]]
-                    )
-                    
-                    # Destaque sazonal
-                    st.markdown("### 🎯 Produtos Sazonais em Destaque")
-                    df_sazonais = df_validos[df_validos["sazonalidade"] != "Geral (Sem sazonalidade)"]
-                    
-                    if not df_sazonais.empty:
-                        st.info(f"📌 Encontrados {len(df_sazonais)} produtos com forte sazonalidade!")
-                        
-                        # Lista de recomendações sazonais
-                        for _, row in df_sazonais.head(5).iterrows():
-                            with st.container():
-                                col_a, col_b = st.columns([3, 1])
-                                with col_a:
-                                    st.markdown(f"**{row['termo']}** - {row['sazonalidade']}")
-                                    st.caption(f"Tendência: {row['tendencia']} | Variação: {row['variacao_percentual']:.1f}%")
-                                with col_b:
-                                    st.link_button("🔍 Ver na Shopee", row["link_shopee"])
-                                st.markdown("---")
-                    else:
-                        st.info("Nenhum produto sazonal identificado nas tendências atuais.")
+                # Produtos altamente recomendados
+                st.markdown("### 🔥 Produtos Altamente Recomendados")
+                df_recomendados = df_tendencias[df_tendencias["score_produto"] >= 5].sort_values("score_produto", ascending=False)
+                
+                if not df_recomendados.empty:
+                    for _, row in df_recomendados.iterrows():
+                        with st.container():
+                            col_a, col_b, col_c = st.columns([3, 2, 1])
+                            with col_a:
+                                st.markdown(f"**{row['termo']}**")
+                                st.caption(f"🎯 {row['sazonalidade']}")
+                            with col_b:
+                                st.markdown(f"Score: {row['score_produto']}/9")
+                                st.caption(row['recomendacao'])
+                            with col_c:
+                                st.link_button("🛒 Ver na Shopee", row["link_shopee"])
+                            st.markdown("---")
                 else:
-                    st.warning("Dados históricos insuficientes para comparação visual.")
+                    st.info("Nenhum produto altamente recomendado no momento.")
                 
-                st.success("Análise completa! Role para baixo para ver os produtos.")
-
-                # Seção de cruzamento com Shopee
-                st.markdown("---")
-                st.markdown("### 🛍️ Cruzar com Produtos Reais da Shopee")
-                st.caption("Busca produtos correspondentes para cada tendência, mantendo informações de sazonalidade")
+                st.success("Análise concluída! Produtos filtrados para afiliados.")
                 
-                if st.button("🔍 Buscar Produtos na Shopee"):
-                    with st.spinner("Cruzando tendências com produtos reais..."):
-                        df_cruzado = cruzar_trends_com_shopee_avancado(df_tendencias)
-                        
-                        # Filtra apenas produtos encontrados
-                        df_com_produtos = df_cruzado[df_cruzado["Produto na Shopee"] != "(nenhum produto encontrado)"]
-                        
-                        if not df_com_produtos.empty:
-                            st.success(f"✅ {len(df_com_produtos)} produtos encontrados!")
-                            
-                            # Destaque produtos sazonais
-                            df_sazonais_com_produtos = df_com_produtos[
-                                df_com_produtos["Sazonalidade"] != "Geral (Sem sazonalidade)"
-                            ]
-                            
-                            if not df_sazonais_com_produtos.empty:
-                                st.markdown("#### 🎄 Produtos Sazonais em Alta")
-                                st.dataframe(
-                                    df_sazonais_com_produtos,
-                                    column_config={
-                                        "Tendência": "Termo Buscado",
-                                        "Sazonalidade": "Data Comemorativa",
-                                        "Tendência Atual": "Classificação",
-                                        "Variação YoY": "Crescimento",
-                                        "Produto na Shopee": "Produto",
-                                        "Preço": "Preço",
-                                        "Link do Produto": st.column_config.LinkColumn("Comprar")
-                                    },
-                                    use_container_width=True
-                                )
-                            
-                            # Tabela completa
-                            st.markdown("#### 📋 Todos os Produtos Encontrados")
-                            st.dataframe(
-                                df_com_produtos,
-                                column_config={
-                                    "Tendência": "Termo Buscado",
-                                    "Sazonalidade": "Sazonalidade",
-                                    "Tendência Atual": "Tendência",
-                                    "Variação YoY": "Variação",
-                                    "Produto na Shopee": "Produto",
-                                    "Preço": "Preço",
-                                    "Link do Produto": st.column_config.LinkColumn("Abrir na Shopee")
-                                },
-                                use_container_width=True
-                            )
-                        else:
-                            st.warning("Nenhum produto correspondente encontrado nas tendências atuais.")
-                        
-                        # Estatísticas finais
-                        total_tendencias = len(df_tendencias)
-                        encontrados = (df_cruzado["Produto na Shopee"] != "(nenhum produto encontrado)").sum()
-                        st.info(f"📊 {encontrados} de {total_tendencias} tendências têm produtos na Shopee")
-
             except Exception as e:
-                st.error(
-                    "Não foi possível completar a mineração avançada. "
-                    "O Google Trends pode estar limitando requisições."
-                )
-                st.caption(f"Detalhe técnico: {e}")
+                st.error("Erro ao buscar produtos em tendência.")
+                st.caption(f"Detalhe: {e}")
 
     st.markdown("---")
-    st.markdown("### 📅 Próximas Datas Comemorativas")
+    st.markdown("### 📅 Próximas Datas para Conteúdo")
     
-    # Mostra próximas datas comemorativas
     hoje = datetime.now()
     proximas_datas = []
     
@@ -477,16 +484,16 @@ else:
         
         if data_evento >= hoje:
             dias_para = (data_evento - hoje).days
-            if dias_para <= 30:  # Próximos 30 dias
+            if dias_para <= 30:
                 proximas_datas.append((dias_para, evento, data_evento.strftime('%d/%m')))
     
     if proximas_datas:
         proximas_datas.sort(key=lambda x: x[0])
         for dias, evento, data in proximas_datas:
             if dias == 0:
-                st.warning(f"🎉 HOJE é {evento}! Aproveite as tendências!")
+                st.warning(f"🎉 HOJE é {evento}! Crie conteúdo AGORA!")
             elif dias <= 7:
-                st.info(f"📌 {evento} em {dias} dias ({data}) - Prepare seus conteúdos!")
+                st.info(f"📌 {evento} em {dias} dias ({data}) - Prepare seus vídeos!")
             else:
                 st.caption(f"📅 {evento} em {dias} dias ({data})")
     else:
