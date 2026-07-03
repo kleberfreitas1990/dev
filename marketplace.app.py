@@ -381,190 +381,195 @@ verificar_login()
 st.title("🛒 Minerador de Produtos - Afiliados")
 st.caption("Encontre produtos em alta com baixa concorrência")
 
-tab1, tab2, tab3, tab4 = st.tabs([
-    "🔥 Em Alta Agora",
-    "📅 Sugestões por Data",
-    "🎯 Análise de Saturação",
-    "🛍️ Minerador Pro",
-])
+if "buscar_tudo" not in st.session_state:
+    st.session_state.buscar_tudo = False
 
-# ===== TAB 1: EM ALTA AGORA =====
-with tab1:
-    st.markdown("### 🔥 Produtos em Alta Agora")
-    st.caption("Baseado em categorias de destaque do mês, via Mercado Livre.")
+if st.button("🔍 Buscar Tudo", type="primary"):
+    st.session_state.buscar_tudo = True
 
-    if st.button("🔄 Buscar Produtos em Alta"):
-        with st.spinner("Minerando produtos..."):
-            produtos_alta = minerar_produtos_em_alta()
+st.markdown("---")
 
-        if produtos_alta:
-            for p in produtos_alta:
-                with st.container(border=True):
-                    c1, c2 = st.columns([3, 1])
-                    with c1:
-                        st.markdown(f"**{p.get('nome', '')}**")
-                        st.caption(f"Termo: {p.get('termo_busca', '')}")
-                        st.markdown(f"💰 {p.get('preco', '')} | 📦 {p.get('vendas', 0)} vendidos")
-                    with c2:
-                        if p.get("link"):
-                            st.link_button("Ver produto", p["link"], width='stretch')
-        else:
-            st.warning("Não foi possível buscar produtos agora. Tente novamente em instantes.")
+# ===== SEÇÃO 1: EM ALTA AGORA =====
+st.markdown("## 🔥 Em Alta Agora")
+st.caption("Baseado em categorias de destaque do mês, via Mercado Livre.")
 
-# ===== TAB 2: SUGESTÕES POR DATA =====
-with tab2:
-    st.markdown("### 📅 Sugestões por Data")
+if st.session_state.buscar_tudo:
+    with st.spinner("Minerando produtos..."):
+        produtos_alta = minerar_produtos_em_alta()
 
-    mes_atual = datetime.now().month
-    evento = verificar_data_comemorativa(datetime.now().month, datetime.now().day)
-
-    if evento:
-        st.success(f"🎉 Data comemorativa próxima: **{evento}**")
+    if produtos_alta:
+        for p in produtos_alta:
+            with st.container(border=True):
+                c1, c2 = st.columns([3, 1])
+                with c1:
+                    st.markdown(f"**{p.get('nome', '')}**")
+                    st.caption(f"Termo: {p.get('termo_busca', '')}")
+                    st.markdown(f"💰 {p.get('preco', '')} | 📦 {p.get('vendas', 0)} vendidos")
+                with c2:
+                    if p.get("link"):
+                        st.link_button("Ver produto", p["link"], width='stretch')
     else:
-        st.info("Nenhuma data comemorativa nos próximos 7 dias.")
+        st.warning("Não foi possível buscar produtos agora. Tente novamente em instantes.")
+else:
+    st.info("Clique em **'Buscar Tudo'** para ver os produtos em alta.")
 
-    tendencias = buscar_tendencias_por_periodo(mes_atual)
+st.markdown("---")
 
-    st.markdown("#### 📈 Categorias em destaque este mês")
-    for t in tendencias:
-        st.markdown(f"- {t}")
+# ===== SEÇÃO 2: SUGESTÕES POR DATA =====
+st.markdown("## 📅 Sugestões por Data")
+
+mes_atual = datetime.now().month
+evento = verificar_data_comemorativa(datetime.now().month, datetime.now().day)
+
+if evento:
+    st.success(f"🎉 Data comemorativa próxima: **{evento}**")
+else:
+    st.info("Nenhuma data comemorativa nos próximos 7 dias.")
+
+tendencias = buscar_tendencias_por_periodo(mes_atual)
+
+st.markdown("#### 📈 Categorias em destaque este mês")
+for t in tendencias:
+    st.markdown(f"- {t}")
+
+st.markdown("---")
+st.markdown("#### 💡 Sugestões de conteúdo")
+for s in gerar_sugestoes_conteudo(evento, tendencias):
+    st.markdown(f"- {s}")
+
+st.markdown("---")
+
+# ===== SEÇÃO 3: ANÁLISE DE SATURAÇÃO =====
+st.markdown("## 🎯 Análise de Saturação de Mercado")
+st.caption("Quanto menor o número de resultados, menor a concorrência!")
+
+termo_busca = st.text_input("🔍 Digite um produto:", placeholder="Ex: smartwatch, fone bluetooth...")
+
+if termo_busca and st.button("📊 Analisar Saturação"):
+    with st.spinner(f"Analisando '{termo_busca}'..."):
+        total_ml = buscar_total_resultados_ml(termo_busca)
+        total_shopee = buscar_total_resultados_shopee(termo_busca)
+        total = total_ml + total_shopee
+        saturacao = analisar_saturacao(total)
+        produtos_ml = buscar_produtos_mercadolivre(termo_busca, 3)
+        produtos_shopee = buscar_produtos_shopee(termo_busca, 3)
+
+        c1, c2, c3 = st.columns(3)
+        c1.metric("🔵 ML", f"{total_ml}")
+        c2.metric("🟠 Shopee", f"{total_shopee}")
+        c3.metric("📊 Total", f"{total}")
+
+        st.markdown("---")
+
+        cores = [
+            (total < 50, st.success, "✅"),
+            (total < 200, st.info, "📊"),
+            (total < 500, st.warning, "⚠️"),
+            (True, st.error, "🚨"),
+        ]
+        for cond, func, icon in cores:
+            if cond:
+                func(f"{icon} **{saturacao['nivel']}**")
+                func(f"💡 {saturacao['recomendacao']}")
+                break
+
+        st.markdown("---")
+
+        c1, c2 = st.columns(2)
+
+        def mostrar_produtos(col, produtos, nome, emoji):
+            col.markdown(f"#### {emoji} {nome}")
+            if produtos:
+                for p in produtos[:3]:
+                    col.markdown(f"- **{p.get('nome', '')}**")
+                    col.markdown(f"  💰 {p.get('preco', '')} | 📦 {p.get('vendas', 0)} vendidos")
+                    if p.get("link"):
+                        col.markdown(f"  [🔗 Ver]({p['link']})")
+                    col.markdown("")
+            else:
+                col.info(f"Nenhum produto no {nome}")
+
+        mostrar_produtos(c1, produtos_ml, "Mercado Livre", "🔵")
+        mostrar_produtos(c2, produtos_shopee, "Shopee", "🟠")
+
+        st.markdown("---")
+        c1, c2 = st.columns(2)
+        c1.link_button("🔍 ML", f"https://lista.mercadolivre.com.br/{quote(termo_busca)}", width='stretch')
+        c2.link_button("🔍 Shopee", f"https://shopee.com.br/search?keyword={quote(termo_busca)}", width='stretch')
+
+st.markdown("---")
+
+# ===== SEÇÃO 4: MINERADOR PRO =====
+st.markdown("## 🛍️ Minerador Pro - Oportunidades para Afiliados")
+st.markdown("### 🎯 Encontre Produtos com Baixa Concorrência e Alto Potencial")
+
+with st.expander("🔍 Metodologia de Análise"):
+    st.markdown("""
+    - 🔵 Busca produtos e volume de resultados no **Mercado Livre**
+    - 📊 Calcula a **saturação do mercado** (quanto menor, melhor)
+    - 📈 Analisa a **média de vendas** dos produtos encontrados
+    - ⭐ Gera um **Score de Oportunidade** combinando os dois fatores
+
+    **O que significa cada métrica:**
+    - **Score de Oportunidade**: de 0 a 10, quanto maior, melhor para afiliados
+    - **Saturação (%)**: proporção de concorrência no Mercado Livre (menor = melhor)
+    - **Vendas Médias**: quantidade média de vendas já registradas nos produtos encontrados
+    - **Recomendação**: leitura consolidada do score
+
+    ⚠️ *A Shopee não oferece API pública e costuma bloquear buscas automatizadas,
+    por isso esta análise usa apenas dados do Mercado Livre — para não repetir o problema
+    de métricas quebradas (100% de saturação, 0 vendas) quando a Shopee está indisponível.*
+    """)
+
+if st.session_state.buscar_tudo:
+    with st.spinner("Analisando produtos..."):
+        resultados = [
+            analisar_oportunidade_termo(termo, categoria)
+            for termo, categoria in CATEGORIAS_TERMOS.items()
+        ]
+
+    df = pd.DataFrame(resultados).sort_values("Score", ascending=False).reset_index(drop=True)
 
     st.markdown("---")
-    st.markdown("#### 💡 Sugestões de conteúdo")
-    for s in gerar_sugestoes_conteudo(evento, tendencias):
-        st.markdown(f"- {s}")
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("📦 Produtos Analisados", len(df))
+    c2.metric("🚀 Oportunidades Excelentes", int((df["Score"] >= 8).sum()))
+    c3.metric("⭐ Boas Oportunidades", int(((df["Score"] >= 6) & (df["Score"] < 8)).sum()))
+    c4.metric("🎯 Baixa Concorrência", int((df["Saturação (%)"] < 30).sum()))
 
-# ===== TAB 3: ANÁLISE DE SATURAÇÃO =====
-with tab3:
-    st.markdown("### 🎯 Análise de Saturação de Mercado")
-    st.caption("Quanto menor o número de resultados, menor a concorrência!")
+    st.markdown("---")
+    st.markdown("### 📊 Oportunidades por Score")
+    st.dataframe(df, width='stretch', hide_index=True)
 
-    termo_busca = st.text_input("🔍 Digite um produto:", placeholder="Ex: smartwatch, fone bluetooth...")
-
-    if termo_busca and st.button("📊 Analisar Saturação"):
-        with st.spinner(f"Analisando '{termo_busca}'..."):
-            total_ml = buscar_total_resultados_ml(termo_busca)
-            total_shopee = buscar_total_resultados_shopee(termo_busca)
-            total = total_ml + total_shopee
-            saturacao = analisar_saturacao(total)
-            produtos_ml = buscar_produtos_mercadolivre(termo_busca, 3)
-            produtos_shopee = buscar_produtos_shopee(termo_busca, 3)
-
-            c1, c2, c3 = st.columns(3)
-            c1.metric("🔵 ML", f"{total_ml}")
-            c2.metric("🟠 Shopee", f"{total_shopee}")
-            c3.metric("📊 Total", f"{total}")
-
-            st.markdown("---")
-
-            cores = [
-                (total < 50, st.success, "✅"),
-                (total < 200, st.info, "📊"),
-                (total < 500, st.warning, "⚠️"),
-                (True, st.error, "🚨"),
-            ]
-            for cond, func, icon in cores:
-                if cond:
-                    func(f"{icon} **{saturacao['nivel']}**")
-                    func(f"💡 {saturacao['recomendacao']}")
-                    break
-
-            st.markdown("---")
-
-            c1, c2 = st.columns(2)
-
-            def mostrar_produtos(col, produtos, nome, emoji):
-                col.markdown(f"#### {emoji} {nome}")
-                if produtos:
-                    for p in produtos[:3]:
-                        col.markdown(f"- **{p.get('nome', '')}**")
-                        col.markdown(f"  💰 {p.get('preco', '')} | 📦 {p.get('vendas', 0)} vendidos")
-                        if p.get("link"):
-                            col.markdown(f"  [🔗 Ver]({p['link']})")
-                        col.markdown("")
-                else:
-                    col.info(f"Nenhum produto no {nome}")
-
-            mostrar_produtos(c1, produtos_ml, "Mercado Livre", "🔵")
-            mostrar_produtos(c2, produtos_shopee, "Shopee", "🟠")
-
-            st.markdown("---")
-            c1, c2 = st.columns(2)
-            c1.link_button("🔍 ML", f"https://lista.mercadolivre.com.br/{quote(termo_busca)}", width='stretch')
-            c2.link_button("🔍 Shopee", f"https://shopee.com.br/search?keyword={quote(termo_busca)}", width='stretch')
-
-# ===== TAB 4: MINERADOR PRO =====
-with tab4:
-    st.markdown("## 🛍️ Minerador Pro - Oportunidades para Afiliados")
-    st.markdown("### 🎯 Encontre Produtos com Baixa Concorrência e Alto Potencial")
-
-    with st.expander("🔍 Metodologia de Análise"):
-        st.markdown("""
-        - 🔵 Busca produtos e volume de resultados no **Mercado Livre**
-        - 📊 Calcula a **saturação do mercado** (quanto menor, melhor)
-        - 📈 Analisa a **média de vendas** dos produtos encontrados
-        - ⭐ Gera um **Score de Oportunidade** combinando os dois fatores
-
-        **O que significa cada métrica:**
-        - **Score de Oportunidade**: de 0 a 10, quanto maior, melhor para afiliados
-        - **Saturação (%)**: proporção de concorrência no Mercado Livre (menor = melhor)
-        - **Vendas Médias**: quantidade média de vendas já registradas nos produtos encontrados
-        - **Recomendação**: leitura consolidada do score
-
-        ⚠️ *A Shopee não oferece API pública e costuma bloquear buscas automatizadas,
-        por isso esta análise usa apenas dados do Mercado Livre — para não repetir o problema
-        de métricas quebradas (100% de saturação, 0 vendas) quando a Shopee está indisponível.*
-        """)
-
-    if st.button("🚀 Buscar Oportunidades"):
-        with st.spinner("Analisando produtos..."):
-            resultados = [
-                analisar_oportunidade_termo(termo, categoria)
-                for termo, categoria in CATEGORIAS_TERMOS.items()
-            ]
-
-        df = pd.DataFrame(resultados).sort_values("Score", ascending=False).reset_index(drop=True)
-
-        st.markdown("---")
-        c1, c2, c3, c4 = st.columns(4)
-        c1.metric("📦 Produtos Analisados", len(df))
-        c2.metric("🚀 Oportunidades Excelentes", int((df["Score"] >= 8).sum()))
-        c3.metric("⭐ Boas Oportunidades", int(((df["Score"] >= 6) & (df["Score"] < 8)).sum()))
-        c4.metric("🎯 Baixa Concorrência", int((df["Saturação (%)"] < 30).sum()))
-
-        st.markdown("---")
-        st.markdown("### 📊 Oportunidades por Score")
-        st.dataframe(df, width='stretch', hide_index=True)
-
-        st.markdown("---")
-        st.markdown("### 💡 Estratégia para Afiliados")
-        col1, col2 = st.columns(2)
-        with col1:
-            st.success(
-                "**🎯 Oportunidades Excelentes (Score ≥ 8)**\n\n"
-                "- ✅ Baixa concorrência\n"
-                "- ✅ Produto já validado (vendas consistentes)\n"
-                "- ✅ Boa margem para conteúdo de nicho\n\n"
-                "**Ação:** crie conteúdo com urgência!"
-            )
-        with col2:
-            st.info(
-                "**⭐ Boas Oportunidades (Score ≥ 6)**\n\n"
-                "- ⚠️ Concorrência moderada\n"
-                "- 📈 Produto com potencial de crescimento\n\n"
-                "**Ação:** analise a concorrência e crie conteúdo diferenciado"
-            )
-
-        st.success("✅ Análise concluída! Foque nos produtos com maior score e menor saturação.")
-
-        st.markdown("---")
-        st.markdown("### 📌 Dica: Como usar essa análise")
-        st.info(
-            "**Estratégia para maximizar suas vendas:**\n\n"
-            "1. 🎯 Foque em produtos com Score ≥ 8 e baixa saturação\n"
-            "2. 📈 Crie conteúdo mostrando o produto de forma autêntica\n"
-            "3. 🔄 Teste diferentes produtos para ver qual converte melhor\n"
-            "4. 🚀 Seja rápido — produtos com alto potencial atraem concorrentes rápido"
+    st.markdown("---")
+    st.markdown("### 💡 Estratégia para Afiliados")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.success(
+            "**🎯 Oportunidades Excelentes (Score ≥ 8)**\n\n"
+            "- ✅ Baixa concorrência\n"
+            "- ✅ Produto já validado (vendas consistentes)\n"
+            "- ✅ Boa margem para conteúdo de nicho\n\n"
+            "**Ação:** crie conteúdo com urgência!"
         )
-    else:
-        st.info("Clique em **'Buscar Oportunidades'** para iniciar a análise.")
+    with col2:
+        st.info(
+            "**⭐ Boas Oportunidades (Score ≥ 6)**\n\n"
+            "- ⚠️ Concorrência moderada\n"
+            "- 📈 Produto com potencial de crescimento\n\n"
+            "**Ação:** analise a concorrência e crie conteúdo diferenciado"
+        )
+
+    st.success("✅ Análise concluída! Foque nos produtos com maior score e menor saturação.")
+
+    st.markdown("---")
+    st.markdown("### 📌 Dica: Como usar essa análise")
+    st.info(
+        "**Estratégia para maximizar suas vendas:**\n\n"
+        "1. 🎯 Foque em produtos com Score ≥ 8 e baixa saturação\n"
+        "2. 📈 Crie conteúdo mostrando o produto de forma autêntica\n"
+        "3. 🔄 Teste diferentes produtos para ver qual converte melhor\n"
+        "4. 🚀 Seja rápido — produtos com alto potencial atraem concorrentes rápido"
+    )
+else:
+    st.info("Clique em **'Buscar Tudo'** para iniciar a análise do Minerador Pro.")
