@@ -271,7 +271,7 @@ def buscar_produtos_shopee(termo, limite=5):
         shopid = info.get("shopid")
         if not nome or not itemid or not shopid:
             continue
-        preco = f"R$ {preco_centavos / 100000:.2f}" if preco_centavos else "—"
+        preco = f"R$ {preco_centavos / 100000:.2f}" if preco_centavos else "-"
         link = f"https://shopee.com.br/product/{shopid}/{itemid}"
         produtos.append({
             "nome": nome[:60],
@@ -309,25 +309,21 @@ def buscar_produtos_em_alta_ml(categoria_id, limite=5):
                 if len(termo) > 3:
                     termos.append(termo)
         
-        return list(set(termos))[:3]  # Remove duplicatas
+        return list(set(termos))[:3]
     except Exception:
         return []
 
 # ===== FUNÇÕES DE ANÁLISE =====
 def get_mes_atual():
-    """Retorna o mês atual em formato MM"""
     return datetime.now().strftime("%m")
 
 def get_dia_atual():
-    """Retorna o dia atual em formato DD"""
     return datetime.now().strftime("%d")
 
 def get_dados_historicos_mes(mes):
-    """Retorna dados históricos para o mês especificado"""
     return DADOS_HISTORICOS.get(mes, DADOS_HISTORICOS["01"])
 
 def verificar_data_comemorativa(mes, dia):
-    """Verifica se hoje tem data comemorativa no banco histórico"""
     dados_mes = get_dados_historicos_mes(mes)
     data_atual = f"{mes}-{dia}"
     
@@ -337,11 +333,9 @@ def verificar_data_comemorativa(mes, dia):
     return None
 
 def buscar_tendencias_por_periodo(mes, limite=10):
-    """Busca tendências históricas para um determinado mês"""
     dados_mes = get_dados_historicos_mes(mes)
     tendencias = dados_mes.get("tendencias", [])
     
-    # Se não tiver dados, usa fallback
     if not tendencias:
         tendencias = [
             "smartwatch", "fone bluetooth", "caixa de som", "carregador portátil",
@@ -352,15 +346,11 @@ def buscar_tendencias_por_periodo(mes, limite=10):
     return tendencias[:limite]
 
 def analisar_produto_para_data(termo, data_tipo="historica"):
-    """
-    Analisa produto com base em dados históricos ou atuais
-    """
     produtos_ml = buscar_produtos_mercadolivre(termo, 3)
     produtos_shopee = buscar_produtos_shopee(termo, 3)
     
     total_produtos = len(produtos_ml) + len(produtos_shopee)
     
-    # Score baseado em disponibilidade
     score = 0
     if produtos_ml:
         score += 2
@@ -387,23 +377,19 @@ def analisar_produto_para_data(termo, data_tipo="historica"):
     }
 
 def gerar_sugestoes_conteudo(evento, tendencias):
-    """Gera sugestões de conteúdo com base no evento e tendências"""
     sugestoes = []
-    
-    # Sugestões baseadas no evento
     nome_evento = evento.get("nome", "")
-    sugestao_base = evento.get("sugestao", "")
     
     if "Dia dos Namorados" in nome_evento:
         sugestoes = [
-            "💝 Faça vídeo 'O que comprar para o Dia dos Namorados por R$100'",
+            "💝 Faça video 'O que comprar para o Dia dos Namorados por R$100'",
             "🎁 Crie uma lista dos 10 melhores presentes românticos",
             "📦 Mostre unboxing de kits de presente",
             "👗 Dicas de look para um jantar romântico"
         ]
     elif "Dia das Mães" in nome_evento:
         sugestoes = [
-            "👩 Faça um vídeo 'Presentes para mães que são úteis e baratos'",
+            "👩 Faça um video 'Presentes para mães que são úteis e baratos'",
             "🎯 Mostre sugestões por faixa de preço: R$50, R$100, R$200",
             "📦 Unboxing de kits de beleza e perfumes",
             "🏠 Ideias de presentes DIY (faça você mesmo)"
@@ -437,31 +423,27 @@ def gerar_sugestoes_conteudo(evento, tendencias):
             "🎵 Caixas de som e acessórios para festas"
         ]
     else:
-        # Sugestões genéricas
         sugestoes = [
-            f"📸 Faça vídeo mostrando os produtos em tendência para {nome_evento}",
+            f"📸 Faça video mostrando os produtos em tendência para {nome_evento}",
             f"📊 Crie conteúdo mostrando 'O que comprar' para {nome_evento}",
             f"💡 Dicas de presentes/presentes para {nome_evento}",
             f"🛍️ Lista de itens essenciais para {nome_evento}"
         ]
     
-    # Adiciona sugestões baseadas nas tendências do mês
-    if tendencias:
-        if len(tendencias) >= 3:
-            sugestoes.append(f"🎯 3 produtos que estão em alta neste mês: {', '.join(tendencias[:3])}")
+    if tendencias and len(tendencias) >= 3:
+        sugestoes.append(f"🎯 3 produtos que estão em alta neste mês: {', '.join(tendencias[:3])}")
     
     return sugestoes
 
 def buscar_tendencias_atuais_ml():
-    """Busca tendências atuais no Mercado Livre"""
     todos_termos = []
     
     for categoria, categoria_id in CATEGORIAS_ML.items():
         termos = buscar_produtos_em_alta_ml(categoria_id, 3)
         todos_termos.extend(termos)
-        time.sleep(0.3)  # Delay para não sobrecarregar
+        time.sleep(0.3)
     
-    return list(set(todos_termos))[:10]  # Remove duplicatas e limita
+    return list(set(todos_termos))[:10]
 
 # ===== INTERFACE =====
 st.title("📅 Minerador Pro - Conteúdo Estratégico para Datas")
@@ -491,7 +473,6 @@ else:
         st.session_state.autenticado = False
         st.rerun()
 
-    # ===== ANÁLISE DO DIA ATUAL =====
     hoje = datetime.now()
     mes_atual = get_mes_atual()
     dia_atual = get_dia_atual()
@@ -499,7 +480,6 @@ else:
     st.sidebar.markdown(f"**📅 Data atual:** {hoje.strftime('%d/%m/%Y')}")
     st.sidebar.markdown(f"**📊 Mês de referência:** {hoje.strftime('%B').capitalize()}")
     
-    # Verifica se hoje tem data comemorativa
     evento_hoje = verificar_data_comemorativa(mes_atual, dia_atual)
     
     if evento_hoje:
@@ -507,7 +487,6 @@ else:
     else:
         st.sidebar.info("📌 Buscando tendências do mês passado")
     
-    # ===== PAINEL PRINCIPAL =====
     col1, col2 = st.columns([2, 1])
     
     with col1:
@@ -531,19 +510,15 @@ else:
     
     st.markdown("---")
     
-    # ===== BUSCA DE TENDÊNCIAS =====
     if st.session_state.get("buscar_atuais", False):
         with st.spinner("🔄 Buscando produtos em alta no Mercado Livre..."):
             tendencias_atuais = buscar_tendencias_atuais_ml()
             st.session_state.tendencias_atuais = tendencias_atuais
             st.session_state.buscar_atuais = False
     
-    # Define tendências a usar
     if evento_hoje:
-        # Se tem data comemorativa, usa as tendências do mês + evento
         tendencias_mes = buscar_tendencias_por_periodo(mes_atual, 10)
         
-        # Adiciona termos específicos do evento
         termos_evento = []
         if "Dia dos Namorados" in evento_hoje.get("nome", ""):
             termos_evento = ["presente namorado", "kit romântico", "jantar especial"]
@@ -557,32 +532,26 @@ else:
         tendencias = list(set(tendencias_mes + termos_evento))[:10]
         fonte_dados = f"Histórico para {evento_hoje.get('nome')}"
     else:
-        # Se não tem data, usa tendências do mesmo mês do ano passado
         tendencias = buscar_tendencias_por_periodo(mes_atual, 10)
         fonte_dados = f"Tendências do mesmo período (ano passado)"
         
-        # Adiciona tendências atuais do ML se disponíveis
         if hasattr(st.session_state, 'tendencias_atuais') and st.session_state.tendencias_atuais:
             for termo in st.session_state.tendencias_atuais[:3]:
                 if termo not in tendencias:
                     tendencias.append(termo)
             fonte_dados += " + tendências atuais do ML"
     
-    # ===== ANÁLISE DOS PRODUTOS =====
     if tendencias:
         st.markdown(f"### 📦 Analisando: {fonte_dados}")
         
-        # Analisa cada termo
         resultados = []
         for termo in tendencias[:10]:
             analise = analisar_produto_para_data(termo, "histórico")
             resultados.append(analise)
-            time.sleep(0.3)  # Delay para não sobrecarregar
+            time.sleep(0.3)
         
-        # Ordena por score
         resultados = sorted(resultados, key=lambda x: x["score"], reverse=True)
         
-        # Métricas
         col1, col2, col3 = st.columns(3)
         with col1:
             st.metric("Produtos Analisados", len(resultados))
@@ -595,7 +564,6 @@ else:
         
         st.markdown("---")
         
-        # Tabela de resultados
         st.markdown("### 📊 Produtos e Oportunidades")
         
         df_exibicao = pd.DataFrame([{
@@ -618,7 +586,6 @@ else:
             use_container_width=True
         )
         
-        # Detalhamento por produto
         st.markdown("### 🛍️ Detalhamento dos Produtos")
         
         for r in resultados[:5]:
@@ -645,7 +612,6 @@ else:
                                 st.markdown(f"  [🔗 Ver produto]({p['link']})")
                             st.markdown("")
         
-        # ===== SUGESTÕES DE CONTEÚDO =====
         st.markdown("---")
         st.markdown("### 💡 Sugestões de Conteúdo para Afiliados")
         
@@ -655,7 +621,6 @@ else:
             for i, sugestao in enumerate(sugestoes[:5], 1):
                 st.info(f"{i}. {sugestao}")
         else:
-            # Sugestões baseadas nas tendências do mês
             st.markdown(f"**📌 Baseado nas tendências de {hoje.strftime('%B').capitalize()}:**")
             
             sugestoes = [
@@ -663,4 +628,41 @@ else:
                 "📊 Faça um 'Top 5' dos produtos mais procurados neste mês",
                 "📦 Mostre unboxing dos produtos mais populares",
                 "💰 Crie conteúdo sobre 'melhor custo-benefício' para cada categoria",
-                "
+                "📱 Adapte o conteúdo para TikTok/Reels mostrando os produtos em uso"
+            ]
+            
+            for i, sugestao in enumerate(sugestoes[:5], 1):
+                st.info(f"{i}. {sugestao}")
+        
+        st.markdown("---")
+        st.markdown("### 📅 Próximas Datas Comemorativas")
+        
+        hoje = datetime.now()
+        proximas_datas = []
+        
+        for mes, dados in DADOS_HISTORICOS.items():
+            for evento in dados.get("eventos", []):
+                data_evento = evento.get("data", "")
+                if data_evento:
+                    mes_evento, dia_evento = map(int, data_evento.split('-'))
+                    data_evento_obj = datetime(hoje.year, mes_evento, dia_evento)
+                    
+                    if data_evento_obj >= hoje:
+                        dias_para = (data_evento_obj - hoje).days
+                        if dias_para <= 30:
+                            proximas_datas.append((dias_para, evento, data_evento_obj.strftime('%d/%m')))
+        
+        if proximas_datas:
+            proximas_datas.sort(key=lambda x: x[0])
+            for dias, evento, data in proximas_datas[:5]:
+                if dias == 0:
+                    st.warning(f"🎉 HOJE é {evento.get('nome')}! Aproveite!")
+                elif dias <= 7:
+                    st.info(f"📌 {evento.get('nome')} em {dias} dias ({data}) - Prepare seu conteúdo!")
+                else:
+                    st.caption(f"📅 {evento.get('nome')} em {dias} dias ({data})")
+        else:
+            st.caption("Nenhuma data comemorativa nos próximos 30 dias.")
+        
+    else:
+        st.warning("Nenhuma tendência encontrada. Tente novamente.")
