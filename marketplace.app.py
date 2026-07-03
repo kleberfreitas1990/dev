@@ -381,6 +381,15 @@ verificar_login()
 st.title("🛒 Minerador de Produtos - Afiliados")
 st.caption("Encontre produtos em alta com baixa concorrência")
 
+st.warning(
+    "⚠️ **Status das fontes de dados:** a API do Mercado Livre está bloqueando buscas "
+    "de produtos (erro 403) desde o fim de 2025, mesmo com autenticação correta — isso "
+    "é um problema do lado do Mercado Livre, relatado por diversos desenvolvedores, e não "
+    "depende deste app. A Shopee também não oferece API pública oficial. Por isso, as seções "
+    "**🔥 Em Alta Agora** e **🛍️ Minerador Pro** podem não retornar produtos no momento. "
+    "A seção **📅 Sugestões por Data** não depende dessas APIs e funciona normalmente."
+)
+
 if "buscar_tudo" not in st.session_state:
     st.session_state.buscar_tudo = False
 
@@ -409,7 +418,11 @@ if st.session_state.buscar_tudo:
                     if p.get("link"):
                         st.link_button("Ver produto", p["link"], width='stretch')
     else:
-        st.warning("Não foi possível buscar produtos agora. Tente novamente em instantes.")
+        st.error(
+            "🚫 Nenhum produto retornado. A API do Mercado Livre provavelmente está "
+            "bloqueando a busca (erro 403) — problema externo, não deste app. "
+            "Tente novamente mais tarde."
+        )
 else:
     st.info("Clique em **'Buscar Tudo'** para ver os produtos em alta.")
 
@@ -458,6 +471,13 @@ if termo_busca and st.button("📊 Analisar Saturação"):
         c1.metric("🔵 ML", f"{total_ml}")
         c2.metric("🟠 Shopee", f"{total_shopee}")
         c3.metric("📊 Total", f"{total}")
+
+        if total == 0:
+            st.error(
+                "🚫 Nenhum resultado em nenhuma das duas fontes — isso indica falha nas "
+                "APIs (Mercado Livre bloqueando com erro 403, Shopee sem API pública), "
+                "e **não que o produto não tem concorrência**. Tente novamente mais tarde."
+            )
 
         st.markdown("---")
 
@@ -530,46 +550,57 @@ if st.session_state.buscar_tudo:
 
     df = pd.DataFrame(resultados).sort_values("Score", ascending=False).reset_index(drop=True)
 
-    st.markdown("---")
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("📦 Produtos Analisados", len(df))
-    c2.metric("🚀 Oportunidades Excelentes", int((df["Score"] >= 8).sum()))
-    c3.metric("⭐ Boas Oportunidades", int(((df["Score"] >= 6) & (df["Score"] < 8)).sum()))
-    c4.metric("🎯 Baixa Concorrência", int((df["Saturação (%)"] < 30).sum()))
+    # Se a API do ML estiver bloqueada, todo mundo volta com Score 0 e Saturação 0% —
+    # isso não é uma leitura real de mercado, é ausência total de dados.
+    todos_zerados = (df["Score"] == 0).all() and (df["Saturação (%)"] == 0).all()
 
-    st.markdown("---")
-    st.markdown("### 📊 Oportunidades por Score")
-    st.dataframe(df, width='stretch', hide_index=True)
-
-    st.markdown("---")
-    st.markdown("### 💡 Estratégia para Afiliados")
-    col1, col2 = st.columns(2)
-    with col1:
-        st.success(
-            "**🎯 Oportunidades Excelentes (Score ≥ 8)**\n\n"
-            "- ✅ Baixa concorrência\n"
-            "- ✅ Produto já validado (vendas consistentes)\n"
-            "- ✅ Boa margem para conteúdo de nicho\n\n"
-            "**Ação:** crie conteúdo com urgência!"
+    if todos_zerados:
+        st.error(
+            "🚫 Todos os produtos retornaram com Score 0 e Saturação 0% — isso indica que "
+            "a API do Mercado Livre não retornou nenhum dado (provável bloqueio 403), e "
+            "**não que o mercado está sem concorrência**. Tente novamente mais tarde."
         )
-    with col2:
+    else:
+        st.markdown("---")
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("📦 Produtos Analisados", len(df))
+        c2.metric("🚀 Oportunidades Excelentes", int((df["Score"] >= 8).sum()))
+        c3.metric("⭐ Boas Oportunidades", int(((df["Score"] >= 6) & (df["Score"] < 8)).sum()))
+        c4.metric("🎯 Baixa Concorrência", int((df["Saturação (%)"] < 30).sum()))
+
+        st.markdown("---")
+        st.markdown("### 📊 Oportunidades por Score")
+        st.dataframe(df, width='stretch', hide_index=True)
+
+        st.markdown("---")
+        st.markdown("### 💡 Estratégia para Afiliados")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.success(
+                "**🎯 Oportunidades Excelentes (Score ≥ 8)**\n\n"
+                "- ✅ Baixa concorrência\n"
+                "- ✅ Produto já validado (vendas consistentes)\n"
+                "- ✅ Boa margem para conteúdo de nicho\n\n"
+                "**Ação:** crie conteúdo com urgência!"
+            )
+        with col2:
+            st.info(
+                "**⭐ Boas Oportunidades (Score ≥ 6)**\n\n"
+                "- ⚠️ Concorrência moderada\n"
+                "- 📈 Produto com potencial de crescimento\n\n"
+                "**Ação:** analise a concorrência e crie conteúdo diferenciado"
+            )
+
+        st.success("✅ Análise concluída! Foque nos produtos com maior score e menor saturação.")
+
+        st.markdown("---")
+        st.markdown("### 📌 Dica: Como usar essa análise")
         st.info(
-            "**⭐ Boas Oportunidades (Score ≥ 6)**\n\n"
-            "- ⚠️ Concorrência moderada\n"
-            "- 📈 Produto com potencial de crescimento\n\n"
-            "**Ação:** analise a concorrência e crie conteúdo diferenciado"
+            "**Estratégia para maximizar suas vendas:**\n\n"
+            "1. 🎯 Foque em produtos com Score ≥ 8 e baixa saturação\n"
+            "2. 📈 Crie conteúdo mostrando o produto de forma autêntica\n"
+            "3. 🔄 Teste diferentes produtos para ver qual converte melhor\n"
+            "4. 🚀 Seja rápido — produtos com alto potencial atraem concorrentes rápido"
         )
-
-    st.success("✅ Análise concluída! Foque nos produtos com maior score e menor saturação.")
-
-    st.markdown("---")
-    st.markdown("### 📌 Dica: Como usar essa análise")
-    st.info(
-        "**Estratégia para maximizar suas vendas:**\n\n"
-        "1. 🎯 Foque em produtos com Score ≥ 8 e baixa saturação\n"
-        "2. 📈 Crie conteúdo mostrando o produto de forma autêntica\n"
-        "3. 🔄 Teste diferentes produtos para ver qual converte melhor\n"
-        "4. 🚀 Seja rápido — produtos com alto potencial atraem concorrentes rápido"
-    )
 else:
     st.info("Clique em **'Buscar Tudo'** para iniciar a análise do Minerador Pro.")
