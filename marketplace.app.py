@@ -1,62 +1,433 @@
+import streamlit as st
+import requests
+from urllib.parse import quote
+from datetime import datetime, date
+
+# ============================================================
+# CONFIGURAÇÃO DA PÁGINA
+# ============================================================
+st.set_page_config(
+    page_title="Minerador de Produtos - Afiliados",
+    page_icon="🛒",
+    layout="wide"
+)
+
+# ============================================================
+# CONSTANTES
+# ============================================================
+CHAVE_TESTE = "TESTE-AFILIADO-2026"
+
+# Datas fixas aproximadas (datas móveis como Carnaval e Páscoa e os
+# "domingos de" Dia das Mães/Pais usam uma data aproximada e podem
+# precisar de ajuste manual ano a ano)
+DATAS_COMEMORATIVAS = {
+    (1, 1): "Ano Novo",
+    (2, 14): "Carnaval (período)",
+    (3, 8): "Dia da Mulher",
+    (3, 20): "Início do Outono",
+    (4, 1): "Páscoa (período)",
+    (4, 21): "Tiradentes",
+    (5, 1): "Dia do Trabalho",
+    (5, 11): "Dia das Mães",
+    (6, 12): "Dia dos Namorados",
+    (6, 24): "Festa Junina / São João",
+    (7, 9): "Férias Escolares de Julho",
+    (8, 10): "Dia dos Pais",
+    (8, 22): "Volta às Aulas (2º semestre)",
+    (9, 7): "Independência do Brasil",
+    (9, 23): "Início da Primavera",
+    (10, 12): "Dia das Crianças",
+    (10, 31): "Halloween",
+    (11, 2): "Finados",
+    (11, 28): "Black Friday (período)",
+    (12, 1): "Cyber Monday (período)",
+    (12, 25): "Natal",
+    (12, 31): "Réveillon",
+}
+
+# Termos que indicam notícia/pessoa pública, não produto
+PALAVRAS_BLOQUEADAS = [
+    "polícia", "policia", "político", "politico", "política", "politica",
+    "futebol", "novela", "eleição", "eleicao", "presidente", "governo",
+    "prefeito", "deputado", "senador", "crime", "acidente", "morte",
+    "morre", "assassinato", "escândalo", "escandalo", "famoso",
+    "celebridade", "artista", "cantor", "cantora", "ator", "atriz",
+    "jogador", "técnico", "tecnico", "clube", "campeonato", "copa",
+    "seleção", "selecao", "guerra", "processo", "julgamento",
+]
+
+# Termos que reforçam que é produto
+PALAVRAS_PRODUTO = [
+    "comprar", "preço", "preco", "valor", "modelo", "tamanho", "cor",
+    "marca", "promoção", "promocao", "desconto", "frete", "original",
+    "novo", "usado", "kit", "conjunto", "unidade", "peça", "peca",
+]
+
+# Sugestões históricas de categorias/produtos por mês
+HIST_POR_MES = {
+    1: ["Material escolar", "Moda verão", "Protetor solar", "Ventilador portátil"],
+    2: ["Fantasia de carnaval", "Roupa de praia", "Boia inflável", "Óculos de sol"],
+    3: ["Casaco leve", "Bota outono", "Guarda-chuva", "Manta"],
+    4: ["Cesta de páscoa", "Ovo de chocolate", "Fone de ouvido", "Carregador portátil"],
+    5: ["Perfume", "Caneca personalizada", "Kit maquiagem", "Cartão presente"],
+    6: ["Presente namorados", "Fogueira artificial", "Roupa xadrez", "Enfeite junino"],
+    7: ["Casaco de frio", "Bota de inverno", "Cobertor", "Aquecedor portátil"],
+    8: ["Presente para pais", "Churrasqueira portátil", "Mochila escolar", "Estojo"],
+    9: ["Vaso de planta", "Roupa leve", "Tênis casual", "Óculos de sol"],
+    10: ["Fantasia halloween", "Brinquedo infantil", "Livro infantil", "Doces"],
+    11: ["Eletrônicos", "Eletrodomésticos", "Notebook", "Smart TV"],
+    12: ["Enfeite de natal", "Presente amigo secreto", "Roupa de festa", "Espumante"],
+}
+
+# ============================================================
+# LOGIN
+# ============================================================
+def verificar_login():
+    if "logado" not in st.session_state:
+        st.session_state.logado = False
+
+    if not st.session_state.logado:
+        st.title("🔐 Minerador de Produtos - Login")
+        chave = st.text_input("Digite sua chave de acesso:", type="password")
+        if st.button("Entrar"):
+            if chave == CHAVE_TESTE:
+                st.session_state.logado = True
+                st.rerun()
+            else:
+                st.error("Chave inválida. Tente novamente.")
+        st.stop()
+
+
+# ============================================================
+# APIs
+# ============================================================
+def buscar_produtos_mercadolivre(termo, limite=5):
+    try:
+        url = "https://api.mercadolibre.com/sites/MLB/search"
+        params = {"q": termo, "limit": limite}
+        resp = requests.get(url, params=params, timeout=10)
+        resp.raise_for_status()
+        data = resp.json()
+        produtos = []
+        for item in data.get("results", [])[:limite]:
+            produtos.append({
+                "nome": item.get("title", ""),
+                "preco": f"R$ {item.get('price', 0):.2f}",
+                "vendas": item.get("sold_quantity", 0),
+                "link": item.get("permalink", ""),
+                "imagem": item.get("thumbnail", ""),
+            })
+        return produtos
+    except Exception:
+        return []
+
+
+def buscar_total_resultados_ml(termo):
+    try:
+        url = "https://api.mercadolibre.com/sites/MLB/search"
+        params = {"q": termo, "limit": 1}
+        resp = requests.get(url, params=params, timeout=10)
+        resp.raise_for_status()
+        data = resp.json()
+        return data.get("paging", {}).get("total", 0)
+    except Exception:
+        return 0
+
+
+def buscar_produtos_shopee(termo, limite=5):
+    # A Shopee não oferece API pública oficial; este endpoint interno
+    # pode mudar ou bloquear requisições sem navegador real a qualquer momento.
+    try:
+        url = "https://shopee.com.br/api/v4/search/search_items"
+        params = {
+            "by": "relevancy",
+            "keyword": termo,
+            "limit": limite,
+            "newest": 0,
+            "order": "desc",
+            "page_type": "search",
+            "scenario": "PAGE_GLOBAL_SEARCH",
+            "version": 2,
+        }
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            "Referer": f"https://shopee.com.br/search?keyword={quote(termo)}",
+        }
+        resp = requests.get(url, params=params, headers=headers, timeout=10)
+        resp.raise_for_status()
+        data = resp.json()
+        produtos = []
+        for item in data.get("items", [])[:limite]:
+            info = item.get("item_basic", item)
+            preco = info.get("price", 0) / 100000
+            itemid = info.get("itemid")
+            shopid = info.get("shopid")
+            link = f"https://shopee.com.br/product/{shopid}/{itemid}" if itemid and shopid else ""
+            produtos.append({
+                "nome": info.get("name", ""),
+                "preco": f"R$ {preco:.2f}",
+                "vendas": info.get("historical_sold", info.get("sold", 0)),
+                "link": link,
+            })
+        return produtos
+    except Exception:
+        return []
+
+
+def buscar_total_resultados_shopee(termo):
+    try:
+        url = "https://shopee.com.br/api/v4/search/search_items"
+        params = {
+            "by": "relevancy", "keyword": termo, "limit": 1,
+            "newest": 0, "order": "desc", "page_type": "search",
+        }
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            "Referer": f"https://shopee.com.br/search?keyword={quote(termo)}",
+        }
+        resp = requests.get(url, params=params, headers=headers, timeout=10)
+        resp.raise_for_status()
+        data = resp.json()
+        return data.get("total_count", 0)
+    except Exception:
+        return 0
+
+
+# ============================================================
+# ANÁLISE
+# ============================================================
+def analisar_saturacao(total):
+    if total < 50:
+        return {
+            "nivel": "Baixa Saturação - Excelente Oportunidade",
+            "recomendacao": "Poucos concorrentes! Ótimo momento para entrar neste nicho.",
+        }
+    elif total < 200:
+        return {
+            "nivel": "Saturação Moderada - Boa Oportunidade",
+            "recomendacao": "Concorrência razoável, ainda há espaço para se destacar.",
+        }
+    elif total < 500:
+        return {
+            "nivel": "Saturação Alta - Oportunidade Média",
+            "recomendacao": "Mercado concorrido. Aposte em nichos mais específicos (long-tail).",
+        }
+    else:
+        return {
+            "nivel": "Saturação Muito Alta - Baixa Oportunidade",
+            "recomendacao": "Mercado saturado. Considere termos mais específicos ou outro produto.",
+        }
+
+
+def filtrar_termos_produtos(lista_termos):
+    filtrados = []
+    for termo in lista_termos:
+        termo_lower = termo.lower()
+        if any(palavra in termo_lower for palavra in PALAVRAS_BLOQUEADAS):
+            continue
+        filtrados.append(termo)
+    return filtrados
+
+
+def analisar_produto_completo(termo):
+    total_ml = buscar_total_resultados_ml(termo)
+    total_shopee = buscar_total_resultados_shopee(termo)
+    total = total_ml + total_shopee
+    saturacao = analisar_saturacao(total)
+    produtos = buscar_produtos_mercadolivre(termo, 3)
+
+    score = 0
+    if total < 200:
+        score += 3
+    elif total < 500:
+        score += 1
+
+    if produtos:
+        score += 2
+        try:
+            precos = [
+                float(p["preco"].replace("R$ ", "").replace(",", "."))
+                for p in produtos
+            ]
+            if precos and min(precos) < 200:
+                score += 1
+        except Exception:
+            pass
+
+    if any(p.get("vendas", 0) and p.get("vendas", 0) > 50 for p in produtos):
+        score += 2
+
+    return {
+        "termo": termo,
+        "score": min(score, 8),
+        "saturacao": saturacao,
+        "produtos": produtos,
+    }
+
+
+def minerar_produtos_em_alta(termos_semente=None, limite_por_termo=3):
+    if termos_semente is None:
+        mes_atual = datetime.now().month
+        termos_semente = HIST_POR_MES.get(
+            mes_atual, ["fone bluetooth", "smartwatch", "carregador portátil"]
+        )
+    resultados = []
+    for termo in termos_semente:
+        produtos = buscar_produtos_mercadolivre(termo, limite_por_termo)
+        for p in produtos:
+            p["termo_busca"] = termo
+            resultados.append(p)
+    return resultados
+
+
+# ============================================================
+# DATAS COMEMORATIVAS
+# ============================================================
+def verificar_data_comemorativa(mes, dia, margem_dias=7):
+    hoje = date.today()
+    proximo_evento = None
+    menor_diff = None
+    for (m, d), nome in DATAS_COMEMORATIVAS.items():
+        try:
+            data_evento = date(hoje.year, m, d)
+        except ValueError:
+            continue
+        diff = (data_evento - hoje).days
+        if 0 <= diff <= margem_dias:
+            if menor_diff is None or diff < menor_diff:
+                menor_diff = diff
+                proximo_evento = nome
+    return proximo_evento
+
+
+def buscar_tendencias_por_periodo(mes, limite=6):
+    return HIST_POR_MES.get(mes, [])[:limite]
+
+
+def gerar_sugestoes_conteudo(evento, tendencias):
+    sugestoes = []
+    if evento:
+        sugestoes.append(f"📝 Post especial sobre {evento}")
+        sugestoes.append(f"🎯 Lista 'Top produtos para {evento}'")
+    for t in tendencias[:3]:
+        sugestoes.append(f"📦 Vídeo/Post: '{t} — vale a pena?'")
+    return sugestoes
+
+
+# ============================================================
+# APP
+# ============================================================
+verificar_login()
+
+st.title("🛒 Minerador de Produtos - Afiliados")
+st.caption("Encontre produtos em alta com baixa concorrência")
+
+tab1, tab2, tab3 = st.tabs([
+    "🔥 Em Alta Agora",
+    "📅 Sugestões por Data",
+    "🎯 Análise de Saturação",
+])
+
+# ===== TAB 1: EM ALTA AGORA =====
+with tab1:
+    st.markdown("### 🔥 Produtos em Alta Agora")
+    st.caption("Baseado em categorias de destaque do mês, via Mercado Livre.")
+
+    if st.button("🔄 Buscar Produtos em Alta"):
+        with st.spinner("Minerando produtos..."):
+            produtos_alta = minerar_produtos_em_alta()
+
+        if produtos_alta:
+            for p in produtos_alta:
+                with st.container(border=True):
+                    c1, c2 = st.columns([3, 1])
+                    with c1:
+                        st.markdown(f"**{p.get('nome', '')}**")
+                        st.caption(f"Termo: {p.get('termo_busca', '')}")
+                        st.markdown(f"💰 {p.get('preco', '')} | 📦 {p.get('vendas', 0)} vendidos")
+                    with c2:
+                        if p.get("link"):
+                            st.link_button("Ver produto", p["link"], width='stretch')
+        else:
+            st.warning("Não foi possível buscar produtos agora. Tente novamente em instantes.")
+
+# ===== TAB 2: SUGESTÕES POR DATA =====
+with tab2:
+    st.markdown("### 📅 Sugestões por Data")
+
+    mes_atual = datetime.now().month
+    evento = verificar_data_comemorativa(datetime.now().month, datetime.now().day)
+
+    if evento:
+        st.success(f"🎉 Data comemorativa próxima: **{evento}**")
+    else:
+        st.info("Nenhuma data comemorativa nos próximos 7 dias.")
+
+    tendencias = buscar_tendencias_por_periodo(mes_atual)
+
+    st.markdown("#### 📈 Categorias em destaque este mês")
+    for t in tendencias:
+        st.markdown(f"- {t}")
+
+    st.markdown("---")
+    st.markdown("#### 💡 Sugestões de conteúdo")
+    for s in gerar_sugestoes_conteudo(evento, tendencias):
+        st.markdown(f"- {s}")
+
 # ===== TAB 3: ANÁLISE DE SATURAÇÃO =====
 with tab3:
     st.markdown("### 🎯 Análise de Saturação de Mercado")
     st.caption("Quanto menor o número de resultados, menor a concorrência!")
-    
+
     termo_busca = st.text_input("🔍 Digite um produto:", placeholder="Ex: smartwatch, fone bluetooth...")
-    
+
     if termo_busca and st.button("📊 Analisar Saturação"):
         with st.spinner(f"Analisando '{termo_busca}'..."):
-            # Busca dados
             total_ml = buscar_total_resultados_ml(termo_busca)
             total_shopee = buscar_total_resultados_shopee(termo_busca)
             total = total_ml + total_shopee
             saturacao = analisar_saturacao(total)
             produtos_ml = buscar_produtos_mercadolivre(termo_busca, 3)
             produtos_shopee = buscar_produtos_shopee(termo_busca, 3)
-            
-            # Métricas
+
             c1, c2, c3 = st.columns(3)
             c1.metric("🔵 ML", f"{total_ml}")
             c2.metric("🟠 Shopee", f"{total_shopee}")
             c3.metric("📊 Total", f"{total}")
-            
+
             st.markdown("---")
-            
-            # Status com cores
+
             cores = [
                 (total < 50, st.success, "✅"),
                 (total < 200, st.info, "📊"),
                 (total < 500, st.warning, "⚠️"),
-                (True, st.error, "🚨")
+                (True, st.error, "🚨"),
             ]
             for cond, func, icon in cores:
                 if cond:
                     func(f"{icon} **{saturacao['nivel']}**")
                     func(f"💡 {saturacao['recomendacao']}")
                     break
-            
+
             st.markdown("---")
-            
-            # Produtos
+
             c1, c2 = st.columns(2)
-            
+
             def mostrar_produtos(col, produtos, nome, emoji):
                 col.markdown(f"#### {emoji} {nome}")
                 if produtos:
                     for p in produtos[:3]:
                         col.markdown(f"- **{p.get('nome', '')}**")
                         col.markdown(f"  💰 {p.get('preco', '')} | 📦 {p.get('vendas', 0)} vendidos")
-                        if p.get('link'):
+                        if p.get("link"):
                             col.markdown(f"  [🔗 Ver]({p['link']})")
                         col.markdown("")
                 else:
                     col.info(f"Nenhum produto no {nome}")
-            
+
             mostrar_produtos(c1, produtos_ml, "Mercado Livre", "🔵")
             mostrar_produtos(c2, produtos_shopee, "Shopee", "🟠")
-            
-            # Links rápidos
+
             st.markdown("---")
             c1, c2 = st.columns(2)
             c1.link_button("🔍 ML", f"https://lista.mercadolivre.com.br/{quote(termo_busca)}", width='stretch')
