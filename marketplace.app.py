@@ -5,10 +5,12 @@ from datetime import datetime, timedelta
 from urllib.parse import quote
 import requests
 import random
-import re
+import json
+import os
+from collections import Counter
 
 # Configuração da página
-st.set_page_config(page_title="Minerador Pro - Produtos", page_icon="🛍️", layout="wide")
+st.set_page_config(page_title="Minerador Pro - Conteúdo Estratégico", page_icon="📅", layout="wide")
 
 # ===== CONFIGURAÇÕES =====
 CATEGORIAS_ML = {
@@ -22,21 +24,178 @@ CATEGORIAS_ML = {
     "Ferramentas": "MLB1648"
 }
 
-# Palavras-chave para identificar afiliados na Shopee
-PALAVRAS_AFILIADO = [
-    "afiliado", "shopee", "promoção", "desconto", "cupom", 
-    "parceria", "indicado", "recomendado", "oferta", "imperdível",
-    "coach", "digital", "influencer", "indicada", "parceria"
-]
+# ===== BANCO DE DADOS HISTÓRICO (DADOS DO ANO PASSADO) =====
+DADOS_HISTORICOS = {
+    # Janeiro
+    "01": {
+        "tendencias": [
+            "material escolar", "mochila", "estojo", "caderno", "caneta",
+            "tênis", "tênis casual", "calça jeans", "roupa de academia",
+            "smartwatch", "fone bluetooth", "carregador portátil",
+            "organizador de mesa", "cadeira de escritório", "luminária de mesa"
+        ],
+        "eventos": [
+            {"data": "01-01", "nome": "Ano Novo", "sugestao": "Decoração para festa, roupas para virada, itens para resoluções de ano novo"},
+            {"data": "01-06", "nome": "Dia de Reis", "sugestao": "Presentes religiosos, artigos de decoração natalina (últimas promoções)"},
+            {"data": "01-20", "nome": "Dia de São Sebastião", "sugestao": "Itens religiosos, artigos para festas juninas (já começam a preparar)"}
+        ]
+    },
+    # Fevereiro
+    "02": {
+        "tendencias": [
+            "fantasia carnaval", "acessórios carnaval", "máscara", "glitter", "cabeleira",
+            "maiô", "biquíni", "sungas", "chinelo", "protetor solar",
+            "fone bluetooth", "caixa de som portátil", "power bank",
+            "roupa de academia", "tênis esportivo", "garrafa térmica"
+        ],
+        "eventos": [
+            {"data": "02-02", "nome": "Dia de Iemanjá", "sugestao": "Artigos religiosos, decoração, flores, velas"},
+            {"data": "02-14", "nome": "Dia dos Namorados (EUA)", "sugestao": "Presentes românticos, kits de jantar, lingerie, perfumes"},
+            {"data": "02-28", "nome": "Carnaval", "sugestao": "Fantasias, acessórios, bebidas, decoração de festa"}
+        ]
+    },
+    # Março
+    "03": {
+        "tendencias": [
+            "kit praia", "bolsa praia", "toalha", "canga", "chapéu",
+            "smartwatch", "fone bluetooth", "caixa de som portátil",
+            "cadeira de praia", "guarda-sol", "cooler", "garrafa térmica",
+            "vestido", "sandália", "chinelo", "óculos de sol"
+        ],
+        "eventos": [
+            {"data": "03-08", "nome": "Dia Internacional da Mulher", "sugestao": "Presentes femininos, flores, perfumes, kits de beleza"},
+            {"data": "03-15", "nome": "Dia do Consumidor", "sugestao": "Eletrônicos, celulares, produtos com desconto"},
+            {"data": "03-20", "nome": "Outono", "sugestao": "Roupas de meia estação, cobertores, decoração outonal"}
+        ]
+    },
+    # Abril
+    "04": {
+        "tendencias": [
+            "ovo de páscoa", "chocolate", "presente páscoa", "cestinha", "coelhinho",
+            "tênis", "calça jeans", "blusa", "casaco leve", "jaqueta jeans",
+            "smartwatch", "fone bluetooth", "fone sem fio",
+            "cadeira gamer", "mouse gamer", "teclado mecânico"
+        ],
+        "eventos": [
+            {"data": "04-07", "nome": "Dia do Jornalista", "sugestao": "Presentes para profissionais, canecas personalizadas"},
+            {"data": "04-21", "nome": "Tiradentes", "sugestao": "Feriado - viagens, artigos de viagem, malas"},
+            {"data": "04-28", "nome": "Páscoa", "sugestao": "Ovos de chocolate, cestas, presentes para crianças, decoração"}
+        ]
+    },
+    # Maio
+    "05": {
+        "tendencias": [
+            "presente dia das mães", "flores", "perfume", "bolsa", "vestido",
+            "smartwatch", "fone bluetooth", "caixa de som",
+            "tênis", "calça jeans", "blusa feminina", "lenço",
+            "livro", "cozinha", "panela", "jogo de panelas", "faqueiro"
+        ],
+        "eventos": [
+            {"data": "05-01", "nome": "Dia do Trabalhador", "sugestao": "Feriado - churrasco, artigos de viagem, promoções de eletrônicos"},
+            {"data": "05-13", "nome": "Dia das Mães", "sugestao": "Presentes para mães: perfumes, bolsas, vestidos, eletrônicos"},
+            {"data": "05-25", "nome": "Dia do Orgulho LGBTQ+", "sugestao": "Acessórios coloridos, bandeiras, decoração"}
+        ]
+    },
+    # Junho
+    "06": {
+        "tendencias": [
+            "presente dia dos namorados", "kit jantar", "vinho", "chocolate", "perfume",
+            "camisa", "calça", "vestido", "blusa", "sandália",
+            "fone bluetooth", "smartwatch", "fone sem fio",
+            "brinquedo", "jogo", "boneca", "carrinho"
+        ],
+        "eventos": [
+            {"data": "06-01", "nome": "Dia das Crianças (em alguns países)", "sugestao": "Brinquedos, jogos educativos, livros infantis"},
+            {"data": "06-12", "nome": "Dia dos Namorados (BR)", "sugestao": "Presentes românticos: perfumes, roupas, jantares, kits"},
+            {"data": "06-24", "nome": "São João", "sugestao": "Decoração junina, roupas xadrez, comidas típicas, bebidas"}
+        ]
+    },
+    # Julho
+    "07": {
+        "tendencias": [
+            "roupa de frio", "casaco", "jaqueta", "blusa de lã", "cachecol", "luva",
+            "tênis", "tênis casual", "coturno", "bota",
+            "fone bluetooth", "fone sem fio", "carregador portátil",
+            "livro", "quadrinho", "mangá", "jogo de tabuleiro"
+        ],
+        "eventos": [
+            {"data": "07-09", "nome": "Revolução Constitucionalista", "sugestao": "Feriado - filmes, streaming, roupas de frio"},
+            {"data": "07-20", "nome": "Dia do Amigo", "sugestao": "Presentes para amigos, kits de cerveja, jogos"}
+        ]
+    },
+    # Agosto
+    "08": {
+        "tendencias": [
+            "presente dia dos pais", "relógio", "cinto", "camisa", "calça social",
+            "ferramenta", "furadeira", "parafusadeira", "kit ferramentas",
+            "smartwatch", "fone bluetooth", "caixa de som",
+            "mochila", "lancheira", "estojo", "material escolar"
+        ],
+        "eventos": [
+            {"data": "08-11", "nome": "Dia do Estudante", "sugestao": "Material escolar, mochilas, estojos"},
+            {"data": "08-14", "nome": "Dia dos Pais", "sugestao": "Presentes para pais: ferramentas, relógios, eletrônicos"},
+            {"data": "08-22", "nome": "Dia do Folclore", "sugestao": "Decoração temática, brinquedos tradicionais"}
+        ]
+    },
+    # Setembro
+    "09": {
+        "tendencias": [
+            "camisa", "calça", "vestido", "blusa", "jaqueta jeans",
+            "tênis", "tênis casual", "sapato social", "sandália",
+            "smartwatch", "fone bluetooth", "carregador portátil",
+            "mochila", "bolsa", "carteira", "cinto"
+        ],
+        "eventos": [
+            {"data": "09-07", "nome": "Independência do Brasil", "sugestao": "Decoração verde-amarela, roupas patrióticas, desfiles"},
+            {"data": "09-21", "nome": "Dia da Árvore", "sugestao": "Decoração com plantas, vasos, jardinagem"},
+            {"data": "09-22", "nome": "Primavera", "sugestao": "Roupas leves, decoração floral, vasos de plantas"}
+        ]
+    },
+    # Outubro
+    "10": {
+        "tendencias": [
+            "fantasia halloween", "decoração halloween", "abóbora", "máscara", "maquiagem",
+            "brinquedo", "boneca", "carrinho", "jogo", "pelúcia",
+            "smartwatch", "fone bluetooth", "carregador portátil",
+            "camisa", "calça", "vestido", "blusa"
+        ],
+        "eventos": [
+            {"data": "10-12", "nome": "Dia das Crianças", "sugestao": "Brinquedos, jogos educativos, livros, roupas infantis"},
+            {"data": "10-15", "nome": "Dia do Professor", "sugestao": "Presentes para professores, canecas, livros"},
+            {"data": "10-31", "nome": "Halloween", "sugestao": "Fantasias, decoração, doces, maquiagem"}
+        ]
+    },
+    # Novembro
+    "11": {
+        "tendencias": [
+            "black friday", "promoção", "eletrônico", "celular", "tv", "smartwatch",
+            "presente natal", "brinquedo", "boneca", "carrinho", "pelúcia",
+            "camisa", "calça", "vestido", "blusa", "casaco",
+            "perfume", "kit beleza", "maquiagem"
+        ],
+        "eventos": [
+            {"data": "11-02", "nome": "Finados", "sugestao": "Flores, velas, artigos religiosos"},
+            {"data": "11-15", "nome": "Proclamação da República", "sugestao": "Feriado - viagens, artigos de viagem"},
+            {"data": "11-25", "nome": "Black Friday", "sugestao": "Eletrônicos, celulares, roupas, eletrodomésticos em promoção"}
+        ]
+    },
+    # Dezembro
+    "12": {
+        "tendencias": [
+            "presente natal", "árvore natal", "decoração natalina", "luzes", "enfeite",
+            "brinquedo", "boneca", "carrinho", "pelúcia", "jogo",
+            "camisa", "vestido", "blusa", "casaco", "jaqueta",
+            "perfume", "kit beleza", "maquiagem", "vinho", "espumante",
+            "smartwatch", "fone bluetooth", "carregador portátil"
+        ],
+        "eventos": [
+            {"data": "12-25", "nome": "Natal", "sugestao": "Presentes: brinquedos, eletrônicos, roupas, perfumes, decoração"},
+            {"data": "12-31", "nome": "Réveillon", "sugestao": "Roupas brancas, brindes, decoração, fogos, bebidas"}
+        ]
+    }
+}
 
-# Palavras-chave de produtos com potencial de venda
-PALAVRAS_POTENCIAL = [
-    "bestseller", "mais vendido", "top vendas", "sucesso", "febre",
-    "viral", "boom", "popular", "queridinho", "lançamento",
-    "novo", "tendência", "moda", "estilo", "desejado",
-    "edição limitada", "exclusivo", "raro", "difícil encontrar"
-]
-
+# ===== FUNÇÕES DE API =====
 def validar_licenca_supabase(chave):
     if chave == "TESTE-AFILIADO-2026":
         return {"valido": True, "expira": "2026-12-31"}
@@ -62,26 +221,21 @@ def buscar_produtos_mercadolivre(termo, limite=5):
         
         for item in data.get("results", [])[:limite]:
             preco = item.get("price", 0)
-            
             produtos.append({
                 "nome": item.get("title", "")[:80],
                 "preco": f"R$ {preco:.2f}",
                 "preco_numero": preco,
                 "loja": "Mercado Livre",
                 "link": item.get("permalink", ""),
-                "vendas": item.get("sold_quantity", 0),
-                "rating": item.get("seller", {}).get("seller_reputation", {}).get("power_seller_status", "normal")
+                "vendas": item.get("sold_quantity", 0)
             })
         
         return produtos
-    except Exception as e:
+    except Exception:
         return []
 
-def buscar_produtos_shopee_detalhado(termo, limite=10):
-    """
-    Busca produtos na Shopee com análise de afiliados
-    Retorna também informações sobre potencial de vendas
-    """
+def buscar_produtos_shopee(termo, limite=5):
+    """Busca produtos na Shopee"""
     url = "https://shopee.com.br/api/v4/search/search_items"
     params = {
         "keyword": termo,
@@ -111,152 +265,25 @@ def buscar_produtos_shopee_detalhado(termo, limite=10):
     produtos = []
     for it in items:
         info = it.get("item_basic") or it.get("item") or it
-        
-        nome = info.get("name", "")
+        nome = info.get("name")
         preco_centavos = info.get("price")
         itemid = info.get("itemid")
         shopid = info.get("shopid")
-        sold_count = info.get("sold", 0)
-        stock = info.get("stock", 0)
-        
         if not nome or not itemid or not shopid:
             continue
-        
         preco = f"R$ {preco_centavos / 100000:.2f}" if preco_centavos else "—"
         link = f"https://shopee.com.br/product/{shopid}/{itemid}"
-        
-        # Análise de afiliado
-        is_afiliado = any(palavra in nome.lower() for palavra in PALAVRAS_AFILIADO)
-        
-        # Análise de potencial de venda
-        potencial_score = 0
-        for palavra in PALAVRAS_POTENCIAL:
-            if palavra.lower() in nome.lower():
-                potencial_score += 1
-        
-        # Verifica se tem muitas vendas (produto validado)
-        if sold_count > 100:
-            potencial_score += 2
-        elif sold_count > 50:
-            potencial_score += 1
-        
-        # Calcula densidade de afiliados (simulação)
-        # Na Shopee real, isso seria feito analisando a descrição do produto
-        # Aqui usamos palavras-chave na descrição como proxy
-        afiliado_score = 0
-        if "afiliado" in nome.lower():
-            afiliado_score += 2
-        if "cupom" in nome.lower() or "desconto" in nome.lower():
-            afiliado_score += 1
-        
         produtos.append({
             "nome": nome[:60],
             "preco": preco,
-            "preco_numero": preco_centavos / 100000 if preco_centavos else 0,
             "link": link,
             "loja": "Shopee",
-            "vendas": sold_count,
-            "estoque": stock,
-            "is_afiliado": is_afiliado,
-            "afiliado_score": afiliado_score,  # Quanto menor, menos afiliados
-            "potencial_score": potencial_score,  # Quanto maior, mais potencial
-            "potencial_descricao": "🟢 Alto potencial" if potencial_score >= 3 else "🟡 Médio potencial" if potencial_score >= 1 else "🔴 Baixo potencial"
+            "vendas": info.get("sold", 0)
         })
-    
+
     return produtos
 
-def analisar_produto_completo(termo, categoria=""):
-    """
-    Análise completa com foco em potencial de vendas e concorrência de afiliados
-    """
-    # Busca em ambas plataformas
-    produtos_ml = buscar_produtos_mercadolivre(termo, 3)
-    produtos_shopee = buscar_produtos_shopee_detalhado(termo, 10)
-    
-    # Análise de afiliados na Shopee
-    total_shopee = len(produtos_shopee)
-    afiliados_shopee = [p for p in produtos_shopee if p.get("is_afiliado", False)]
-    total_afiliados = len(afiliados_shopee)
-    
-    # Calcula densidade de afiliados (%)
-    densidade_afiliados = (total_afiliados / total_shopee * 100) if total_shopee > 0 else 100
-    
-    # Calcula score de oportunidade para afiliados
-    # Queremos: muitos produtos (oferta), poucos afiliados (baixa concorrência), alto potencial
-    score_oportunidade = 0
-    
-    # 1. Disponibilidade de produtos
-    if total_shopee >= 5:
-        score_oportunidade += 3
-    elif total_shopee >= 3:
-        score_oportunidade += 2
-    elif total_shopee >= 1:
-        score_oportunidade += 1
-    
-    # 2. Baixa densidade de afiliados (concorrência)
-    if densidade_afiliados < 20:
-        score_oportunidade += 3  # Ótimo! Poucos afiliados
-    elif densidade_afiliados < 40:
-        score_oportunidade += 2
-    elif densidade_afiliados < 60:
-        score_oportunidade += 1
-    else:
-        score_oportunidade -= 1  # Muitos afiliados, concorrência alta
-    
-    # 3. Potencial de vendas (média de vendas)
-    vendas_totais = sum(p.get("vendas", 0) for p in produtos_shopee)
-    media_vendas = vendas_totais / total_shopee if total_shopee > 0 else 0
-    
-    if media_vendas > 100:
-        score_oportunidade += 3  # Produto validado, mercado quente
-    elif media_vendas > 50:
-        score_oportunidade += 2
-    elif media_vendas > 10:
-        score_oportunidade += 1
-    
-    # 4. Potencial score dos produtos
-    potencial_medio = sum(p.get("potencial_score", 0) for p in produtos_shopee) / total_shopee if total_shopee > 0 else 0
-    if potencial_medio >= 2:
-        score_oportunidade += 2
-    elif potencial_medio >= 1:
-        score_oportunidade += 1
-    
-    # 5. Preço médio (faixa ideal para afiliado: R$30-R$150)
-    precos = [p.get("preco_numero", 0) for p in produtos_shopee if p.get("preco_numero", 0) > 0]
-    if precos:
-        preco_medio = sum(precos) / len(precos)
-        if 30 <= preco_medio <= 150:
-            score_oportunidade += 2  # Faixa ideal para afiliados
-        elif 150 < preco_medio <= 300:
-            score_oportunidade += 1
-    
-    # Gera recomendação
-    if score_oportunidade >= 8:
-        recomendacao = "🚀 OPORTUNIDADE EXCELENTE - Baixa concorrência e alto potencial!"
-    elif score_oportunidade >= 6:
-        recomendacao = "⭐ ÓTIMA OPORTUNIDADE - Poucos afiliados, boa demanda"
-    elif score_oportunidade >= 4:
-        recomendacao = "📊 BOA OPORTUNIDADE - Concorrência moderada"
-    elif score_oportunidade >= 2:
-        recomendacao = "⚠️ OPORTUNIDADE MÉDIA - Avaliar concorrência"
-    else:
-        recomendacao = "🔴 OPORTUNIDADE BAIXA - Muitos afiliados ou pouca demanda"
-    
-    return {
-        "termo": termo,
-        "categoria": categoria,
-        "total_produtos_shopee": total_shopee,
-        "total_afiliados": total_afiliados,
-        "densidade_afiliados": f"{densidade_afiliados:.1f}%",
-        "media_vendas": media_vendas,
-        "score_oportunidade": score_oportunidade,
-        "recomendacao": recomendacao,
-        "produtos_ml": produtos_ml,
-        "produtos_shopee": produtos_shopee,
-        "fonte": f"Shopee + ML"
-    }
-
-def buscar_produtos_categoria_ml(categoria_id, limite=10):
+def buscar_produtos_em_alta_ml(categoria_id, limite=5):
     """Busca produtos em alta por categoria no Mercado Livre"""
     url = f"https://api.mercadolibre.com/sites/MLB/search"
     params = {
@@ -272,82 +299,172 @@ def buscar_produtos_categoria_ml(categoria_id, limite=10):
             return []
             
         data = response.json()
-        produtos = []
+        termos = []
         
         for item in data.get("results", [])[:limite]:
-            preco = item.get("price", 0)
-            
-            produtos.append({
-                "nome": item.get("title", "")[:80],
-                "preco": f"R$ {preco:.2f}",
-                "preco_numero": preco,
-                "loja": "Mercado Livre",
-                "link": item.get("permalink", ""),
-                "vendas": item.get("sold_quantity", 0)
-            })
+            nome = item.get("title", "")
+            palavras = nome.split()[:4]
+            if palavras:
+                termo = " ".join(palavras[:3])
+                if len(termo) > 3:
+                    termos.append(termo)
         
-        return produtos
-    except Exception as e:
+        return list(set(termos))[:3]  # Remove duplicatas
+    except Exception:
         return []
 
-def minerar_produtos_oportunidade():
+# ===== FUNÇÕES DE ANÁLISE =====
+def get_mes_atual():
+    """Retorna o mês atual em formato MM"""
+    return datetime.now().strftime("%m")
+
+def get_dia_atual():
+    """Retorna o dia atual em formato DD"""
+    return datetime.now().strftime("%d")
+
+def get_dados_historicos_mes(mes):
+    """Retorna dados históricos para o mês especificado"""
+    return DADOS_HISTORICOS.get(mes, DADOS_HISTORICOS["01"])
+
+def verificar_data_comemorativa(mes, dia):
+    """Verifica se hoje tem data comemorativa no banco histórico"""
+    dados_mes = get_dados_historicos_mes(mes)
+    data_atual = f"{mes}-{dia}"
+    
+    for evento in dados_mes.get("eventos", []):
+        if evento.get("data") == data_atual:
+            return evento
+    return None
+
+def buscar_tendencias_por_periodo(mes, limite=10):
+    """Busca tendências históricas para um determinado mês"""
+    dados_mes = get_dados_historicos_mes(mes)
+    tendencias = dados_mes.get("tendencias", [])
+    
+    # Se não tiver dados, usa fallback
+    if not tendencias:
+        tendencias = [
+            "smartwatch", "fone bluetooth", "caixa de som", "carregador portátil",
+            "camisa", "vestido", "tênis", "bolsa", "mochila",
+            "cadeira gamer", "luminária", "perfume", "brinquedo"
+        ]
+    
+    return tendencias[:limite]
+
+def analisar_produto_para_data(termo, data_tipo="historica"):
     """
-    Minera produtos com foco em:
-    1. Produtos disponíveis na Shopee
-    2. Poucos afiliados (baixa concorrência)
-    3. Alto potencial de vendas
+    Analisa produto com base em dados históricos ou atuais
     """
-    resultados = []
+    produtos_ml = buscar_produtos_mercadolivre(termo, 3)
+    produtos_shopee = buscar_produtos_shopee(termo, 3)
     
-    # 1. Busca por categorias no Mercado Livre para encontrar produtos quentes
-    with st.spinner("Buscando produtos em alta no Mercado Livre..."):
-        for categoria, categoria_id in CATEGORIAS_ML.items():
-            produtos_cat = buscar_produtos_categoria_ml(categoria_id, 5)
-            
-            for p in produtos_cat:
-                # Extrai termos-chave
-                palavras = p.get("nome", "").split()[:4]
-                if palavras:
-                    termo = " ".join(palavras[:3])
-                    if len(termo) > 3 and termo not in [r["termo"] for r in resultados]:
-                        analise = analisar_produto_completo(termo, categoria)
-                        resultados.append(analise)
-                        time.sleep(0.3)  # Delay para não sobrecarregar
+    total_produtos = len(produtos_ml) + len(produtos_shopee)
     
-    # 2. Produtos populares como fallback
-    produtos_base = [
-        "smartwatch", "fone bluetooth", "caixa de som", "carregador portátil",
-        "camisa", "vestido", "tênis", "bolsa", "mochila",
-        "cadeira gamer", "luminária led", "quadro decorativo",
-        "perfume", "kit maquiagem", "garrafa térmica",
-        "brinquedo educativo", "boneca", "carrinho controle remoto",
-        "capinha celular", "power bank"
-    ]
+    # Score baseado em disponibilidade
+    score = 0
+    if produtos_ml:
+        score += 2
+    if produtos_shopee:
+        score += 2
+    if total_produtos >= 4:
+        score += 1
     
-    for termo in produtos_base[:10]:
-        if termo not in [r["termo"] for r in resultados]:
-            categoria = "Geral"
-            for cat, keywords in {
-                "Eletrônicos": ["smartwatch", "fone", "caixa", "carregador", "celular"],
-                "Moda": ["camisa", "vestido", "tênis", "bolsa", "mochila"],
-                "Casa": ["cadeira", "luminária", "quadro"],
-                "Beleza": ["perfume", "maquiagem"]
-            }.items():
-                if any(k in termo.lower() for k in keywords):
-                    categoria = cat
-                    break
-            
-            analise = analisar_produto_completo(termo, categoria)
-            resultados.append(analise)
-            time.sleep(0.3)
+    if score >= 4:
+        recomendacao = "🔥 OPORTUNIDADE EXCELENTE - Múltiplos fornecedores"
+    elif score >= 2:
+        recomendacao = "⭐ BOA OPORTUNIDADE - Disponível em alguma plataforma"
+    else:
+        recomendacao = "⚠️ OPORTUNIDADE BAIXA - Produto pode ser difícil de encontrar"
     
-    # Ordena por score de oportunidade (maior = melhor)
-    resultados = sorted(resultados, key=lambda x: x["score_oportunidade"], reverse=True)
+    return {
+        "termo": termo,
+        "total_produtos": total_produtos,
+        "score": score,
+        "recomendacao": recomendacao,
+        "produtos_ml": produtos_ml,
+        "produtos_shopee": produtos_shopee,
+        "fonte": data_tipo
+    }
+
+def gerar_sugestoes_conteudo(evento, tendencias):
+    """Gera sugestões de conteúdo com base no evento e tendências"""
+    sugestoes = []
     
-    return pd.DataFrame(resultados[:20])
+    # Sugestões baseadas no evento
+    nome_evento = evento.get("nome", "")
+    sugestao_base = evento.get("sugestao", "")
+    
+    if "Dia dos Namorados" in nome_evento:
+        sugestoes = [
+            "💝 Faça vídeo 'O que comprar para o Dia dos Namorados por R$100'",
+            "🎁 Crie uma lista dos 10 melhores presentes românticos",
+            "📦 Mostre unboxing de kits de presente",
+            "👗 Dicas de look para um jantar romântico"
+        ]
+    elif "Dia das Mães" in nome_evento:
+        sugestoes = [
+            "👩 Faça um vídeo 'Presentes para mães que são úteis e baratos'",
+            "🎯 Mostre sugestões por faixa de preço: R$50, R$100, R$200",
+            "📦 Unboxing de kits de beleza e perfumes",
+            "🏠 Ideias de presentes DIY (faça você mesmo)"
+        ]
+    elif "Dia dos Pais" in nome_evento:
+        sugestoes = [
+            "👨 'O que seu pai realmente quer ganhar' - sugestões práticas",
+            "🔧 Mostre ferramentas e gadgets para homens",
+            "⏰ Ideias de presentes diferentes para pais",
+            "🎮 Sugestões de eletrônicos e acessórios"
+        ]
+    elif "Natal" in nome_evento:
+        sugestoes = [
+            "🎄 '10 brinquedos que vão esgotar no Natal'",
+            "🛍️ Lista de presentes por categoria: infantil, adulto, casal",
+            "💰 Dicas de como economizar nas compras de Natal",
+            "📦 Unboxing dos brinquedos mais procurados"
+        ]
+    elif "Black Friday" in nome_evento:
+        sugestoes = [
+            "🛒 'Produtos que valem a pena na Black Friday'",
+            "💰 Comparação de preços antes da BF",
+            "📱 Sugestões de eletrônicos com melhor custo-benefício",
+            "🎯 O que comprar na Black Friday para revender"
+        ]
+    elif "Carnaval" in nome_evento:
+        sugestoes = [
+            "🎭 'Fantasias mais procuradas no Carnaval 2026'",
+            "📦 Itens essenciais para bloquinhos de rua",
+            "💄 Dicas de maquiagem e acessórios para folia",
+            "🎵 Caixas de som e acessórios para festas"
+        ]
+    else:
+        # Sugestões genéricas
+        sugestoes = [
+            f"📸 Faça vídeo mostrando os produtos em tendência para {nome_evento}",
+            f"📊 Crie conteúdo mostrando 'O que comprar' para {nome_evento}",
+            f"💡 Dicas de presentes/presentes para {nome_evento}",
+            f"🛍️ Lista de itens essenciais para {nome_evento}"
+        ]
+    
+    # Adiciona sugestões baseadas nas tendências do mês
+    if tendencias:
+        if len(tendencias) >= 3:
+            sugestoes.append(f"🎯 3 produtos que estão em alta neste mês: {', '.join(tendencias[:3])}")
+    
+    return sugestoes
+
+def buscar_tendencias_atuais_ml():
+    """Busca tendências atuais no Mercado Livre"""
+    todos_termos = []
+    
+    for categoria, categoria_id in CATEGORIAS_ML.items():
+        termos = buscar_produtos_em_alta_ml(categoria_id, 3)
+        todos_termos.extend(termos)
+        time.sleep(0.3)  # Delay para não sobrecarregar
+    
+    return list(set(todos_termos))[:10]  # Remove duplicatas e limita
 
 # ===== INTERFACE =====
-st.title("🛍️ Minerador Pro - Oportunidades para Afiliados")
+st.title("📅 Minerador Pro - Conteúdo Estratégico para Datas")
 
 if "autenticado" not in st.session_state:
     st.session_state.autenticado = False
@@ -374,230 +491,176 @@ else:
         st.session_state.autenticado = False
         st.rerun()
 
-    # Explicação do método
-    st.markdown("""
-    ### 🎯 Encontre Produtos com Baixa Concorrência e Alto Potencial
+    # ===== ANÁLISE DO DIA ATUAL =====
+    hoje = datetime.now()
+    mes_atual = get_mes_atual()
+    dia_atual = get_dia_atual()
     
-    🔍 **Metodologia de Análise:**
-    - 🔄 Busca produtos em **Mercado Livre** (tendências)
-    - 📊 Analisa **densidade de afiliados** na Shopee
-    - 📈 Calcula **potencial de vendas** por produto
-    - ⭐ Identifica **oportunidades com pouca concorrência**
+    st.sidebar.markdown(f"**📅 Data atual:** {hoje.strftime('%d/%m/%Y')}")
+    st.sidebar.markdown(f"**📊 Mês de referência:** {hoje.strftime('%B').capitalize()}")
     
-    💡 **O que significa cada métrica:**
-    - **Score de Oportunidade**: Quanto maior, melhor para afiliados
-    - **Densidade de Afiliados**: % de produtos com menção a afiliado (menor = melhor)
-    - **Média de Vendas**: Produtos que já estão vendendo bem
-    - **Recomendação**: Análise consolidada da oportunidade
-    """)
-
-    if st.button("🚀 Buscar Oportunidades", use_container_width=True):
-        with st.spinner("Analisando oportunidades na Shopee..."):
-            try:
-                df_resultados = minerar_produtos_oportunidade()
-                
-                if not df_resultados.empty:
-                    # Métricas principais
-                    col1, col2, col3, col4 = st.columns(4)
-                    
-                    with col1:
-                        st.metric("Produtos Analisados", len(df_resultados))
-                    
-                    with col2:
-                        excelentes = df_resultados[df_resultados["score_oportunidade"] >= 8]
-                        st.metric("🚀 Oportunidades Excelentes", len(excelentes))
-                    
-                    with col3:
-                        boas = df_resultados[(df_resultados["score_oportunidade"] >= 6) & (df_resultados["score_oportunidade"] < 8)]
-                        st.metric("⭐ Boas Oportunidades", len(boas))
-                    
-                    with col4:
-                        baixa_concorrencia = df_resultados[df_resultados["densidade_afiliados"].str.replace('%', '').astype(float) < 30]
-                        st.metric("🎯 Baixa Concorrência", len(baixa_concorrencia))
-                    
-                    st.markdown("---")
-                    
-                    # Tabela principal
-                    st.markdown("### 📊 Oportunidades por Score")
-                    
-                    df_exibicao = df_resultados[["termo", "categoria", "score_oportunidade", "densidade_afiliados", "media_vendas", "recomendacao"]].copy()
-                    df_exibicao.columns = ["Produto", "Categoria", "Score", "% Afiliados", "Média Vendas", "Recomendação"]
-                    
-                    # Formata números
-                    df_exibicao["Média Vendas"] = df_exibicao["Média Vendas"].apply(lambda x: f"{x:.0f}")
-                    
-                    st.dataframe(
-                        df_exibicao,
-                        column_config={
-                            "Produto": "Produto",
-                            "Categoria": "Categoria",
-                            "Score": st.column_config.NumberColumn("Score", format="%d"),
-                            "% Afiliados": "% Afiliados",
-                            "Média Vendas": "Média Vendas",
-                            "Recomendação": "Recomendação"
-                        },
-                        use_container_width=True
-                    )
-                    
-                    st.markdown("---")
-                    
-                    # Filtros
-                    st.markdown("### 🎯 Filtrar Oportunidades")
-                    
-                    col1, col2, col3 = st.columns(3)
-                    
-                    with col1:
-                        filtro_score = st.selectbox(
-                            "Score mínimo:",
-                            ["Todos", "Excelente (≥8)", "Boa (≥6)", "Média (≥4)"]
-                        )
-                    
-                    with col2:
-                        filtro_concorrencia = st.selectbox(
-                            "Concorrência:",
-                            ["Todas", "Baixa (<30% afiliados)", "Média (30-50%)", "Alta (>50%)"]
-                        )
-                    
-                    with col3:
-                        filtro_categoria = st.selectbox(
-                            "Categoria:",
-                            ["Todas"] + list(CATEGORIAS_ML.keys())
-                        )
-                    
-                    # Aplica filtros
-                    df_filtrado = df_resultados.copy()
-                    
-                    if "Excelente" in filtro_score:
-                        df_filtrado = df_filtrado[df_filtrado["score_oportunidade"] >= 8]
-                    elif "Boa" in filtro_score:
-                        df_filtrado = df_filtrado[df_filtrado["score_oportunidade"] >= 6]
-                    elif "Média" in filtro_score:
-                        df_filtrado = df_filtrado[df_filtrado["score_oportunidade"] >= 4]
-                    
-                    if "Baixa" in filtro_concorrencia:
-                        df_filtrado = df_filtrado[df_filtrado["densidade_afiliados"].str.replace('%', '').astype(float) < 30]
-                    elif "Média" in filtro_concorrencia:
-                        df_filtrado = df_filtrado[(df_filtrado["densidade_afiliados"].str.replace('%', '').astype(float) >= 30) & 
-                                                   (df_filtrado["densidade_afiliados"].str.replace('%', '').astype(float) <= 50)]
-                    elif "Alta" in filtro_concorrencia:
-                        df_filtrado = df_filtrado[df_filtrado["densidade_afiliados"].str.replace('%', '').astype(float) > 50]
-                    
-                    if filtro_categoria != "Todas":
-                        df_filtrado = df_filtrado[df_filtrado["categoria"] == filtro_categoria]
-                    
-                    # Exibe produtos filtrados
-                    if not df_filtrado.empty:
-                        st.markdown(f"**{len(df_filtrado)} produtos encontrados com os filtros selecionados**")
-                        
-                        for _, row in df_filtrado.iterrows():
-                            with st.expander(f"📦 {row['termo']} - Score: {row['score_oportunidade']} - {row['recomendacao']}"):
-                                
-                                # Métricas do produto
-                                col_a, col_b, col_c = st.columns(3)
-                                
-                                with col_a:
-                                    st.metric("Score Oportunidade", f"{row['score_oportunidade']}/10")
-                                    st.caption(row['recomendacao'])
-                                
-                                with col_b:
-                                    st.metric("Densidade Afiliados", row['densidade_afiliados'])
-                                    if float(row['densidade_afiliados'].replace('%', '')) < 30:
-                                        st.success("✅ Baixa concorrência!")
-                                    else:
-                                        st.warning("⚠️ Concorrência moderada/alta")
-                                
-                                with col_c:
-                                    st.metric("Média de Vendas", f"{row['media_vendas']:.0f}")
-                                    if row['media_vendas'] > 50:
-                                        st.success("✅ Produto validado!")
-                                    else:
-                                        st.info("📊 Produto em crescimento")
-                                
-                                st.markdown("---")
-                                
-                                # Produtos da Shopee (detalhados)
-                                if row["produtos_shopee"]:
-                                    st.markdown("#### 🟢 Produtos na Shopee")
-                                    
-                                    # Separa por afiliado
-                                    afiliados = [p for p in row["produtos_shopee"] if p.get("is_afiliado", False)]
-                                    nao_afiliados = [p for p in row["produtos_shopee"] if not p.get("is_afiliado", False)]
-                                    
-                                    # Mostra produtos NÃO afiliados primeiro (melhor oportunidade)
-                                    if nao_afiliados:
-                                        st.markdown("**🔍 Produtos sem afiliados (melhor oportunidade):**")
-                                        for p in nao_afiliados[:3]:
-                                            st.markdown(f"- {p.get('nome', '')}")
-                                            st.markdown(f"  💰 {p.get('preco', '')} | 📦 {p.get('vendas', 0)} vendidos")
-                                            st.markdown(f"  🔗 [Ver na Shopee]({p.get('link', '#')})")
-                                            st.markdown(f"  📊 Potencial: {p.get('potencial_descricao', '')}")
-                                            st.markdown("")
-                                    
-                                    if afiliados and len(nao_afiliados) < 3:
-                                        st.markdown("**📌 Produtos com afiliados (concorrência):**")
-                                        for p in afiliados[:2]:
-                                            st.markdown(f"- {p.get('nome', '')}")
-                                            st.markdown(f"  💰 {p.get('preco', '')} | 📦 {p.get('vendas', 0)} vendidos")
-                                            st.markdown("")
-                                
-                                # Links rápidos
-                                st.markdown("---")
-                                col_a, col_b = st.columns(2)
-                                with col_a:
-                                    st.link_button(
-                                        "🔍 Buscar na Shopee",
-                                        f"https://shopee.com.br/search?keyword={quote(row['termo'])}",
-                                        use_container_width=True
-                                    )
-                                with col_b:
-                                    st.link_button(
-                                        "🔍 Buscar no Mercado Livre",
-                                        f"https://lista.mercadolivre.com.br/{quote(row['termo'])}",
-                                        use_container_width=True
-                                    )
-                    else:
-                        st.warning("Nenhum produto encontrado com os filtros selecionados")
-                    
-                    # Dicas estratégicas
-                    st.markdown("---")
-                    st.markdown("### 💡 Estratégia para Afiliados")
-                    
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        st.success("""
-                        **🎯 Oportunidades Excelentes (Score ≥ 8)**
-                        - ✅ Baixa concorrência de afiliados
-                        - ✅ Produto já validado (muitas vendas)
-                        - ✅ Faixa de preço ideal (R$30-R$150)
-                        
-                        **Ação:** Crie conteúdo URGENTE!
-                        """)
-                    
-                    with col2:
-                        st.info("""
-                        **⭐ Boas Oportunidades (Score ≥ 6)**
-                        - ⚠️ Concorrência moderada
-                        - 📊 Produto com potencial de crescimento
-                        
-                        **Ação:** Analise a concorrência e crie conteúdo diferenciado
-                        """)
-                    
-                    st.success("✅ Análise concluída! Foque nos produtos com menor densidade de afiliados!")
-                    
-                else:
-                    st.warning("Nenhum produto encontrado. Tente novamente.")
-                
-            except Exception as e:
-                st.error(f"Erro na mineração: {str(e)}")
-                st.info("Tente novamente em alguns segundos.")
-
+    # Verifica se hoje tem data comemorativa
+    evento_hoje = verificar_data_comemorativa(mes_atual, dia_atual)
+    
+    if evento_hoje:
+        st.sidebar.success(f"🎉 {evento_hoje.get('nome')}!")
+    else:
+        st.sidebar.info("📌 Buscando tendências do mês passado")
+    
+    # ===== PAINEL PRINCIPAL =====
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        if evento_hoje:
+            st.markdown(f"""
+            ### 🎉 {evento_hoje.get('nome')} - {hoje.strftime('%d/%m/%Y')}
+            
+            **Sugestão:** {evento_hoje.get('sugestao', '')}
+            """)
+        else:
+            st.markdown(f"""
+            ### 📊 Tendências para {hoje.strftime('%B').capitalize()}
+            
+            Com base no que as pessoas buscaram no mesmo mês do ano passado
+            """)
+    
+    with col2:
+        if st.button("🔄 Buscar Produtos Atuais", use_container_width=True):
+            st.session_state.buscar_atuais = True
+        st.caption("Busca em tempo real no Mercado Livre")
+    
     st.markdown("---")
-    st.markdown("### 📌 Dica: Como usar essa análise")
     
-    st.info("""
-    **Estratégia para maximizar suas vendas:**
-    1. 🎯 Foque em produtos com **Score ≥ 8** e **baixa densidade de afiliados**
-    2. 📈 Crie conteúdo mostrando o produto de forma autêntica
-    3. 🔄 Teste diferentes produtos para ver qual converte melhor
-    4. 🚀 Seja rápido - produtos com alto potencial atraem concorrentes rápido
-    """)
+    # ===== BUSCA DE TENDÊNCIAS =====
+    if st.session_state.get("buscar_atuais", False):
+        with st.spinner("🔄 Buscando produtos em alta no Mercado Livre..."):
+            tendencias_atuais = buscar_tendencias_atuais_ml()
+            st.session_state.tendencias_atuais = tendencias_atuais
+            st.session_state.buscar_atuais = False
+    
+    # Define tendências a usar
+    if evento_hoje:
+        # Se tem data comemorativa, usa as tendências do mês + evento
+        tendencias_mes = buscar_tendencias_por_periodo(mes_atual, 10)
+        
+        # Adiciona termos específicos do evento
+        termos_evento = []
+        if "Dia dos Namorados" in evento_hoje.get("nome", ""):
+            termos_evento = ["presente namorado", "kit romântico", "jantar especial"]
+        elif "Dia das Mães" in evento_hoje.get("nome", ""):
+            termos_evento = ["presente mãe", "flores", "perfume"]
+        elif "Dia dos Pais" in evento_hoje.get("nome", ""):
+            termos_evento = ["presente pai", "ferramentas", "relógio"]
+        elif "Natal" in evento_hoje.get("nome", ""):
+            termos_evento = ["presente natal", "árvore natal", "decoração"]
+        
+        tendencias = list(set(tendencias_mes + termos_evento))[:10]
+        fonte_dados = f"Histórico para {evento_hoje.get('nome')}"
+    else:
+        # Se não tem data, usa tendências do mesmo mês do ano passado
+        tendencias = buscar_tendencias_por_periodo(mes_atual, 10)
+        fonte_dados = f"Tendências do mesmo período (ano passado)"
+        
+        # Adiciona tendências atuais do ML se disponíveis
+        if hasattr(st.session_state, 'tendencias_atuais') and st.session_state.tendencias_atuais:
+            for termo in st.session_state.tendencias_atuais[:3]:
+                if termo not in tendencias:
+                    tendencias.append(termo)
+            fonte_dados += " + tendências atuais do ML"
+    
+    # ===== ANÁLISE DOS PRODUTOS =====
+    if tendencias:
+        st.markdown(f"### 📦 Analisando: {fonte_dados}")
+        
+        # Analisa cada termo
+        resultados = []
+        for termo in tendencias[:10]:
+            analise = analisar_produto_para_data(termo, "histórico")
+            resultados.append(analise)
+            time.sleep(0.3)  # Delay para não sobrecarregar
+        
+        # Ordena por score
+        resultados = sorted(resultados, key=lambda x: x["score"], reverse=True)
+        
+        # Métricas
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("Produtos Analisados", len(resultados))
+        with col2:
+            excelentes = sum(1 for r in resultados if r["score"] >= 4)
+            st.metric("🔥 Excelentes Oportunidades", excelentes)
+        with col3:
+            tem_produto = sum(1 for r in resultados if r["total_produtos"] > 0)
+            st.metric("✅ Com Produtos Disponíveis", tem_produto)
+        
+        st.markdown("---")
+        
+        # Tabela de resultados
+        st.markdown("### 📊 Produtos e Oportunidades")
+        
+        df_exibicao = pd.DataFrame([{
+            "Produto": r["termo"],
+            "Score": r["score"],
+            "Disponibilidade": f"{r['total_produtos']} produtos",
+            "Recomendação": r["recomendacao"],
+            "Fonte": r["fonte"]
+        } for r in resultados])
+        
+        st.dataframe(
+            df_exibicao,
+            column_config={
+                "Produto": "Produto",
+                "Score": st.column_config.NumberColumn("Score", format="%d"),
+                "Disponibilidade": "Disponibilidade",
+                "Recomendação": "Recomendação",
+                "Fonte": "Fonte"
+            },
+            use_container_width=True
+        )
+        
+        # Detalhamento por produto
+        st.markdown("### 🛍️ Detalhamento dos Produtos")
+        
+        for r in resultados[:5]:
+            with st.expander(f"📦 {r['termo']} - Score: {r['score']} - {r['recomendacao']}"):
+                col_a, col_b = st.columns(2)
+                
+                with col_a:
+                    if r["produtos_ml"]:
+                        st.markdown("**🔵 Mercado Livre:**")
+                        for p in r["produtos_ml"][:2]:
+                            st.markdown(f"- {p.get('nome', '')}")
+                            st.markdown(f"  💰 {p.get('preco', '')} | 📦 {p.get('vendas', 0)} vendidos")
+                            if p.get('link'):
+                                st.markdown(f"  [🔗 Ver produto]({p['link']})")
+                            st.markdown("")
+                
+                with col_b:
+                    if r["produtos_shopee"]:
+                        st.markdown("**🟢 Shopee:**")
+                        for p in r["produtos_shopee"][:2]:
+                            st.markdown(f"- {p.get('nome', '')}")
+                            st.markdown(f"  💰 {p.get('preco', '')} | 📦 {p.get('vendas', 0)} vendidos")
+                            if p.get('link'):
+                                st.markdown(f"  [🔗 Ver produto]({p['link']})")
+                            st.markdown("")
+        
+        # ===== SUGESTÕES DE CONTEÚDO =====
+        st.markdown("---")
+        st.markdown("### 💡 Sugestões de Conteúdo para Afiliados")
+        
+        if evento_hoje:
+            sugestoes = gerar_sugestoes_conteudo(evento_hoje, tendencias)
+            
+            for i, sugestao in enumerate(sugestoes[:5], 1):
+                st.info(f"{i}. {sugestao}")
+        else:
+            # Sugestões baseadas nas tendências do mês
+            st.markdown(f"**📌 Baseado nas tendências de {hoje.strftime('%B').capitalize()}:**")
+            
+            sugestoes = [
+                f"🎯 Crie vídeos mostrando os produtos em alta: {', '.join(tendencias[:3])}",
+                "📊 Faça um 'Top 5' dos produtos mais procurados neste mês",
+                "📦 Mostre unboxing dos produtos mais populares",
+                "💰 Crie conteúdo sobre 'melhor custo-benefício' para cada categoria",
+                "
