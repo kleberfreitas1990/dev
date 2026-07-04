@@ -8,7 +8,6 @@ import random
 import json
 import os
 import threading
-import schedule
 
 # ============================================================
 # CONFIGURACAO DA PAGINA
@@ -31,7 +30,7 @@ ARQUIVO_TRENDS = "dados_trends.json"
 # CONFIGURACAO DAS APIS
 # ============================================================
 SERPAPI_KEY = st.secrets.get("SERPAPI_KEY", "")
-APIFY_TOKEN = st.secrets.get("APIFY_TOKEN", "")  # Opcional - para Pinterest
+APIFY_TOKEN = st.secrets.get("APIFY_TOKEN", "")
 
 # ============================================================
 # SISTEMA DE CACHE
@@ -111,17 +110,16 @@ class GoogleTrendsAPI:
             from pytrends.request import TrendReq
             self.pytrends = TrendReq(hl='pt-BR', tz=-180)
         except ImportError:
-            st.warning("Biblioteca pytrends não instalada. Execute: pip install pytrends")
+            pass
         except Exception as e:
-            st.error(f"Erro ao inicializar pytrends: {e}")
+            pass
     
     def buscar_interesse_historico(self, termos, timeframe='now 1-d'):
-        """Busca interesse ao longo do tempo (últimas 24h)"""
         if not self.pytrends:
             return None
         
         chave_cache = f"trends_historico_{'_'.join(termos[:3])}_{timeframe}"
-        cache_valor = self.cache.obter(chave_cache, 1)  # 1 hora de validade
+        cache_valor = self.cache.obter(chave_cache, 1)
         if cache_valor is not None:
             return cache_valor
         
@@ -138,16 +136,13 @@ class GoogleTrendsAPI:
             if 'isPartial' in dados.columns:
                 dados = dados.drop('isPartial', axis=1)
             
-            # Converte para dict para salvar no cache
             dados_dict = dados.to_dict()
             self.cache.definir(chave_cache, dados_dict)
             return dados
         except Exception as e:
-            st.error(f"Erro ao buscar Google Trends: {e}")
             return None
     
     def buscar_tendencias_regionais(self, termo, geo='BR'):
-        """Busca tendências regionais para um termo"""
         if not self.pytrends:
             return None
         
@@ -166,11 +161,9 @@ class GoogleTrendsAPI:
             self.cache.definir(chave_cache, dados_dict)
             return dados
         except Exception as e:
-            st.error(f"Erro ao buscar tendências regionais: {e}")
             return None
     
     def buscar_termos_relacionados(self, termo):
-        """Busca termos relacionados no Google Trends"""
         if not self.pytrends:
             return None
         
@@ -188,7 +181,6 @@ class GoogleTrendsAPI:
                 return dados
             return None
         except Exception as e:
-            st.error(f"Erro ao buscar termos relacionados: {e}")
             return None
 
 # ============================================================
@@ -200,16 +192,13 @@ class PinterestScraper:
         self.cache = CacheDiario()
     
     def buscar_tendencias(self, termo, limite=10):
-        """Busca tendências no Pinterest via Apify (ou simula se não tiver token)"""
         chave_cache = f"pinterest_{termo}_{limite}"
-        cache_valor = self.cache.obter(chave_cache, 1)  # 1 hora
+        cache_valor = self.cache.obter(chave_cache, 1)
         if cache_valor is not None:
             return cache_valor
         
-        # Se tiver token do Apify, usa a API real
         if self.apify_token:
             try:
-                # Exemplo de chamada ao Apify (ajuste conforme o ator)
                 url = "https://api.apify.com/v2/acts/curious_coder~pinterest-search-scraper/runs"
                 params = {
                     "token": self.apify_token,
@@ -222,15 +211,13 @@ class PinterestScraper:
                     self.cache.definir(chave_cache, data)
                     return data
             except Exception as e:
-                st.warning(f"Erro no Apify: {e}")
+                pass
         
-        # Fallback: dados simulados baseados nas tendências reais
         dados_simulados = self._gerar_dados_simulados(termo, limite)
         self.cache.definir(chave_cache, dados_simulados)
         return dados_simulados
     
     def _gerar_dados_simulados(self, termo, limite):
-        """Gera dados simulados baseados nas tendências reais do Pinterest"""
         termos_relacionados = {
             "smartwatch": ["smartwatch feminino", "smartwatch esportivo", "smartwatch barato"],
             "fone bluetooth": ["fone bluetooth JBL", "fone bluetooth Samsung", "fone bluetooth barato"],
@@ -313,7 +300,6 @@ class GoogleShoppingAPI:
             self.cache.definir(chave_cache, produtos)
             return produtos
         except Exception as e:
-            st.error(f"Erro no Google Shopping: {e}")
             return []
     
     def buscar_total_resultados(self, termo, forcar_atualizacao=False):
@@ -491,7 +477,7 @@ def calcular_score(total_resultados, produtos):
     return min(score, 10)
 
 # ============================================================
-# AGENDADOR DE COLETA (RODA A CADA 1 HORA)
+# COLETOR DE DADOS (SEM SCHEDULE)
 # ============================================================
 class ColetorAgendado:
     def __init__(self):
@@ -504,10 +490,7 @@ class ColetorAgendado:
         self.resultados = []
     
     def coletar_dados(self):
-        """Coleta dados de todas as fontes"""
         try:
-            st.info("🔄 Coletando dados de tendências...")
-            
             dados_coletados = {
                 "timestamp": datetime.now().isoformat(),
                 "google_trends": {},
@@ -515,19 +498,16 @@ class ColetorAgendado:
                 "produtos": {}
             }
             
-            # 1. Google Trends
             for termo in self.termos_base[:5]:
                 historico = self.google_trends.buscar_interesse_historico([termo], 'now 1-d')
                 if historico is not None and not historico.empty:
                     dados_coletados["google_trends"][termo] = historico.to_dict()
             
-            # 2. Pinterest
             for termo in self.termos_base[:5]:
                 tendencias = self.pinterest.buscar_tendencias(termo, 5)
                 if tendencias:
                     dados_coletados["pinterest"][termo] = tendencias
             
-            # 3. Produtos (Google Shopping + ML)
             for termo in self.termos_base[:5]:
                 produtos_gs = self.google_shopping.buscar_produtos(termo, 3, True)
                 produtos_ml = self.ml_scraper.buscar_produtos(termo, 3, True)
@@ -536,22 +516,18 @@ class ColetorAgendado:
                     "mercado_livre": produtos_ml
                 }
             
-            # Salva os dados
             with open(ARQUIVO_TRENDS, 'w', encoding='utf-8') as f:
                 json.dump(dados_coletados, f, ensure_ascii=False, indent=2)
             
             self.ultima_coleta = datetime.now()
             self.resultados = dados_coletados
             
-            st.success(f"✅ Coleta concluída! Última atualização: {self.ultima_coleta.strftime('%H:%M:%S')}")
             return dados_coletados
             
         except Exception as e:
-            st.error(f"Erro na coleta: {e}")
             return None
     
     def carregar_ultima_coleta(self):
-        """Carrega a última coleta salva"""
         if os.path.exists(ARQUIVO_TRENDS):
             try:
                 with open(ARQUIVO_TRENDS, 'r', encoding='utf-8') as f:
@@ -562,6 +538,16 @@ class ColetorAgendado:
             except:
                 pass
         return None
+    
+    def verificar_e_coletar(self):
+        """Verifica se passou 1 hora desde a última coleta"""
+        if self.ultima_coleta is None:
+            return self.coletar_dados()
+        
+        diferenca = (datetime.now() - self.ultima_coleta).total_seconds() / 3600
+        if diferenca >= 1:
+            return self.coletar_dados()
+        return self.resultados
 
 # ============================================================
 # FUNCOES DE LOGIN
@@ -587,7 +573,6 @@ def verificar_login():
 # ============================================================
 verificar_login()
 
-# Inicializa cache e APIs
 cache = CacheDiario()
 google_shopping = GoogleShoppingAPI()
 ml_scraper = MercadoLivreScraper()
@@ -595,8 +580,11 @@ google_trends = GoogleTrendsAPI()
 pinterest_scraper = PinterestScraper()
 coletor = ColetorAgendado()
 
-# Carrega última coleta
 coletor.carregar_ultima_coleta()
+
+# Tenta coletar se necessário
+if coletor.ultima_coleta is None or (datetime.now() - coletor.ultima_coleta).total_seconds() / 3600 >= 1:
+    coletor.coletar_dados()
 
 # ============================================================
 # SIDEBAR - CONFIGURACOES
@@ -649,9 +637,6 @@ with st.sidebar:
 st.title("🛒 Minerador de Produtos")
 st.caption(f"📅 {datetime.now().strftime('%A, %d de %B de %Y - %H:%M')}")
 
-# ============================================================
-# METRICAS RAPIDAS
-# ============================================================
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
@@ -852,105 +837,4 @@ with tab3:
             
             if not df.empty:
                 melhor = df.iloc[0]
-                st.success(f"🏆 Melhor oportunidade: **{melhor['Produto']}** (Score: {melhor['Score']}/10)")
-            
-            st.dataframe(
-                df,
-                use_container_width=True,
-                hide_index=True,
-                column_config={
-                    "Score": st.column_config.NumberColumn("Score", format="%d"),
-                    "Total Resultados": st.column_config.NumberColumn("Total Resultados", format="%d"),
-                    "Produtos Encontrados": st.column_config.NumberColumn("Produtos Encontrados", format="%d")
-                }
-            )
-            
-            if not df.empty:
-                st.markdown("#### 📈 Score por Produto")
-                df_chart = df.set_index("Produto")[["Score"]]
-                st.bar_chart(df_chart)
-            
-            st.info("💡 Foque nos produtos com maior Score e menor número de resultados!")
-
-# ============================================================
-# TAB 4: TENDENCIAS
-# ============================================================
-with tab4:
-    st.markdown("### 📌 Tendências Pinterest 2025-2026")
-    st.caption("Baseado no relatório Pinterest Predicts")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("#### 📅 2025")
-        for categoria, items in TENDENCIAS_PINTEREST["2025"].items():
-            with st.expander(f"📌 {categoria}"):
-                for item in items:
-                    st.markdown(f"- {item}")
-    
-    with col2:
-        st.markdown("#### 📅 2026")
-        for categoria, items in TENDENCIAS_PINTEREST["2026"].items():
-            with st.expander(f"📌 {categoria}"):
-                for item in items:
-                    st.markdown(f"- {item}")
-    
-    st.markdown("---")
-    st.markdown("### 💡 Como usar estas tendências")
-    st.markdown("""
-    1. Escolha uma tendência da lista acima
-    2. Vá para a aba **Buscar Produtos** e pesquise
-    3. Analise a saturação e concorrência
-    4. Crie conteúdo para redes sociais sobre o produto
-    """)
-
-# ============================================================
-# TAB 5: GOOGLE TRENDS
-# ============================================================
-with tab5:
-    st.markdown("### 📈 Google Trends - Interesse em Tempo Real")
-    st.caption("Dados das últimas 24 horas - atualizados a cada hora")
-    
-    col1, col2 = st.columns([2, 1])
-    with col1:
-        termos_trends = st.text_input(
-            "Digite termos separados por vírgula:",
-            placeholder="smartwatch, fone bluetooth, camisa",
-            key="trends_input"
-        )
-    with col2:
-        if st.button("🔄 Buscar no Google Trends", type="primary", use_container_width=True):
-            if termos_trends:
-                lista_termos = [t.strip() for t in termos_trends.split(",")][:5]
-                
-                with st.spinner("Buscando dados no Google Trends..."):
-                    dados_trends = google_trends.buscar_interesse_historico(lista_termos, 'now 1-d')
-                    
-                    if dados_trends is not None and not dados_trends.empty:
-                        st.markdown("#### 📊 Interesse ao Longo do Tempo (últimas 24h)")
-                        
-                        # Mostra gráfico de linha
-                        st.line_chart(dados_trends)
-                        
-                        # Mostra dados em tabela
-                        st.markdown("#### 📋 Dados Detalhados")
-                        st.dataframe(dados_trends, use_container_width=True)
-                        
-                        # Média de interesse
-                        st.markdown("#### 📈 Média de Interesse por Termo")
-                        medias = dados_trends.mean().sort_values(ascending=False)
-                        df_medias = pd.DataFrame({
-                            "Termo": medias.index,
-                            "Média de Interesse": medias.values
-                        })
-                        st.dataframe(df_medias, use_container_width=True, hide_index=True)
-                    else:
-                        st.warning("Não foi possível buscar dados. Verifique os termos ou tente novamente.")
-            else:
-                st.warning("Digite pelo menos um termo para buscar.")
-
-# ============================================================
-# RODAPE
-# ============================================================
-st.markdown("---")
-st.caption(f"🛒 Minerador de Produtos v2.0 | {datetime.now().year} | Dados: Google Trends, Google Shopping, Mercado Livre")
+                st.success(f"🏆 Melhor oportunidade: **{melhor['Produto']
