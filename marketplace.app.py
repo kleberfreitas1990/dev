@@ -7,8 +7,6 @@ import time
 import random
 import json
 import os
-import plotly.express as px
-import plotly.graph_objects as go
 
 # ============================================================
 # CONFIGURACAO DA PAGINA
@@ -264,16 +262,16 @@ class MercadoLivreScraper:
 # ============================================================
 TENDENCIAS_PINTEREST = {
     "2025": {
-        "beauty": ["jelly blush", "maquiagem glacial", "makeup gotica"],
-        "fashion": ["broches", "terno oversized", "rendas", "estilo expedicao"],
-        "decor": ["afrodecor", "neo deco", "lar ludico"],
-        "gifts": ["entre postais", "infancia retro", "perfume nichado"]
+        "Beleza": ["jelly blush", "maquiagem glacial", "makeup gotica"],
+        "Moda": ["broches", "terno oversized", "rendas", "estilo expedicao"],
+        "Decoracao": ["afrodecor", "neo deco", "lar ludico"],
+        "Presentes": ["entre postais", "infancia retro", "perfume nichado"]
     },
     "2026": {
-        "beauty": ["blush em gel", "iluminador furta-cor", "batom metalico"],
-        "fashion": ["maximalismo", "moda utilitaria", "acessorios vintage"],
-        "decor": ["decoracao circense", "arte etiope", "marmore vermelho"],
-        "gifts": ["brinquedos anos 2000", "papelaria criativa", "kits de perfume"]
+        "Beleza": ["blush em gel", "iluminador furta-cor", "batom metalico"],
+        "Moda": ["maximalismo", "moda utilitaria", "acessorios vintage"],
+        "Decoracao": ["decoracao circense", "arte etiope", "marmore vermelho"],
+        "Presentes": ["brinquedos anos 2000", "papelaria criativa", "kits de perfume"]
     }
 }
 
@@ -299,13 +297,13 @@ def analisar_saturacao(total):
     if total == 0:
         return {"nivel": "Sem dados", "cor": "gray", "recomendacao": "Nenhum produto encontrado"}
     elif total < 50:
-        return {"nivel": "Baixa saturacao", "cor": "green", "recomendacao": "Otimo! Pouca concorrencia. Aproveite!"}
+        return {"nivel": "Baixa saturacao", "cor": "🟢", "recomendacao": "Otimo! Pouca concorrencia. Aproveite!"}
     elif total < 200:
-        return {"nivel": "Saturacao moderada", "cor": "orange", "recomendacao": "Concorrencia razoavel. Ainda ha espaco."}
+        return {"nivel": "Saturacao moderada", "cor": "🟡", "recomendacao": "Concorrencia razoavel. Ainda ha espaco."}
     elif total < 500:
-        return {"nivel": "Saturacao alta", "cor": "red", "recomendacao": "Mercado concorrido. Foque em nichos especificos."}
+        return {"nivel": "Saturacao alta", "cor": "🟠", "recomendacao": "Mercado concorrido. Foque em nichos especificos."}
     else:
-        return {"nivel": "Saturacao muito alta", "cor": "darkred", "recomendacao": "Mercado saturado. Busque variacoes menos competitivas."}
+        return {"nivel": "Saturacao muito alta", "cor": "🔴", "recomendacao": "Mercado saturado. Busque variacoes menos competitivas."}
 
 def calcular_score(total_resultados, produtos):
     if total_resultados <= 0:
@@ -366,7 +364,6 @@ ml_scraper = MercadoLivreScraper()
 # SIDEBAR - CONFIGURACOES
 # ============================================================
 with st.sidebar:
-    st.image("https://img.icons8.com/fluency/96/000000/shopping-cart.png", width=60)
     st.markdown("### ⚙️ Configurações")
     
     validade = st.selectbox(
@@ -539,24 +536,23 @@ with tab2:
             
             saturacao = analisar_saturacao(total)
             
-            # Gráfico de gauge
-            fig = go.Figure(go.Indicator(
-                mode = "gauge+number",
-                value = min(total / 5, 100),
-                title = {'text': "Nível de Saturação"},
-                gauge = {
-                    'axis': {'range': [None, 100]},
-                    'bar': {'color': saturacao['cor']},
-                    'steps': [
-                        {'range': [0, 20], 'color': "lightgreen"},
-                        {'range': [20, 50], 'color': "yellow"},
-                        {'range': [50, 80], 'color': "orange"},
-                        {'range': [80, 100], 'color': "red"}
-                    ]
-                }
-            ))
-            fig.update_layout(height=300)
-            st.plotly_chart(fig, use_container_width=True)
+            # Barra de saturação visual
+            st.markdown("#### Nível de Saturação")
+            col_barra, col_porcentagem = st.columns([4, 1])
+            
+            with col_barra:
+                pct = min(total / 5, 100)
+                cor = "green" if pct < 20 else "yellow" if pct < 50 else "orange" if pct < 80 else "red"
+                st.markdown(f"""
+                <div style="background: #e0e0e0; border-radius: 10px; height: 30px; position: relative;">
+                    <div style="background: {cor}; width: {pct}%; height: 30px; border-radius: 10px; transition: width 0.5s;">
+                        <span style="position: absolute; right: 10px; top: 5px; color: black; font-weight: bold;">{pct:.1f}%</span>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            with col_porcentagem:
+                st.metric("Saturação", f"{pct:.1f}%")
             
             c1, c2 = st.columns(2)
             with c1:
@@ -564,7 +560,7 @@ with tab2:
             with c2:
                 st.metric("📦 Mercado Livre", total_ml)
             
-            st.markdown(f"### {saturacao['nivel']}")
+            st.markdown(f"### {saturacao['cor']} {saturacao['nivel']}")
             st.markdown(f"💡 {saturacao['recomendacao']}")
 
 # ============================================================
@@ -591,8 +587,11 @@ with tab3:
                     if item not in todos_termos:
                         todos_termos.append(item)
             
-            progress = st.progress(0)
+            progress_bar = st.progress(0)
+            status_text = st.empty()
+            
             for i, termo in enumerate(todos_termos[:10]):
+                status_text.text(f"Analisando: {termo}...")
                 produtos = google_shopping.buscar_produtos(termo, 3, not usar_cache)
                 total = google_shopping.buscar_total_resultados(termo, not usar_cache) + ml_scraper.buscar_total_resultados(termo, not usar_cache)
                 score = calcular_score(total, produtos)
@@ -603,8 +602,10 @@ with tab3:
                     "Total Resultados": total,
                     "Produtos Encontrados": len(produtos)
                 })
-                progress.progress((i + 1) / 10)
+                progress_bar.progress((i + 1) / len(todos_termos[:10]))
                 time.sleep(0.2)
+            
+            status_text.empty()
             
             df = pd.DataFrame(resultados).sort_values("Score", ascending=False).reset_index(drop=True)
             
@@ -628,6 +629,12 @@ with tab3:
                 }
             )
             
+            # Gráfico de barras com Streamlit
+            if not df.empty:
+                st.markdown("#### 📈 Score por Produto")
+                df_chart = df.set_index("Produto")[["Score"]]
+                st.bar_chart(df_chart)
+            
             st.info("💡 Foque nos produtos com maior Score e menor número de resultados!")
 
 # ============================================================
@@ -642,14 +649,14 @@ with tab4:
     with col1:
         st.markdown("#### 📅 2025")
         for categoria, items in TENDENCIAS_PINTEREST["2025"].items():
-            with st.expander(f"📌 {categoria.capitalize()}"):
+            with st.expander(f"📌 {categoria}"):
                 for item in items:
                     st.markdown(f"- {item}")
     
     with col2:
         st.markdown("#### 📅 2026")
         for categoria, items in TENDENCIAS_PINTEREST["2026"].items():
-            with st.expander(f"📌 {categoria.capitalize()}"):
+            with st.expander(f"📌 {categoria}"):
                 for item in items:
                     st.markdown(f"- {item}")
     
