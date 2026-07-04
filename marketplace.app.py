@@ -14,6 +14,38 @@ import subprocess
 import sys
 
 # ============================================================
+# INSTALAR DEPENDÊNCIAS AUTOMATICAMENTE
+# ============================================================
+def instalar_dependencia(pacote):
+    """Instala um pacote pip se não estiver disponível"""
+    try:
+        __import__(pacote.replace("-", "_"))
+        return True
+    except ImportError:
+        try:
+            subprocess.check_call([sys.executable, "-m", "pip", "install", pacote])
+            return True
+        except:
+            return False
+
+# Tenta instalar o google-genai
+if not instalar_dependencia("google-genai"):
+    st.warning("⚠️ Não foi possível instalar google-genai. Gerador de vídeo pode não funcionar.")
+    try:
+        import google.generativeai as genai
+        st.info("✅ Usando google-generativeai como fallback")
+    except:
+        pass
+else:
+    try:
+        from google import genai
+    except:
+        try:
+            import google.generativeai as genai
+        except:
+            pass
+
+# ============================================================
 # SUPRIMIR WARNINGS
 # ============================================================
 warnings.filterwarnings("ignore", category=FutureWarning)
@@ -199,70 +231,118 @@ class GaleriaVideos:
         self.salvar()
 
 # ============================================================
-# GERADOR DE VÍDEO SIMULADO (FUNCIONAL PARA DEMONSTRAÇÃO)
+# GERADOR DE VÍDEO REAL COM GEMINI VEO 3.1
 # ============================================================
 class GeminiVideoGenerator:
     def __init__(self):
         self.api_key = GEMINI_API_KEY
         self.galeria = GaleriaVideos()
         self.creditos = CreditosDiarios()
+        self.client = None
+        
+        if self.api_key:
+            try:
+                from google import genai
+                self.client = genai.Client(api_key=self.api_key)
+            except Exception as e:
+                try:
+                    import google.generativeai as genai
+                    genai.configure(api_key=self.api_key)
+                    self.client = genai
+                except:
+                    pass
     
-    def gerar_video(self, prompt, licenca, duracao=6, resolucao="480p", estilo="Realista", modelo="Gemini Pro Video"):
+    def gerar_video(self, prompt, licenca, duracao=8, resolucao="720p", estilo="Realista", modelo="Veo 3.1"):
         """
-        Gera um vídeo simulando a API - gera um arquivo de vídeo real para download
+        Gera um vídeo REAL usando Veo 3.1 via Gemini API
         """
         if not self.api_key:
             return {"erro": "Chave Gemini não configurada"}
+        
+        if not self.client:
+            return {"erro": "Cliente Gemini não inicializado"}
         
         if not self.creditos.usar_credito(licenca):
             return {"erro": "Créditos diários esgotados. Volte amanhã!"}
         
         try:
-            # Gera um identificador único
-            video_id = f"video_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            # Mapeia modelo
+            model_map = {
+                "Veo 3.1": "veo-3.1-generate-001",
+                "Veo 3.1 Fast": "veo-3.1-fast-generate-001",
+                "Gemini Omni Flash": "gemini-omni-flash"
+            }
+            model_name = model_map.get(modelo, "veo-3.1-generate-001")
             
-            # Cria um vídeo de exemplo em formato MP4 (base64 de um vídeo curto)
-            # Usa um vídeo de exemplo da internet para demonstração
-            video_url = "https://www.w3schools.com/html/mov_bbb.mp4"
-            
-            # Baixa o vídeo de exemplo
-            try:
-                response = requests.get(video_url, timeout=10)
-                if response.status_code == 200:
-                    # Salva o vídeo localmente
-                    filename = f"{video_id}.mp4"
-                    with open(filename, 'wb') as f:
-                        f.write(response.content)
-                    
-                    video_info = {
-                        "url": filename,
-                        "prompt": prompt,
-                        "duracao": duracao,
-                        "resolucao": resolucao,
-                        "estilo": estilo,
-                        "modelo": modelo,
-                        "status": "concluido"
-                    }
-                    
-                    self.galeria.adicionar(video_info)
-                    return video_info
-            except:
-                pass
-            
-            # Fallback: cria um arquivo de vídeo vazio (placeholder)
-            video_info = {
-                "url": "https://placehold.co/600x400/000000/FFFFFF?text=Video+Gerado",
-                "prompt": prompt,
-                "duracao": duracao,
-                "resolucao": resolucao,
-                "estilo": estilo,
-                "modelo": modelo,
-                "status": "concluido"
+            # Configuração da requisição
+            config = {
+                "aspect_ratio": "9:16",
+                "duration_seconds": min(duracao, 8),
+                "number_of_videos": 1,
+                "resolution": resolucao,
+                "person_generation": "allow_adult",
+                "generate_audio": True
             }
             
-            self.galeria.adicionar(video_info)
-            return video_info
+            # Inicia a geração
+            st.info(f"🎬 Iniciando geração com {modelo}...")
+            st.caption(f"⏱️ Duração: {config['duration_seconds']}s | 📐 9:16 | 📺 {resolucao}")
             
+            # Chama a API
+            operation = self.client.models.generate_videos(
+                model=model_name,
+                prompt=prompt,
+                config=config
+            )
+            
+            # Aguarda conclusão
+            progress_bar = st.progress(0)
+            status_text = st.empty()
+            
+            elapsed_time = 0
+            max_wait = 300
+            
+            while not operation.done and elapsed_time < max_wait:
+                status_text.text(f"⏳ Processando... {elapsed_time}s")
+                time.sleep(5)
+                elapsed_time += 5
+                progress_bar.progress(min(elapsed_time / max_wait, 0.95))
+                operation = self.client.operations.get(operation)
+            
+            progress_bar.progress(1.0)
+            status_text.text("✅ Processamento concluído!")
+            
+            if not operation.done:
+                return {"erro": "Tempo limite excedido. Tente novamente."}
+            
+            if hasattr(operation, 'response') and hasattr(operation.response, 'error'):
+                return {"erro": f"Erro na geração: {operation.response.error.message}"}
+            
+            try:
+                video_result = operation.result.generated_videos[0]
+                filename = f"video_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4"
+                
+                with open(filename, "wb") as f:
+                    f.write(video_result.video.video_bytes)
+                
+                video_info = {
+                    "url": filename,
+                    "prompt": prompt,
+                    "duracao": config["duration_seconds"],
+                    "resolucao": resolucao,
+                    "estilo": estilo,
+                    "modelo": modelo,
+                    "status": "concluido",
+                    "tamanho": os.path.getsize(filename) if os.path.exists(filename) else 0
+                }
+                
+                self.galeria.adicionar(video_info)
+                st.success("✅ Vídeo gerado com sucesso!")
+                return video_info
+                
+            except Exception as e:
+                return {"erro": f"Erro ao processar vídeo: {str(e)}"}
+                
         except Exception as e:
             return {"erro": f"Erro na geração: {str(e)}"}
 
@@ -526,10 +606,17 @@ with tab3:
 # ============================================================
 with tab4:
     st.markdown("## 🎬 Criar Vídeo com IA (9:16)")
-    st.caption("Gere vídeos para TikTok, Reels e Shorts com IA")
+    st.caption("Gere vídeos reais para TikTok, Reels e Shorts com Veo 3.1 e Gemini Omni Flash")
     
     if not GEMINI_API_KEY:
         st.warning("⚠️ **Chave Gemini não configurada.** Adicione `GEMINI_API_KEY` no arquivo `.streamlit/secrets.toml`.")
+        st.info("""
+        **Como obter sua chave:**
+        1. Acesse [Google AI Studio](https://aistudio.google.com/)
+        2. Crie uma conta e ative o faturamento
+        3. Gere sua API Key
+        4. Adicione no arquivo `.streamlit/secrets.toml`
+        """)
     
     col1, col2 = st.columns([1, 1])
     
@@ -538,45 +625,50 @@ with tab4:
         
         modelo = st.selectbox(
             "Modelo",
-            ["Gemini Pro Video", "Grok Style", "Kling", "Bytedance"],
-            help="Selecione o modelo de geração de vídeo"
+            ["Veo 3.1", "Veo 3.1 Fast", "Gemini Omni Flash"],
+            help="Veo 3.1 tem melhor qualidade | Omni Flash suporta até 10s"
         )
         
         imagem_upload = st.file_uploader(
             "Selecionar Imagem (opcional)",
-            type=["png", "jpg", "jpeg", "webp"]
+            type=["png", "jpg", "jpeg", "webp"],
+            help="Alguns modelos suportam referência visual"
         )
         
         prompt = st.text_area(
             "Comando",
-            placeholder="Descreva o vídeo que deseja gerar...\n\nEx: 'Extreme close-up of a smartwatch with city reflected in it'",
+            placeholder="Descreva o vídeo que deseja gerar...\n\nEx: 'Extreme close-up of a smartwatch with city reflected in it, cinematic lighting, 4k quality'",
             height=120
         )
     
     with col2:
         st.markdown("#### ⚙️ Configurações Técnicas")
         
-        st.markdown("**Resolução (9:16)**")
         resolucao = st.radio(
             "Qualidade",
-            ["480p (SD)", "720p (HD)"],
-            index=1
+            ["720p", "1080p"],
+            index=0,
+            help="720p: R$0.10/s | 1080p: R$0.12/s"
         )
         
         duracao = st.selectbox(
-            "Duração",
-            [6, 10, 15]
+            "Duração (segundos)",
+            [4, 6, 8],
+            index=2,
+            help="Veo 3.1 suporta até 8 segundos"
         )
         
         estilo = st.selectbox(
             "Estilo Visual",
-            ["Realista", "Cinematográfico", "Animado", "Minimalista"]
+            ["Realista", "Cinematográfico", "Animado", "Minimalista"],
+            help="Define o estilo visual do vídeo"
         )
         
         st.markdown("---")
         
         if creditos_restantes > 0:
             st.metric("🎫 Créditos restantes", f"{creditos_restantes} / {CREDITOS_DIARIOS}")
+            st.caption("💡 Cada vídeo consome 1 crédito")
         else:
             st.error("❌ Créditos esgotados! Volte amanhã.")
         
@@ -588,51 +680,35 @@ with tab4:
             elif creditos_restantes <= 0:
                 st.error("❌ Créditos esgotados! Volte amanhã.")
             else:
-                with st.spinner("🎬 Gerando vídeo com IA..."):
-                    progress = st.progress(0)
-                    status_text = st.empty()
+                generator = GeminiVideoGenerator()
+                resultado = generator.gerar_video(
+                    prompt=prompt,
+                    licenca=licenca,
+                    duracao=duracao,
+                    resolucao=resolucao,
+                    estilo=estilo,
+                    modelo=modelo
+                )
+                
+                if "erro" in resultado:
+                    st.error(f"❌ {resultado['erro']}")
+                else:
+                    st.success("✅ Vídeo gerado com sucesso!")
                     
-                    for i in range(10):
-                        progress.progress((i + 1) / 10)
-                        status_text.text(f"Processando... {int((i+1)/10 * 100)}%")
-                        time.sleep(0.3)
-                    
-                    status_text.empty()
-                    
-                    generator = GeminiVideoGenerator()
-                    resultado = generator.gerar_video(
-                        prompt=prompt,
-                        licenca=licenca,
-                        duracao=duracao,
-                        resolucao=resolucao.split()[0],
-                        estilo=estilo,
-                        modelo=modelo
-                    )
-                    
-                    if "erro" in resultado:
-                        st.error(f"❌ {resultado['erro']}")
+                    if os.path.exists(resultado["url"]):
+                        st.video(resultado["url"])
+                        with open(resultado["url"], "rb") as f:
+                            st.download_button(
+                                label="📥 Baixar Vídeo",
+                                data=f,
+                                file_name=f"video_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4",
+                                mime="video/mp4",
+                                use_container_width=True
+                            )
                     else:
-                        st.success("✅ Vídeo gerado com sucesso!")
-                        
-                        # Mostra o vídeo
-                        if os.path.exists(resultado["url"]):
-                            st.video(resultado["url"])
-                            
-                            # Botão de download
-                            with open(resultado["url"], "rb") as f:
-                                video_bytes = f.read()
-                                st.download_button(
-                                    label="📥 Baixar Vídeo",
-                                    data=video_bytes,
-                                    file_name=f"video_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4",
-                                    mime="video/mp4",
-                                    use_container_width=True
-                                )
-                        else:
-                            st.video(resultado["url"])
-                            st.info("📥 Para baixar, clique no link do vídeo.")
-                        
-                        st.rerun()
+                        st.video(resultado["url"])
+                    
+                    st.rerun()
     
     # ===== GALERIA DE VÍDEOS =====
     st.markdown("---")
@@ -648,30 +724,26 @@ with tab4:
                 with st.container(border=True):
                     if os.path.exists(video.get("url", "")):
                         st.video(video["url"])
+                        with open(video["url"], "rb") as f:
+                            st.download_button(
+                                label="📥",
+                                data=f,
+                                file_name=os.path.basename(video["url"]),
+                                mime="video/mp4",
+                                key=f"dl_{video.get('id', i)}"
+                            )
                     else:
                         st.video(video.get("url", "https://placehold.co/600x400/000000/FFFFFF?text=Video"))
                     
                     st.caption(f"🎬 {video.get('modelo', 'IA')}")
                     st.caption(f"📝 {video.get('prompt', '')[:40]}...")
-                    st.caption(f"⏱️ {video.get('duracao', 6)}s | {video.get('resolucao', '480p')}")
+                    st.caption(f"⏱️ {video.get('duracao', 6)}s | {video.get('resolucao', '720p')}")
                     
-                    col_dl, col_del = st.columns(2)
-                    with col_dl:
+                    if st.button("🗑️", key=f"del_{video.get('id', i)}"):
                         if os.path.exists(video.get("url", "")):
-                            with open(video["url"], "rb") as f:
-                                st.download_button(
-                                    label="📥",
-                                    data=f,
-                                    file_name=os.path.basename(video["url"]),
-                                    mime="video/mp4",
-                                    key=f"dl_{video.get('id', i)}"
-                                )
-                    with col_del:
-                        if st.button("🗑️", key=f"del_{video.get('id', i)}"):
-                            if os.path.exists(video.get("url", "")):
-                                os.remove(video["url"])
-                            galeria.remover(video.get('id'))
-                            st.rerun()
+                            os.remove(video["url"])
+                        galeria.remover(video.get('id'))
+                        st.rerun()
     else:
         st.info("📭 Nenhum vídeo gerado ainda. Crie seu primeiro vídeo acima!")
 
@@ -679,4 +751,4 @@ with tab4:
 # RODAPE
 # ============================================================
 st.markdown("---")
-st.caption(f"🛒 Minerador de Produtos v3.0 | {datetime.now().year}")
+st.caption(f"🛒 Minerador de Produtos v3.0 | {datetime.now().year} | Gerador de Vídeo com Veo 3.1")
