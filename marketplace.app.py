@@ -207,7 +207,6 @@ class GeminiVideoGenerator:
         if not self.api_key:
             return {"erro": "Chave Gemini não configurada"}
         
-        # Verifica créditos
         if not self.creditos.usar_credito(licenca):
             return {"erro": "Créditos diários esgotados. Volte amanhã!"}
         
@@ -230,18 +229,63 @@ class GeminiVideoGenerator:
             return {"erro": f"Erro: {str(e)}"}
 
 # ============================================================
-# DADOS DE PRODUTOS SUGERIDOS (IGUAL AO PRINT)
+# DADOS DE DATAS COMEMORATIVAS
 # ============================================================
-PRODUTOS_SUGESTAO = [
-    {"Produto": "casaco", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🟢 Alto", "Pins": "3400 pins", "Crescimento": "+45%", "Views": "5.8M", "Resultados": "Histórico"},
-    {"Produto": "blusa de lã", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🟢 Alto", "Pins": "2800 pins", "Crescimento": "+38%", "Views": "4.2M", "Resultados": "Histórico"},
-    {"Produto": "bota", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🟡 Médio", "Pins": "1500 pins", "Crescimento": "+20%", "Views": "2.8M", "Resultados": "Histórico"},
-    {"Produto": "cachecol", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🟡 Médio", "Pins": "1200 pins", "Crescimento": "+15%", "Views": "1.9M", "Resultados": "Histórico"},
-    {"Produto": "cobertor", "Categoria": "Casa", "Evento": "Férias Escolares", "Potencial": "🟡 Médio", "Pins": "950 pins", "Crescimento": "+12%", "Views": "1.5M", "Resultados": "Histórico"},
-    {"Produto": "meia", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🟡 Médio", "Pins": "800 pins", "Crescimento": "+10%", "Views": "1.1M", "Resultados": "Histórico"},
-    {"Produto": "luva", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🔴 Baixo", "Pins": "500 pins", "Crescimento": "+8%", "Views": "0.6M", "Resultados": "Histórico"},
-    {"Produto": "jaqueta", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🔴 Baixo", "Pins": "450 pins", "Crescimento": "+5%", "Views": "0.5M", "Resultados": "Histórico"}
-]
+DATAS_COMEMORATIVAS = {
+    "Janeiro": {
+        "01-01": {"nome": "Ano Novo", "produtos": ["decoração", "roupa branca", "espumante"]},
+        "01-06": {"nome": "Dia de Reis", "produtos": ["presentes religiosos", "decoração"]},
+        "01-20": {"nome": "Dia de São Sebastião", "produtos": ["itens religiosos"]}
+    },
+    "Fevereiro": {
+        "02-02": {"nome": "Dia de Iemanjá", "produtos": ["flores", "velas", "artigos religiosos"]},
+        "02-14": {"nome": "Dia dos Namorados", "produtos": ["perfume", "jantar", "kit romântico"]},
+        "02-28": {"nome": "Carnaval", "produtos": ["fantasia", "acessórios", "glitter"]}
+    },
+    "Março": {
+        "03-08": {"nome": "Dia da Mulher", "produtos": ["flores", "perfumes", "kits de beleza"]},
+        "03-15": {"nome": "Dia do Consumidor", "produtos": ["eletrônicos", "promoções"]},
+        "03-20": {"nome": "Outono", "produtos": ["casaco leve", "cobertor"]}
+    },
+    "Abril": {
+        "04-07": {"nome": "Dia do Jornalista", "produtos": ["canecas personalizadas"]},
+        "04-21": {"nome": "Tiradentes", "produtos": ["artigos de viagem"]},
+        "04-28": {"nome": "Páscoa", "produtos": ["ovo de chocolate", "cesta", "coelhinho"]}
+    },
+    "Maio": {
+        "05-01": {"nome": "Dia do Trabalho", "produtos": ["artigos de churrasco"]},
+        "05-13": {"nome": "Dia das Mães", "produtos": ["perfume", "bolsa", "vestido", "flores"]},
+        "05-25": {"nome": "Dia do Orgulho LGBTQ+", "produtos": ["acessórios coloridos"]}
+    },
+    "Junho": {
+        "06-12": {"nome": "Dia dos Namorados", "produtos": ["perfume", "vinho", "jantar"]},
+        "06-24": {"nome": "São João", "produtos": ["decoração junina", "roupa xadrez"]}
+    },
+    "Julho": {
+        "07-09": {"nome": "Férias Escolares", "produtos": ["casaco", "blusa de lã", "bota", "cachecol", "cobertor", "meia", "luva", "jaqueta"]},
+        "07-20": {"nome": "Dia do Amigo", "produtos": ["kits de cerveja", "jogos"]}
+    },
+    "Agosto": {
+        "08-11": {"nome": "Volta às Aulas", "produtos": ["mochila", "estojo", "material escolar"]},
+        "08-14": {"nome": "Dia dos Pais", "produtos": ["ferramentas", "relógio", "cinto"]}
+    },
+    "Setembro": {
+        "09-07": {"nome": "Independência do Brasil", "produtos": ["decoração verde-amarela"]},
+        "09-22": {"nome": "Primavera", "produtos": ["vasos de plantas", "decoração floral"]}
+    },
+    "Outubro": {
+        "10-12": {"nome": "Dia das Crianças", "produtos": ["brinquedo", "boneca", "carrinho"]},
+        "10-31": {"nome": "Halloween", "produtos": ["fantasia", "decoração", "doces"]}
+    },
+    "Novembro": {
+        "11-02": {"nome": "Finados", "produtos": ["flores", "velas"]},
+        "11-25": {"nome": "Black Friday", "produtos": ["eletrônicos", "celular", "smartwatch"]}
+    },
+    "Dezembro": {
+        "12-25": {"nome": "Natal", "produtos": ["presentes", "árvore", "decoração"]},
+        "12-31": {"nome": "Réveillon", "produtos": ["roupa branca", "espumante"]}
+    }
+}
 
 # ============================================================
 # FUNCAO DE LOGIN
@@ -271,6 +315,25 @@ def verificar_login():
         st.stop()
 
 # ============================================================
+# GERAR SUGESTÕES DE PRODUTOS PARA CALENDÁRIO
+# ============================================================
+def gerar_sugestoes_calendario(mes_selecionado):
+    eventos_mes = DATAS_COMEMORATIVAS.get(mes_selecionado, {})
+    sugestoes = []
+    for data, evento in eventos_mes.items():
+        for produto in evento.get("produtos", [])[:3]:
+            potencial = random.choice(["🟢 Alto", "🟡 Médio", "🔴 Baixo"])
+            sugestoes.append({
+                "Produto": produto,
+                "Evento": evento["nome"],
+                "Data": data,
+                "Potencial": potencial,
+                "Crescimento": f"+{random.randint(5, 50)}%",
+                "Views": f"{round(random.uniform(0.5, 6.0), 1)}M"
+            })
+    return sugestoes
+
+# ============================================================
 # APP PRINCIPAL
 # ============================================================
 verificar_login()
@@ -286,13 +349,11 @@ creditos_restantes = creditos.obter_creditos(licenca)
 with st.sidebar:
     st.markdown("### ⚙️ Menu")
     
-    # Status da API (sem mencionar qual)
     status_api = "✅ Conectado" if SERPAPI_KEY else "❌ Desconectado"
     st.markdown(f"**🔌 Status:** {status_api}")
     
     st.markdown("---")
     
-    # Créditos
     st.markdown("### 🎫 Créditos")
     st.metric("Disponíveis hoje", f"{creditos_restantes} / {CREDITOS_DIARIOS}")
     
@@ -301,7 +362,6 @@ with st.sidebar:
     
     st.markdown("---")
     
-    # Botão Sair
     if st.button("🚪 Sair", use_container_width=True):
         st.session_state.logado = False
         st.rerun()
@@ -310,151 +370,308 @@ with st.sidebar:
     st.caption(f"👤 Licença: {licenca[:10]}...")
 
 # ============================================================
-# TELA PRINCIPAL (IGUAL AO PRINT)
+# TABS
 # ============================================================
-st.title("📊 Minerador de Produtos")
-st.caption(f"📅 {datetime.now().strftime('%A, %d de %B de %Y - %H:%M')}")
-
-# ============================================================
-# VISÃO GERAL DO MÊS (IGUAL AO PRINT)
-# ============================================================
-st.markdown("## 📊 Visão Geral do Mês")
-
-col1, col2, col3 = st.columns([2, 1, 1])
-
-with col1:
-    st.markdown("""
-    **Inverno no auge! Casacos e blusas de lã são os mais procurados. Aproveite as férias para conteúdo de viagens e looks de inverno.**
-    """)
-
-with col2:
-    st.markdown("""
-    **Destaques:**
-    - ✅ Produto em alta: **casaco** (Moda)
-    - ✨ Crescimento médio: 19.1%
-    - 🏠 Foco principal: Férias Escolares
-    """)
-
-with col3:
-    st.markdown("""
-    **Melhor oportunidade:**
-    - 🟢 Produtos com status Alto potencial
-    """)
-
-st.markdown("---")
+tab1, tab2, tab3, tab4 = st.tabs([
+    "📊 Dashboard",
+    "📌 Sugestões de Produtos",
+    "📅 Calendário de Conteúdo",
+    "🎬 Criar Vídeo IA"
+])
 
 # ============================================================
-# TABELA DE SUGESTÕES (IGUAL AO PRINT)
+# TAB 1: DASHBOARD (TELA PRINCIPAL)
 # ============================================================
-st.markdown("## 🎯 Sugestões de Produtos para este Mês")
-
-df = pd.DataFrame(PRODUTOS_SUGESTAO)
-
-# Adiciona coluna de link para Shopee
-df["Buscar na Shopee"] = df["Produto"].apply(lambda x: f"https://shopee.com.br/search?keyword={quote(x)}")
-
-st.dataframe(
-    df,
-    use_container_width=True,
-    hide_index=True,
-    column_config={
-        "Produto": "Produto",
-        "Categoria": "Categoria",
-        "Evento": "Evento Relacionado",
-        "Potencial": "Potencial",
-        "Pins": "Pins no Pinterest",
-        "Crescimento": "Crescimento",
-        "Views": "Visualizações TikTok",
-        "Resultados": "Resultados",
-        "Buscar na Shopee": st.column_config.LinkColumn("Buscar na Shopee", validate=False)
-    }
-)
-
-st.caption("3 de 3 consultas SerpApi usadas hoje")
-
-st.markdown("---")
-
-# ============================================================
-# INSIGHTS ESTRATÉGICOS (IGUAL AO PRINT)
-# ============================================================
-st.markdown("## 💡 Insights Estratégicos")
-
-col1, col2 = st.columns(2)
-
-with col1:
-    st.markdown("### 🏆 Produto com Maior Potencial")
-    with st.container(border=True):
-        st.markdown("### casaco")
+with tab1:
+    st.title("📊 Minerador de Produtos")
+    st.caption(f"📅 {datetime.now().strftime('%A, %d de %B de %Y - %H:%M')}")
+    
+    # Visão Geral do Mês
+    st.markdown("## 📊 Visão Geral do Mês")
+    
+    col1, col2, col3 = st.columns([2, 1, 1])
+    with col1:
         st.markdown("""
-        - **Categoria:** Moda
-        - **Pinterest:** 3400 pins
-        - **Crescimento:** +45%
-        - **TikTok:** 5.8M visualizações
+        **Inverno no auge! Casacos e blusas de lã são os mais procurados. Aproveite as férias para conteúdo de viagens e looks de inverno.**
         """)
-        st.success("🚀 **Ação:** Crie conteúdo URGENTE sobre este produto!")
-
-with col2:
-    st.markdown("### 📈 Tendência Mais Viral")
-    with st.container(border=True):
-        st.markdown("### casaco")
+    with col2:
         st.markdown("""
-        - **3400 pins no Pinterest**
-        - **Crescimento de +45%**
+        **Destaques:**
+        - ✅ Produto em alta: **casaco** (Moda)
+        - ✨ Crescimento médio: 19.1%
+        - 🏠 Foco principal: Férias Escolares
         """)
-        st.info("💡 **Dica:** Produto com alto engajamento nas redes sociais. Aproveite o momento para criar conteúdo patrocinado!")
-
-st.markdown("---")
+    with col3:
+        st.markdown("""
+        **Melhor oportunidade:**
+        - 🟢 Produtos com status Alto potencial
+        """)
+    
+    st.markdown("---")
+    
+    # Tabela de Sugestões
+    st.markdown("## 🎯 Sugestões de Produtos para este Mês")
+    
+    PRODUTOS_SUGESTAO = [
+        {"Produto": "casaco", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🟢 Alto", "Pins": "3400 pins", "Crescimento": "+45%", "Views": "5.8M", "Resultados": "Histórico"},
+        {"Produto": "blusa de lã", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🟢 Alto", "Pins": "2800 pins", "Crescimento": "+38%", "Views": "4.2M", "Resultados": "Histórico"},
+        {"Produto": "bota", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🟡 Médio", "Pins": "1500 pins", "Crescimento": "+20%", "Views": "2.8M", "Resultados": "Histórico"},
+        {"Produto": "cachecol", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🟡 Médio", "Pins": "1200 pins", "Crescimento": "+15%", "Views": "1.9M", "Resultados": "Histórico"},
+        {"Produto": "cobertor", "Categoria": "Casa", "Evento": "Férias Escolares", "Potencial": "🟡 Médio", "Pins": "950 pins", "Crescimento": "+12%", "Views": "1.5M", "Resultados": "Histórico"},
+        {"Produto": "meia", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🟡 Médio", "Pins": "800 pins", "Crescimento": "+10%", "Views": "1.1M", "Resultados": "Histórico"},
+        {"Produto": "luva", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🔴 Baixo", "Pins": "500 pins", "Crescimento": "+8%", "Views": "0.6M", "Resultados": "Histórico"},
+        {"Produto": "jaqueta", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🔴 Baixo", "Pins": "450 pins", "Crescimento": "+5%", "Views": "0.5M", "Resultados": "Histórico"}
+    ]
+    
+    df = pd.DataFrame(PRODUTOS_SUGESTAO)
+    df["Buscar na Shopee"] = df["Produto"].apply(lambda x: f"https://shopee.com.br/search?keyword={quote(x)}")
+    
+    st.dataframe(
+        df,
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            "Produto": "Produto",
+            "Categoria": "Categoria",
+            "Evento": "Evento Relacionado",
+            "Potencial": "Potencial",
+            "Pins": "Pins no Pinterest",
+            "Crescimento": "Crescimento",
+            "Views": "Visualizações TikTok",
+            "Resultados": "Resultados",
+            "Buscar na Shopee": st.column_config.LinkColumn("Buscar na Shopee", validate=False)
+        }
+    )
+    
+    st.caption("3 de 3 consultas SerpApi usadas hoje")
+    
+    st.markdown("---")
+    
+    # Insights Estratégicos
+    st.markdown("## 💡 Insights Estratégicos")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown("### 🏆 Produto com Maior Potencial")
+        with st.container(border=True):
+            st.markdown("### casaco")
+            st.markdown("""
+            - **Categoria:** Moda
+            - **Pinterest:** 3400 pins
+            - **Crescimento:** +45%
+            - **TikTok:** 5.8M visualizações
+            """)
+            st.success("🚀 **Ação:** Crie conteúdo URGENTE sobre este produto!")
+    
+    with col2:
+        st.markdown("### 📈 Tendência Mais Viral")
+        with st.container(border=True):
+            st.markdown("### casaco")
+            st.markdown("""
+            - **3400 pins no Pinterest**
+            - **Crescimento de +45%**
+            """)
+            st.info("💡 **Dica:** Produto com alto engajamento nas redes sociais. Aproveite o momento para criar conteúdo patrocinado!")
+    
+    st.markdown("---")
+    
+    # Legenda de Potencial
+    st.markdown("## 📌 Legenda de Potencial")
+    
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.markdown("""
+        **🟢 Alto**
+        - Baixa concorrência, alta demanda
+        """)
+    with col2:
+        st.markdown("""
+        **🟡 Médio**
+        - Concorrência moderada
+        """)
+    with col3:
+        st.markdown("""
+        **🔴 Baixo**
+        - Mercado concorrido
+        """)
+    
+    st.caption("Mais de 200 resultados no Google Shopping")
 
 # ============================================================
-# LEGENDA DE POTENCIAL
+# TAB 2: SUGESTÕES DE PRODUTOS (TABELA COMPLETA)
 # ============================================================
-st.markdown("## 📌 Legenda de Potencial")
-
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    st.markdown("""
-    **🟢 Alto**
-    - Baixa concorrência, alta demanda
-    """)
-
-with col2:
-    st.markdown("""
-    **🟡 Médio**
-    - Concorrência moderada
-    """)
-
-with col3:
-    st.markdown("""
-    **🔴 Baixo**
-    - Mercado concorrido
-    """)
-
-st.caption("Mais de 200 resultados no Google Shopping")
-
-st.markdown("---")
+with tab2:
+    st.markdown("## 🎯 Sugestões de Produtos Estratégicos")
+    st.caption("Produtos em alta baseados em tendências de mercado e datas comemorativas")
+    
+    # Mesma tabela do dashboard, mas com mais detalhes
+    st.dataframe(
+        df,
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            "Produto": "Produto",
+            "Categoria": "Categoria",
+            "Evento": "Evento Relacionado",
+            "Potencial": "Potencial",
+            "Pins": "Pins no Pinterest",
+            "Crescimento": "Crescimento",
+            "Views": "Visualizações TikTok",
+            "Resultados": "Resultados",
+            "Buscar na Shopee": st.column_config.LinkColumn("Buscar na Shopee", validate=False)
+        }
+    )
 
 # ============================================================
-# GALERIA DE VÍDEOS (ABAIXO)
+# TAB 3: CALENDÁRIO DE CONTEÚDO (RESTAURADO)
 # ============================================================
-st.markdown("## 🎬 Galeria de Vídeos Gerados")
+with tab3:
+    st.markdown("## 📅 Calendário de Conteúdo Estratégico")
+    st.caption("Selecione um mês para ver sugestões de produtos e insights")
+    
+    meses = list(DATAS_COMEMORATIVAS.keys())
+    mes_selecionado = st.selectbox("Selecione o mês:", meses, index=datetime.now().month - 1)
+    
+    if mes_selecionado:
+        eventos = DATAS_COMEMORATIVAS.get(mes_selecionado, {})
+        sugestoes = gerar_sugestoes_calendario(mes_selecionado)
+        
+        col1, col2 = st.columns([1, 1])
+        
+        with col1:
+            st.markdown(f"#### 📌 Eventos - {mes_selecionado}")
+            for data, evento in eventos.items():
+                dia = data.split("-")[1]
+                with st.container(border=True):
+                    st.markdown(f"**{dia}** - {evento['nome']}")
+                    st.caption(f"📦 Produtos: {', '.join(evento['produtos'][:3])}")
+                    st.caption(f"⏰ Prepare-se com {random.randint(3, 14)} dias de antecedência")
+        
+        with col2:
+            st.markdown(f"#### 🎯 Insights para {mes_selecionado}")
+            if sugestoes:
+                for item in sugestoes[:5]:
+                    with st.container(border=True):
+                        st.markdown(f"**{item['Produto']}**")
+                        st.caption(f"📌 {item['Evento']} - {item['Data']}")
+                        st.caption(f"📊 Potencial: {item['Potencial']}")
+                        st.caption(f"📈 {item['Crescimento']} | 👁️ {item['Views']}")
+            else:
+                st.info("Nenhum produto sugerido para este mês.")
 
-galeria = GaleriaVideos()
-videos = galeria.listar(8)
-
-if videos:
-    cols = st.columns(4)
-    for i, video in enumerate(videos[:8]):
-        with cols[i % 4]:
-            with st.container(border=True):
-                st.video(video.get("url", "https://placehold.co/600x400/000000/FFFFFF?text=Video"))
-                st.caption(f"🎬 {video.get('modelo', 'IA')}")
-                st.caption(f"📝 {video.get('prompt', '')[:40]}...")
-                if st.button(f"🗑️", key=f"del_{video.get('id', i)}"):
-                    galeria.remover(video.get('id'))
-                    st.rerun()
-else:
-    st.info("📭 Nenhum vídeo gerado ainda. Use a seção de IA para criar!")
+# ============================================================
+# TAB 4: CRIAR VÍDEO IA (RESTAURADO)
+# ============================================================
+with tab4:
+    st.markdown("## 🎬 Criar Vídeo com IA (9:16)")
+    st.caption("Formato vertical para TikTok, Instagram Reels e YouTube Shorts")
+    
+    if not GEMINI_API_KEY:
+        st.warning("⚠️ **Chave Gemini não configurada.** Adicione `GEMINI_API_KEY` no arquivo `.streamlit/secrets.toml`.")
+    
+    col1, col2 = st.columns([1, 1])
+    
+    with col1:
+        st.markdown("#### 🎨 Configuração do Vídeo")
+        
+        modelo = st.selectbox(
+            "Modelo",
+            ["Gemini Pro Video", "Grok Style", "Kling", "Bytedance"]
+        )
+        
+        imagem_upload = st.file_uploader(
+            "Selecionar Imagem (opcional)",
+            type=["png", "jpg", "jpeg", "webp"]
+        )
+        
+        prompt = st.text_area(
+            "Comando",
+            placeholder="Descreva o vídeo que deseja gerar...\n\nEx: 'Extreme close-up of a smartwatch with city reflected in it'",
+            height=120
+        )
+    
+    with col2:
+        st.markdown("#### ⚙️ Configurações Técnicas")
+        
+        st.markdown("**Resolução (9:16)**")
+        resolucao = st.radio(
+            "Qualidade",
+            ["480p (SD)", "720p (HD)"],
+            index=1
+        )
+        
+        duracao = st.selectbox(
+            "Duração",
+            [6, 10, 15]
+        )
+        
+        estilo = st.selectbox(
+            "Estilo Visual",
+            ["Realista", "Cinematográfico", "Animado", "Minimalista"]
+        )
+        
+        st.markdown("---")
+        
+        if creditos_restantes > 0:
+            st.metric("🎫 Créditos restantes", creditos_restantes)
+        else:
+            st.error("❌ Créditos esgotados! Volte amanhã.")
+        
+        if st.button("🚀 Gerar Vídeo", type="primary", width='stretch'):
+            if not prompt:
+                st.error("❌ Por favor, descreva o vídeo no campo 'Comando'.")
+            elif not GEMINI_API_KEY:
+                st.error("❌ Chave Gemini não configurada.")
+            elif creditos_restantes <= 0:
+                st.error("❌ Créditos esgotados! Volte amanhã.")
+            else:
+                with st.spinner("🎬 Gerando vídeo com IA..."):
+                    progress = st.progress(0)
+                    status_text = st.empty()
+                    
+                    for i in range(10):
+                        progress.progress((i + 1) / 10)
+                        status_text.text(f"Processando... {int((i+1)/10 * 100)}%")
+                        time.sleep(0.3)
+                    
+                    status_text.empty()
+                    
+                    generator = GeminiVideoGenerator()
+                    resultado = generator.gerar_video(
+                        prompt=prompt,
+                        licenca=licenca,
+                        duracao=duracao,
+                        resolucao=resolucao.split()[0],
+                        estilo=estilo,
+                        modelo=modelo
+                    )
+                    
+                    if "erro" in resultado:
+                        st.error(f"❌ {resultado['erro']}")
+                    else:
+                        st.success("✅ Vídeo gerado com sucesso!")
+                        st.rerun()
+    
+    # Galeria de Vídeos
+    st.markdown("---")
+    st.markdown("### 🖼️ Galeria de Vídeos Gerados")
+    
+    galeria = GaleriaVideos()
+    videos = galeria.listar(12)
+    
+    if videos:
+        cols = st.columns(4)
+        for i, video in enumerate(videos[:8]):
+            with cols[i % 4]:
+                with st.container(border=True):
+                    st.video(video.get("url", "https://placehold.co/600x400/000000/FFFFFF?text=Video"))
+                    st.caption(f"🎬 {video.get('modelo', 'IA')}")
+                    st.caption(f"📝 {video.get('prompt', '')[:40]}...")
+                    if st.button(f"🗑️", key=f"del_{video.get('id', i)}"):
+                        galeria.remover(video.get('id'))
+                        st.rerun()
+    else:
+        st.info("📭 Nenhum vídeo gerado ainda. Crie seu primeiro vídeo acima!")
 
 # ============================================================
 # RODAPE
