@@ -16,16 +16,122 @@ st.set_page_config(
 )
 
 # ============================================================
-# CREDENCIAIS (use secrets em produção)
+# CONSTANTES
 # ============================================================
-# Para teste, você pode definir diretamente aqui
-# MAS EM PRODUÇÃO USE st.secrets
-MERCADO_LIVRE_ACCESS_TOKEN = "APP_USR-1720081667983577-070321-47260a48b656320ec5f335509feb480d-28997765"
-MERCADO_LIVRE_REFRESH_TOKEN = "TG-6a48687c5d204f00016bfdd9-28997765"
-CLIENT_ID = "1720081667983577"
-CLIENT_SECRET = "1crhfNc8AQpYSpPFrWL0FxhxvwpZLCsw"  # ATUALIZE COM O NOVO SECRET APÓS REVOGAR
-
 CHAVE_TESTE = "TESTE-AFILIADO-2026"
+
+# ============================================================
+# CLASSE API MERCADO LIVRE
+# ============================================================
+class MercadoLivreAPI:
+    def __init__(self):
+        # ATUALIZE COM SEUS DADOS
+        self.access_token = "APP_USR-1720081667983577-070321-47260a48b656320ec5f335509feb480d-28997765"
+        self.refresh_token = "TG-6a48687c5d204f00016bfdd9-28997765"
+        self.client_id = "1720081667983577"
+        self.client_secret = "1crhfNc8AQpYSpPFrWL0FxhxvwpZLCsw"  # ATUALIZE APÓS REVOGAR
+    
+    def renovar_token(self):
+        """Renova o Access Token usando o Refresh Token"""
+        url = "https://api.mercadolibre.com/oauth/token"
+        payload = {
+            "grant_type": "refresh_token",
+            "client_id": self.client_id,
+            "client_secret": self.client_secret,
+            "refresh_token": self.refresh_token
+        }
+        try:
+            resp = requests.post(url, data=payload, timeout=10)
+            data = resp.json()
+            if "access_token" in data:
+                self.access_token = data["access_token"]
+                st.success("✅ Token renovado com sucesso!")
+                return True
+            else:
+                st.error(f"Erro ao renovar token: {data}")
+                return False
+        except Exception as e:
+            st.error(f"Erro na renovação: {e}")
+            return False
+    
+    def buscar_produtos(self, termo, limite=5):
+        """Busca produtos no Mercado Livre com autenticação"""
+        try:
+            url = "https://api.mercadolibre.com/sites/MLB/search"
+            params = {
+                "q": termo,
+                "limit": limite,
+                "condition": "new"
+            }
+            headers = {
+                "Authorization": f"Bearer {self.access_token}",
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+            }
+            resp = requests.get(url, params=params, headers=headers, timeout=10)
+            
+            # Se token expirou, tenta renovar
+            if resp.status_code == 401:
+                st.warning("⏳ Token expirado. Renovando...")
+                if self.renovar_token():
+                    headers["Authorization"] = f"Bearer {self.access_token}"
+                    resp = requests.get(url, params=params, headers=headers, timeout=10)
+            
+            resp.raise_for_status()
+            data = resp.json()
+            
+            produtos = []
+            for item in data.get("results", [])[:limite]:
+                produtos.append({
+                    "nome": item.get("title", ""),
+                    "preco": f"R$ {item.get('price', 0):.2f}",
+                    "vendas": item.get("sold_quantity", 0),
+                    "link": item.get("permalink", ""),
+                    "imagem": item.get("thumbnail", ""),
+                    "loja": "Mercado Livre"
+                })
+            return produtos
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 403:
+                st.error("🚫 Erro 403: Acesso negado. Verifique as permissões do token.")
+            elif e.response.status_code == 429:
+                st.error("⏳ Muitas requisições. Aguarde um momento e tente novamente.")
+            else:
+                st.error(f"Erro HTTP: {e}")
+            return []
+        except Exception as e:
+            st.error(f"Erro na busca ML: {e}")
+            return []
+    
+    def buscar_total_resultados(self, termo):
+        """Busca total de resultados para um termo no Mercado Livre"""
+        try:
+            url = "https://api.mercadolibre.com/sites/MLB/search"
+            params = {
+                "q": termo,
+                "limit": 1,
+                "condition": "new"
+            }
+            headers = {
+                "Authorization": f"Bearer {self.access_token}",
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+            }
+            resp = requests.get(url, params=params, headers=headers, timeout=10)
+            
+            if resp.status_code == 401:
+                if self.renovar_token():
+                    headers["Authorization"] = f"Bearer {self.access_token}"
+                    resp = requests.get(url, params=params, headers=headers, timeout=10)
+            
+            resp.raise_for_status()
+            data = resp.json()
+            return data.get("paging", {}).get("total", 0)
+        except Exception as e:
+            return 0
+
+# ============================================================
+# INSTANCIA A API
+# ============================================================
+ml_api = MercadoLivreAPI()
 
 # ============================================================
 # DADOS HISTÓRICOS
@@ -155,118 +261,92 @@ CATEGORIAS_TERMOS = {
     "cadeira gamer": "Casa",
 }
 
+# ============================================================
+# FUNÇÕES DE ANÁLISE
+# ============================================================
+def analisar_saturacao(total):
+    if total == 0:
+        return {"nivel": "Sem dados", "recomendacao": "Nenhum produto encontrado"}
+    elif total < 50:
+        return {"nivel": "🟢 Baixa Saturação", "recomendacao": "Ótimo! Pouca concorrência. Aproveite!"}
+    elif total < 200:
+        return {"nivel": "🟡 Saturação Moderada", "recomendacao": "Concorrência razoável. Ainda há espaço."}
+    elif total < 500:
+        return {"nivel": "🟠 Saturação Alta", "recomendacao": "Mercado concorrido. Foque em nichos específicos."}
+    else:
+        return {"nivel": "🔴 Saturação Muito Alta", "recomendacao": "Mercado saturado. Busque variações menos competitivas."}
 
-# ============================================================
-# FUNÇÕES DE AUTENTICAÇÃO E RENOVAÇÃO DO TOKEN
-# ============================================================
-def renovar_token_ml():
-    """Renova o Access Token usando o Refresh Token"""
-    url = "https://api.mercadolibre.com/oauth/token"
-    payload = {
-        "grant_type": "refresh_token",
-        "client_id": CLIENT_ID,
-        "client_secret": CLIENT_SECRET,
-        "refresh_token": MERCADO_LIVRE_REFRESH_TOKEN
+def calcular_score_oportunidade(total_resultados, media_vendas):
+    if total_resultados <= 0:
+        score_saturacao = 0
+    else:
+        score_saturacao = max(0, 6 - (total_resultados / 100))
+    score_vendas = min(media_vendas / 20, 4)
+    return round(min(score_saturacao + score_vendas, 10), 1)
+
+def analisar_produto_completo(termo, categoria):
+    total_ml = ml_api.buscar_total_resultados(termo)
+    produtos_ml = ml_api.buscar_produtos(termo, 5)
+    
+    vendas = [p.get("vendas", 0) for p in produtos_ml if p.get("vendas", 0) > 0]
+    media_vendas = (sum(vendas) / len(vendas)) if vendas else 0
+    
+    saturacao_pct = min(round((total_ml / 500) * 100, 1), 100) if total_ml else 0
+    score = calcular_score_oportunidade(total_ml, media_vendas)
+    
+    return {
+        "Produto": termo,
+        "Categoria": categoria,
+        "Score": score,
+        "Saturação (%)": saturacao_pct,
+        "Vendas Médias": round(media_vendas, 1),
+        "Total Resultados": total_ml,
+        "Recomendação": analisar_saturacao(total_ml)["recomendacao"]
     }
-    try:
-        resp = requests.post(url, data=payload, timeout=10)
-        data = resp.json()
-        if "access_token" in data:
-            return data["access_token"]
-        else:
-            st.error(f"Erro ao renovar token: {data}")
-            return None
-    except Exception as e:
-        st.error(f"Erro na renovação: {e}")
-        return None
-
 
 # ============================================================
-# FUNÇÕES DA API MERCADO LIVRE (COM AUTENTICAÇÃO)
+# FUNÇÕES DE DATAS E SUGESTÕES
 # ============================================================
-def buscar_produtos_mercadolivre(termo, limite=5):
-    """Busca produtos no Mercado Livre com autenticação"""
-    try:
-        url = "https://api.mercadolibre.com/sites/MLB/search"
-        params = {
-            "q": termo,
-            "limit": limite,
-            "condition": "new"
-        }
-        headers = {
-            "Authorization": f"Bearer {MERCADO_LIVRE_ACCESS_TOKEN}",
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-        }
-        resp = requests.get(url, params=params, headers=headers, timeout=10)
-        
-        # Se token expirou, tenta renovar
-        if resp.status_code == 401:
-            st.warning("Token expirado. Renovando...")
-            novo_token = renovar_token_ml()
-            if novo_token:
-                # Atualiza o token e tenta novamente
-                global MERCADO_LIVRE_ACCESS_TOKEN
-                MERCADO_LIVRE_ACCESS_TOKEN = novo_token
-                headers["Authorization"] = f"Bearer {novo_token}"
-                resp = requests.get(url, params=params, headers=headers, timeout=10)
-        
-        resp.raise_for_status()
-        data = resp.json()
-        
-        produtos = []
-        for item in data.get("results", [])[:limite]:
-            produtos.append({
-                "nome": item.get("title", ""),
-                "preco": f"R$ {item.get('price', 0):.2f}",
-                "vendas": item.get("sold_quantity", 0),
-                "link": item.get("permalink", ""),
-                "imagem": item.get("thumbnail", ""),
-                "loja": "Mercado Livre"
-            })
-        return produtos
-    except requests.exceptions.HTTPError as e:
-        if e.response.status_code == 403:
-            st.error("🚫 Erro 403: Acesso negado. Verifique as permissões do token.")
-        elif e.response.status_code == 429:
-            st.error("⏳ Muitas requisições. Aguarde um momento e tente novamente.")
-        else:
-            st.error(f"Erro HTTP: {e}")
-        return []
-    except Exception as e:
-        st.error(f"Erro na busca ML: {e}")
-        return []
+def get_dados_historicos_mes(mes):
+    return DADOS_HISTORICOS_COMPLETOS.get(mes, DADOS_HISTORICOS_COMPLETOS[1])
 
+def verificar_data_comemorativa(mes, dia):
+    hoje = date.today()
+    proximo_evento = None
+    menor_diff = None
+    for (m, d), nome in DATAS_COMEMORATIVAS.items():
+        try:
+            data_evento = date(hoje.year, m, d)
+        except ValueError:
+            continue
+        diff = (data_evento - hoje).days
+        if 0 <= diff <= 7:
+            if menor_diff is None or diff < menor_diff:
+                menor_diff = diff
+                proximo_evento = nome
+    return proximo_evento
 
-def buscar_total_resultados_ml(termo):
-    """Busca total de resultados para um termo no Mercado Livre"""
-    try:
-        url = "https://api.mercadolibre.com/sites/MLB/search"
-        params = {
-            "q": termo,
-            "limit": 1,
-            "condition": "new"
-        }
-        headers = {
-            "Authorization": f"Bearer {MERCADO_LIVRE_ACCESS_TOKEN}",
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-        }
-        resp = requests.get(url, params=params, headers=headers, timeout=10)
-        
-        if resp.status_code == 401:
-            novo_token = renovar_token_ml()
-            if novo_token:
-                global MERCADO_LIVRE_ACCESS_TOKEN
-                MERCADO_LIVRE_ACCESS_TOKEN = novo_token
-                headers["Authorization"] = f"Bearer {novo_token}"
-                resp = requests.get(url, params=params, headers=headers, timeout=10)
-        
-        resp.raise_for_status()
-        data = resp.json()
-        return data.get("paging", {}).get("total", 0)
-    except Exception:
-        return 0
+# ============================================================
+# FUNÇÃO DE LOGIN
+# ============================================================
+def verificar_login():
+    if "logado" not in st.session_state:
+        st.session_state.logado = False
 
+    if not st.session_state.logado:
+        st.title("🔐 Minerador de Produtos - Login")
+        chave = st.text_input("Digite sua chave de acesso:", type="password")
+        if st.button("Entrar"):
+            if chave == CHAVE_TESTE:
+                st.session_state.logado = True
+                st.rerun()
+            else:
+                st.error("Chave inválida. Tente novamente.")
+        st.stop()
 
+# ============================================================
+# FUNÇÃO BUSCAR SHOPEE (FALLBACK)
+# ============================================================
 def buscar_produtos_shopee(termo, limite=5):
     """Busca produtos na Shopee (pode ser bloqueado)"""
     try:
@@ -306,97 +386,6 @@ def buscar_produtos_shopee(termo, limite=5):
     except Exception:
         return []
 
-
-# ============================================================
-# FUNÇÕES DE ANÁLISE
-# ============================================================
-def analisar_saturacao(total):
-    if total == 0:
-        return {"nivel": "Sem dados", "recomendacao": "Nenhum produto encontrado"}
-    elif total < 50:
-        return {"nivel": "🟢 Baixa Saturação", "recomendacao": "Ótimo! Pouca concorrência. Aproveite!"}
-    elif total < 200:
-        return {"nivel": "🟡 Saturação Moderada", "recomendacao": "Concorrência razoável. Ainda há espaço."}
-    elif total < 500:
-        return {"nivel": "🟠 Saturação Alta", "recomendacao": "Mercado concorrido. Foque em nichos específicos."}
-    else:
-        return {"nivel": "🔴 Saturação Muito Alta", "recomendacao": "Mercado saturado. Busque variações menos competitivas."}
-
-
-def calcular_score_oportunidade(total_resultados, media_vendas):
-    if total_resultados <= 0:
-        score_saturacao = 0
-    else:
-        score_saturacao = max(0, 6 - (total_resultados / 100))
-    score_vendas = min(media_vendas / 20, 4)
-    return round(min(score_saturacao + score_vendas, 10), 1)
-
-
-def analisar_produto_completo(termo, categoria):
-    total_ml = buscar_total_resultados_ml(termo)
-    produtos_ml = buscar_produtos_mercadolivre(termo, 5)
-    
-    # Calcular média de vendas
-    vendas = [p.get("vendas", 0) for p in produtos_ml if p.get("vendas", 0) > 0]
-    media_vendas = (sum(vendas) / len(vendas)) if vendas else 0
-    
-    saturacao_pct = min(round((total_ml / 500) * 100, 1), 100) if total_ml else 0
-    score = calcular_score_oportunidade(total_ml, media_vendas)
-    
-    return {
-        "Produto": termo,
-        "Categoria": categoria,
-        "Score": score,
-        "Saturação (%)": saturacao_pct,
-        "Vendas Médias": round(media_vendas, 1),
-        "Total Resultados": total_ml,
-        "Recomendação": analisar_saturacao(total_ml)["recomendacao"]
-    }
-
-
-# ============================================================
-# FUNÇÕES DE DATAS E SUGESTÕES
-# ============================================================
-def get_dados_historicos_mes(mes):
-    return DADOS_HISTORICOS_COMPLETOS.get(mes, DADOS_HISTORICOS_COMPLETOS[1])
-
-
-def verificar_data_comemorativa(mes, dia):
-    hoje = date.today()
-    proximo_evento = None
-    menor_diff = None
-    for (m, d), nome in DATAS_COMEMORATIVAS.items():
-        try:
-            data_evento = date(hoje.year, m, d)
-        except ValueError:
-            continue
-        diff = (data_evento - hoje).days
-        if 0 <= diff <= 7:
-            if menor_diff is None or diff < menor_diff:
-                menor_diff = diff
-                proximo_evento = nome
-    return proximo_evento
-
-
-# ============================================================
-# FUNÇÃO DE LOGIN
-# ============================================================
-def verificar_login():
-    if "logado" not in st.session_state:
-        st.session_state.logado = False
-
-    if not st.session_state.logado:
-        st.title("🔐 Minerador de Produtos - Login")
-        chave = st.text_input("Digite sua chave de acesso:", type="password")
-        if st.button("Entrar"):
-            if chave == CHAVE_TESTE:
-                st.session_state.logado = True
-                st.rerun()
-            else:
-                st.error("Chave inválida. Tente novamente.")
-        st.stop()
-
-
 # ============================================================
 # APP PRINCIPAL
 # ============================================================
@@ -405,13 +394,20 @@ verificar_login()
 st.title("🛒 Minerador de Produtos - Afiliados")
 st.caption("Análise de produtos com dados do Mercado Livre (autenticado) e Shopee")
 
-# Status do token
+# Status do token no sidebar
 with st.sidebar:
     st.markdown("### 🔐 Status da API ML")
     st.success("✅ Token autenticado")
     st.caption(f"User ID: 28997765")
     st.caption("Expira em: 6 horas")
-    st.caption(f"Refresh Token: {MERCADO_LIVRE_REFRESH_TOKEN[:20]}...")
+    st.caption(f"Refresh Token: {ml_api.refresh_token[:20]}...")
+    
+    st.markdown("---")
+    if st.button("🔄 Renovar Token Manualmente"):
+        if ml_api.renovar_token():
+            st.success("Token renovado com sucesso!")
+        else:
+            st.error("Falha na renovação")
 
 st.markdown("---")
 
@@ -422,8 +418,8 @@ termo_busca = st.text_input("🔍 Digite um produto:", placeholder="Ex: smartwat
 
 if termo_busca and st.button("📊 Buscar", type="primary"):
     with st.spinner(f"Buscando '{termo_busca}'..."):
-        produtos = buscar_produtos_mercadolivre(termo_busca, 10)
-        total = buscar_total_resultados_ml(termo_busca)
+        produtos = ml_api.buscar_produtos(termo_busca, 10)
+        total = ml_api.buscar_total_resultados(termo_busca)
         saturacao = analisar_saturacao(total)
         
         st.markdown(f"### 📊 Resultados para '{termo_busca}'")
@@ -472,8 +468,8 @@ termo_sat = st.text_input("🔍 Digite um produto para analisar saturação:", p
 
 if termo_sat and st.button("📊 Analisar Saturação", key="btn_sat"):
     with st.spinner(f"Analisando '{termo_sat}'..."):
-        total = buscar_total_resultados_ml(termo_sat)
-        produtos = buscar_produtos_mercadolivre(termo_sat, 3)
+        total = ml_api.buscar_total_resultados(termo_sat)
+        produtos = ml_api.buscar_produtos(termo_sat, 3)
         saturacao = analisar_saturacao(total)
         
         col1, col2 = st.columns(2)
@@ -560,3 +556,19 @@ if st.button("🚀 Analisar Oportunidades", type="primary"):
                 "- 📈 Produto com potencial\n\n"
                 "**Ação:** analise a concorrência e crie conteúdo diferenciado"
             )
+
+st.markdown("---")
+
+# ===== SEÇÃO 5: SHOPEE (FALLBACK) =====
+with st.expander("🛍️ Buscar na Shopee (fallback)"):
+    st.caption("A Shopee não tem API pública, pode falhar")
+    termo_shopee = st.text_input("🔍 Digite um produto para buscar na Shopee:", key="shopee")
+    
+    if termo_shopee and st.button("🔍 Buscar Shopee"):
+        with st.spinner(f"Buscando '{termo_shopee}' na Shopee..."):
+            produtos = buscar_produtos_shopee(termo_shopee, 5)
+            if produtos:
+                for p in produtos:
+                    st.markdown(f"- **{p.get('nome', '')[:50]}** - 💰 {p.get('preco', '')}")
+            else:
+                st.warning("Nenhum produto encontrado ou Shopee bloqueou a requisição.")
