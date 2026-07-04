@@ -10,7 +10,7 @@ import os
 import warnings
 
 # ============================================================
-# SUPRIMIR WARNINGS DO PYTREADS
+# SUPRIMIR WARNINGS
 # ============================================================
 warnings.filterwarnings("ignore", category=FutureWarning)
 
@@ -105,71 +105,191 @@ class CacheDiario:
         }
 
 # ============================================================
-# CLASSE PARA GOOGLE TRENDS (VIA PYTREADS)
+# CLASSE PARA GOOGLE SHOPPING (VIA SERPAPI)
+# ============================================================
+class GoogleShoppingAPI:
+    def __init__(self):
+        self.api_key = SERPAPI_KEY
+        self.base_url = "https://serpapi.com/search.json"
+        self.cache = CacheDiario()
+    
+    def buscar_produtos(self, termo, limite=10, forcar_atualizacao=False):
+        """Busca produtos REAIS no Google Shopping via SerpApi"""
+        if not self.api_key:
+            return []
+        
+        chave_cache = f"produtos_{termo}_{limite}"
+        
+        if not forcar_atualizacao:
+            cache_valor = self.cache.obter(chave_cache)
+            if cache_valor is not None:
+                return cache_valor
+        
+        try:
+            params = {
+                "q": termo,
+                "tbm": "shop",
+                "api_key": self.api_key,
+                "gl": "br",
+                "hl": "pt",
+                "num": limite,
+                "location": "Brazil",
+                "device": "desktop"
+            }
+            
+            resp = requests.get(self.base_url, params=params, timeout=15)
+            data = resp.json()
+            
+            produtos = []
+            for item in data.get("shopping_results", [])[:limite]:
+                preco_str = item.get("price", "R$ 0").replace("R$", "").replace(",", ".").strip()
+                try:
+                    preco_num = float(preco_str.split()[0]) if preco_str else 0
+                except:
+                    preco_num = 0
+                
+                produtos.append({
+                    "nome": item.get("title", ""),
+                    "preco": item.get("price", "R$ 0"),
+                    "preco_numero": preco_num,
+                    "loja": item.get("source", ""),
+                    "link": item.get("link", ""),
+                    "imagem": item.get("thumbnail", ""),
+                    "avaliacao": item.get("rating", None),
+                    "reviews": item.get("reviews", 0),
+                    "plataforma": "Google Shopping",
+                    "data_consulta": datetime.now().isoformat()
+                })
+            
+            self.cache.definir(chave_cache, produtos)
+            return produtos
+        except Exception as e:
+            st.error(f"Erro no Google Shopping: {e}")
+            return []
+    
+    def buscar_total_resultados(self, termo, forcar_atualizacao=False):
+        """Retorna o numero total de resultados no Google Shopping"""
+        if not self.api_key:
+            return 0
+        
+        chave_cache = f"total_{termo}"
+        
+        if not forcar_atualizacao:
+            cache_valor = self.cache.obter(chave_cache)
+            if cache_valor is not None:
+                return cache_valor
+        
+        try:
+            params = {
+                "q": termo,
+                "tbm": "shop",
+                "api_key": self.api_key,
+                "gl": "br",
+                "hl": "pt",
+                "num": 1
+            }
+            resp = requests.get(self.base_url, params=params, timeout=10)
+            data = resp.json()
+            total = data.get("search_information", {}).get("total_results", 0)
+            
+            self.cache.definir(chave_cache, total)
+            return total
+        except:
+            return 0
+
+# ============================================================
+# CLASSE PARA GOOGLE TRENDS (VIA SERPAPI)
 # ============================================================
 class GoogleTrendsAPI:
     def __init__(self):
-        self.pytrends = None
+        self.api_key = SERPAPI_KEY
+        self.base_url = "https://serpapi.com/search.json"
         self.cache = CacheDiario()
-        try:
-            from pytrends.request import TrendReq
-            self.pytrends = TrendReq(hl='pt-BR', tz=-180)
-        except ImportError:
-            pass
-        except Exception as e:
-            pass
     
-    def buscar_interesse_historico(self, termos, timeframe='now 1-d'):
-        if not self.pytrends:
+    def buscar_interesse_historico(self, termo, timeframe='now 1-d'):
+        """Busca dados REAIS do Google Trends via SerpApi"""
+        if not self.api_key:
             return None
         
-        chave_cache = f"trends_historico_{'_'.join(termos[:3])}_{timeframe}"
+        chave_cache = f"trends_{termo}_{timeframe}"
         cache_valor = self.cache.obter(chave_cache, 1)
         if cache_valor is not None:
             return cache_valor
         
         try:
-            self.pytrends.build_payload(
-                kw_list=termos[:5],
-                cat=0,
-                timeframe=timeframe,
-                geo='BR'
-            )
-            dados = self.pytrends.interest_over_time()
-            if dados.empty:
-                return None
-            if 'isPartial' in dados.columns:
-                dados = dados.drop('isPartial', axis=1)
+            params = {
+                "q": termo,
+                "engine": "google_trends",
+                "data_type": "TIMESERIES",
+                "api_key": self.api_key,
+                "geo": "BR",
+                "timeframe": timeframe,
+                "hl": "pt"
+            }
             
-            dados_dict = dados.to_dict()
-            self.cache.definir(chave_cache, dados_dict)
-            return dados
+            resp = requests.get(self.base_url, params=params, timeout=15)
+            data = resp.json()
+            
+            if "interest_over_time" in data:
+                timeline = data["interest_over_time"].get("timeline_data", [])
+                if timeline:
+                    # Converte para DataFrame
+                    dados = []
+                    for item in timeline:
+                        valores = item.get("value", [0])
+                        dados.append({
+                            "date": item.get("date", ""),
+                            termo: int(valores[0]) if valores else 0
+                        })
+                    
+                    df = pd.DataFrame(dados)
+                    if not df.empty:
+                        df['date'] = pd.to_datetime(df['date'])
+                        df = df.set_index('date')
+                        self.cache.definir(chave_cache, df.to_dict())
+                        return df
+            
+            return None
         except Exception as e:
+            st.error(f"Erro no Google Trends: {e}")
             return None
     
-    def buscar_tendencias_regionais(self, termo, geo='BR'):
-        if not self.pytrends:
+    def buscar_tendencias_regionais(self, termo):
+        """Busca tendências regionais no Google Trends"""
+        if not self.api_key:
             return None
         
-        chave_cache = f"trends_regional_{termo}_{geo}"
+        chave_cache = f"trends_regional_{termo}"
         cache_valor = self.cache.obter(chave_cache, 1)
         if cache_valor is not None:
             return cache_valor
         
         try:
-            self.pytrends.build_payload(kw_list=[termo], cat=0, timeframe='now 1-d', geo=geo)
-            dados = self.pytrends.interest_by_region(resolution='COUNTRY')
-            if dados.empty:
-                return None
+            params = {
+                "q": termo,
+                "engine": "google_trends",
+                "data_type": "GEO_MAP",
+                "api_key": self.api_key,
+                "geo": "BR",
+                "hl": "pt"
+            }
             
-            dados_dict = dados.to_dict()
-            self.cache.definir(chave_cache, dados_dict)
-            return dados
+            resp = requests.get(self.base_url, params=params, timeout=15)
+            data = resp.json()
+            
+            if "geo_map_data" in data:
+                geo_data = data["geo_map_data"]
+                if geo_data:
+                    self.cache.definir(chave_cache, geo_data)
+                    return geo_data
+            
+            return None
         except Exception as e:
             return None
     
     def buscar_termos_relacionados(self, termo):
-        if not self.pytrends:
+        """Busca termos relacionados no Google Trends"""
+        if not self.api_key:
             return None
         
         chave_cache = f"trends_relacionados_{termo}"
@@ -178,12 +298,23 @@ class GoogleTrendsAPI:
             return cache_valor
         
         try:
-            self.pytrends.build_payload(kw_list=[termo], cat=0, timeframe='now 1-d', geo='BR')
-            dados = self.pytrends.related_topics()
-            if dados:
-                dados_dict = {k: v.to_dict() if hasattr(v, 'to_dict') else v for k, v in dados.items()}
-                self.cache.definir(chave_cache, dados_dict)
-                return dados
+            params = {
+                "q": termo,
+                "engine": "google_trends",
+                "data_type": "RELATED_QUERIES",
+                "api_key": self.api_key,
+                "geo": "BR",
+                "hl": "pt"
+            }
+            
+            resp = requests.get(self.base_url, params=params, timeout=15)
+            data = resp.json()
+            
+            if "related_queries" in data:
+                related = data["related_queries"]
+                self.cache.definir(chave_cache, related)
+                return related
+            
             return None
         except Exception as e:
             return None
@@ -248,96 +379,7 @@ class PinterestScraper:
         return dados
 
 # ============================================================
-# CLASSE GOOGLE SHOPPING
-# ============================================================
-class GoogleShoppingAPI:
-    def __init__(self):
-        self.api_key = SERPAPI_KEY
-        self.base_url = "https://serpapi.com/search.json"
-        self.cache = CacheDiario()
-    
-    def buscar_produtos(self, termo, limite=10, forcar_atualizacao=False):
-        if not self.api_key:
-            return []
-        
-        chave_cache = f"produtos_{termo}_{limite}"
-        
-        if not forcar_atualizacao:
-            cache_valor = self.cache.obter(chave_cache)
-            if cache_valor is not None:
-                return cache_valor
-        
-        try:
-            params = {
-                "q": termo,
-                "tbm": "shop",
-                "api_key": self.api_key,
-                "gl": "br",
-                "hl": "pt",
-                "num": limite,
-                "location": "Brazil"
-            }
-            
-            resp = requests.get(self.base_url, params=params, timeout=15)
-            data = resp.json()
-            
-            produtos = []
-            for item in data.get("shopping_results", [])[:limite]:
-                preco_str = item.get("price", "R$ 0").replace("R$", "").replace(",", ".").strip()
-                try:
-                    preco_num = float(preco_str.split()[0]) if preco_str else 0
-                except:
-                    preco_num = 0
-                
-                produtos.append({
-                    "nome": item.get("title", ""),
-                    "preco": item.get("price", "R$ 0"),
-                    "preco_numero": preco_num,
-                    "loja": item.get("source", ""),
-                    "link": item.get("link", ""),
-                    "imagem": item.get("thumbnail", ""),
-                    "avaliacao": item.get("rating", None),
-                    "reviews": item.get("reviews", 0),
-                    "plataforma": "Google Shopping",
-                    "data_consulta": datetime.now().isoformat()
-                })
-            
-            self.cache.definir(chave_cache, produtos)
-            return produtos
-        except Exception as e:
-            return []
-    
-    def buscar_total_resultados(self, termo, forcar_atualizacao=False):
-        if not self.api_key:
-            return 0
-        
-        chave_cache = f"total_{termo}"
-        
-        if not forcar_atualizacao:
-            cache_valor = self.cache.obter(chave_cache)
-            if cache_valor is not None:
-                return cache_valor
-        
-        try:
-            params = {
-                "q": termo,
-                "tbm": "shop",
-                "api_key": self.api_key,
-                "gl": "br",
-                "hl": "pt",
-                "num": 1
-            }
-            resp = requests.get(self.base_url, params=params, timeout=10)
-            data = resp.json()
-            total = data.get("search_information", {}).get("total_results", 0)
-            
-            self.cache.definir(chave_cache, total)
-            return total
-        except:
-            return 0
-
-# ============================================================
-# CLASSE MERCADO LIVRE
+# CLASSE MERCADO LIVRE (FALLBACK)
 # ============================================================
 class MercadoLivreScraper:
     def __init__(self):
@@ -504,8 +546,8 @@ class ColetorAgendado:
             }
             
             for termo in self.termos_base[:5]:
-                historico = self.google_trends.buscar_interesse_historico([termo], 'now 1-d')
-                if historico is not None and not historico.empty:
+                historico = self.google_trends.buscar_interesse_historico(termo, 'now 1-d')
+                if historico is not None:
                     dados_coletados["google_trends"][termo] = historico.to_dict()
             
             for termo in self.termos_base[:5]:
@@ -605,10 +647,20 @@ with st.sidebar:
     
     st.markdown("---")
     
+    st.markdown("### 🔌 Status das APIs")
+    if SERPAPI_KEY:
+        st.success("✅ SerpApi configurada")
+        st.caption("Google Shopping + Google Trends ATIVOS")
+    else:
+        st.warning("⚠️ SerpApi nao configurada")
+        st.caption("Adicione SERPAPI_KEY no secrets.toml")
+    
+    st.markdown("---")
+    
     st.markdown("### 🔄 Coleta Automática")
     st.caption(f"Última coleta: {coletor.ultima_coleta.strftime('%d/%m/%Y %H:%M') if coletor.ultima_coleta else 'Nunca'}")
     
-    if st.button("🔄 Coletar Agora", use_container_width=True):
+    if st.button("🔄 Coletar Agora", width='stretch'):
         with st.spinner("Coletando dados..."):
             coletor.coletar_dados()
             st.rerun()
@@ -622,14 +674,7 @@ with st.sidebar:
     
     st.markdown("---")
     
-    if SERPAPI_KEY:
-        st.success("✅ Google Shopping conectado")
-    else:
-        st.warning("⚠️ SerpApi Key nao configurada")
-    
-    st.markdown("---")
-    
-    if st.button("🗑️ Limpar Cache", use_container_width=True):
+    if st.button("🗑️ Limpar Cache", width='stretch'):
         cache.limpar()
         st.success("Cache limpo!")
         st.rerun()
@@ -674,6 +719,7 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs([
 # ============================================================
 with tab1:
     st.markdown("### 🔍 Buscar Produtos no Mercado")
+    st.caption("Dados REAIS do Google Shopping via SerpApi")
     
     col1, col2 = st.columns([3, 1])
     with col1:
@@ -694,22 +740,14 @@ with tab1:
         forcar = (modo == "Real-time")
         
         if st.button("🔍 Buscar", type="primary", width='stretch'):
-            with st.spinner("Buscando dados..."):
+            with st.spinner("Buscando dados no Google Shopping..."):
                 produtos_google = google_shopping.buscar_produtos(termo_busca, 8, forcar)
                 total_google = google_shopping.buscar_total_resultados(termo_busca, forcar)
-                produtos_ml = ml_scraper.buscar_produtos(termo_busca, 5, forcar)
-                total_ml = ml_scraper.buscar_total_resultados(termo_busca, forcar)
-                total = total_google + total_ml
                 
                 st.markdown(f"### 📊 Resultados para '{termo_busca}'")
                 
-                c1, c2, c3, c4 = st.columns(4)
-                c1.metric("🛒 Google Shopping", len(produtos_google))
-                c2.metric("📦 Mercado Livre", len(produtos_ml))
-                c3.metric("📊 Total Resultados", total)
-                
-                saturacao = analisar_saturacao(total)
-                c4.metric("📈 Saturação", saturacao["nivel"])
+                st.markdown(f"**Total de resultados:** {total_google}")
+                st.markdown(f"**Produtos exibidos:** {len(produtos_google)}")
                 
                 st.markdown("---")
                 
@@ -726,18 +764,8 @@ with tab1:
                             with c2:
                                 if p.get("link"):
                                     st.link_button("🔗 Ver", p["link"], width='stretch')
-                
-                if produtos_ml:
-                    st.markdown("#### 📦 Mercado Livre")
-                    for p in produtos_ml[:3]:
-                        with st.container(border=True):
-                            c1, c2 = st.columns([4, 1])
-                            with c1:
-                                st.markdown(f"**{p.get('nome', '')[:80]}**")
-                                st.markdown(f"💰 {p.get('preco', '')} | 📦 {p.get('vendas', 0)} vendidos")
-                            with c2:
-                                if p.get("link"):
-                                    st.link_button("🔗 Ver", p["link"], width='stretch')
+                else:
+                    st.warning("Nenhum produto encontrado. Verifique o termo ou a chave SerpApi.")
 
 # ============================================================
 # TAB 2: ANALISE DE SATURACAO
@@ -897,22 +925,20 @@ with tab4:
 # ============================================================
 with tab5:
     st.markdown("### 📈 Google Trends - Interesse em Tempo Real")
-    st.caption("Dados das últimas 24 horas - atualizados a cada hora")
+    st.caption("Dados REAIS do Google Trends via SerpApi - atualizados a cada hora")
     
     col1, col2 = st.columns([2, 1])
     with col1:
-        termos_trends = st.text_input(
-            "Digite termos separados por vírgula:",
-            placeholder="smartwatch, fone bluetooth, camisa",
+        termo_trends = st.text_input(
+            "Digite um termo para buscar:",
+            placeholder="smartwatch",
             key="trends_input"
         )
     with col2:
         if st.button("🔄 Buscar no Google Trends", type="primary", width='stretch'):
-            if termos_trends:
-                lista_termos = [t.strip() for t in termos_trends.split(",")][:5]
-                
+            if termo_trends:
                 with st.spinner("Buscando dados no Google Trends..."):
-                    dados_trends = google_trends.buscar_interesse_historico(lista_termos, 'now 1-d')
+                    dados_trends = google_trends.buscar_interesse_historico(termo_trends, 'now 1-d')
                     
                     if dados_trends is not None and not dados_trends.empty:
                         st.markdown("#### 📊 Interesse ao Longo do Tempo (últimas 24h)")
@@ -921,20 +947,14 @@ with tab5:
                         st.markdown("#### 📋 Dados Detalhados")
                         st.dataframe(dados_trends, width='stretch')
                         
-                        st.markdown("#### 📈 Média de Interesse por Termo")
-                        medias = dados_trends.mean().sort_values(ascending=False)
-                        df_medias = pd.DataFrame({
-                            "Termo": medias.index,
-                            "Média de Interesse": medias.values
-                        })
-                        st.dataframe(df_medias, width='stretch', hide_index=True)
+                        st.success(f"✅ Dados REAIS do Google Trends para '{termo_trends}'")
                     else:
-                        st.warning("Não foi possível buscar dados. Verifique os termos ou tente novamente.")
+                        st.warning("Não foi possível buscar dados. Verifique o termo ou a chave SerpApi.")
             else:
-                st.warning("Digite pelo menos um termo para buscar.")
+                st.warning("Digite um termo para buscar.")
 
 # ============================================================
 # RODAPE
 # ============================================================
 st.markdown("---")
-st.caption(f"🛒 Minerador de Produtos v2.0 | {datetime.now().year} | Dados: Google Trends, Google Shopping, Mercado Livre")
+st.caption(f"🛒 Minerador de Produtos v2.0 | Dados REAIS: Google Shopping (SerpApi) + Google Trends (SerpApi)")
