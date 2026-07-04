@@ -31,7 +31,7 @@ st.set_page_config(
 # ============================================================
 LICENCA_PADRAO = "TESTE-AFILIADO-2026"
 ARQUIVO_CACHE = "cache_tendencias.json"
-ARQUIVO_TRENDS = "dados_trends.json"
+ARQUIVO_GALERIA = "galeria_videos.json"
 
 # ============================================================
 # CARREGAR SECRETS
@@ -114,27 +114,69 @@ class CacheDiario:
         self.salvar()
 
 # ============================================================
+# SISTEMA DE GALERIA DE VÍDEOS
+# ============================================================
+class GaleriaVideos:
+    def __init__(self, arquivo=ARQUIVO_GALERIA):
+        self.arquivo = arquivo
+        self.videos = self.carregar()
+    
+    def carregar(self):
+        if os.path.exists(self.arquivo):
+            try:
+                with open(self.arquivo, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            except:
+                return []
+        return []
+    
+    def salvar(self):
+        with open(self.arquivo, 'w', encoding='utf-8') as f:
+            json.dump(self.videos, f, ensure_ascii=False, indent=2)
+    
+    def adicionar(self, video):
+        video["id"] = len(self.videos) + 1
+        video["timestamp"] = datetime.now().isoformat()
+        self.videos.insert(0, video)  # Adiciona no início
+        self.salvar()
+        return video
+    
+    def listar(self, limite=10):
+        return self.videos[:limite]
+    
+    def limpar(self):
+        self.videos = []
+        self.salvar()
+
+# ============================================================
 # GERADOR DE VÍDEO COM GEMINI
 # ============================================================
 class GeminiVideoGenerator:
     def __init__(self):
         self.api_key = GEMINI_API_KEY
+        self.galeria = GaleriaVideos()
     
-    def gerar_video(self, prompt, duracao=6, resolucao="480p", estilo="Realista"):
+    def gerar_video(self, prompt, duracao=6, resolucao="480p", estilo="Realista", modelo="Gemini Pro Video"):
         if not self.api_key:
             return {"erro": "Chave Gemini não configurada"}
         
         try:
             # Simula geração (substituir por API real)
             time.sleep(2)
-            return {
+            
+            video = {
                 "url": "https://placehold.co/600x400/000000/FFFFFF?text=Video+Gerado+por+IA",
+                "prompt": prompt,
                 "duracao": duracao,
                 "resolucao": resolucao,
                 "estilo": estilo,
-                "prompt": prompt,
-                "timestamp": datetime.now().isoformat()
+                "modelo": modelo,
+                "status": "concluido"
             }
+            
+            # Salva na galeria
+            self.galeria.adicionar(video)
+            return video
         except Exception as e:
             return {"erro": f"Erro: {str(e)}"}
 
@@ -275,32 +317,8 @@ def verificar_login():
 # ============================================================
 verificar_login()
 
-# ============================================================
-# DASHBOARD SUPERIOR - STATUS DAS APIS
-# ============================================================
 st.title("📊 Minerador de Produtos")
 st.caption(f"📅 {datetime.now().strftime('%A, %d de %B de %Y - %H:%M')}")
-
-col1, col2, col3, col4 = st.columns(4)
-
-with col1:
-    status_gs = "✅ Conectado" if SERPAPI_KEY else "❌ Desconectado"
-    st.metric("🛒 Google Shopping", status_gs)
-
-with col2:
-    status_apify = "✅ Conectado" if APIFY_TOKEN else "❌ Desconectado"
-    st.metric("📌 Pinterest", status_apify)
-
-with col3:
-    status_gemini = "✅ Conectado" if GEMINI_API_KEY else "❌ Desconectado"
-    st.metric("🎬 Gemini AI", status_gemini)
-
-with col4:
-    cache = CacheDiario()
-    produtos_cache = len(cache.dados)
-    st.metric("📦 Produtos em Cache", produtos_cache)
-
-st.markdown("---")
 
 # ============================================================
 # TABS
@@ -313,7 +331,7 @@ tab1, tab2, tab3, tab4 = st.tabs([
 ])
 
 # ============================================================
-# TAB 1: VISÃO GERAL (GRADE VISUAL)
+# TAB 1: VISÃO GERAL (GRADE VISUAL COM INSIGHTS)
 # ============================================================
 with tab1:
     st.markdown("### 📊 Visão Geral do Mês")
@@ -321,22 +339,50 @@ with tab1:
     mes_atual = datetime.now().strftime("%B").capitalize()
     eventos_mes = DATAS_COMEMORATIVAS.get(mes_atual, {})
     
+    # Métricas rápidas
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("📅 Mês Atual", mes_atual)
+    with col2:
+        st.metric("🎯 Eventos no Mês", len(eventos_mes))
+    with col3:
+        st.metric("📦 Produtos Sugeridos", len(gerar_sugestoes_produtos(mes_atual)))
+    
+    st.markdown("---")
+    
+    # Grade de produtos com insights
     if eventos_mes:
-        st.markdown(f"#### 🗓️ {mes_atual} - {len(eventos_mes)} eventos")
+        st.markdown(f"#### 🎯 Insights para {mes_atual}")
         
         produtos_sugeridos = gerar_sugestoes_produtos(mes_atual)
         
         if produtos_sugeridos:
+            # Grade 4 colunas
             cols = st.columns(4)
             for i, item in enumerate(produtos_sugeridos[:8]):
                 with cols[i % 4]:
                     with st.container(border=True):
-                        st.markdown(f"**{item['Produto']}**")
-                        st.caption(f"📌 {item['Evento']}")
-                        st.caption(f"📊 {item['Potencial']}")
-                        st.caption(f"📈 {item['Crescimento']} | 👁️ {item['Views']}")
+                        st.markdown(f"### {item['Produto']}")
+                        st.caption(f"📌 **Evento:** {item['Evento']}")
+                        st.caption(f"📊 **Potencial:** {item['Potencial']}")
+                        st.caption(f"📈 **Crescimento:** {item['Crescimento']}")
+                        st.caption(f"👁️ **Views TikTok:** {item['Views']}")
+                        st.caption(f"📌 **Data:** {item['Data']}")
     else:
         st.info("Nenhum evento programado para este mês.")
+        
+        # Sugestões gerais
+        st.markdown("#### 💡 Sugestões Gerais")
+        produtos_base = ["smartwatch", "fone bluetooth", "camisa", "vestido", "tênis", "bolsa"]
+        cols = st.columns(4)
+        for i, produto in enumerate(produtos_base[:4]):
+            with cols[i % 4]:
+                with st.container(border=True):
+                    st.markdown(f"### {produto}")
+                    st.caption("📌 Tendência do Mês")
+                    st.caption("📊 Potencial: 🟡 Médio")
+                    st.caption("📈 Crescimento: +15%")
+                    st.caption("👁️ Views: 2.5M")
 
 # ============================================================
 # TAB 2: SUGESTÕES DE PRODUTOS (TABELA)
@@ -404,7 +450,7 @@ with tab3:
                 st.info("Nenhum produto sugerido para este mês.")
 
 # ============================================================
-# TAB 4: CRIAR VÍDEO COM IA
+# TAB 4: CRIAR VÍDEO COM IA + GALERIA
 # ============================================================
 with tab4:
     st.markdown("### 🎬 Criar Vídeo com IA (9:16)")
@@ -413,6 +459,7 @@ with tab4:
     if not GEMINI_API_KEY:
         st.warning("⚠️ **Chave Gemini não configurada.** Adicione `GEMINI_API_KEY` no arquivo `.streamlit/secrets.toml`.")
     
+    # Layout principal
     col1, col2 = st.columns([1, 1])
     
     with col1:
@@ -430,8 +477,8 @@ with tab4:
         
         prompt = st.text_area(
             "Comando",
-            placeholder="Descreva o vídeo que deseja gerar...\n\nEx: 'Extreme close-up of a smartwatch with city reflected in it, cinematic lighting, 4k quality'",
-            height=150
+            placeholder="Descreva o vídeo que deseja gerar...\n\nEx: 'Extreme close-up of a smartwatch with city reflected in it'",
+            height=120
         )
     
     with col2:
@@ -479,39 +526,40 @@ with tab4:
                         prompt=prompt,
                         duracao=duracao,
                         resolucao=resolucao.split()[0],
-                        estilo=estilo
+                        estilo=estilo,
+                        modelo=modelo
                     )
                     
                     if "erro" in resultado:
                         st.error(f"❌ {resultado['erro']}")
                     else:
                         st.success("✅ Vídeo gerado com sucesso!")
-                        st.video("https://placehold.co/600x400/000000/FFFFFF?text=Video+Gerado+por+IA")
-                        
-                        st.markdown("#### 📋 Detalhes do Vídeo")
-                        st.json({
-                            "Modelo": modelo,
-                            "Prompt": prompt,
-                            "Duração": f"{duracao}s",
-                            "Resolução": resolucao,
-                            "Estilo": estilo,
-                            "Formato": "9:16"
-                        })
+                        st.rerun()
     
-    with st.expander("💡 Exemplos de Prompts"):
-        st.markdown("""
-        **Para Produtos:**
-        - *"Extreme close-up of a smartwatch with city skyline reflected in the glass, cinematic lighting"*
-        - *"Product showcase of a wireless earbud, rotating 360 degrees, studio lighting"*
-        
-        **Para Tendências:**
-        - *"Vibrant jelly blush being applied to cheeks, beauty tutorial style, natural lighting"*
-        - *"Colorful maximalist fashion outfit, street style, urban background, dynamic movement"*
-        
-        **Para Datas:**
-        - *"Festive Christmas decoration with twinkling lights, cozy home atmosphere"*
-        - *"Valentine's Day gift box opening, romantic setting, soft lighting"*
-        """)
+    # ===== GALERIA DE VÍDEOS =====
+    st.markdown("---")
+    st.markdown("### 🖼️ Galeria de Vídeos Gerados")
+    
+    galeria = GaleriaVideos()
+    videos = galeria.listar(12)
+    
+    if videos:
+        # Grade de vídeos
+        cols = st.columns(4)
+        for i, video in enumerate(videos):
+            with cols[i % 4]:
+                with st.container(border=True):
+                    st.video(video.get("url", "https://placehold.co/600x400/000000/FFFFFF?text=Video"))
+                    st.caption(f"🎬 {video.get('modelo', 'IA')}")
+                    st.caption(f"📝 {video.get('prompt', '')[:50]}...")
+                    st.caption(f"⏱️ {video.get('duracao', 6)}s | {video.get('resolucao', '480p')}")
+                    if st.button(f"🗑️ Remover", key=f"del_{video.get('id', i)}"):
+                        # Remove da galeria (simplificado)
+                        galeria.videos = [v for v in galeria.videos if v.get('id') != video.get('id')]
+                        galeria.salvar()
+                        st.rerun()
+    else:
+        st.info("📭 Nenhum vídeo gerado ainda. Crie seu primeiro vídeo acima!")
 
 # ============================================================
 # RODAPE
