@@ -7,7 +7,12 @@ import time
 import random
 import json
 import os
-import threading
+import warnings
+
+# ============================================================
+# SUPRIMIR WARNINGS DO PYTREADS
+# ============================================================
+warnings.filterwarnings("ignore", category=FutureWarning)
 
 # ============================================================
 # CONFIGURACAO DA PAGINA
@@ -477,7 +482,7 @@ def calcular_score(total_resultados, produtos):
     return min(score, 10)
 
 # ============================================================
-# COLETOR DE DADOS (SEM SCHEDULE)
+# COLETOR DE DADOS
 # ============================================================
 class ColetorAgendado:
     def __init__(self):
@@ -540,7 +545,6 @@ class ColetorAgendado:
         return None
     
     def verificar_e_coletar(self):
-        """Verifica se passou 1 hora desde a última coleta"""
         if self.ultima_coleta is None:
             return self.coletar_dados()
         
@@ -582,12 +586,11 @@ coletor = ColetorAgendado()
 
 coletor.carregar_ultima_coleta()
 
-# Tenta coletar se necessário
 if coletor.ultima_coleta is None or (datetime.now() - coletor.ultima_coleta).total_seconds() / 3600 >= 1:
     coletor.coletar_dados()
 
 # ============================================================
-# SIDEBAR - CONFIGURACOES
+# SIDEBAR
 # ============================================================
 with st.sidebar:
     st.markdown("### ⚙️ Configurações")
@@ -656,7 +659,7 @@ with col4:
 st.markdown("---")
 
 # ============================================================
-# TABS PRINCIPAIS
+# TABS
 # ============================================================
 tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "🔍 Buscar Produtos",
@@ -690,7 +693,7 @@ with tab1:
     if termo_busca:
         forcar = (modo == "Real-time")
         
-        if st.button("🔍 Buscar", type="primary", use_container_width=True):
+        if st.button("🔍 Buscar", type="primary", width='stretch'):
             with st.spinner("Buscando dados..."):
                 produtos_google = google_shopping.buscar_produtos(termo_busca, 8, forcar)
                 total_google = google_shopping.buscar_total_resultados(termo_busca, forcar)
@@ -722,7 +725,7 @@ with tab1:
                                     st.caption(f"⭐ {p.get('avaliacao')} ({p.get('reviews', 0)} avaliações)")
                             with c2:
                                 if p.get("link"):
-                                    st.link_button("🔗 Ver", p["link"], use_container_width=True)
+                                    st.link_button("🔗 Ver", p["link"], width='stretch')
                 
                 if produtos_ml:
                     st.markdown("#### 📦 Mercado Livre")
@@ -734,7 +737,7 @@ with tab1:
                                 st.markdown(f"💰 {p.get('preco', '')} | 📦 {p.get('vendas', 0)} vendidos")
                             with c2:
                                 if p.get("link"):
-                                    st.link_button("🔗 Ver", p["link"], use_container_width=True)
+                                    st.link_button("🔗 Ver", p["link"], width='stretch')
 
 # ============================================================
 # TAB 2: ANALISE DE SATURACAO
@@ -798,7 +801,7 @@ with tab3:
     with col2:
         usar_cache = st.toggle("Usar cache", value=True)
     
-    if st.button("🚀 Analisar Oportunidades", type="primary", use_container_width=True):
+    if st.button("🚀 Analisar Oportunidades", type="primary", width='stretch'):
         with st.spinner("Analisando oportunidades..."):
             mes_atual = datetime.now().month
             resultados = []
@@ -837,4 +840,101 @@ with tab3:
             
             if not df.empty:
                 melhor = df.iloc[0]
-                st.success(f"🏆 Melhor oportunidade: **{melhor['Produto']
+                st.success(f"🏆 Melhor oportunidade: **{melhor['Produto']}** (Score: {melhor['Score']}/10)")
+            
+            st.dataframe(
+                df,
+                width='stretch',
+                hide_index=True,
+                column_config={
+                    "Score": st.column_config.NumberColumn("Score", format="%d"),
+                    "Total Resultados": st.column_config.NumberColumn("Total Resultados", format="%d"),
+                    "Produtos Encontrados": st.column_config.NumberColumn("Produtos Encontrados", format="%d")
+                }
+            )
+            
+            if not df.empty:
+                st.markdown("#### 📈 Score por Produto")
+                df_chart = df.set_index("Produto")[["Score"]]
+                st.bar_chart(df_chart)
+            
+            st.info("💡 Foque nos produtos com maior Score e menor número de resultados!")
+
+# ============================================================
+# TAB 4: TENDENCIAS
+# ============================================================
+with tab4:
+    st.markdown("### 📌 Tendências Pinterest 2025-2026")
+    st.caption("Baseado no relatório Pinterest Predicts")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("#### 📅 2025")
+        for categoria, items in TENDENCIAS_PINTEREST["2025"].items():
+            with st.expander(f"📌 {categoria}"):
+                for item in items:
+                    st.markdown(f"- {item}")
+    
+    with col2:
+        st.markdown("#### 📅 2026")
+        for categoria, items in TENDENCIAS_PINTEREST["2026"].items():
+            with st.expander(f"📌 {categoria}"):
+                for item in items:
+                    st.markdown(f"- {item}")
+    
+    st.markdown("---")
+    st.markdown("### 💡 Como usar estas tendências")
+    st.markdown("""
+    1. Escolha uma tendência da lista acima
+    2. Vá para a aba **Buscar Produtos** e pesquise
+    3. Analise a saturação e concorrência
+    4. Crie conteúdo para redes sociais sobre o produto
+    """)
+
+# ============================================================
+# TAB 5: GOOGLE TRENDS
+# ============================================================
+with tab5:
+    st.markdown("### 📈 Google Trends - Interesse em Tempo Real")
+    st.caption("Dados das últimas 24 horas - atualizados a cada hora")
+    
+    col1, col2 = st.columns([2, 1])
+    with col1:
+        termos_trends = st.text_input(
+            "Digite termos separados por vírgula:",
+            placeholder="smartwatch, fone bluetooth, camisa",
+            key="trends_input"
+        )
+    with col2:
+        if st.button("🔄 Buscar no Google Trends", type="primary", width='stretch'):
+            if termos_trends:
+                lista_termos = [t.strip() for t in termos_trends.split(",")][:5]
+                
+                with st.spinner("Buscando dados no Google Trends..."):
+                    dados_trends = google_trends.buscar_interesse_historico(lista_termos, 'now 1-d')
+                    
+                    if dados_trends is not None and not dados_trends.empty:
+                        st.markdown("#### 📊 Interesse ao Longo do Tempo (últimas 24h)")
+                        st.line_chart(dados_trends)
+                        
+                        st.markdown("#### 📋 Dados Detalhados")
+                        st.dataframe(dados_trends, width='stretch')
+                        
+                        st.markdown("#### 📈 Média de Interesse por Termo")
+                        medias = dados_trends.mean().sort_values(ascending=False)
+                        df_medias = pd.DataFrame({
+                            "Termo": medias.index,
+                            "Média de Interesse": medias.values
+                        })
+                        st.dataframe(df_medias, width='stretch', hide_index=True)
+                    else:
+                        st.warning("Não foi possível buscar dados. Verifique os termos ou tente novamente.")
+            else:
+                st.warning("Digite pelo menos um termo para buscar.")
+
+# ============================================================
+# RODAPE
+# ============================================================
+st.markdown("---")
+st.caption(f"🛒 Minerador de Produtos v2.0 | {datetime.now().year} | Dados: Google Trends, Google Shopping, Mercado Livre")
