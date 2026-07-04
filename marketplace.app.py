@@ -25,11 +25,11 @@ CHAVE_TESTE = "TESTE-AFILIADO-2026"
 # ============================================================
 class MercadoLivreAPI:
     def __init__(self):
-        # ATUALIZE COM SEUS DADOS
-        self.access_token = "APP_USR-1720081667983577-070321-47260a48b656320ec5f335509feb480d-28997765"
-        self.refresh_token = "TG-6a48687c5d204f00016bfdd9-28997765"
+        # ATUALIZE COM OS NOVOS TOKENS OBTIDOS
+        self.access_token = "SEU_NOVO_ACCESS_TOKEN_AQUI"
+        self.refresh_token = "SEU_NOVO_REFRESH_TOKEN_AQUI"
         self.client_id = "1720081667983577"
-        self.client_secret = "1crhfNc8AQpYSpPFrWL0FxhxvwpZLCsw"  # ATUALIZE APÓS REVOGAR
+        self.client_secret = "SEU_NOVO_CLIENT_SECRET"  # ATUALIZE APÓS REVOGAR
     
     def renovar_token(self):
         """Renova o Access Token usando o Refresh Token"""
@@ -400,7 +400,7 @@ with st.sidebar:
     st.success("✅ Token autenticado")
     st.caption(f"User ID: 28997765")
     st.caption("Expira em: 6 horas")
-    st.caption(f"Refresh Token: {ml_api.refresh_token[:20]}...")
+    st.caption(f"Refresh Token: {ml_api.refresh_token[:20] if ml_api.refresh_token else 'N/A'}...")
     
     st.markdown("---")
     if st.button("🔄 Renovar Token Manualmente"):
@@ -446,7 +446,7 @@ if termo_busca and st.button("📊 Buscar", type="primary"):
                         st.markdown(f"💰 {p.get('preco', '')} | 📦 {p.get('vendas', 0)} vendidos")
                     with c2:
                         if p.get("link"):
-                            st.link_button("🔗 Ver", p["link"], width='stretch')
+                            st.link_button("🔗 Ver", p["link"], use_container_width=True)
 
 st.markdown("---")
 
@@ -536,7 +536,7 @@ if st.button("🚀 Analisar Oportunidades", type="primary"):
         df = pd.DataFrame(resultados).sort_values("Score", ascending=False).reset_index(drop=True)
         
         st.markdown("### 📊 Oportunidades por Score")
-        st.dataframe(df, width='stretch', hide_index=True)
+        st.dataframe(df, use_container_width=True, hide_index=True)
         
         st.markdown("---")
         st.markdown("### 💡 Estratégia para Afiliados")
