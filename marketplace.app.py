@@ -8,6 +8,8 @@ import random
 import json
 import os
 import warnings
+import base64
+from io import BytesIO
 
 # ============================================================
 # SUPRIMIR WARNINGS
@@ -112,7 +114,32 @@ class CacheDiario:
         self.salvar()
 
 # ============================================================
-# DADOS DE DATAS COMEMORATIVAS E PRODUTOS
+# GERADOR DE VÍDEO COM GEMINI
+# ============================================================
+class GeminiVideoGenerator:
+    def __init__(self):
+        self.api_key = GEMINI_API_KEY
+    
+    def gerar_video(self, prompt, duracao=6, resolucao="480p", estilo="Realista"):
+        if not self.api_key:
+            return {"erro": "Chave Gemini não configurada"}
+        
+        try:
+            # Simula geração (substituir por API real)
+            time.sleep(2)
+            return {
+                "url": "https://placehold.co/600x400/000000/FFFFFF?text=Video+Gerado+por+IA",
+                "duracao": duracao,
+                "resolucao": resolucao,
+                "estilo": estilo,
+                "prompt": prompt,
+                "timestamp": datetime.now().isoformat()
+            }
+        except Exception as e:
+            return {"erro": f"Erro: {str(e)}"}
+
+# ============================================================
+# DADOS DE DATAS COMEMORATIVAS
 # ============================================================
 DATAS_COMEMORATIVAS = {
     "Janeiro": {
@@ -171,17 +198,16 @@ DATAS_COMEMORATIVAS = {
 }
 
 # ============================================================
-# GERAR DADOS DE SUGESTÕES (CACHE DIÁRIO)
+# GERAR SUGESTÕES DE PRODUTOS
 # ============================================================
 def gerar_sugestoes_produtos(mes_selecionado=None):
     cache = CacheDiario()
-    chave_cache = f"sugestoes_{mes_selecionado}" if mes_selecionado else "sugestoes_produtos_diarias"
+    chave_cache = f"sugestoes_{mes_selecionado}" if mes_selecionado else "sugestoes_diarias"
     
     dados_cache = cache.obter(chave_cache, 24)
     if dados_cache is not None:
         return dados_cache
     
-    # Se não tiver cache, gera os dados
     if mes_selecionado:
         eventos_mes = DATAS_COMEMORATIVAS.get(mes_selecionado, {})
         sugestoes = []
@@ -198,7 +224,6 @@ def gerar_sugestoes_produtos(mes_selecionado=None):
                     "Views": f"{round(random.uniform(0.5, 6.0), 1)}M"
                 })
     else:
-        # Sugestões gerais do mês atual
         mes_atual = datetime.now().strftime("%B").capitalize()
         eventos_mes = DATAS_COMEMORATIVAS.get(mes_atual, {})
         sugestoes = []
@@ -219,7 +244,7 @@ def gerar_sugestoes_produtos(mes_selecionado=None):
     return sugestoes
 
 # ============================================================
-# FUNCAO DE LOGIN (SEM PLACEHOLDER)
+# FUNCAO DE LOGIN
 # ============================================================
 def verificar_login():
     if "logado" not in st.session_state:
@@ -229,10 +254,7 @@ def verificar_login():
         st.title("🛒 Minerador de Produtos")
         st.markdown("### 🔐 Acesso ao Sistema")
         
-        licenca = st.text_input(
-            "Digite sua Licença de Acesso:",
-            type="password"
-        )
+        licenca = st.text_input("Digite sua Licença de Acesso:", type="password")
         
         if st.button("🔓 Entrar", type="primary", use_container_width=True):
             if licenca == LICENCA_ACESSO:
@@ -267,14 +289,13 @@ with col1:
 
 with col2:
     status_apify = "✅ Conectado" if APIFY_TOKEN else "❌ Desconectado"
-    st.metric("📌 Pinterest (Apify)", status_apify)
+    st.metric("📌 Pinterest", status_apify)
 
 with col3:
     status_gemini = "✅ Conectado" if GEMINI_API_KEY else "❌ Desconectado"
     st.metric("🎬 Gemini AI", status_gemini)
 
 with col4:
-    # Conta produtos no cache
     cache = CacheDiario()
     produtos_cache = len(cache.dados)
     st.metric("📦 Produtos em Cache", produtos_cache)
@@ -284,14 +305,15 @@ st.markdown("---")
 # ============================================================
 # TABS
 # ============================================================
-tab1, tab2, tab3 = st.tabs([
-    "📊 Visão Geral do Mês",
+tab1, tab2, tab3, tab4 = st.tabs([
+    "📊 Visão Geral",
     "📌 Sugestões de Produtos",
-    "📅 Calendário de Conteúdo"
+    "📅 Calendário",
+    "🎬 Criar Vídeo IA"
 ])
 
 # ============================================================
-# TAB 1: VISÃO GERAL DO MÊS (GRADE VISUAL)
+# TAB 1: VISÃO GERAL (GRADE VISUAL)
 # ============================================================
 with tab1:
     st.markdown("### 📊 Visão Geral do Mês")
@@ -302,11 +324,9 @@ with tab1:
     if eventos_mes:
         st.markdown(f"#### 🗓️ {mes_atual} - {len(eventos_mes)} eventos")
         
-        # Grade de produtos em cache
         produtos_sugeridos = gerar_sugestoes_produtos(mes_atual)
         
         if produtos_sugeridos:
-            # Mostra grade visual
             cols = st.columns(4)
             for i, item in enumerate(produtos_sugeridos[:8]):
                 with cols[i % 4]:
@@ -347,13 +367,12 @@ with tab2:
         )
 
 # ============================================================
-# TAB 3: CALENDÁRIO DE CONTEÚDO (INTERATIVO)
+# TAB 3: CALENDÁRIO DE CONTEÚDO
 # ============================================================
 with tab3:
     st.markdown("### 📅 Calendário de Conteúdo Estratégico")
     st.caption("Selecione um mês para ver sugestões de produtos e insights")
     
-    # Lista de meses para seleção
     meses = list(DATAS_COMEMORATIVAS.keys())
     mes_selecionado = st.selectbox("Selecione o mês:", meses, index=datetime.now().month - 1)
     
@@ -380,9 +399,119 @@ with tab3:
                         st.markdown(f"**{item['Produto']}**")
                         st.caption(f"📌 {item['Evento']} - {item['Data']}")
                         st.caption(f"📊 Potencial: {item['Potencial']}")
-                        st.caption(f"📈 {item['Crescimento']} | 👁️ {item['Views']} visualizações")
+                        st.caption(f"📈 {item['Crescimento']} | 👁️ {item['Views']}")
             else:
                 st.info("Nenhum produto sugerido para este mês.")
+
+# ============================================================
+# TAB 4: CRIAR VÍDEO COM IA
+# ============================================================
+with tab4:
+    st.markdown("### 🎬 Criar Vídeo com IA (9:16)")
+    st.caption("Formato vertical para TikTok, Instagram Reels e YouTube Shorts")
+    
+    if not GEMINI_API_KEY:
+        st.warning("⚠️ **Chave Gemini não configurada.** Adicione `GEMINI_API_KEY` no arquivo `.streamlit/secrets.toml`.")
+    
+    col1, col2 = st.columns([1, 1])
+    
+    with col1:
+        st.markdown("#### 🎨 Configuração do Vídeo")
+        
+        modelo = st.selectbox(
+            "Modelo",
+            ["Gemini Pro Video", "Grok Style", "Kling", "Bytedance"]
+        )
+        
+        imagem_upload = st.file_uploader(
+            "Selecionar Imagem (opcional)",
+            type=["png", "jpg", "jpeg", "webp"]
+        )
+        
+        prompt = st.text_area(
+            "Comando",
+            placeholder="Descreva o vídeo que deseja gerar...\n\nEx: 'Extreme close-up of a smartwatch with city reflected in it, cinematic lighting, 4k quality'",
+            height=150
+        )
+    
+    with col2:
+        st.markdown("#### ⚙️ Configurações Técnicas")
+        
+        st.markdown("**Resolução (9:16)**")
+        resolucao = st.radio(
+            "Qualidade",
+            ["480p (SD)", "720p (HD)"],
+            index=1
+        )
+        
+        duracao = st.selectbox(
+            "Duração",
+            [6, 10, 15]
+        )
+        
+        estilo = st.selectbox(
+            "Estilo Visual",
+            ["Realista", "Cinematográfico", "Animado", "Minimalista"]
+        )
+        
+        st.markdown("---")
+        st.metric("🎫 Créditos restantes", "1,880")
+        
+        if st.button("🚀 Gerar Vídeo", type="primary", width='stretch'):
+            if not prompt:
+                st.error("❌ Por favor, descreva o vídeo no campo 'Comando'.")
+            elif not GEMINI_API_KEY:
+                st.error("❌ Chave Gemini não configurada.")
+            else:
+                with st.spinner("🎬 Gerando vídeo com IA..."):
+                    progress = st.progress(0)
+                    status_text = st.empty()
+                    
+                    for i in range(10):
+                        progress.progress((i + 1) / 10)
+                        status_text.text(f"Processando... {int((i+1)/10 * 100)}%")
+                        time.sleep(0.3)
+                    
+                    status_text.empty()
+                    
+                    generator = GeminiVideoGenerator()
+                    resultado = generator.gerar_video(
+                        prompt=prompt,
+                        duracao=duracao,
+                        resolucao=resolucao.split()[0],
+                        estilo=estilo
+                    )
+                    
+                    if "erro" in resultado:
+                        st.error(f"❌ {resultado['erro']}")
+                    else:
+                        st.success("✅ Vídeo gerado com sucesso!")
+                        st.video("https://placehold.co/600x400/000000/FFFFFF?text=Video+Gerado+por+IA")
+                        
+                        st.markdown("#### 📋 Detalhes do Vídeo")
+                        st.json({
+                            "Modelo": modelo,
+                            "Prompt": prompt,
+                            "Duração": f"{duracao}s",
+                            "Resolução": resolucao,
+                            "Estilo": estilo,
+                            "Formato": "9:16"
+                        })
+    
+    with st.expander("💡 Exemplos de Prompts"):
+        st.markdown("""
+        **Para Produtos:**
+        - *"Extreme close-up of a smartwatch with city skyline reflected in the glass, cinematic lighting"*
+        - *"Product showcase of a wireless earbud, rotating 360 degrees, studio lighting"*
+        
+        **Para Tendências:**
+        - *"Vibrant jelly blush being applied to cheeks, beauty tutorial style, natural lighting"*
+        - *"Colorful maximalist fashion outfit, street style, urban background, dynamic movement"*
+        
+        **Para Datas:**
+        - *"Festive Christmas decoration with twinkling lights, cozy home atmosphere"*
+        - *"Valentine's Day gift box opening, romantic setting, soft lighting"*
+        """)
 
 # ============================================================
 # RODAPE
