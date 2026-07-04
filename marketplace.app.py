@@ -21,7 +21,7 @@ st.set_page_config(
     page_title="Minerador de Produtos - Afiliados",
     page_icon="🛒",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"  # Sidebar recolhida por padrão
 )
 
 # ============================================================
@@ -144,7 +144,7 @@ class GaleriaVideos:
         self.salvar()
 
 # ============================================================
-# GERADOR DE VÍDEO COM SNAPGEN AI (VERSÃO CORRIGIDA)
+# GERADOR DE VÍDEO COM SNAPGEN AI
 # ============================================================
 class SnapGenVideoGenerator:
     def __init__(self):
@@ -153,48 +153,39 @@ class SnapGenVideoGenerator:
         self.password = SNAPGEN_PASSWORD
         self.galeria = GaleriaVideos()
         self.creditos = CreditosDiarios()
-        # Endpoints baseados na documentação
         self.endpoints = [
             "https://api.snapgen.ai/uapi/v1/generate",
             "https://api.snapgen.ai/v1/generate",
             "https://api.snapgen.ai/generate",
             "https://api.snapgen.ai/api/v1/generate"
         ]
-        # Headers padrão
         self.headers = {
             "Content-Type": "application/json",
             "Accept": "application/json"
         }
 
     def gerar_video(self, prompt, licenca, duracao=6, resolucao="480p", estilo="Realista", modelo="SnapGen"):
-        # Verifica credenciais
         if not self.api_key and not (self.email and self.password):
-            # Fallback para simulação
             return self._simular_video(prompt, licenca, duracao, resolucao, estilo, modelo)
         
         if not self.creditos.usar_credito(licenca):
             return {"erro": "Créditos diários esgotados. Volte amanhã!"}
         
-        # Tenta usar a API real
         resultado = self._tentar_api(prompt, duracao, resolucao, estilo, modelo)
         
         if resultado and "erro" not in resultado:
             return resultado
         else:
-            # Fallback para simulação se a API falhar
             st.warning("⚠️ API SnapGen indisponível. Gerando vídeo de demonstração...")
             return self._simular_video(prompt, licenca, duracao, resolucao, estilo, modelo)
     
     def _tentar_api(self, prompt, duracao, resolucao, estilo, modelo):
-        """Tenta chamar a API SnapGen"""
         try:
-            # Prepara os headers com autenticação
             headers = self.headers.copy()
             
             if self.api_key:
                 headers["x-api-key"] = self.api_key
             elif self.email and self.password:
-                # Tenta obter token
                 try:
                     auth_response = requests.post(
                         "https://api.snapgen.ai/auth/login",
@@ -208,7 +199,6 @@ class SnapGenVideoGenerator:
                 except:
                     pass
             
-            # Prepara o payload
             payload = {
                 "type": "video",
                 "prompt": prompt,
@@ -219,10 +209,9 @@ class SnapGenVideoGenerator:
                 "resolution": resolucao
             }
             
-            st.info(f"🎬 Tentando gerar vídeo com SnapGen...")
+            st.info(f"🎬 Iniciando geração com SnapGen...")
             st.caption(f"⏱️ Duração: {duracao}s | 📐 9:16 | 📺 {resolucao}")
             
-            # Tenta cada endpoint
             for endpoint in self.endpoints:
                 try:
                     response = requests.post(
@@ -237,7 +226,6 @@ class SnapGenVideoGenerator:
                         video_url = self._extrair_url_video(data)
                         
                         if video_url:
-                            # Baixa o vídeo
                             video_response = requests.get(video_url, timeout=30)
                             if video_response.status_code == 200:
                                 filename = f"video_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4"
@@ -260,14 +248,6 @@ class SnapGenVideoGenerator:
                     elif response.status_code == 401:
                         st.error("❌ Chave API inválida. Verifique suas credenciais.")
                         return {"erro": "Chave API inválida"}
-                    elif response.status_code != 404:
-                        # Se não for 404, tenta ler o erro
-                        try:
-                            erro = response.json()
-                            if "detail" in erro:
-                                st.warning(f"⚠️ {erro['detail']}")
-                        except:
-                            pass
                 except Exception as e:
                     continue
             
@@ -277,7 +257,6 @@ class SnapGenVideoGenerator:
             return {"erro": f"Erro: {str(e)}"}
     
     def _extrair_url_video(self, data):
-        """Extrai URL do vídeo da resposta da API"""
         if "video_url" in data:
             return data["video_url"]
         elif "url" in data:
@@ -291,8 +270,6 @@ class SnapGenVideoGenerator:
         return None
     
     def _simular_video(self, prompt, licenca, duracao, resolucao, estilo, modelo):
-        """Gera um vídeo de demonstração quando a API não está disponível"""
-        # Gera um vídeo de exemplo (Big Buck Bunny)
         video_url = "https://www.w3schools.com/html/mov_bbb.mp4"
         
         try:
@@ -318,7 +295,6 @@ class SnapGenVideoGenerator:
         except:
             pass
         
-        # Fallback para placeholder
         video_info = {
             "url": "https://placehold.co/600x400/000000/FFFFFF?text=Video+Gerado+por+IA",
             "prompt": prompt,
@@ -376,15 +352,29 @@ def verificar_login():
     return st.session_state.get('licenca_usuario', LICENCA_PADRAO)
 
 # ============================================================
-# FUNCAO RENDER_DASHBOARD (COM CARDS E MEDIDORES)
+# FUNCAO RENDER_DASHBOARD (SEM INDICADORES RÁPIDOS)
 # ============================================================
 def render_dashboard():
     st.title("📊 Minerador de Produtos")
     st.caption(f"📅 {datetime.now().strftime('%A, %d de %B de %Y - %H:%M')}")
     
+    # Status e Créditos na tela principal
+    col_status1, col_status2, col_status3 = st.columns(3)
+    with col_status1:
+        status_api = "✅ Conectado" if (SNAPGEN_API_KEY or (SNAPGEN_EMAIL and SNAPGEN_PASSWORD)) else "❌ Desconectado"
+        st.metric("🔌 Status API", status_api)
+    with col_status2:
+        creditos = CreditosDiarios()
+        licenca = st.session_state.get('licenca_usuario', LICENCA_PADRAO)
+        creditos_restantes = creditos.obter_creditos(licenca)
+        st.metric("🎫 Créditos", f"{creditos_restantes} / {CREDITOS_DIARIOS}")
+    with col_status3:
+        st.metric("👤 Licença", f"{licenca[:10]}...")
+    
+    st.markdown("---")
+    
     st.markdown("## 📊 Visão Geral do Mês")
     
-    # Layout responsivo com cards
     col1, col2 = st.columns([2, 1])
     
     with col1:
@@ -426,36 +416,6 @@ def render_dashboard():
                 st.success("✅ Alta Demanda")
             with col_s2:
                 st.success("✅ Baixa Concorrência")
-    
-    st.markdown("---")
-    
-    st.markdown("### 📈 Indicadores Rápidos")
-    
-    col1, col2, col3, col4 = st.columns(4)
-    
-    with col1:
-        with st.container(border=True):
-            st.markdown("**🛒 Produtos**")
-            st.markdown("<h2 style='text-align: center;'>8</h2>", unsafe_allow_html=True)
-            st.caption("Em tendência")
-    
-    with col2:
-        with st.container(border=True):
-            st.markdown("**📊 Categorias**")
-            st.markdown("<h2 style='text-align: center;'>5</h2>", unsafe_allow_html=True)
-            st.caption("Ativas no mês")
-    
-    with col3:
-        with st.container(border=True):
-            st.markdown("**🔥 Potencial**")
-            st.markdown("<h2 style='text-align: center;'>85%</h2>", unsafe_allow_html=True)
-            st.caption("Médio de mercado")
-    
-    with col4:
-        with st.container(border=True):
-            st.markdown("**📅 Eventos**")
-            st.markdown("<h2 style='text-align: center;'>3</h2>", unsafe_allow_html=True)
-            st.caption("Próximos 7 dias")
     
     st.markdown("---")
     
@@ -544,34 +504,6 @@ creditos = CreditosDiarios()
 galeria = GaleriaVideos()
 creditos_restantes = creditos.obter_creditos(licenca)
 
-# Status da API
-tem_credenciais = bool(SNAPGEN_API_KEY or (SNAPGEN_EMAIL and SNAPGEN_PASSWORD))
-status_api = "✅ Conectado" if tem_credenciais else "❌ Desconectado"
-
-# ============================================================
-# MENU LATERAL
-# ============================================================
-with st.sidebar:
-    st.markdown("### ⚙️ Menu")
-    st.markdown(f"**🔌 Status API:** {status_api}")
-    st.markdown("---")
-    st.markdown("### 🎫 Créditos")
-    st.metric("Disponíveis hoje", f"{creditos_restantes} / {CREDITOS_DIARIOS}")
-    
-    if creditos_restantes == 0:
-        st.warning("⚠️ Créditos esgotados! Volte amanhã.")
-    
-    st.markdown("---")
-    
-    if st.button("🚪 Sair", use_container_width=True):
-        st.session_state.logado = False
-        st.rerun()
-    
-    st.caption(f"👤 Licença: {licenca[:10]}...")
-    
-    if not tem_credenciais:
-        st.warning("⚠️ SnapGen não configurado")
-
 # ============================================================
 # TABS
 # ============================================================
@@ -657,10 +589,11 @@ with tab4:
     st.markdown("## 🎬 Criar Vídeo com IA (9:16)")
     st.caption("Gere vídeos para TikTok, Reels e Shorts com SnapGen AI")
     
+    tem_credenciais = bool(SNAPGEN_API_KEY or (SNAPGEN_EMAIL and SNAPGEN_PASSWORD))
+    
     if not tem_credenciais:
         st.warning("⚠️ **Credenciais SnapGen não configuradas.**")
         st.info("Configure no painel do Streamlit Cloud: Settings → Secrets")
-        st.info("O sistema usará vídeos de demonstração enquanto a API não estiver configurada.")
     
     col1, col2 = st.columns([1, 1])
     
