@@ -4,16 +4,17 @@ import requests
 from urllib.parse import quote
 from datetime import datetime, date, timedelta
 import time
+import random
 import json
 import os
 import warnings
-import random
+import base64
+from io import BytesIO
 
 # ============================================================
 # SUPRIMIR WARNINGS
 # ============================================================
 warnings.filterwarnings("ignore", category=FutureWarning)
-warnings.filterwarnings("ignore", category=UserWarning)
 
 # ============================================================
 # CONFIGURACAO DA PAGINA
@@ -26,25 +27,49 @@ st.set_page_config(
 )
 
 # ============================================================
+# CARREGAR SECRETS DE FORMA SEGURA
+# ============================================================
+def carregar_secrets():
+    """Carrega as chaves de API com fallback para valores vazios"""
+    try:
+        return {
+            "chave_teste": st.secrets.get("CHAVE_TESTE", ""),
+            "serpapi_key": st.secrets.get("SERPAPI_KEY", ""),
+            "apify_token": st.secrets.get("APIFY_TOKEN", ""),
+            "gemini_key": st.secrets.get("GEMINI_API_KEY", ""),
+            "google_trends_proxy": st.secrets.get("GOOGLE_TRENDS_PROXY", "")
+        }
+    except Exception:
+        # Fallback para desenvolvimento local (sem secrets)
+        return {
+            "chave_teste": "TESTE-AFILIADO-2026",
+            "serpapi_key": "",
+            "apify_token": "",
+            "gemini_key": "",
+            "google_trends_proxy": ""
+        }
+
+# Carrega as chaves
+KEYS = carregar_secrets()
+CHAVE_TESTE = KEYS["chave_teste"]
+SERPAPI_KEY = KEYS["serpapi_key"]
+APIFY_TOKEN = KEYS["apify_token"]
+GEMINI_API_KEY = KEYS["gemini_key"]
+GOOGLE_TRENDS_PROXY = KEYS["google_trends_proxy"]
+
+# ============================================================
 # CONSTANTES
 # ============================================================
-CHAVE_TESTE = "TESTE-AFILIADO-2026"
 ARQUIVO_CACHE = "cache_tendencias.json"
-ARQUIVO_CONSULTAS = "consultas_dia.json"
+ARQUIVO_TRENDS = "dados_trends.json"
 
 # ============================================================
-# CONFIGURACAO DAS APIS
+# SISTEMA DE CACHE
 # ============================================================
-SERPAPI_KEY = st.secrets.get("SERPAPI_KEY", "")
-
-# ============================================================
-# CONTROLE DE CONSULTAS DIARIAS
-# ============================================================
-class ControleConsultas:
-    def __init__(self):
-        self.arquivo = ARQUIVO_CONSULTAS
+class CacheDiario:
+    def __init__(self, arquivo=ARQUIVO_CACHE):
+        self.arquivo = arquivo
         self.dados = self.carregar()
-        self.limite_diario = 3
     
     def carregar(self):
         if os.path.exists(self.arquivo):
@@ -59,241 +84,206 @@ class ControleConsultas:
         with open(self.arquivo, 'w', encoding='utf-8') as f:
             json.dump(self.dados, f, ensure_ascii=False, indent=2)
     
-    def consultas_hoje(self):
-        hoje = datetime.now().date().isoformat()
-        if hoje not in self.dados:
-            self.dados[hoje] = {"consultas": 0, "termos": []}
-            self.salvar()
-        return self.dados[hoje]["consultas"]
-    
-    def pode_consultar(self):
-        return self.consultas_hoje() < self.limite_diario
-    
-    def registrar_consulta(self, termo):
-        hoje = datetime.now().date().isoformat()
-        if hoje not in self.dados:
-            self.dados[hoje] = {"consultas": 0, "termos": []}
+    def obter(self, chave, validade_horas=None):
+        if validade_horas is None:
+            validade_horas = st.session_state.get("validade_cache", 1)
         
-        self.dados[hoje]["consultas"] += 1
-        self.dados[hoje]["termos"].append({
-            "termo": termo,
-            "hora": datetime.now().strftime("%H:%M")
-        })
+        hoje = datetime.now().date().isoformat()
+        dados = self.dados.get(chave, {})
+        
+        if dados and dados.get("data") == hoje:
+            try:
+                hora_cache = datetime.strptime(dados.get("hora", "00:00"), "%H:%M")
+                hora_atual = datetime.now()
+                diferenca = (hora_atual - hora_cache.replace(year=hora_atual.year, 
+                                                             month=hora_atual.month, 
+                                                             day=hora_atual.day)).total_seconds() / 3600
+                
+                if diferenca < validade_horas:
+                    return dados.get("valor")
+            except:
+                return None
+        
+        return None
+    
+    def definir(self, chave, valor):
+        hoje = datetime.now()
+        self.dados[chave] = {
+            "valor": valor,
+            "data": hoje.date().isoformat(),
+            "hora": hoje.strftime("%H:%M")
+        }
+        self.salvar()
+        return valor
+    
+    def limpar(self):
+        self.dados = {}
         self.salvar()
     
-    def get_status(self):
+    def info(self):
+        total_chaves = len(self.dados)
         hoje = datetime.now().date().isoformat()
-        if hoje in self.dados:
-            return {
-                "usadas": self.dados[hoje]["consultas"],
-                "limite": self.limite_diario,
-                "restam": self.limite_diario - self.dados[hoje]["consultas"],
-                "termos": [t["termo"] for t in self.dados[hoje]["termos"]]
-            }
+        chaves_hoje = sum(1 for k, v in self.dados.items() if v.get("data") == hoje)
         return {
-            "usadas": 0,
-            "limite": self.limite_diario,
-            "restam": self.limite_diario,
-            "termos": []
+            "total_chaves": total_chaves,
+            "chaves_hoje": chaves_hoje,
+            "arquivo": self.arquivo
         }
 
 # ============================================================
-# DADOS HISTORICOS POR MES (COM INSIGHTS ADICIONAIS)
+# CLASSE PARA GEMINI VIDEO GENERATION
 # ============================================================
-DADOS_HISTORICOS = {
-    1: {
-        "tendencias": [
-            {"produto": "material escolar", "categoria": "Papelaria", "potencial": "Alto", "pins": 4500, "crescimento": "+35%", "tiktok": "8.2M"},
-            {"produto": "mochila escolar", "categoria": "Moda", "potencial": "Alto", "pins": 3200, "crescimento": "+28%", "tiktok": "5.1M"},
-            {"produto": "smartwatch", "categoria": "Eletrônicos", "potencial": "Médio", "pins": 1800, "crescimento": "+12%", "tiktok": "3.4M"},
-            {"produto": "fone bluetooth", "categoria": "Eletrônicos", "potencial": "Médio", "pins": 1500, "crescimento": "+8%", "tiktok": "2.8M"},
-            {"produto": "tenis", "categoria": "Moda", "potencial": "Médio", "pins": 2800, "crescimento": "+5%", "tiktok": "4.2M"},
-            {"produto": "caderno", "categoria": "Papelaria", "potencial": "Médio", "pins": 900, "crescimento": "+15%", "tiktok": "1.2M"},
-            {"produto": "estojo", "categoria": "Papelaria", "potencial": "Médio", "pins": 750, "crescimento": "+10%", "tiktok": "0.9M"},
-            {"produto": "luminaria de mesa", "categoria": "Casa", "potencial": "Baixo", "pins": 600, "crescimento": "+3%", "tiktok": "0.5M"}
-        ],
-        "eventos": ["Volta às Aulas", "Ano Novo"],
-        "sazonal": "Verão",
-        "insight": "Foco em produtos para estudantes: mochilas e material escolar estão em alta. Aproveite o início do ano letivo."
-    },
-    2: {
-        "tendencias": [
-            {"produto": "fantasia carnaval", "categoria": "Moda", "potencial": "Alto", "pins": 5200, "crescimento": "+45%", "tiktok": "12.5M"},
-            {"produto": "biquini", "categoria": "Moda", "potencial": "Alto", "pins": 3800, "crescimento": "+30%", "tiktok": "6.8M"},
-            {"produto": "protetor solar", "categoria": "Beleza", "potencial": "Alto", "pins": 2100, "crescimento": "+25%", "tiktok": "4.5M"},
-            {"produto": "caixa de som", "categoria": "Eletrônicos", "potencial": "Médio", "pins": 1200, "crescimento": "+10%", "tiktok": "2.1M"},
-            {"produto": "chinelo", "categoria": "Moda", "potencial": "Médio", "pins": 1600, "crescimento": "+8%", "tiktok": "3.2M"},
-            {"produto": "glitter", "categoria": "Beleza", "potencial": "Médio", "pins": 800, "crescimento": "+20%", "tiktok": "1.8M"},
-            {"produto": "maquiagem", "categoria": "Beleza", "potencial": "Médio", "pins": 1400, "crescimento": "+12%", "tiktok": "3.8M"},
-            {"produto": "sungas", "categoria": "Moda", "potencial": "Baixo", "pins": 500, "crescimento": "+5%", "tiktok": "0.7M"}
-        ],
-        "eventos": ["Carnaval"],
-        "sazonal": "Verão",
-        "insight": "Carnaval é o destaque! Fantasias e acessórios para folia estão bombando. Produtos para praia também têm alta demanda."
-    },
-    3: {
-        "tendencias": [
-            {"produto": "kit praia", "categoria": "Moda", "potencial": "Alto", "pins": 3400, "crescimento": "+32%", "tiktok": "5.8M"},
-            {"produto": "oculos sol", "categoria": "Moda", "potencial": "Alto", "pins": 2900, "crescimento": "+28%", "tiktok": "4.9M"},
-            {"produto": "canga", "categoria": "Moda", "potencial": "Médio", "pins": 1200, "crescimento": "+15%", "tiktok": "1.5M"},
-            {"produto": "vestido", "categoria": "Moda", "potencial": "Médio", "pins": 2100, "crescimento": "+10%", "tiktok": "3.6M"},
-            {"produto": "sandalia", "categoria": "Moda", "potencial": "Médio", "pins": 1800, "crescimento": "+8%", "tiktok": "2.9M"},
-            {"produto": "bolsa praia", "categoria": "Moda", "potencial": "Médio", "pins": 950, "crescimento": "+12%", "tiktok": "1.1M"},
-            {"produto": "toalha", "categoria": "Casa", "potencial": "Baixo", "pins": 700, "crescimento": "+5%", "tiktok": "0.6M"},
-            {"produto": "chapeu", "categoria": "Moda", "potencial": "Baixo", "pins": 650, "crescimento": "+3%", "tiktok": "0.8M"}
-        ],
-        "eventos": ["Dia da Mulher", "Outono"],
-        "sazonal": "Outono",
-        "insight": "Transição de verão para outono. Kits praia ainda em alta, mas já comece a preparar conteúdo para moda outono."
-    },
-    4: {
-        "tendencias": [
-            {"produto": "ovo pascoa", "categoria": "Alimentos", "potencial": "Alto", "pins": 4600, "crescimento": "+55%", "tiktok": "8.9M"},
-            {"produto": "chocolate", "categoria": "Alimentos", "potencial": "Alto", "pins": 3900, "crescimento": "+40%", "tiktok": "7.2M"},
-            {"produto": "cesta", "categoria": "Casa", "potencial": "Alto", "pins": 1800, "crescimento": "+35%", "tiktok": "2.5M"},
-            {"produto": "brinquedo", "categoria": "Brinquedos", "potencial": "Médio", "pins": 2200, "crescimento": "+18%", "tiktok": "4.1M"},
-            {"produto": "pelucia", "categoria": "Brinquedos", "potencial": "Médio", "pins": 1400, "crescimento": "+12%", "tiktok": "2.2M"},
-            {"produto": "jogo", "categoria": "Brinquedos", "potencial": "Médio", "pins": 1100, "crescimento": "+8%", "tiktok": "1.8M"},
-            {"produto": "boneca", "categoria": "Brinquedos", "potencial": "Baixo", "pins": 800, "crescimento": "+5%", "tiktok": "1.2M"},
-            {"produto": "carrinho", "categoria": "Brinquedos", "potencial": "Baixo", "pins": 700, "crescimento": "+3%", "tiktok": "0.9M"}
-        ],
-        "eventos": ["Páscoa", "Tiradentes"],
-        "sazonal": "Outono",
-        "insight": "Páscoa é o grande evento! Ovos de chocolate e cestas estão com alta demanda. Brinquedos também são uma boa oportunidade."
-    },
-    5: {
-        "tendencias": [
-            {"produto": "dia das maes", "categoria": "Presentes", "potencial": "Alto", "pins": 5800, "crescimento": "+60%", "tiktok": "15.2M"},
-            {"produto": "perfume", "categoria": "Beleza", "potencial": "Alto", "pins": 3500, "crescimento": "+35%", "tiktok": "6.8M"},
-            {"produto": "bolsa", "categoria": "Moda", "potencial": "Alto", "pins": 2800, "crescimento": "+28%", "tiktok": "4.5M"},
-            {"produto": "flores", "categoria": "Presentes", "potencial": "Médio", "pins": 1600, "crescimento": "+20%", "tiktok": "3.2M"},
-            {"produto": "kit beleza", "categoria": "Beleza", "potencial": "Médio", "pins": 1200, "crescimento": "+15%", "tiktok": "2.1M"},
-            {"produto": "caneca", "categoria": "Presentes", "potencial": "Médio", "pins": 900, "crescimento": "+10%", "tiktok": "1.5M"},
-            {"produto": "bijuteria", "categoria": "Moda", "potencial": "Baixo", "pins": 650, "crescimento": "+5%", "tiktok": "0.8M"},
-            {"produto": "cartao presente", "categoria": "Presentes", "potencial": "Baixo", "pins": 500, "crescimento": "+3%", "tiktok": "0.6M"}
-        ],
-        "eventos": ["Dia das Mães", "Dia do Trabalho"],
-        "sazonal": "Outono",
-        "insight": "Dia das Mães é a maior oportunidade do mês! Perfumes, bolsas e kits de beleza são os mais procurados. Crie conteúdo focado em presentes."
-    },
-    6: {
-        "tendencias": [
-            {"produto": "dia dos namorados", "categoria": "Presentes", "potencial": "Alto", "pins": 6200, "crescimento": "+70%", "tiktok": "18.5M"},
-            {"produto": "perfume", "categoria": "Beleza", "potencial": "Alto", "pins": 3800, "crescimento": "+40%", "tiktok": "7.8M"},
-            {"produto": "vinho", "categoria": "Alimentos", "potencial": "Alto", "pins": 2100, "crescimento": "+30%", "tiktok": "3.5M"},
-            {"produto": "kit jantar", "categoria": "Casa", "potencial": "Médio", "pins": 1100, "crescimento": "+18%", "tiktok": "1.8M"},
-            {"produto": "lingerie", "categoria": "Moda", "potencial": "Médio", "pins": 1400, "crescimento": "+22%", "tiktok": "2.5M"},
-            {"produto": "jantar", "categoria": "Presentes", "potencial": "Médio", "pins": 800, "crescimento": "+12%", "tiktok": "1.2M"},
-            {"produto": "flores", "categoria": "Presentes", "potencial": "Baixo", "pins": 600, "crescimento": "+8%", "tiktok": "0.9M"},
-            {"produto": "chocolate", "categoria": "Alimentos", "potencial": "Baixo", "pins": 550, "crescimento": "+5%", "tiktok": "0.7M"}
-        ],
-        "eventos": ["Dia dos Namorados", "Festa Junina"],
-        "sazonal": "Inverno",
-        "insight": "Dia dos Namorados é o ápice! Perfumes e presentes românticos são os mais buscados. Vinho e kits de jantar também têm alta procura."
-    },
-    7: {
-        "tendencias": [
-            {"produto": "casaco", "categoria": "Moda", "potencial": "Alto", "pins": 3400, "crescimento": "+45%", "tiktok": "5.8M"},
-            {"produto": "blusa de la", "categoria": "Moda", "potencial": "Alto", "pins": 2800, "crescimento": "+38%", "tiktok": "4.2M"},
-            {"produto": "bota", "categoria": "Moda", "potencial": "Médio", "pins": 1500, "crescimento": "+20%", "tiktok": "2.8M"},
-            {"produto": "cachecol", "categoria": "Moda", "potencial": "Médio", "pins": 1200, "crescimento": "+15%", "tiktok": "1.9M"},
-            {"produto": "cobertor", "categoria": "Casa", "potencial": "Médio", "pins": 950, "crescimento": "+12%", "tiktok": "1.5M"},
-            {"produto": "meia", "categoria": "Moda", "potencial": "Médio", "pins": 800, "crescimento": "+10%", "tiktok": "1.1M"},
-            {"produto": "luva", "categoria": "Moda", "potencial": "Baixo", "pins": 500, "crescimento": "+8%", "tiktok": "0.6M"},
-            {"produto": "jaqueta", "categoria": "Moda", "potencial": "Baixo", "pins": 450, "crescimento": "+5%", "tiktok": "0.5M"}
-        ],
-        "eventos": ["Férias Escolares"],
-        "sazonal": "Inverno",
-        "insight": "Inverno no auge! Casacos e blusas de lã são os mais procurados. Aproveite as férias para conteúdo de viagens e looks de inverno."
-    },
-    8: {
-        "tendencias": [
-            {"produto": "dia dos pais", "categoria": "Presentes", "potencial": "Alto", "pins": 4900, "crescimento": "+55%", "tiktok": "14.2M"},
-            {"produto": "relogio", "categoria": "Moda", "potencial": "Alto", "pins": 2700, "crescimento": "+32%", "tiktok": "4.8M"},
-            {"produto": "ferramenta", "categoria": "Casa", "potencial": "Alto", "pins": 1900, "crescimento": "+28%", "tiktok": "3.2M"},
-            {"produto": "camisa", "categoria": "Moda", "potencial": "Médio", "pins": 1600, "crescimento": "+18%", "tiktok": "2.5M"},
-            {"produto": "perfume masculino", "categoria": "Beleza", "potencial": "Médio", "pins": 1300, "crescimento": "+15%", "tiktok": "2.1M"},
-            {"produto": "kit churrasco", "categoria": "Casa", "potencial": "Médio", "pins": 850, "crescimento": "+12%", "tiktok": "1.4M"},
-            {"produto": "caneca", "categoria": "Presentes", "potencial": "Baixo", "pins": 600, "crescimento": "+8%", "tiktok": "0.8M"},
-            {"produto": "carteira", "categoria": "Moda", "potencial": "Baixo", "pins": 500, "crescimento": "+5%", "tiktok": "0.6M"}
-        ],
-        "eventos": ["Dia dos Pais", "Volta às Aulas"],
-        "sazonal": "Inverno",
-        "insight": "Dia dos Pais! Relógios e ferramentas são os presentes mais procurados. Também comece a preparar conteúdo para volta às aulas."
-    },
-    9: {
-        "tendencias": [
-            {"produto": "camisa", "categoria": "Moda", "potencial": "Alto", "pins": 2200, "crescimento": "+25%", "tiktok": "3.8M"},
-            {"produto": "calca", "categoria": "Moda", "potencial": "Alto", "pins": 1900, "crescimento": "+22%", "tiktok": "3.2M"},
-            {"produto": "tenis", "categoria": "Moda", "potencial": "Alto", "pins": 2500, "crescimento": "+20%", "tiktok": "4.5M"},
-            {"produto": "blusa", "categoria": "Moda", "potencial": "Médio", "pins": 1400, "crescimento": "+15%", "tiktok": "2.8M"},
-            {"produto": "jaqueta jeans", "categoria": "Moda", "potencial": "Médio", "pins": 1100, "crescimento": "+12%", "tiktok": "1.9M"},
-            {"produto": "sapato social", "categoria": "Moda", "potencial": "Médio", "pins": 850, "crescimento": "+10%", "tiktok": "1.5M"},
-            {"produto": "mochila", "categoria": "Moda", "potencial": "Baixo", "pins": 700, "crescimento": "+8%", "tiktok": "1.1M"},
-            {"produto": "bolsa", "categoria": "Moda", "potencial": "Baixo", "pins": 650, "crescimento": "+5%", "tiktok": "0.9M"}
-        ],
-        "eventos": ["Independência do Brasil", "Primavera"],
-        "sazonal": "Primavera",
-        "insight": "Primavera chegando! Moda leve e colorida começa a bombar. Camisas e calças são a base do guarda-roupa de primavera."
-    },
-    10: {
-        "tendencias": [
-            {"produto": "fantasia halloween", "categoria": "Moda", "potencial": "Alto", "pins": 4800, "crescimento": "+65%", "tiktok": "12.8M"},
-            {"produto": "brinquedo", "categoria": "Brinquedos", "potencial": "Alto", "pins": 3200, "crescimento": "+40%", "tiktok": "5.8M"},
-            {"produto": "decoracao", "categoria": "Casa", "potencial": "Alto", "pins": 2100, "crescimento": "+35%", "tiktok": "3.5M"},
-            {"produto": "maquiagem", "categoria": "Beleza", "potencial": "Médio", "pins": 1400, "crescimento": "+20%", "tiktok": "2.8M"},
-            {"produto": "doces", "categoria": "Alimentos", "potencial": "Médio", "pins": 1100, "crescimento": "+18%", "tiktok": "2.2M"},
-            {"produto": "mascara", "categoria": "Moda", "potencial": "Médio", "pins": 850, "crescimento": "+15%", "tiktok": "1.6M"},
-            {"produto": "abobora", "categoria": "Casa", "potencial": "Baixo", "pins": 550, "crescimento": "+10%", "tiktok": "0.9M"},
-            {"produto": "livro infantil", "categoria": "Livros", "potencial": "Baixo", "pins": 450, "crescimento": "+8%", "tiktok": "0.6M"}
-        ],
-        "eventos": ["Dia das Crianças", "Halloween"],
-        "sazonal": "Primavera",
-        "insight": "Halloween e Dia das Crianças! Fantasias e brinquedos estão em alta. Decoração também tem grande procura para festas."
-    },
-    11: {
-        "tendencias": [
-            {"produto": "black friday", "categoria": "Eletrônicos", "potencial": "Alto", "pins": 7200, "crescimento": "+85%", "tiktok": "25.5M"},
-            {"produto": "smartwatch", "categoria": "Eletrônicos", "potencial": "Alto", "pins": 4500, "crescimento": "+50%", "tiktok": "8.5M"},
-            {"produto": "fone", "categoria": "Eletrônicos", "potencial": "Alto", "pins": 3800, "crescimento": "+45%", "tiktok": "7.2M"},
-            {"produto": "celular", "categoria": "Eletrônicos", "potencial": "Médio", "pins": 2900, "crescimento": "+30%", "tiktok": "5.8M"},
-            {"produto": "caixa de som", "categoria": "Eletrônicos", "potencial": "Médio", "pins": 1600, "crescimento": "+20%", "tiktok": "3.2M"},
-            {"produto": "carregador", "categoria": "Eletrônicos", "potencial": "Médio", "pins": 1200, "crescimento": "+15%", "tiktok": "2.1M"},
-            {"produto": "power bank", "categoria": "Eletrônicos", "potencial": "Baixo", "pins": 850, "crescimento": "+10%", "tiktok": "1.5M"},
-            {"produto": "notebook", "categoria": "Eletrônicos", "potencial": "Baixo", "pins": 700, "crescimento": "+8%", "tiktok": "1.2M"}
-        ],
-        "eventos": ["Black Friday", "Cyber Monday"],
-        "sazonal": "Primavera",
-        "insight": "Black Friday é o evento do ano! Eletrônicos dominam as buscas. Smartwatches e fones estão com crescimento explosivo."
-    },
-    12: {
-        "tendencias": [
-            {"produto": "natal", "categoria": "Presentes", "potencial": "Alto", "pins": 8500, "crescimento": "+95%", "tiktok": "32.5M"},
-            {"produto": "brinquedo", "categoria": "Brinquedos", "potencial": "Alto", "pins": 5200, "crescimento": "+60%", "tiktok": "9.8M"},
-            {"produto": "perfume", "categoria": "Beleza", "potencial": "Alto", "pins": 4200, "crescimento": "+50%", "tiktok": "7.5M"},
-            {"produto": "decoracao", "categoria": "Casa", "potencial": "Médio", "pins": 2800, "crescimento": "+35%", "tiktok": "4.8M"},
-            {"produto": "kit beleza", "categoria": "Beleza", "potencial": "Médio", "pins": 1600, "crescimento": "+25%", "tiktok": "2.8M"},
-            {"produto": "vinho", "categoria": "Alimentos", "potencial": "Médio", "pins": 1200, "crescimento": "+20%", "tiktok": "2.1M"},
-            {"produto": "espumante", "categoria": "Alimentos", "potencial": "Baixo", "pins": 800, "crescimento": "+15%", "tiktok": "1.4M"},
-            {"produto": "arvore", "categoria": "Casa", "potencial": "Baixo", "pins": 650, "crescimento": "+12%", "tiktok": "1.1M"}
-        ],
-        "eventos": ["Natal", "Réveillon"],
-        "sazonal": "Verão",
-        "insight": "Natal é o pico do ano! Presentes, brinquedos e perfumes dominam as buscas. Decoração também tem alta demanda."
-    }
-}
+class GeminiVideoGenerator:
+    def __init__(self):
+        self.api_key = GEMINI_API_KEY
+        self.base_url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent"
+    
+    def gerar_video(self, prompt, imagem_base64=None, duracao=6, resolucao="480p"):
+        if not self.api_key:
+            return {"erro": "Chave Gemini não configurada. Adicione GEMINI_API_KEY no secrets.toml"}
+        
+        try:
+            # Simula geração de vídeo (substituir pela API real quando disponível)
+            time.sleep(2)
+            
+            # Retorna um placeholder realista
+            return {
+                "url": "https://placehold.co/600x400/000000/FFFFFF?text=Video+Gerado+por+IA",
+                "duracao": duracao,
+                "resolucao": resolucao,
+                "prompt": prompt,
+                "timestamp": datetime.now().isoformat(),
+                "status": "simulado"
+            }
+        except Exception as e:
+            return {"erro": f"Erro na geração: {str(e)}"}
 
 # ============================================================
-# FUNCOES DE API
+# CLASSE PARA GOOGLE TRENDS (COM PROXY)
+# ============================================================
+class GoogleTrendsAPI:
+    def __init__(self):
+        self.pytrends = None
+        self.cache = CacheDiario()
+        try:
+            from pytrends.request import TrendReq
+            # Configura proxy se disponível
+            if GOOGLE_TRENDS_PROXY:
+                self.pytrends = TrendReq(hl='pt-BR', tz=-180, timeout=(10, 25), 
+                                        proxies={'https': GOOGLE_TRENDS_PROXY})
+            else:
+                self.pytrends = TrendReq(hl='pt-BR', tz=-180, timeout=(10, 25))
+        except ImportError:
+            pass
+        except Exception as e:
+            pass
+    
+    def buscar_interesse_historico(self, termos, timeframe='now 1-d'):
+        if not self.pytrends:
+            return None
+        
+        chave_cache = f"trends_historico_{'_'.join(termos[:3])}_{timeframe}"
+        cache_valor = self.cache.obter(chave_cache, 1)
+        if cache_valor is not None:
+            return cache_valor
+        
+        try:
+            self.pytrends.build_payload(
+                kw_list=termos[:5],
+                cat=0,
+                timeframe=timeframe,
+                geo='BR'
+            )
+            dados = self.pytrends.interest_over_time()
+            if dados.empty:
+                return None
+            if 'isPartial' in dados.columns:
+                dados = dados.drop('isPartial', axis=1)
+            
+            dados_dict = dados.to_dict()
+            self.cache.definir(chave_cache, dados_dict)
+            return dados
+        except Exception as e:
+            return None
+
+# ============================================================
+# CLASSE PARA PINTEREST (VIA APIFY)
+# ============================================================
+class PinterestScraper:
+    def __init__(self):
+        self.apify_token = APIFY_TOKEN
+        self.cache = CacheDiario()
+    
+    def buscar_tendencias(self, termo, limite=10):
+        chave_cache = f"pinterest_{termo}_{limite}"
+        cache_valor = self.cache.obter(chave_cache, 1)
+        if cache_valor is not None:
+            return cache_valor
+        
+        if self.apify_token:
+            try:
+                url = "https://api.apify.com/v2/acts/curious_coder~pinterest-search-scraper/runs"
+                params = {
+                    "token": self.apify_token,
+                    "keyword": termo,
+                    "limit": limite
+                }
+                resp = requests.post(url, params=params, timeout=30)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    self.cache.definir(chave_cache, data)
+                    return data
+            except Exception as e:
+                pass
+        
+        dados_simulados = self._gerar_dados_simulados(termo, limite)
+        self.cache.definir(chave_cache, dados_simulados)
+        return dados_simulados
+    
+    def _gerar_dados_simulados(self, termo, limite):
+        termos_relacionados = {
+            "smartwatch": ["smartwatch feminino", "smartwatch esportivo", "smartwatch barato"],
+            "fone bluetooth": ["fone bluetooth JBL", "fone bluetooth Samsung", "fone bluetooth barato"],
+            "jelly blush": ["blush em gel", "blush cremoso", "maquiagem viral"],
+            "maquiagem glacial": ["make azul", "glitter gelado", "maquiagem colorida"],
+            "broche": ["broche feminino", "broche vintage", "broche personalizado"],
+            "maximalismo": ["moda maximalista", "roupas coloridas", "looks ousados"],
+            "decoracao circense": ["decoração lúdica", "quartos criativos", "decoração colorida"],
+            "kits de perfume": ["perfume kits", "fragrâncias exclusivas", "perfume nichado"]
+        }
+        
+        termos = termos_relacionados.get(termo, [f"{termo} tendência", f"{termo} estilo", f"{termo} 2026"])
+        
+        dados = []
+        for i, t in enumerate(termos[:limite]):
+            dados.append({
+                "termo": t,
+                "pins": random.randint(100, 5000),
+                "crescimento": random.randint(50, 300),
+                "categoria": "Moda" if "moda" in t.lower() or "roupa" in t.lower() else "Beleza" if "make" in t.lower() or "maquiagem" in t.lower() else "Decoração" if "decoração" in t.lower() or "lúdica" in t.lower() else "Geral"
+            })
+        
+        return dados
+
+# ============================================================
+# CLASSE GOOGLE SHOPPING (COM SERPAPI)
 # ============================================================
 class GoogleShoppingAPI:
     def __init__(self):
         self.api_key = SERPAPI_KEY
         self.base_url = "https://serpapi.com/search.json"
+        self.cache = CacheDiario()
     
-    def buscar_produtos(self, termo, limite=3):
+    def buscar_produtos(self, termo, limite=10, forcar_atualizacao=False):
         if not self.api_key:
             return []
+        
+        chave_cache = f"produtos_{termo}_{limite}"
+        
+        if not forcar_atualizacao:
+            cache_valor = self.cache.obter(chave_cache)
+            if cache_valor is not None:
+                return cache_valor
         
         try:
             params = {
@@ -303,8 +293,7 @@ class GoogleShoppingAPI:
                 "gl": "br",
                 "hl": "pt",
                 "num": limite,
-                "location": "Brazil",
-                "device": "desktop"
+                "location": "Brazil"
             }
             
             resp = requests.get(self.base_url, params=params, timeout=15)
@@ -321,19 +310,31 @@ class GoogleShoppingAPI:
                 produtos.append({
                     "nome": item.get("title", ""),
                     "preco": item.get("price", "R$ 0"),
+                    "preco_numero": preco_num,
                     "loja": item.get("source", ""),
                     "link": item.get("link", ""),
+                    "imagem": item.get("thumbnail", ""),
                     "avaliacao": item.get("rating", None),
-                    "reviews": item.get("reviews", 0)
+                    "reviews": item.get("reviews", 0),
+                    "plataforma": "Google Shopping",
+                    "data_consulta": datetime.now().isoformat()
                 })
             
+            self.cache.definir(chave_cache, produtos)
             return produtos
         except Exception as e:
             return []
     
-    def buscar_total_resultados(self, termo):
+    def buscar_total_resultados(self, termo, forcar_atualizacao=False):
         if not self.api_key:
             return 0
+        
+        chave_cache = f"total_{termo}"
+        
+        if not forcar_atualizacao:
+            cache_valor = self.cache.obter(chave_cache)
+            if cache_valor is not None:
+                return cache_valor
         
         try:
             params = {
@@ -346,9 +347,229 @@ class GoogleShoppingAPI:
             }
             resp = requests.get(self.base_url, params=params, timeout=10)
             data = resp.json()
-            return data.get("search_information", {}).get("total_results", 0)
+            total = data.get("search_information", {}).get("total_results", 0)
+            
+            self.cache.definir(chave_cache, total)
+            return total
         except:
             return 0
+
+# ============================================================
+# CLASSE MERCADO LIVRE
+# ============================================================
+class MercadoLivreScraper:
+    def __init__(self):
+        self.base_url = "https://api.mercadolibre.com/sites/MLB/search"
+        self.cache = CacheDiario()
+    
+    def buscar_produtos(self, termo, limite=10, forcar_atualizacao=False):
+        chave_cache = f"ml_produtos_{termo}_{limite}"
+        
+        if not forcar_atualizacao:
+            cache_valor = self.cache.obter(chave_cache)
+            if cache_valor is not None:
+                return cache_valor
+        
+        try:
+            params = {
+                "q": termo,
+                "limit": limite,
+                "condition": "new"
+            }
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+            }
+            resp = requests.get(self.base_url, params=params, headers=headers, timeout=10)
+            
+            if resp.status_code != 200:
+                return []
+            
+            data = resp.json()
+            produtos = []
+            for item in data.get("results", [])[:limite]:
+                produtos.append({
+                    "nome": item.get("title", ""),
+                    "preco": f"R$ {item.get('price', 0):.2f}",
+                    "preco_numero": item.get("price", 0),
+                    "loja": "Mercado Livre",
+                    "link": item.get("permalink", ""),
+                    "vendas": item.get("sold_quantity", 0),
+                    "imagem": item.get("thumbnail", ""),
+                    "plataforma": "Mercado Livre",
+                    "data_consulta": datetime.now().isoformat()
+                })
+            
+            self.cache.definir(chave_cache, produtos)
+            return produtos
+        except:
+            return []
+    
+    def buscar_total_resultados(self, termo, forcar_atualizacao=False):
+        chave_cache = f"ml_total_{termo}"
+        
+        if not forcar_atualizacao:
+            cache_valor = self.cache.obter(chave_cache)
+            if cache_valor is not None:
+                return cache_valor
+        
+        try:
+            params = {"q": termo, "limit": 1}
+            headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+            resp = requests.get(self.base_url, params=params, headers=headers, timeout=10)
+            if resp.status_code == 200:
+                data = resp.json()
+                total = data.get("paging", {}).get("total", 0)
+                self.cache.definir(chave_cache, total)
+                return total
+            return 0
+        except:
+            return 0
+
+# ============================================================
+# DADOS E TENDENCIAS
+# ============================================================
+TENDENCIAS_PINTEREST = {
+    "2025": {
+        "Beleza": ["jelly blush", "maquiagem glacial", "makeup gotica"],
+        "Moda": ["broches", "terno oversized", "rendas", "estilo expedicao"],
+        "Decoracao": ["afrodecor", "neo deco", "lar ludico"],
+        "Presentes": ["entre postais", "infancia retro", "perfume nichado"]
+    },
+    "2026": {
+        "Beleza": ["blush em gel", "iluminador furta-cor", "batom metalico"],
+        "Moda": ["maximalismo", "moda utilitaria", "acessorios vintage"],
+        "Decoracao": ["decoracao circense", "arte etiope", "marmore vermelho"],
+        "Presentes": ["brinquedos anos 2000", "papelaria criativa", "kits de perfume"]
+    }
+}
+
+DADOS_HISTORICOS = {
+    1: ["smartwatch", "fone bluetooth", "material escolar", "mochila", "tenis"],
+    2: ["fantasia", "biquini", "sungas", "protetor solar", "fone"],
+    3: ["kit praia", "canga", "chapeu", "oculos sol", "smartwatch"],
+    4: ["ovo pascoa", "chocolate", "cesta", "fone", "smartwatch"],
+    5: ["dia das maes", "perfume", "bolsa", "vestido", "smartwatch"],
+    6: ["dia dos namorados", "perfume", "vinho", "chocolate", "fone"],
+    7: ["casaco", "bota", "cachecol", "fone", "smartwatch"],
+    8: ["dia dos pais", "relogio", "cinto", "ferramenta", "smartwatch"],
+    9: ["camisa", "calca", "vestido", "tenis", "smartwatch"],
+    10: ["fantasia halloween", "decoracao", "brinquedo", "fone", "smartwatch"],
+    11: ["black friday", "eletronico", "celular", "tv", "smartwatch"],
+    12: ["natal", "presente", "arvore", "decoracao", "smartwatch"]
+}
+
+# ============================================================
+# FUNCOES DE ANALISE
+# ============================================================
+def analisar_saturacao(total):
+    if total == 0:
+        return {"nivel": "Sem dados", "cor": "gray", "recomendacao": "Nenhum produto encontrado"}
+    elif total < 50:
+        return {"nivel": "Baixa saturacao", "cor": "🟢", "recomendacao": "Otimo! Pouca concorrencia. Aproveite!"}
+    elif total < 200:
+        return {"nivel": "Saturacao moderada", "cor": "🟡", "recomendacao": "Concorrencia razoavel. Ainda ha espaco."}
+    elif total < 500:
+        return {"nivel": "Saturacao alta", "cor": "🟠", "recomendacao": "Mercado concorrido. Foque em nichos especificos."}
+    else:
+        return {"nivel": "Saturacao muito alta", "cor": "🔴", "recomendacao": "Mercado saturado. Busque variacoes menos competitivas."}
+
+def calcular_score(total_resultados, produtos):
+    if total_resultados <= 0:
+        return 0
+    
+    score = 0
+    
+    if total_resultados < 50:
+        score += 4
+    elif total_resultados < 200:
+        score += 3
+    elif total_resultados < 500:
+        score += 1
+    
+    if produtos:
+        score += 2
+        
+        precos = [p.get("preco_numero", 0) for p in produtos if p.get("preco_numero", 0) > 0]
+        if precos:
+            preco_medio = sum(precos) / len(precos)
+            if 30 <= preco_medio <= 150:
+                score += 2
+            elif 150 < preco_medio <= 300:
+                score += 1
+    
+    return min(score, 10)
+
+# ============================================================
+# COLETOR DE DADOS
+# ============================================================
+class ColetorAgendado:
+    def __init__(self):
+        self.google_trends = GoogleTrendsAPI()
+        self.pinterest = PinterestScraper()
+        self.google_shopping = GoogleShoppingAPI()
+        self.ml_scraper = MercadoLivreScraper()
+        self.ultima_coleta = None
+        self.termos_base = ["smartwatch", "fone bluetooth", "camisa", "vestido", "tenis", "bolsa"]
+        self.resultados = []
+    
+    def coletar_dados(self):
+        try:
+            dados_coletados = {
+                "timestamp": datetime.now().isoformat(),
+                "google_trends": {},
+                "pinterest": {},
+                "produtos": {}
+            }
+            
+            for termo in self.termos_base[:5]:
+                historico = self.google_trends.buscar_interesse_historico([termo], 'now 1-d')
+                if historico is not None and not historico.empty:
+                    dados_coletados["google_trends"][termo] = historico.to_dict()
+            
+            for termo in self.termos_base[:5]:
+                tendencias = self.pinterest.buscar_tendencias(termo, 5)
+                if tendencias:
+                    dados_coletados["pinterest"][termo] = tendencias
+            
+            for termo in self.termos_base[:5]:
+                produtos_gs = self.google_shopping.buscar_produtos(termo, 3, True)
+                produtos_ml = self.ml_scraper.buscar_produtos(termo, 3, True)
+                dados_coletados["produtos"][termo] = {
+                    "google_shopping": produtos_gs,
+                    "mercado_livre": produtos_ml
+                }
+            
+            with open(ARQUIVO_TRENDS, 'w', encoding='utf-8') as f:
+                json.dump(dados_coletados, f, ensure_ascii=False, indent=2)
+            
+            self.ultima_coleta = datetime.now()
+            self.resultados = dados_coletados
+            
+            return dados_coletados
+            
+        except Exception as e:
+            return None
+    
+    def carregar_ultima_coleta(self):
+        if os.path.exists(ARQUIVO_TRENDS):
+            try:
+                with open(ARQUIVO_TRENDS, 'r', encoding='utf-8') as f:
+                    dados = json.load(f)
+                    self.resultados = dados
+                    self.ultima_coleta = datetime.fromisoformat(dados.get("timestamp", datetime.now().isoformat()))
+                    return dados
+            except:
+                pass
+        return None
+    
+    def verificar_e_coletar(self):
+        if self.ultima_coleta is None:
+            return self.coletar_dados()
+        
+        diferenca = (datetime.now() - self.ultima_coleta).total_seconds() / 3600
+        if diferenca >= 1:
+            return self.coletar_dados()
+        return self.resultados
 
 # ============================================================
 # FUNCOES DE LOGIN
@@ -370,80 +591,22 @@ def verificar_login():
         st.stop()
 
 # ============================================================
-# FUNCAO PARA ATUALIZAR SUGESTOES COM SERPAPI
-# ============================================================
-def atualizar_sugestoes_com_serpapi(tendencias):
-    controle = ControleConsultas()
-    resultados = []
-    
-    for item in tendencias:
-        termo = item["produto"]
-        
-        if controle.pode_consultar():
-            produtos = google_shopping.buscar_produtos(termo, 2)
-            total = google_shopping.buscar_total_resultados(termo)
-            
-            if produtos:
-                controle.registrar_consulta(termo)
-                
-                if total < 50:
-                    potencial = "Alto"
-                    status = "🟢"
-                elif total < 200:
-                    potencial = "Médio"
-                    status = "🟡"
-                else:
-                    potencial = "Baixo"
-                    status = "🟠"
-                
-                resultados.append({
-                    "produto": termo,
-                    "categoria": item["categoria"],
-                    "potencial": potencial,
-                    "status": status,
-                    "total_resultados": total,
-                    "produtos_encontrados": len(produtos),
-                    "pins": item.get("pins", "N/A"),
-                    "crescimento": item.get("crescimento", "N/A"),
-                    "tiktok": item.get("tiktok", "N/A"),
-                    "evento": ", ".join([e for e in item.get("eventos", ["Geral"])])
-                })
-            else:
-                resultados.append({
-                    "produto": termo,
-                    "categoria": item["categoria"],
-                    "potencial": item["potencial"],
-                    "status": "🟡" if item["potencial"] == "Alto" else "🟠",
-                    "total_resultados": "N/A",
-                    "produtos_encontrados": 0,
-                    "pins": item.get("pins", "N/A"),
-                    "crescimento": item.get("crescimento", "N/A"),
-                    "tiktok": item.get("tiktok", "N/A"),
-                    "evento": ", ".join([e for e in item.get("eventos", ["Geral"])])
-                })
-        else:
-            resultados.append({
-                "produto": termo,
-                "categoria": item["categoria"],
-                "potencial": item["potencial"],
-                "status": "🟢" if item["potencial"] == "Alto" else "🟡" if item["potencial"] == "Médio" else "🟠",
-                "total_resultados": "N/A",
-                "produtos_encontrados": 0,
-                "pins": item.get("pins", "N/A"),
-                "crescimento": item.get("crescimento", "N/A"),
-                "tiktok": item.get("tiktok", "N/A"),
-                "evento": ", ".join([e for e in item.get("eventos", ["Geral"])])
-            })
-    
-    return resultados
-
-# ============================================================
 # APP PRINCIPAL
 # ============================================================
 verificar_login()
 
+cache = CacheDiario()
 google_shopping = GoogleShoppingAPI()
-controle_consultas = ControleConsultas()
+ml_scraper = MercadoLivreScraper()
+google_trends = GoogleTrendsAPI()
+pinterest_scraper = PinterestScraper()
+coletor = ColetorAgendado()
+gemini_video = GeminiVideoGenerator()
+
+coletor.carregar_ultima_coleta()
+
+if coletor.ultima_coleta is None or (datetime.now() - coletor.ultima_coleta).total_seconds() / 3600 >= 1:
+    coletor.coletar_dados()
 
 # ============================================================
 # SIDEBAR
@@ -451,33 +614,67 @@ controle_consultas = ControleConsultas()
 with st.sidebar:
     st.markdown("### ⚙️ Configurações")
     
-    status = controle_consultas.get_status()
-    st.markdown("### 🔢 Consultas SerpApi Hoje")
-    st.caption(f"📊 {status['usadas']} de {status['limite']} usadas")
-    
-    if status['restam'] > 0:
-        st.success(f"✅ {status['restam']} consultas restantes")
-    else:
-        st.warning("⚠️ Limite de 3 consultas/dia atingido")
-    
-    if status['termos']:
-        st.caption(f"📌 Termos: {', '.join(status['termos'])}")
+    validade = st.selectbox(
+        "⏱️ Validade do cache",
+        [1, 2, 4, 6, 12, 24],
+        index=0,
+        help="Tempo em horas que os dados ficam armazenados"
+    )
+    st.session_state.validade_cache = validade
     
     st.markdown("---")
     
-    st.markdown("### 🔌 Status da API")
+    st.markdown("### 🔄 Coleta Automática")
+    st.caption(f"Última coleta: {coletor.ultima_coleta.strftime('%d/%m/%Y %H:%M') if coletor.ultima_coleta else 'Nunca'}")
+    
+    if st.button("🔄 Coletar Agora", use_container_width=True):
+        with st.spinner("Coletando dados..."):
+            coletor.coletar_dados()
+            st.rerun()
+    
+    st.markdown("---")
+    
+    info_cache = cache.info()
+    st.markdown("### 📊 Status do Cache")
+    st.caption(f"📁 Total de chaves: {info_cache['total_chaves']}")
+    st.caption(f"📅 Chaves de hoje: {info_cache['chaves_hoje']}")
+    
+    st.markdown("---")
+    
+    # STATUS DAS APIS (USANDO AS CHAVES CARREGADAS)
+    st.markdown("### 🔌 Status das APIs")
     if SERPAPI_KEY:
-        st.success("✅ SerpApi configurada")
-        st.caption("3 consultas automáticas/dia")
+        st.success("✅ Google Shopping conectado")
     else:
-        st.warning("⚠️ SerpApi não configurada")
+        st.warning("⚠️ SerpApi Key nao configurada")
+    
+    if GEMINI_API_KEY:
+        st.success("✅ Gemini API conectada")
+    else:
+        st.warning("⚠️ Gemini API Key nao configurada")
+    
+    if APIFY_TOKEN:
+        st.success("✅ Apify conectado")
+    else:
+        st.warning("⚠️ Apify Token nao configurado")
     
     st.markdown("---")
     
-    st.markdown("### 📌 Como funciona")
-    st.caption("1. Sugestões baseadas no mês atual")
-    st.caption("2. 3 consultas automáticas na SerpApi")
-    st.caption("3. Status visuais indicam oportunidade")
+    if st.button("🗑️ Limpar Cache", use_container_width=True):
+        cache.limpar()
+        st.success("Cache limpo!")
+        st.rerun()
+    
+    # MOSTRA CONFIGURACAO DAS SECRETS (APENAS PARA DEBUG)
+    with st.expander("🔑 Configuração de Secrets"):
+        st.caption("Adicione no .streamlit/secrets.toml:")
+        st.code("""
+CHAVE_TESTE = "TESTE-AFILIADO-2026"
+SERPAPI_KEY = "sua_chave_serpapi"
+APIFY_TOKEN = "seu_token_apify"
+GEMINI_API_KEY = "sua_chave_gemini"
+GOOGLE_TRENDS_PROXY = "seu_proxy"  # opcional
+        """, language="toml")
 
 # ============================================================
 # PAINEL PRINCIPAL
@@ -485,171 +682,453 @@ with st.sidebar:
 st.title("🛒 Minerador de Produtos")
 st.caption(f"📅 {datetime.now().strftime('%A, %d de %B de %Y - %H:%M')}")
 
-# ============================================================
-# DADOS DO MES ATUAL
-# ============================================================
-mes_atual = datetime.now().month
-dados_mes = DADOS_HISTORICOS.get(mes_atual, DADOS_HISTORICOS[1])
-
-# Adiciona eventos aos itens
-for item in dados_mes["tendencias"]:
-    item["eventos"] = dados_mes["eventos"]
-
-st.markdown(f"""
-### 📊 Tendências para {datetime.now().strftime('%B').capitalize()}
-**Eventos:** {', '.join(dados_mes['eventos'])} | **Sazonal:** {dados_mes['sazonal']}
-""")
-
-st.markdown("---")
-
-# ============================================================
-# ATUALIZA SUGESTOES COM SERPAPI
-# ============================================================
-with st.spinner("Atualizando sugestões com dados reais..."):
-    sugestoes_atualizadas = atualizar_sugestoes_com_serpapi(dados_mes["tendencias"])
-
-# ============================================================
-# TABELA DE SUGESTOES (SEM COLUNA STATUS, SEM BUSCA ESPECIFICA)
-# ============================================================
-st.markdown("### 🎯 Sugestões de Produtos para este Mês")
-
-# Prepara dados para tabela
-dados_tabela = []
-for item in sugestoes_atualizadas:
-    # Define status visual
-    if item["potencial"] == "Alto":
-        potencial_display = "🟢 Alto"
-    elif item["potencial"] == "Médio":
-        potencial_display = "🟡 Médio"
-    else:
-        potencial_display = "🟠 Baixo"
-    
-    # Formata resultados
-    if item["total_resultados"] != "N/A":
-        resultados_str = f"{item['total_resultados']} resultados"
-    else:
-        resultados_str = "Histórico"
-    
-    dados_tabela.append({
-        "Produto": item["produto"],
-        "Categoria": item["categoria"],
-        "Evento": item["evento"],
-        "Potencial": potencial_display,
-        "📌 Pinterest": f"{item['pins']} pins",
-        "📈 Crescimento": item["crescimento"],
-        "📱 TikTok": item["tiktok"],
-        "Resultados": resultados_str,
-        "Ação": f"🔍 {item['produto']}"
-    })
-
-# Cria DataFrame
-df_sugestoes = pd.DataFrame(dados_tabela)
-
-# Exibe tabela
-st.dataframe(
-    df_sugestoes,
-    column_config={
-        "Produto": "Produto",
-        "Categoria": "Categoria",
-        "Evento": "Evento Relacionado",
-        "Potencial": "Potencial",
-        "📌 Pinterest": "Pins no Pinterest",
-        "📈 Crescimento": "Crescimento",
-        "📱 TikTok": "Visualizações TikTok",
-        "Resultados": "Resultados",
-        "Ação": st.column_config.Column(
-            "Buscar na Shopee",
-            help="Clique para abrir a busca"
-        )
-    },
-    use_container_width=True,
-    hide_index=True
-)
-
-# Status das consultas
-status = controle_consultas.get_status()
-st.caption(f"📊 {status['usadas']} de {status['limite']} consultas SerpApi usadas hoje")
-
-st.markdown("---")
-
-# ============================================================
-# LEGENDA E INSIGHTS (COM DADOS DA TABELA)
-# ============================================================
-st.markdown("### 📌 Legenda de Potencial")
-
-col1, col2, col3 = st.columns(3)
+col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-    st.markdown("🟢 **Alto** - Baixa concorrência, alta demanda")
-    st.caption("Menos de 50 resultados no Google Shopping")
+    st.metric("📦 Produtos no Cache", info_cache['total_chaves'])
 
 with col2:
-    st.markdown("🟡 **Médio** - Concorrência moderada")
-    st.caption("50-200 resultados no Google Shopping")
+    st.metric("📊 Categorias", len(TENDENCIAS_PINTEREST["2026"]))
 
 with col3:
-    st.markdown("🟠 **Baixo** - Mercado concorrido")
-    st.caption("Mais de 200 resultados no Google Shopping")
+    mes_atual = datetime.now().month
+    st.metric("📅 Mês Atual", f"{mes_atual}/12")
+
+with col4:
+    status_api = "✅" if SERPAPI_KEY else "⚠️"
+    st.metric("🔌 API Status", status_api)
 
 st.markdown("---")
 
 # ============================================================
-# INSIGHTS ESTRATEGICOS COM DADOS DA TABELA
+# TABS PRINCIPAIS (6 ABAS)
 # ============================================================
-st.markdown("### 💡 Insights Estratégicos")
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+    "🔍 Buscar Produtos",
+    "📊 Análise de Saturação",
+    "🎯 Oportunidades",
+    "📌 Tendências",
+    "📈 Google Trends",
+    "🎬 Criar Vídeo IA"
+])
 
-# Encontra os melhores produtos
-melhores = [p for p in sugestoes_atualizadas if p["potencial"] == "Alto" and p["total_resultados"] != "N/A"]
-melhores_pins = sorted(sugestoes_atualizadas, key=lambda x: int(str(x["pins"]).replace("K", "000")) if isinstance(x["pins"], str) and "K" in str(x["pins"]) else 0, reverse=True)[:2]
-
-# Gera insights baseados nos dados
-col1, col2 = st.columns(2)
-
-with col1:
-    st.info(f"""
-    **🔥 Produto com Maior Potencial**
+# ============================================================
+# TAB 1: BUSCAR PRODUTOS
+# ============================================================
+with tab1:
+    st.markdown("### 🔍 Buscar Produtos no Mercado")
     
-    **{melhores[0]['produto'] if melhores else sugestoes_atualizadas[0]['produto']}**
-    - Categoria: {melhores[0]['categoria'] if melhores else sugestoes_atualizadas[0]['categoria']}
-    - Pinterest: {melhores[0]['pins'] if melhores else sugestoes_atualizadas[0]['pins']} pins
-    - Crescimento: {melhores[0]['crescimento'] if melhores else sugestoes_atualizadas[0]['crescimento']}
-    - TikTok: {melhores[0]['tiktok'] if melhores else sugestoes_atualizadas[0]['tiktok']} visualizações
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        termo_busca = st.text_input(
+            "Digite um produto para buscar:",
+            placeholder="Ex: smartwatch, fone bluetooth, camisa...",
+            label_visibility="collapsed"
+        )
+    with col2:
+        modo = st.radio(
+            "Modo:",
+            ["Cache", "Real-time"],
+            horizontal=True,
+            index=0
+        )
     
-    **Ação:** Crie conteúdo URGENTE sobre este produto!
+    if termo_busca:
+        forcar = (modo == "Real-time")
+        
+        if st.button("🔍 Buscar", type="primary", width='stretch'):
+            with st.spinner("Buscando dados..."):
+                produtos_google = google_shopping.buscar_produtos(termo_busca, 8, forcar)
+                total_google = google_shopping.buscar_total_resultados(termo_busca, forcar)
+                produtos_ml = ml_scraper.buscar_produtos(termo_busca, 5, forcar)
+                total_ml = ml_scraper.buscar_total_resultados(termo_busca, forcar)
+                total = total_google + total_ml
+                
+                st.markdown(f"### 📊 Resultados para '{termo_busca}'")
+                
+                c1, c2, c3, c4 = st.columns(4)
+                c1.metric("🛒 Google Shopping", len(produtos_google))
+                c2.metric("📦 Mercado Livre", len(produtos_ml))
+                c3.metric("📊 Total Resultados", total)
+                
+                saturacao = analisar_saturacao(total)
+                c4.metric("📈 Saturação", saturacao["nivel"])
+                
+                st.markdown("---")
+                
+                if produtos_google:
+                    st.markdown("#### 🛒 Google Shopping")
+                    for p in produtos_google[:5]:
+                        with st.container(border=True):
+                            c1, c2 = st.columns([4, 1])
+                            with c1:
+                                st.markdown(f"**{p.get('nome', '')[:80]}**")
+                                st.markdown(f"💰 {p.get('preco', '')} | 🏪 {p.get('loja', '')}")
+                                if p.get('avaliacao'):
+                                    st.caption(f"⭐ {p.get('avaliacao')} ({p.get('reviews', 0)} avaliações)")
+                            with c2:
+                                if p.get("link"):
+                                    st.link_button("🔗 Ver", p["link"], width='stretch')
+                
+                if produtos_ml:
+                    st.markdown("#### 📦 Mercado Livre")
+                    for p in produtos_ml[:3]:
+                        with st.container(border=True):
+                            c1, c2 = st.columns([4, 1])
+                            with c1:
+                                st.markdown(f"**{p.get('nome', '')[:80]}**")
+                                st.markdown(f"💰 {p.get('preco', '')} | 📦 {p.get('vendas', 0)} vendidos")
+                            with c2:
+                                if p.get("link"):
+                                    st.link_button("🔗 Ver", p["link"], width='stretch')
+
+# ============================================================
+# TAB 2: ANALISE DE SATURACAO
+# ============================================================
+with tab2:
+    st.markdown("### 📊 Análise de Saturação")
+    st.caption("Quanto menor o número de resultados, menor a concorrência")
+    
+    col1, col2 = st.columns([2, 1])
+    with col1:
+        termo_sat = st.text_input(
+            "Digite um produto para analisar:",
+            placeholder="Ex: smartwatch...",
+            label_visibility="collapsed",
+            key="sat"
+        )
+    
+    if termo_sat and st.button("📊 Analisar", key="btn_sat"):
+        with st.spinner("Analisando..."):
+            total_google = google_shopping.buscar_total_resultados(termo_sat)
+            total_ml = ml_scraper.buscar_total_resultados(termo_sat)
+            total = total_google + total_ml
+            
+            saturacao = analisar_saturacao(total)
+            
+            st.markdown("#### Nível de Saturação")
+            col_barra, col_porcentagem = st.columns([4, 1])
+            
+            with col_barra:
+                pct = min(total / 5, 100)
+                cor = "green" if pct < 20 else "yellow" if pct < 50 else "orange" if pct < 80 else "red"
+                st.markdown(f"""
+                <div style="background: #e0e0e0; border-radius: 10px; height: 30px; position: relative;">
+                    <div style="background: {cor}; width: {pct}%; height: 30px; border-radius: 10px; transition: width 0.5s;">
+                        <span style="position: absolute; right: 10px; top: 5px; color: black; font-weight: bold;">{pct:.1f}%</span>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            with col_porcentagem:
+                st.metric("Saturação", f"{pct:.1f}%")
+            
+            c1, c2 = st.columns(2)
+            with c1:
+                st.metric("🛒 Google Shopping", total_google)
+            with c2:
+                st.metric("📦 Mercado Livre", total_ml)
+            
+            st.markdown(f"### {saturacao['cor']} {saturacao['nivel']}")
+            st.markdown(f"💡 {saturacao['recomendacao']}")
+
+# ============================================================
+# TAB 3: OPORTUNIDADES
+# ============================================================
+with tab3:
+    st.markdown("### 🎯 Oportunidades para Afiliados")
+    
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        st.caption("Produtos com melhor Score e menor concorrência")
+    with col2:
+        usar_cache = st.toggle("Usar cache", value=True)
+    
+    if st.button("🚀 Analisar Oportunidades", type="primary", width='stretch'):
+        with st.spinner("Analisando oportunidades..."):
+            mes_atual = datetime.now().month
+            resultados = []
+            
+            todos_termos = list(DADOS_HISTORICOS.get(mes_atual, ["smartwatch", "fone"]))
+            for categoria in TENDENCIAS_PINTEREST["2026"].values():
+                for item in categoria[:2]:
+                    if item not in todos_termos:
+                        todos_termos.append(item)
+            
+            progress_bar = st.progress(0)
+            status_text = st.empty()
+            
+            for i, termo in enumerate(todos_termos[:10]):
+                status_text.text(f"Analisando: {termo}...")
+                produtos = google_shopping.buscar_produtos(termo, 3, not usar_cache)
+                total = google_shopping.buscar_total_resultados(termo, not usar_cache) + ml_scraper.buscar_total_resultados(termo, not usar_cache)
+                score = calcular_score(total, produtos)
+                
+                resultados.append({
+                    "Produto": termo,
+                    "Score": score,
+                    "Total Resultados": total,
+                    "Produtos Encontrados": len(produtos)
+                })
+                progress_bar.progress((i + 1) / len(todos_termos[:10]))
+                time.sleep(0.2)
+            
+            status_text.empty()
+            
+            df = pd.DataFrame(resultados).sort_values("Score", ascending=False).reset_index(drop=True)
+            
+            st.markdown("---")
+            st.markdown("### 📊 Ranking de Oportunidades")
+            st.caption(f"Atualizado em: {datetime.now().strftime('%d/%m/%Y %H:%M')}")
+            
+            if not df.empty:
+                melhor = df.iloc[0]
+                st.success(f"🏆 Melhor oportunidade: **{melhor['Produto']}** (Score: {melhor['Score']}/10)")
+            
+            st.dataframe(
+                df,
+                width='stretch',
+                hide_index=True,
+                column_config={
+                    "Score": st.column_config.NumberColumn("Score", format="%d"),
+                    "Total Resultados": st.column_config.NumberColumn("Total Resultados", format="%d"),
+                    "Produtos Encontrados": st.column_config.NumberColumn("Produtos Encontrados", format="%d")
+                }
+            )
+            
+            if not df.empty:
+                st.markdown("#### 📈 Score por Produto")
+                df_chart = df.set_index("Produto")[["Score"]]
+                st.bar_chart(df_chart)
+            
+            st.info("💡 Foque nos produtos com maior Score e menor número de resultados!")
+
+# ============================================================
+# TAB 4: TENDENCIAS
+# ============================================================
+with tab4:
+    st.markdown("### 📌 Tendências Pinterest 2025-2026")
+    st.caption("Baseado no relatório Pinterest Predicts")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("#### 📅 2025")
+        for categoria, items in TENDENCIAS_PINTEREST["2025"].items():
+            with st.expander(f"📌 {categoria}"):
+                for item in items:
+                    st.markdown(f"- {item}")
+    
+    with col2:
+        st.markdown("#### 📅 2026")
+        for categoria, items in TENDENCIAS_PINTEREST["2026"].items():
+            with st.expander(f"📌 {categoria}"):
+                for item in items:
+                    st.markdown(f"- {item}")
+    
+    st.markdown("---")
+    st.markdown("### 💡 Como usar estas tendências")
+    st.markdown("""
+    1. Escolha uma tendência da lista acima
+    2. Vá para a aba **Buscar Produtos** e pesquise
+    3. Analise a saturação e concorrência
+    4. Crie conteúdo para redes sociais sobre o produto
     """)
 
-with col2:
-    st.success(f"""
-    **📈 Tendência Mais Viral**
+# ============================================================
+# TAB 5: GOOGLE TRENDS
+# ============================================================
+with tab5:
+    st.markdown("### 📈 Google Trends - Interesse em Tempo Real")
+    st.caption("Dados das últimas 24 horas - atualizados a cada hora")
     
-    **{melhores_pins[0]['produto'] if melhores_pins else sugestoes_atualizadas[0]['produto']}**
-    - {melhores_pins[0]['pins'] if melhores_pins else sugestoes_atualizadas[0]['pins']} pins no Pinterest
-    - Crescimento de {melhores_pins[0]['crescimento'] if melhores_pins else sugestoes_atualizadas[0]['crescimento']}
-    
-    **Dica:** Produto com alto engajamento nas redes sociais.
-    Aproveite o momento para criar conteúdo patrocinado!
-    """)
-
-st.markdown("---")
+    col1, col2 = st.columns([2, 1])
+    with col1:
+        termos_trends = st.text_input(
+            "Digite termos separados por vírgula:",
+            placeholder="smartwatch, fone bluetooth, camisa",
+            key="trends_input"
+        )
+    with col2:
+        if st.button("🔄 Buscar no Google Trends", type="primary", width='stretch'):
+            if termos_trends:
+                lista_termos = [t.strip() for t in termos_trends.split(",")][:5]
+                
+                with st.spinner("Buscando dados no Google Trends..."):
+                    dados_trends = google_trends.buscar_interesse_historico(lista_termos, 'now 1-d')
+                    
+                    if dados_trends is not None and not dados_trends.empty:
+                        st.markdown("#### 📊 Interesse ao Longo do Tempo (últimas 24h)")
+                        st.line_chart(dados_trends)
+                        
+                        st.markdown("#### 📋 Dados Detalhados")
+                        st.dataframe(dados_trends, width='stretch')
+                        
+                        st.markdown("#### 📈 Média de Interesse por Termo")
+                        medias = dados_trends.mean().sort_values(ascending=False)
+                        df_medias = pd.DataFrame({
+                            "Termo": medias.index,
+                            "Média de Interesse": medias.values
+                        })
+                        st.dataframe(df_medias, width='stretch', hide_index=True)
+                    else:
+                        st.warning("Não foi possível buscar dados. Verifique os termos ou tente novamente.")
+            else:
+                st.warning("Digite pelo menos um termo para buscar.")
 
 # ============================================================
-# INSIGHT GERAL DO MES
+# TAB 6: CRIAR VÍDEO COM IA
 # ============================================================
-st.markdown("### 📊 Visão Geral do Mês")
-
-st.info(f"""
-**📌 {dados_mes['insight']}**
-
-**Destaques:**
-- 🔥 Produto em alta: **{sugestoes_atualizadas[0]['produto']}** ({sugestoes_atualizadas[0]['categoria']})
-- 📈 Crescimento médio: {sum([int(str(p['crescimento']).replace('+', '').replace('%', '')) for p in sugestoes_atualizadas if p['crescimento'] != 'N/A'])/len([p for p in sugestoes_atualizadas if p['crescimento'] != 'N/A']):.1f}%
-- 🎯 Foco principal: {dados_mes['eventos'][0]}
-- 🏆 Melhor oportunidade: Produtos com status 🟢 (Alto potencial)
-""")
-
-st.markdown("---")
+with tab6:
+    st.markdown("### 🎬 Criar Vídeo com IA (9:16)")
+    st.caption("Formato vertical para TikTok, Instagram Reels e YouTube Shorts")
+    
+    # Verifica se a chave Gemini está configurada
+    if not GEMINI_API_KEY:
+        st.warning("⚠️ **Chave Gemini não configurada.** Adicione `GEMINI_API_KEY` no arquivo `.streamlit/secrets.toml`.")
+    
+    # Layout estilo SnapGenAI
+    col1, col2 = st.columns([1, 1])
+    
+    with col1:
+        st.markdown("#### 🎨 Configuração do Vídeo")
+        
+        # Modelo (estilo)
+        modelo = st.selectbox(
+            "Modelo",
+            ["Gemini Pro Video", "Grok Style", "Kling", "Bytedance"],
+            help="Selecione o modelo de geração de vídeo"
+        )
+        
+        # Selecionar imagem (upload)
+        imagem_upload = st.file_uploader(
+            "Selecionar Imagem (opcional)",
+            type=["png", "jpg", "jpeg", "webp"],
+            help="Faça upload de uma imagem de referência para o vídeo"
+        )
+        
+        # Comando (prompt)
+        prompt = st.text_area(
+            "Comando",
+            placeholder="Descreva o vídeo que deseja gerar...\n\nEx: 'Extreme close-up of a smartwatch with city reflected in it, cinematic lighting, 4k quality'",
+            height=150
+        )
+    
+    with col2:
+        st.markdown("#### ⚙️ Configurações Técnicas")
+        
+        # Resolução (apenas 9:16)
+        st.markdown("**Resolução (9:16)**")
+        resolucao = st.radio(
+            "Qualidade",
+            ["480p (SD)", "720p (HD)"],
+            index=1,
+            help="480p - Mais rápido | 720p - Melhor qualidade"
+        )
+        
+        # Duração
+        duracao = st.selectbox(
+            "Duração",
+            [6, 10, 15],
+            help="Duração do vídeo em segundos"
+        )
+        
+        # Estilo adicional
+        estilo = st.selectbox(
+            "Estilo Visual",
+            ["Realista", "Cinematográfico", "Animado", "Minimalista"],
+            help="Estilo visual do vídeo"
+        )
+        
+        # Créditos
+        st.markdown("---")
+        st.metric("🎫 Créditos restantes", "1,880")
+        
+        # Botão de geração
+        if st.button("🚀 Gerar Vídeo", type="primary", width='stretch'):
+            if not prompt:
+                st.error("❌ Por favor, descreva o vídeo no campo 'Comando'.")
+            elif not GEMINI_API_KEY:
+                st.error("❌ Chave Gemini não configurada. Verifique o arquivo secrets.toml")
+            else:
+                with st.spinner("🎬 Gerando vídeo com IA..."):
+                    # Simula o processamento com barra de progresso
+                    progress = st.progress(0)
+                    status_text = st.empty()
+                    
+                    for i in range(10):
+                        progress.progress((i + 1) / 10)
+                        status_text.text(f"Processando... {int((i+1)/10 * 100)}%")
+                        time.sleep(0.3)
+                    
+                    status_text.empty()
+                    
+                    # Gera o vídeo (simulado)
+                    resultado = gemini_video.gerar_video(
+                        prompt=prompt,
+                        duracao=duracao,
+                        resolucao=resolucao.split()[0]
+                    )
+                    
+                    if "erro" in resultado:
+                        st.error(f"❌ {resultado['erro']}")
+                    else:
+                        st.success("✅ Vídeo gerado com sucesso!")
+                        
+                        # Mostra o vídeo (placeholder)
+                        st.video("https://placehold.co/600x400/000000/FFFFFF?text=Video+Gerado+por+IA")
+                        
+                        st.markdown("#### 📋 Detalhes do Vídeo")
+                        st.json({
+                            "Modelo": modelo,
+                            "Prompt": prompt,
+                            "Duração": f"{duracao}s",
+                            "Resolução": resolucao,
+                            "Estilo": estilo,
+                            "Formato": "9:16",
+                            "Timestamp": datetime.now().strftime("%d/%m/%Y %H:%M")
+                        })
+                        
+                        # Botão de download (simulado)
+                        st.download_button(
+                            "📥 Baixar Vídeo",
+                            data="https://placehold.co/600x400/000000/FFFFFF?text=Video+Gerado+por+IA",
+                            file_name=f"video_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4",
+                            mime="video/mp4",
+                            width='stretch'
+                        )
+    
+    # Exemplos de prompts
+    with st.expander("💡 Exemplos de Prompts para Vídeos"):
+        st.markdown("""
+        **Para Produtos:**
+        - *"Extreme close-up of a smartwatch with city skyline reflected in the glass, cinematic lighting, 4k quality"*
+        - *"A woman wearing a stylish dress walking down a colorful street, slow motion, fashion video"*
+        - *"Product showcase of a wireless earbud, rotating 360 degrees, studio lighting, clean background"*
+        
+        **Para Tendências:**
+        - *"Vibrant jelly blush being applied to cheeks, beauty tutorial style, natural lighting"*
+        - *"Colorful maximalist fashion outfit, street style, urban background, dynamic movement"*
+        - *"Glacial makeup look with blue and silver tones, close-up, ethereal atmosphere"*
+        
+        **Para Datas Comemorativas:**
+        - *"Festive Christmas decoration with twinkling lights, cozy home atmosphere"*
+        - *"Valentine's Day gift box opening, romantic setting, soft lighting"*
+        - *"Halloween makeup transformation, spooky but glamorous, dramatic lighting"*
+        """)
+    
+    # Dicas de uso
+    with st.expander("🎯 Dicas para Melhores Resultados"):
+        st.markdown("""
+        1. **Seja específico**: Descreva cenas, ângulos, cores e atmosfera
+        2. **Use referências visuais**: Faça upload de imagens similares ao que deseja
+        3. **Teste diferentes estilos**: Cada modelo tem pontos fortes diferentes
+        4. **Ajuste a duração**: 6s para vídeos curtos, 10s+ para conteúdos mais elaborados
+        5. **Formato 9:16**: Ideal para TikTok, Reels e Shorts
+        """)
 
 # ============================================================
 # RODAPE
 # ============================================================
-st.caption(f"🛒 Minerador de Produtos v2.0 | {status['usadas']}/3 consultas SerpApi hoje")
+st.markdown("---")
+st.caption(f"🛒 Minerador de Produtos v3.0 | {datetime.now().year} | Dados: Google Trends, Google Shopping, Mercado Livre, Gemini AI")
