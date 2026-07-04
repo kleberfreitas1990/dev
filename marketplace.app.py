@@ -10,40 +10,6 @@ import os
 import warnings
 import base64
 from io import BytesIO
-import subprocess
-import sys
-
-# ============================================================
-# INSTALAR DEPENDÊNCIAS AUTOMATICAMENTE
-# ============================================================
-def instalar_dependencia(pacote):
-    """Instala um pacote pip se não estiver disponível"""
-    try:
-        __import__(pacote.replace("-", "_"))
-        return True
-    except ImportError:
-        try:
-            subprocess.check_call([sys.executable, "-m", "pip", "install", pacote])
-            return True
-        except:
-            return False
-
-# Tenta instalar o google-genai
-if not instalar_dependencia("google-genai"):
-    st.warning("⚠️ Não foi possível instalar google-genai. Gerador de vídeo pode não funcionar.")
-    try:
-        import google.generativeai as genai
-        st.info("✅ Usando google-generativeai como fallback")
-    except:
-        pass
-else:
-    try:
-        from google import genai
-    except:
-        try:
-            import google.generativeai as genai
-        except:
-            pass
 
 # ============================================================
 # SUPRIMIR WARNINGS
@@ -80,21 +46,27 @@ def carregar_secrets():
             "licenca_acesso": licenca,
             "serpapi_key": st.secrets.get("SERPAPI_KEY", ""),
             "apify_token": st.secrets.get("APIFY_TOKEN", ""),
-            "gemini_key": st.secrets.get("GEMINI_API_KEY", "")
+            "snapgen_api_key": st.secrets.get("SNAPGEN_API_KEY", ""),
+            "snapgen_email": st.secrets.get("SNAPGEN_EMAIL", ""),
+            "snapgen_password": st.secrets.get("SNAPGEN_PASSWORD", "")
         }
     except Exception:
         return {
             "licenca_acesso": LICENCA_PADRAO,
             "serpapi_key": "",
             "apify_token": "",
-            "gemini_key": ""
+            "snapgen_api_key": "",
+            "snapgen_email": "",
+            "snapgen_password": ""
         }
 
 KEYS = carregar_secrets()
 LICENCA_ACESSO = KEYS["licenca_acesso"]
 SERPAPI_KEY = KEYS["serpapi_key"]
 APIFY_TOKEN = KEYS["apify_token"]
-GEMINI_API_KEY = KEYS["gemini_key"]
+SNAPGEN_API_KEY = KEYS["snapgen_api_key"]
+SNAPGEN_EMAIL = KEYS["snapgen_email"]
+SNAPGEN_PASSWORD = KEYS["snapgen_password"]
 
 # ============================================================
 # SISTEMA DE CRÉDITOS DIÁRIOS
@@ -231,117 +203,101 @@ class GaleriaVideos:
         self.salvar()
 
 # ============================================================
-# GERADOR DE VÍDEO REAL COM GEMINI VEO 3.1
+# GERADOR DE VÍDEO COM SNAPGEN AI
 # ============================================================
-class GeminiVideoGenerator:
+class SnapGenVideoGenerator:
     def __init__(self):
-        self.api_key = GEMINI_API_KEY
+        self.api_key = SNAPGEN_API_KEY
+        self.email = SNAPGEN_EMAIL
+        self.password = SNAPGEN_PASSWORD
         self.galeria = GaleriaVideos()
         self.creditos = CreditosDiarios()
-        self.client = None
-        
-        if self.api_key:
-            try:
-                from google import genai
-                self.client = genai.Client(api_key=self.api_key)
-            except Exception as e:
-                try:
-                    import google.generativeai as genai
-                    genai.configure(api_key=self.api_key)
-                    self.client = genai
-                except:
-                    pass
+        self.base_url = "https://api.snapgen.ai"  # Domínio atualizado
     
-    def gerar_video(self, prompt, licenca, duracao=8, resolucao="720p", estilo="Realista", modelo="Veo 3.1"):
+    def gerar_video(self, prompt, licenca, duracao=6, resolucao="480p", estilo="Realista", modelo="SnapGen"):
         """
-        Gera um vídeo REAL usando Veo 3.1 via Gemini API
+        Gera um vídeo usando a API do SnapGen
         """
-        if not self.api_key:
-            return {"erro": "Chave Gemini não configurada"}
-        
-        if not self.client:
-            return {"erro": "Cliente Gemini não inicializado"}
+        if not self.api_key and not (self.email and self.password):
+            return {"erro": "Credenciais SnapGen não configuradas. Adicione SNAPGEN_API_KEY ou SNAPGEN_EMAIL e SNAPGEN_PASSWORD"}
         
         if not self.creditos.usar_credito(licenca):
             return {"erro": "Créditos diários esgotados. Volte amanhã!"}
         
         try:
-            # Mapeia modelo
-            model_map = {
-                "Veo 3.1": "veo-3.1-generate-001",
-                "Veo 3.1 Fast": "veo-3.1-fast-generate-001",
-                "Gemini Omni Flash": "gemini-omni-flash"
+            # Configura a autenticação
+            headers = {"Content-Type": "application/json"}
+            
+            if self.api_key:
+                headers["Authorization"] = f"Bearer {self.api_key}"
+            elif self.email and self.password:
+                # Autenticação com e-mail/senha para obter token
+                auth_response = requests.post(
+                    f"{self.base_url}/auth/login",
+                    json={"email": self.email, "password": self.password},
+                    timeout=10
+                )
+                if auth_response.status_code == 200:
+                    token = auth_response.json().get("token")
+                    headers["Authorization"] = f"Bearer {token}"
+                else:
+                    return {"erro": f"Falha na autenticação: {auth_response.text}"}
+            
+            # Prepara a requisição
+            payload = {
+                "prompt": prompt,
+                "duration": duracao,
+                "aspect_ratio": "9:16",  # Vertical para TikTok/Reels
+                "style": estilo,
+                "model": modelo,
+                "resolution": resolucao
             }
-            model_name = model_map.get(modelo, "veo-3.1-generate-001")
             
-            # Configuração da requisição
-            config = {
-                "aspect_ratio": "9:16",
-                "duration_seconds": min(duracao, 8),
-                "number_of_videos": 1,
-                "resolution": resolucao,
-                "person_generation": "allow_adult",
-                "generate_audio": True
-            }
+            st.info(f"🎬 Iniciando geração com SnapGen...")
+            st.caption(f"⏱️ Duração: {duracao}s | 📐 9:16 | 📺 {resolucao}")
             
-            # Inicia a geração
-            st.info(f"🎬 Iniciando geração com {modelo}...")
-            st.caption(f"⏱️ Duração: {config['duration_seconds']}s | 📐 9:16 | 📺 {resolucao}")
-            
-            # Chama a API
-            operation = self.client.models.generate_videos(
-                model=model_name,
-                prompt=prompt,
-                config=config
+            # Faz a requisição para gerar o vídeo
+            response = requests.post(
+                f"{self.base_url}/generate",
+                json=payload,
+                headers=headers,
+                timeout=60
             )
             
-            # Aguarda conclusão
-            progress_bar = st.progress(0)
-            status_text = st.empty()
-            
-            elapsed_time = 0
-            max_wait = 300
-            
-            while not operation.done and elapsed_time < max_wait:
-                status_text.text(f"⏳ Processando... {elapsed_time}s")
-                time.sleep(5)
-                elapsed_time += 5
-                progress_bar.progress(min(elapsed_time / max_wait, 0.95))
-                operation = self.client.operations.get(operation)
-            
-            progress_bar.progress(1.0)
-            status_text.text("✅ Processamento concluído!")
-            
-            if not operation.done:
-                return {"erro": "Tempo limite excedido. Tente novamente."}
-            
-            if hasattr(operation, 'response') and hasattr(operation.response, 'error'):
-                return {"erro": f"Erro na geração: {operation.response.error.message}"}
-            
-            try:
-                video_result = operation.result.generated_videos[0]
-                filename = f"video_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4"
+            if response.status_code == 200:
+                data = response.json()
                 
-                with open(filename, "wb") as f:
-                    f.write(video_result.video.video_bytes)
-                
-                video_info = {
-                    "url": filename,
-                    "prompt": prompt,
-                    "duracao": config["duration_seconds"],
-                    "resolucao": resolucao,
-                    "estilo": estilo,
-                    "modelo": modelo,
-                    "status": "concluido",
-                    "tamanho": os.path.getsize(filename) if os.path.exists(filename) else 0
-                }
-                
-                self.galeria.adicionar(video_info)
-                st.success("✅ Vídeo gerado com sucesso!")
-                return video_info
-                
-            except Exception as e:
-                return {"erro": f"Erro ao processar vídeo: {str(e)}"}
+                # Verifica se o vídeo foi gerado
+                if "video_url" in data or "url" in data:
+                    video_url = data.get("video_url") or data.get("url")
+                    
+                    # Baixa o vídeo
+                    video_response = requests.get(video_url, timeout=30)
+                    if video_response.status_code == 200:
+                        filename = f"video_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4"
+                        with open(filename, "wb") as f:
+                            f.write(video_response.content)
+                        
+                        video_info = {
+                            "url": filename,
+                            "prompt": prompt,
+                            "duracao": duracao,
+                            "resolucao": resolucao,
+                            "estilo": estilo,
+                            "modelo": modelo,
+                            "status": "concluido",
+                            "tamanho": os.path.getsize(filename) if os.path.exists(filename) else 0
+                        }
+                        
+                        self.galeria.adicionar(video_info)
+                        st.success("✅ Vídeo gerado com sucesso!")
+                        return video_info
+                    else:
+                        return {"erro": f"Erro ao baixar vídeo: {video_response.status_code}"}
+                else:
+                    return {"erro": f"Erro: {data}"}
+            else:
+                return {"erro": f"Erro na geração: {response.text}"}
                 
         except Exception as e:
             return {"erro": f"Erro na geração: {str(e)}"}
@@ -403,7 +359,7 @@ creditos_restantes = creditos.obter_creditos(licenca)
 with st.sidebar:
     st.markdown("### ⚙️ Menu")
     
-    status_api = "✅ Conectado" if GEMINI_API_KEY else "❌ Desconectado"
+    status_api = "✅ Conectado" if (SNAPGEN_API_KEY or (SNAPGEN_EMAIL and SNAPGEN_PASSWORD)) else "❌ Desconectado"
     st.markdown(f"**🔌 Status API:** {status_api}")
     
     st.markdown("---")
@@ -602,153 +558,18 @@ with tab3:
             st.info("📭 Nenhum evento programado para este mês.")
 
 # ============================================================
-# TAB 4: CRIAR VÍDEO IA
+# TAB 4: CRIAR VÍDEO IA (COM SNAPGEN)
 # ============================================================
 with tab4:
     st.markdown("## 🎬 Criar Vídeo com IA (9:16)")
-    st.caption("Gere vídeos reais para TikTok, Reels e Shorts com Veo 3.1 e Gemini Omni Flash")
+    st.caption("Gere vídeos para TikTok, Reels e Shorts com SnapGen AI")
     
-    if not GEMINI_API_KEY:
-        st.warning("⚠️ **Chave Gemini não configurada.** Adicione `GEMINI_API_KEY` no arquivo `.streamlit/secrets.toml`.")
+    if not (SNAPGEN_API_KEY or (SNAPGEN_EMAIL and SNAPGEN_PASSWORD)):
+        st.warning("⚠️ **Credenciais SnapGen não configuradas.**")
         st.info("""
-        **Como obter sua chave:**
-        1. Acesse [Google AI Studio](https://aistudio.google.com/)
-        2. Crie uma conta e ative o faturamento
-        3. Gere sua API Key
-        4. Adicione no arquivo `.streamlit/secrets.toml`
-        """)
-    
-    col1, col2 = st.columns([1, 1])
-    
-    with col1:
-        st.markdown("#### 🎨 Configuração do Vídeo")
-        
-        modelo = st.selectbox(
-            "Modelo",
-            ["Veo 3.1", "Veo 3.1 Fast", "Gemini Omni Flash"],
-            help="Veo 3.1 tem melhor qualidade | Omni Flash suporta até 10s"
-        )
-        
-        imagem_upload = st.file_uploader(
-            "Selecionar Imagem (opcional)",
-            type=["png", "jpg", "jpeg", "webp"],
-            help="Alguns modelos suportam referência visual"
-        )
-        
-        prompt = st.text_area(
-            "Comando",
-            placeholder="Descreva o vídeo que deseja gerar...\n\nEx: 'Extreme close-up of a smartwatch with city reflected in it, cinematic lighting, 4k quality'",
-            height=120
-        )
-    
-    with col2:
-        st.markdown("#### ⚙️ Configurações Técnicas")
-        
-        resolucao = st.radio(
-            "Qualidade",
-            ["720p", "1080p"],
-            index=0,
-            help="720p: R$0.10/s | 1080p: R$0.12/s"
-        )
-        
-        duracao = st.selectbox(
-            "Duração (segundos)",
-            [4, 6, 8],
-            index=2,
-            help="Veo 3.1 suporta até 8 segundos"
-        )
-        
-        estilo = st.selectbox(
-            "Estilo Visual",
-            ["Realista", "Cinematográfico", "Animado", "Minimalista"],
-            help="Define o estilo visual do vídeo"
-        )
-        
-        st.markdown("---")
-        
-        if creditos_restantes > 0:
-            st.metric("🎫 Créditos restantes", f"{creditos_restantes} / {CREDITOS_DIARIOS}")
-            st.caption("💡 Cada vídeo consome 1 crédito")
-        else:
-            st.error("❌ Créditos esgotados! Volte amanhã.")
-        
-        if st.button("🚀 Gerar Vídeo", type="primary", width='stretch'):
-            if not prompt:
-                st.error("❌ Por favor, descreva o vídeo no campo 'Comando'.")
-            elif not GEMINI_API_KEY:
-                st.error("❌ Chave Gemini não configurada.")
-            elif creditos_restantes <= 0:
-                st.error("❌ Créditos esgotados! Volte amanhã.")
-            else:
-                generator = GeminiVideoGenerator()
-                resultado = generator.gerar_video(
-                    prompt=prompt,
-                    licenca=licenca,
-                    duracao=duracao,
-                    resolucao=resolucao,
-                    estilo=estilo,
-                    modelo=modelo
-                )
-                
-                if "erro" in resultado:
-                    st.error(f"❌ {resultado['erro']}")
-                else:
-                    st.success("✅ Vídeo gerado com sucesso!")
-                    
-                    if os.path.exists(resultado["url"]):
-                        st.video(resultado["url"])
-                        with open(resultado["url"], "rb") as f:
-                            st.download_button(
-                                label="📥 Baixar Vídeo",
-                                data=f,
-                                file_name=f"video_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4",
-                                mime="video/mp4",
-                                use_container_width=True
-                            )
-                    else:
-                        st.video(resultado["url"])
-                    
-                    st.rerun()
-    
-    # ===== GALERIA DE VÍDEOS =====
-    st.markdown("---")
-    st.markdown("### 🖼️ Galeria de Vídeos Gerados")
-    
-    galeria = GaleriaVideos()
-    videos = galeria.listar(12)
-    
-    if videos:
-        cols = st.columns(4)
-        for i, video in enumerate(videos[:8]):
-            with cols[i % 4]:
-                with st.container(border=True):
-                    if os.path.exists(video.get("url", "")):
-                        st.video(video["url"])
-                        with open(video["url"], "rb") as f:
-                            st.download_button(
-                                label="📥",
-                                data=f,
-                                file_name=os.path.basename(video["url"]),
-                                mime="video/mp4",
-                                key=f"dl_{video.get('id', i)}"
-                            )
-                    else:
-                        st.video(video.get("url", "https://placehold.co/600x400/000000/FFFFFF?text=Video"))
-                    
-                    st.caption(f"🎬 {video.get('modelo', 'IA')}")
-                    st.caption(f"📝 {video.get('prompt', '')[:40]}...")
-                    st.caption(f"⏱️ {video.get('duracao', 6)}s | {video.get('resolucao', '720p')}")
-                    
-                    if st.button("🗑️", key=f"del_{video.get('id', i)}"):
-                        if os.path.exists(video.get("url", "")):
-                            os.remove(video["url"])
-                        galeria.remover(video.get('id'))
-                        st.rerun()
-    else:
-        st.info("📭 Nenhum vídeo gerado ainda. Crie seu primeiro vídeo acima!")
-
-# ============================================================
-# RODAPE
-# ============================================================
-st.markdown("---")
-st.caption(f"🛒 Minerador de Produtos v3.0 | {datetime.now().year} | Gerador de Vídeo com Veo 3.1")
+        **Configure no arquivo `.streamlit/secrets.toml`:**\n
+        ```toml
+        SNAPGEN_API_KEY = "sua_chave_api_aqui"
+        # OU
+        SNAPGEN_EMAIL = "seu_email@exemplo.com"
+        SNAPGEN_PASSWORD = "sua_senha"
