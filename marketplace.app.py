@@ -25,11 +25,11 @@ CHAVE_TESTE = "TESTE-AFILIADO-2026"
 # ============================================================
 class MercadoLivreAPI:
     def __init__(self):
-        # ATUALIZE COM OS NOVOS TOKENS OBTIDOS
-        self.access_token = "SEU_NOVO_ACCESS_TOKEN_AQUI"
-        self.refresh_token = "SEU_NOVO_REFRESH_TOKEN_AQUI"
+        # ⚠️ ATUALIZE COM OS NOVOS TOKENS OBTIDOS ⚠️
+        self.access_token = "APP_USR-1720081667983577-070322-d1ca9bcc48460cc957f49983536b39c7-28997765"
+        self.refresh_token = "TG-6a4870c075af2a00015e6298-28997765"
         self.client_id = "1720081667983577"
-        self.client_secret = "SEU_NOVO_CLIENT_SECRET"  # ATUALIZE APÓS REVOGAR
+        self.client_secret = "js6wH9JpaPoR3rlgLFvqLBaXt6EHyoVd"  # ATUALIZE COM A NOVA CHAVE
     
     def renovar_token(self):
         """Renova o Access Token usando o Refresh Token"""
