@@ -13,6 +13,7 @@ import warnings
 # SUPRIMIR WARNINGS
 # ============================================================
 warnings.filterwarnings("ignore", category=FutureWarning)
+warnings.filterwarnings("ignore", category=UserWarning)
 
 # ============================================================
 # CONFIGURACAO DA PAGINA
@@ -114,7 +115,6 @@ class GoogleShoppingAPI:
         self.cache = CacheDiario()
     
     def buscar_produtos(self, termo, limite=10, forcar_atualizacao=False):
-        """Busca produtos REAIS no Google Shopping via SerpApi"""
         if not self.api_key:
             return []
         
@@ -168,7 +168,6 @@ class GoogleShoppingAPI:
             return []
     
     def buscar_total_resultados(self, termo, forcar_atualizacao=False):
-        """Retorna o numero total de resultados no Google Shopping"""
         if not self.api_key:
             return 0
         
@@ -207,7 +206,6 @@ class GoogleTrendsAPI:
         self.cache = CacheDiario()
     
     def buscar_interesse_historico(self, termo, timeframe='now 1-d'):
-        """Busca dados REAIS do Google Trends via SerpApi"""
         if not self.api_key:
             return None
         
@@ -233,18 +231,22 @@ class GoogleTrendsAPI:
             if "interest_over_time" in data:
                 timeline = data["interest_over_time"].get("timeline_data", [])
                 if timeline:
-                    # Converte para DataFrame
                     dados = []
                     for item in timeline:
                         valores = item.get("value", [0])
+                        data_str = item.get("date", "")
+                        try:
+                            data_dt = pd.to_datetime(data_str, format='%Y-%m-%d %H:%M')
+                        except:
+                            data_dt = pd.to_datetime(data_str)
+                        
                         dados.append({
-                            "date": item.get("date", ""),
+                            "date": data_dt,
                             termo: int(valores[0]) if valores else 0
                         })
                     
                     df = pd.DataFrame(dados)
                     if not df.empty:
-                        df['date'] = pd.to_datetime(df['date'])
                         df = df.set_index('date')
                         self.cache.definir(chave_cache, df.to_dict())
                         return df
@@ -255,7 +257,6 @@ class GoogleTrendsAPI:
             return None
     
     def buscar_tendencias_regionais(self, termo):
-        """Busca tendências regionais no Google Trends"""
         if not self.api_key:
             return None
         
@@ -288,7 +289,6 @@ class GoogleTrendsAPI:
             return None
     
     def buscar_termos_relacionados(self, termo):
-        """Busca termos relacionados no Google Trends"""
         if not self.api_key:
             return None
         
@@ -361,11 +361,11 @@ class PinterestScraper:
             "maquiagem glacial": ["make azul", "glitter gelado", "maquiagem colorida"],
             "broche": ["broche feminino", "broche vintage", "broche personalizado"],
             "maximalismo": ["moda maximalista", "roupas coloridas", "looks ousados"],
-            "decoracao circense": ["decoração lúdica", "quartos criativos", "decoração colorida"],
-            "kits de perfume": ["perfume kits", "fragrâncias exclusivas", "perfume nichado"]
+            "decoracao circense": ["decoracao ludica", "quartos criativos", "decoracao colorida"],
+            "kits de perfume": ["perfume kits", "fragrancias exclusivas", "perfume nichado"]
         }
         
-        termos = termos_relacionados.get(termo, [f"{termo} tendência", f"{termo} estilo", f"{termo} 2026"])
+        termos = termos_relacionados.get(termo, [f"{termo} tendencia", f"{termo} estilo", f"{termo} 2026"])
         
         dados = []
         for i, t in enumerate(termos[:limite]):
@@ -373,7 +373,7 @@ class PinterestScraper:
                 "termo": t,
                 "pins": random.randint(100, 5000),
                 "crescimento": random.randint(50, 300),
-                "categoria": "Moda" if "moda" in t.lower() or "roupa" in t.lower() else "Beleza" if "make" in t.lower() or "maquiagem" in t.lower() else "Decoração" if "decoração" in t.lower() or "lúdica" in t.lower() else "Geral"
+                "categoria": "Moda" if "moda" in t.lower() or "roupa" in t.lower() else "Beleza" if "make" in t.lower() or "maquiagem" in t.lower() else "Decoracao" if "decoracao" in t.lower() or "ludica" in t.lower() else "Geral"
             })
         
         return dados
@@ -949,7 +949,7 @@ with tab5:
                         
                         st.success(f"✅ Dados REAIS do Google Trends para '{termo_trends}'")
                     else:
-                        st.warning("Não foi possível buscar dados. Verifique o termo ou a chave SerpApi.")
+                        st.warning("Nao foi possivel buscar dados. Verifique o termo ou a chave SerpApi.")
             else:
                 st.warning("Digite um termo para buscar.")
 
