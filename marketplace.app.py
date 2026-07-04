@@ -8,6 +8,18 @@ import random
 import json
 import os
 import warnings
+import base64
+from io import BytesIO
+
+# ============================================================
+# INSTALAR DEPENDÊNCIAS (se necessário)
+# ============================================================
+try:
+    from google import genai
+except ImportError:
+    import subprocess
+    subprocess.check_call(["pip", "install", "google-generativeai"])
+    from google import genai
 
 # ============================================================
 # SUPRIMIR WARNINGS
@@ -195,97 +207,142 @@ class GaleriaVideos:
         self.salvar()
 
 # ============================================================
-# GERADOR DE VÍDEO COM GEMINI
+# GERADOR DE VÍDEO REAL COM GEMINI (VEO 3.1 / OMNI FLASH)
 # ============================================================
 class GeminiVideoGenerator:
     def __init__(self):
         self.api_key = GEMINI_API_KEY
         self.galeria = GaleriaVideos()
         self.creditos = CreditosDiarios()
+        self.client = None
+        
+        if self.api_key:
+            try:
+                self.client = genai.Client(api_key=self.api_key)
+            except Exception as e:
+                st.error(f"Erro ao inicializar Gemini: {e}")
     
-    def gerar_video(self, prompt, licenca, duracao=6, resolucao="480p", estilo="Realista", modelo="Gemini Pro Video"):
+    def gerar_video(self, prompt, licenca, duracao=8, resolucao="720p", estilo="Realista", modelo="Veo 3.1"):
+        """
+        Gera um vídeo REAL usando Gemini API (Veo 3.1 ou Omni Flash)
+        """
         if not self.api_key:
-            return {"erro": "Chave Gemini não configurada"}
+            return {"erro": "Chave Gemini não configurada. Adicione GEMINI_API_KEY no secrets.toml"}
+        
+        if not self.client:
+            return {"erro": "Cliente Gemini não inicializado. Verifique sua chave API."}
         
         if not self.creditos.usar_credito(licenca):
             return {"erro": "Créditos diários esgotados. Volte amanhã!"}
         
         try:
-            time.sleep(2)
-            
-            video = {
-                "url": "https://placehold.co/600x400/000000/FFFFFF?text=Video+Gerado+por+IA",
-                "prompt": prompt,
-                "duracao": duracao,
-                "resolucao": resolucao,
-                "estilo": estilo,
-                "modelo": modelo,
-                "status": "concluido"
+            # Mapeia modelo
+            model_map = {
+                "Veo 3.1": "veo-3.1-generate-preview",
+                "Veo 3.1 Fast": "veo-3.1-fast-generate-preview",
+                "Veo 3.1 Lite": "veo-3.1-lite-generate-preview",
+                "Gemini Omni Flash": "gemini-omni-flash"
             }
             
-            self.galeria.adicionar(video)
-            return video
+            model_name = model_map.get(modelo, "veo-3.1-generate-preview")
+            
+            # Configura duração máxima por modelo
+            max_duration = 8 if "veo" in model_name else 10
+            duration = min(duracao, max_duration)
+            
+            # Prepara configuração
+            config = {
+                "model": model_name,
+                "prompt": prompt,
+                "aspect_ratio": "9:16",  # Vertical para TikTok/Reels
+                "duration": duration,
+                "resolution": resolucao
+            }
+            
+            # Inicia a geração
+            st.info(f"🎬 Iniciando geração com {modelo}...")
+            st.caption(f"⏱️ Duração: {duration}s | 📐 9:16 | 📺 {resolucao}")
+            
+            # A geração pode levar alguns minutos
+            operation = self.client.models.generate_videos(**config)
+            
+            # Aguarda conclusão com progresso
+            progress_bar = st.progress(0)
+            status_text = st.empty()
+            
+            elapsed_time = 0
+            max_wait = 300  # 5 minutos máximo
+            
+            while not operation.done and elapsed_time < max_wait:
+                status_text.text(f"⏳ Processando... {elapsed_time}s")
+                time.sleep(5)
+                elapsed_time += 5
+                progress_bar.progress(min(elapsed_time / max_wait, 0.95))
+                
+                try:
+                    operation = self.client.operations.get(operation)
+                except:
+                    pass
+            
+            progress_bar.progress(1.0)
+            
+            if not operation.done:
+                return {"erro": "Tempo limite excedido. Tente novamente."}
+            
+            # Verifica se houve erro
+            if hasattr(operation, 'response') and hasattr(operation.response, 'error'):
+                return {"erro": f"Erro na geração: {operation.response.error.message}"}
+            
+            # Obtém o vídeo gerado
+            try:
+                video_response = operation.response.generated_videos[0]
+                
+                # Download do vídeo
+                status_text.text("📥 Baixando vídeo...")
+                
+                # Gera nome do arquivo
+                filename = f"video_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4"
+                
+                # Salva o vídeo
+                self.client.files.download(file=video_response.video)
+                video_response.video.save(filename)
+                
+                status_text.text("✅ Vídeo gerado com sucesso!")
+                
+                # Adiciona à galeria
+                video_info = {
+                    "url": filename,
+                    "prompt": prompt,
+                    "duracao": duration,
+                    "resolucao": resolucao,
+                    "estilo": estilo,
+                    "modelo": modelo,
+                    "status": "concluido",
+                    "tamanho": os.path.getsize(filename) if os.path.exists(filename) else 0
+                }
+                self.galeria.adicionar(video_info)
+                
+                return video_info
+                
+            except Exception as e:
+                return {"erro": f"Erro ao processar vídeo: {str(e)}"}
+                
         except Exception as e:
-            return {"erro": f"Erro: {str(e)}"}
+            return {"erro": f"Erro na geração: {str(e)}"}
 
 # ============================================================
-# DADOS DE DATAS COMEMORATIVAS
+# DADOS DE PRODUTOS SUGERIDOS
 # ============================================================
-DATAS_COMEMORATIVAS = {
-    "Janeiro": {
-        "01-01": {"nome": "Ano Novo", "produtos": ["decoração", "roupa branca", "espumante"]},
-        "01-06": {"nome": "Dia de Reis", "produtos": ["presentes religiosos", "decoração"]},
-        "01-20": {"nome": "Dia de São Sebastião", "produtos": ["itens religiosos"]}
-    },
-    "Fevereiro": {
-        "02-02": {"nome": "Dia de Iemanjá", "produtos": ["flores", "velas", "artigos religiosos"]},
-        "02-14": {"nome": "Dia dos Namorados", "produtos": ["perfume", "jantar", "kit romântico"]},
-        "02-28": {"nome": "Carnaval", "produtos": ["fantasia", "acessórios", "glitter"]}
-    },
-    "Março": {
-        "03-08": {"nome": "Dia da Mulher", "produtos": ["flores", "perfumes", "kits de beleza"]},
-        "03-15": {"nome": "Dia do Consumidor", "produtos": ["eletrônicos", "promoções"]},
-        "03-20": {"nome": "Outono", "produtos": ["casaco leve", "cobertor"]}
-    },
-    "Abril": {
-        "04-07": {"nome": "Dia do Jornalista", "produtos": ["canecas personalizadas"]},
-        "04-21": {"nome": "Tiradentes", "produtos": ["artigos de viagem"]},
-        "04-28": {"nome": "Páscoa", "produtos": ["ovo de chocolate", "cesta", "coelhinho"]}
-    },
-    "Maio": {
-        "05-01": {"nome": "Dia do Trabalho", "produtos": ["artigos de churrasco"]},
-        "05-13": {"nome": "Dia das Mães", "produtos": ["perfume", "bolsa", "vestido", "flores"]},
-        "05-25": {"nome": "Dia do Orgulho LGBTQ+", "produtos": ["acessórios coloridos"]}
-    },
-    "Junho": {
-        "06-12": {"nome": "Dia dos Namorados", "produtos": ["perfume", "vinho", "jantar"]},
-        "06-24": {"nome": "São João", "produtos": ["decoração junina", "roupa xadrez"]}
-    },
-    "Julho": {
-        "07-09": {"nome": "Férias Escolares", "produtos": ["casaco", "blusa de lã", "bota", "cachecol", "cobertor", "meia", "luva", "jaqueta"]},
-        "07-20": {"nome": "Dia do Amigo", "produtos": ["kits de cerveja", "jogos"]}
-    },
-    "Agosto": {
-        "08-11": {"nome": "Volta às Aulas", "produtos": ["mochila", "estojo", "material escolar"]},
-        "08-14": {"nome": "Dia dos Pais", "produtos": ["ferramentas", "relógio", "cinto"]}
-    },
-    "Setembro": {
-        "09-07": {"nome": "Independência do Brasil", "produtos": ["decoração verde-amarela"]},
-        "09-22": {"nome": "Primavera", "produtos": ["vasos de plantas", "decoração floral"]}
-    },
-    "Outubro": {
-        "10-12": {"nome": "Dia das Crianças", "produtos": ["brinquedo", "boneca", "carrinho"]},
-        "10-31": {"nome": "Halloween", "produtos": ["fantasia", "decoração", "doces"]}
-    },
-    "Novembro": {
-        "11-02": {"nome": "Finados", "produtos": ["flores", "velas"]},
-        "11-25": {"nome": "Black Friday", "produtos": ["eletrônicos", "celular", "smartwatch"]}
-    },
-    "Dezembro": {
-        "12-25": {"nome": "Natal", "produtos": ["presentes", "árvore", "decoração"]},
-        "12-31": {"nome": "Réveillon", "produtos": ["roupa branca", "espumante"]}
-    }
-}
+PRODUTOS_SUGESTAO = [
+    {"Produto": "casaco", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🟢 Alto", "Pins": "3400 pins", "Crescimento": "+45%", "Views": "5.8M", "Resultados": "Histórico"},
+    {"Produto": "blusa de lã", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🟢 Alto", "Pins": "2800 pins", "Crescimento": "+38%", "Views": "4.2M", "Resultados": "Histórico"},
+    {"Produto": "bota", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🟡 Médio", "Pins": "1500 pins", "Crescimento": "+20%", "Views": "2.8M", "Resultados": "Histórico"},
+    {"Produto": "cachecol", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🟡 Médio", "Pins": "1200 pins", "Crescimento": "+15%", "Views": "1.9M", "Resultados": "Histórico"},
+    {"Produto": "cobertor", "Categoria": "Casa", "Evento": "Férias Escolares", "Potencial": "🟡 Médio", "Pins": "950 pins", "Crescimento": "+12%", "Views": "1.5M", "Resultados": "Histórico"},
+    {"Produto": "meia", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🟡 Médio", "Pins": "800 pins", "Crescimento": "+10%", "Views": "1.1M", "Resultados": "Histórico"},
+    {"Produto": "luva", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🔴 Baixo", "Pins": "500 pins", "Crescimento": "+8%", "Views": "0.6M", "Resultados": "Histórico"},
+    {"Produto": "jaqueta", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🔴 Baixo", "Pins": "450 pins", "Crescimento": "+5%", "Views": "0.5M", "Resultados": "Histórico"}
+]
 
 # ============================================================
 # FUNCAO DE LOGIN
@@ -315,25 +372,6 @@ def verificar_login():
         st.stop()
 
 # ============================================================
-# GERAR SUGESTÕES DE PRODUTOS PARA CALENDÁRIO
-# ============================================================
-def gerar_sugestoes_calendario(mes_selecionado):
-    eventos_mes = DATAS_COMEMORATIVAS.get(mes_selecionado, {})
-    sugestoes = []
-    for data, evento in eventos_mes.items():
-        for produto in evento.get("produtos", [])[:3]:
-            potencial = random.choice(["🟢 Alto", "🟡 Médio", "🔴 Baixo"])
-            sugestoes.append({
-                "Produto": produto,
-                "Evento": evento["nome"],
-                "Data": data,
-                "Potencial": potencial,
-                "Crescimento": f"+{random.randint(5, 50)}%",
-                "Views": f"{round(random.uniform(0.5, 6.0), 1)}M"
-            })
-    return sugestoes
-
-# ============================================================
 # APP PRINCIPAL
 # ============================================================
 verificar_login()
@@ -349,8 +387,8 @@ creditos_restantes = creditos.obter_creditos(licenca)
 with st.sidebar:
     st.markdown("### ⚙️ Menu")
     
-    status_api = "✅ Conectado" if SERPAPI_KEY else "❌ Desconectado"
-    st.markdown(f"**🔌 Status:** {status_api}")
+    status_api = "✅ Conectado" if GEMINI_API_KEY else "❌ Desconectado"
+    st.markdown(f"**🔌 Status API:** {status_api}")
     
     st.markdown("---")
     
@@ -365,9 +403,6 @@ with st.sidebar:
     if st.button("🚪 Sair", use_container_width=True):
         st.session_state.logado = False
         st.rerun()
-    
-    st.markdown("---")
-    st.caption(f"👤 Licença: {licenca[:10]}...")
 
 # ============================================================
 # TABS
@@ -380,7 +415,7 @@ tab1, tab2, tab3, tab4 = st.tabs([
 ])
 
 # ============================================================
-# TAB 1: DASHBOARD (TELA PRINCIPAL)
+# TAB 1: DASHBOARD
 # ============================================================
 with tab1:
     st.title("📊 Minerador de Produtos")
@@ -411,17 +446,6 @@ with tab1:
     
     # Tabela de Sugestões
     st.markdown("## 🎯 Sugestões de Produtos para este Mês")
-    
-    PRODUTOS_SUGESTAO = [
-        {"Produto": "casaco", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🟢 Alto", "Pins": "3400 pins", "Crescimento": "+45%", "Views": "5.8M", "Resultados": "Histórico"},
-        {"Produto": "blusa de lã", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🟢 Alto", "Pins": "2800 pins", "Crescimento": "+38%", "Views": "4.2M", "Resultados": "Histórico"},
-        {"Produto": "bota", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🟡 Médio", "Pins": "1500 pins", "Crescimento": "+20%", "Views": "2.8M", "Resultados": "Histórico"},
-        {"Produto": "cachecol", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🟡 Médio", "Pins": "1200 pins", "Crescimento": "+15%", "Views": "1.9M", "Resultados": "Histórico"},
-        {"Produto": "cobertor", "Categoria": "Casa", "Evento": "Férias Escolares", "Potencial": "🟡 Médio", "Pins": "950 pins", "Crescimento": "+12%", "Views": "1.5M", "Resultados": "Histórico"},
-        {"Produto": "meia", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🟡 Médio", "Pins": "800 pins", "Crescimento": "+10%", "Views": "1.1M", "Resultados": "Histórico"},
-        {"Produto": "luva", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🔴 Baixo", "Pins": "500 pins", "Crescimento": "+8%", "Views": "0.6M", "Resultados": "Histórico"},
-        {"Produto": "jaqueta", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🔴 Baixo", "Pins": "450 pins", "Crescimento": "+5%", "Views": "0.5M", "Resultados": "Histórico"}
-    ]
     
     df = pd.DataFrame(PRODUTOS_SUGESTAO)
     df["Buscar na Shopee"] = df["Produto"].apply(lambda x: f"https://shopee.com.br/search?keyword={quote(x)}")
@@ -498,13 +522,12 @@ with tab1:
     st.caption("Mais de 200 resultados no Google Shopping")
 
 # ============================================================
-# TAB 2: SUGESTÕES DE PRODUTOS (TABELA COMPLETA)
+# TAB 2: SUGESTÕES DE PRODUTOS
 # ============================================================
 with tab2:
     st.markdown("## 🎯 Sugestões de Produtos Estratégicos")
     st.caption("Produtos em alta baseados em tendências de mercado e datas comemorativas")
     
-    # Mesma tabela do dashboard, mas com mais detalhes
     st.dataframe(
         df,
         use_container_width=True,
@@ -523,51 +546,67 @@ with tab2:
     )
 
 # ============================================================
-# TAB 3: CALENDÁRIO DE CONTEÚDO (RESTAURADO)
+# TAB 3: CALENDÁRIO DE CONTEÚDO
 # ============================================================
 with tab3:
     st.markdown("## 📅 Calendário de Conteúdo Estratégico")
     st.caption("Selecione um mês para ver sugestões de produtos e insights")
     
-    meses = list(DATAS_COMEMORATIVAS.keys())
+    meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", 
+             "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
+    
     mes_selecionado = st.selectbox("Selecione o mês:", meses, index=datetime.now().month - 1)
     
     if mes_selecionado:
-        eventos = DATAS_COMEMORATIVAS.get(mes_selecionado, {})
-        sugestoes = gerar_sugestoes_calendario(mes_selecionado)
+        st.markdown(f"### 📌 Eventos - {mes_selecionado}")
         
-        col1, col2 = st.columns([1, 1])
+        # Simula eventos para demonstração
+        eventos = {
+            "01-01": {"nome": "Ano Novo", "produtos": ["decoração", "roupa branca", "espumante"]},
+            "02-14": {"nome": "Dia dos Namorados", "produtos": ["perfume", "jantar", "kit romântico"]},
+            "03-08": {"nome": "Dia da Mulher", "produtos": ["flores", "perfumes", "kits de beleza"]},
+            "05-13": {"nome": "Dia das Mães", "produtos": ["perfume", "bolsa", "vestido"]},
+            "06-12": {"nome": "Dia dos Namorados", "produtos": ["perfume", "vinho", "jantar"]},
+            "07-09": {"nome": "Férias Escolares", "produtos": ["casaco", "blusa de lã", "bota"]},
+            "08-14": {"nome": "Dia dos Pais", "produtos": ["ferramentas", "relógio", "cinto"]},
+            "10-12": {"nome": "Dia das Crianças", "produtos": ["brinquedo", "boneca", "carrinho"]},
+            "10-31": {"nome": "Halloween", "produtos": ["fantasia", "decoração", "doces"]},
+            "11-25": {"nome": "Black Friday", "produtos": ["eletrônicos", "celular", "smartwatch"]},
+            "12-25": {"nome": "Natal", "produtos": ["presentes", "árvore", "decoração"]},
+            "12-31": {"nome": "Réveillon", "produtos": ["roupa branca", "espumante"]}
+        }
         
-        with col1:
-            st.markdown(f"#### 📌 Eventos - {mes_selecionado}")
-            for data, evento in eventos.items():
-                dia = data.split("-")[1]
-                with st.container(border=True):
-                    st.markdown(f"**{dia}** - {evento['nome']}")
-                    st.caption(f"📦 Produtos: {', '.join(evento['produtos'][:3])}")
-                    st.caption(f"⏰ Prepare-se com {random.randint(3, 14)} dias de antecedência")
+        # Filtra eventos do mês selecionado
+        eventos_mes = {k: v for k, v in eventos.items() if k.startswith(f"{meses.index(mes_selecionado)+1:02d}")}
         
-        with col2:
-            st.markdown(f"#### 🎯 Insights para {mes_selecionado}")
-            if sugestoes:
-                for item in sugestoes[:5]:
+        if eventos_mes:
+            col1, col2 = st.columns([1, 1])
+            for i, (data, evento) in enumerate(eventos_mes.items()):
+                with (col1 if i % 2 == 0 else col2):
                     with st.container(border=True):
-                        st.markdown(f"**{item['Produto']}**")
-                        st.caption(f"📌 {item['Evento']} - {item['Data']}")
-                        st.caption(f"📊 Potencial: {item['Potencial']}")
-                        st.caption(f"📈 {item['Crescimento']} | 👁️ {item['Views']}")
-            else:
-                st.info("Nenhum produto sugerido para este mês.")
+                        dia = data.split("-")[1]
+                        st.markdown(f"**📅 {dia}** - {evento['nome']}")
+                        st.caption(f"📦 Produtos sugeridos: {', '.join(evento['produtos'][:3])}")
+                        st.caption(f"⏰ Prepare-se com 7 dias de antecedência")
+        else:
+            st.info("📭 Nenhum evento programado para este mês.")
 
 # ============================================================
-# TAB 4: CRIAR VÍDEO IA (RESTAURADO)
+# TAB 4: CRIAR VÍDEO IA (COM GERAÇÃO REAL)
 # ============================================================
 with tab4:
     st.markdown("## 🎬 Criar Vídeo com IA (9:16)")
-    st.caption("Formato vertical para TikTok, Instagram Reels e YouTube Shorts")
+    st.caption("Gere vídeos reais com Veo 3.1 e Gemini Omni Flash para TikTok, Reels e Shorts")
     
     if not GEMINI_API_KEY:
         st.warning("⚠️ **Chave Gemini não configurada.** Adicione `GEMINI_API_KEY` no arquivo `.streamlit/secrets.toml`.")
+        st.info("""
+        **Como obter sua chave:**
+        1. Acesse [Google AI Studio](https://aistudio.google.com/)
+        2. Crie uma conta e ative o faturamento
+        3. Gere sua API Key
+        4. Adicione no arquivo `.streamlit/secrets.toml`
+        """)
     
     col1, col2 = st.columns([1, 1])
     
@@ -576,46 +615,62 @@ with tab4:
         
         modelo = st.selectbox(
             "Modelo",
-            ["Gemini Pro Video", "Grok Style", "Kling", "Bytedance"]
+            ["Veo 3.1", "Veo 3.1 Fast", "Veo 3.1 Lite", "Gemini Omni Flash"],
+            help="Veo 3.1 tem melhor qualidade | Omni Flash suporta até 10s"
         )
         
         imagem_upload = st.file_uploader(
             "Selecionar Imagem (opcional)",
-            type=["png", "jpg", "jpeg", "webp"]
+            type=["png", "jpg", "jpeg", "webp"],
+            help="Alguns modelos suportam referência visual"
         )
         
         prompt = st.text_area(
             "Comando",
-            placeholder="Descreva o vídeo que deseja gerar...\n\nEx: 'Extreme close-up of a smartwatch with city reflected in it'",
+            placeholder="Descreva o vídeo que deseja gerar...\n\nEx: 'Extreme close-up of a smartwatch with city reflected in it, cinematic lighting, 4k quality'",
             height=120
         )
     
     with col2:
         st.markdown("#### ⚙️ Configurações Técnicas")
         
-        st.markdown("**Resolução (9:16)**")
         resolucao = st.radio(
             "Qualidade",
-            ["480p (SD)", "720p (HD)"],
-            index=1
+            ["720p", "1080p", "4K"],
+            index=0,
+            help="720p: R$0.10/s | 1080p: R$0.12/s | 4K: R$0.30/s (Veo 3.1)"
         )
         
         duracao = st.selectbox(
-            "Duração",
-            [6, 10, 15]
+            "Duração (segundos)",
+            [4, 6, 8, 10],
+            index=2,
+            help="Veo 3.1: até 8s | Omni Flash: até 10s"
         )
         
         estilo = st.selectbox(
             "Estilo Visual",
-            ["Realista", "Cinematográfico", "Animado", "Minimalista"]
+            ["Realista", "Cinematográfico", "Animado", "Minimalista", "Vintage"],
+            help="Define o estilo visual do vídeo"
         )
         
         st.markdown("---")
         
+        # Créditos
         if creditos_restantes > 0:
-            st.metric("🎫 Créditos restantes", creditos_restantes)
+            st.metric("🎫 Créditos restantes", f"{creditos_restantes} / {CREDITOS_DIARIOS}")
+            st.caption("💡 Cada vídeo consome 1 crédito")
         else:
             st.error("❌ Créditos esgotados! Volte amanhã.")
+        
+        # Custo estimado
+        custo = {
+            "720p": 0.10,
+            "1080p": 0.12,
+            "4K": 0.30
+        }
+        custo_total = custo.get(resolucao, 0.10) * duracao
+        st.caption(f"💰 Custo estimado: ~${custo_total:.2f} USD")
         
         if st.button("🚀 Gerar Vídeo", type="primary", width='stretch'):
             if not prompt:
@@ -625,34 +680,41 @@ with tab4:
             elif creditos_restantes <= 0:
                 st.error("❌ Créditos esgotados! Volte amanhã.")
             else:
-                with st.spinner("🎬 Gerando vídeo com IA..."):
-                    progress = st.progress(0)
-                    status_text = st.empty()
+                # Inicializa o gerador
+                generator = GeminiVideoGenerator()
+                
+                # Gera o vídeo
+                resultado = generator.gerar_video(
+                    prompt=prompt,
+                    licenca=licenca,
+                    duracao=duracao,
+                    resolucao=resolucao,
+                    estilo=estilo,
+                    modelo=modelo
+                )
+                
+                if "erro" in resultado:
+                    st.error(f"❌ {resultado['erro']}")
+                else:
+                    st.success("✅ Vídeo gerado com sucesso!")
                     
-                    for i in range(10):
-                        progress.progress((i + 1) / 10)
-                        status_text.text(f"Processando... {int((i+1)/10 * 100)}%")
-                        time.sleep(0.3)
+                    # Mostra o vídeo
+                    st.video(resultado["url"])
                     
-                    status_text.empty()
+                    # Botão de download
+                    with open(resultado["url"], "rb") as f:
+                        video_bytes = f.read()
+                        st.download_button(
+                            label="📥 Baixar Vídeo",
+                            data=video_bytes,
+                            file_name=f"video_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4",
+                            mime="video/mp4",
+                            use_container_width=True
+                        )
                     
-                    generator = GeminiVideoGenerator()
-                    resultado = generator.gerar_video(
-                        prompt=prompt,
-                        licenca=licenca,
-                        duracao=duracao,
-                        resolucao=resolucao.split()[0],
-                        estilo=estilo,
-                        modelo=modelo
-                    )
-                    
-                    if "erro" in resultado:
-                        st.error(f"❌ {resultado['erro']}")
-                    else:
-                        st.success("✅ Vídeo gerado com sucesso!")
-                        st.rerun()
+                    st.rerun()
     
-    # Galeria de Vídeos
+    # ===== GALERIA DE VÍDEOS =====
     st.markdown("---")
     st.markdown("### 🖼️ Galeria de Vídeos Gerados")
     
@@ -664,12 +726,33 @@ with tab4:
         for i, video in enumerate(videos[:8]):
             with cols[i % 4]:
                 with st.container(border=True):
-                    st.video(video.get("url", "https://placehold.co/600x400/000000/FFFFFF?text=Video"))
+                    if os.path.exists(video.get("url", "")):
+                        st.video(video["url"])
+                    else:
+                        st.video("https://placehold.co/600x400/000000/FFFFFF?text=Video+Removido")
+                    
                     st.caption(f"🎬 {video.get('modelo', 'IA')}")
                     st.caption(f"📝 {video.get('prompt', '')[:40]}...")
-                    if st.button(f"🗑️", key=f"del_{video.get('id', i)}"):
-                        galeria.remover(video.get('id'))
-                        st.rerun()
+                    st.caption(f"⏱️ {video.get('duracao', 6)}s | {video.get('resolucao', '720p')}")
+                    
+                    col_dl, col_del = st.columns(2)
+                    with col_dl:
+                        if os.path.exists(video.get("url", "")):
+                            with open(video["url"], "rb") as f:
+                                st.download_button(
+                                    label="📥",
+                                    data=f,
+                                    file_name=os.path.basename(video["url"]),
+                                    mime="video/mp4",
+                                    key=f"dl_{video.get('id', i)}"
+                                )
+                    with col_del:
+                        if st.button("🗑️", key=f"del_{video.get('id', i)}"):
+                            # Remove o arquivo físico
+                            if os.path.exists(video.get("url", "")):
+                                os.remove(video["url"])
+                            galeria.remover(video.get('id'))
+                            st.rerun()
     else:
         st.info("📭 Nenhum vídeo gerado ainda. Crie seu primeiro vídeo acima!")
 
@@ -677,4 +760,4 @@ with tab4:
 # RODAPE
 # ============================================================
 st.markdown("---")
-st.caption(f"🛒 Minerador de Produtos v3.0 | {datetime.now().year}")
+st.caption(f"🛒 Minerador de Produtos v3.0 | {datetime.now().year} | Gerador de Vídeo com Veo 3.1 e Gemini Omni Flash")
