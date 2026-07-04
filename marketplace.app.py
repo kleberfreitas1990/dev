@@ -29,7 +29,7 @@ ARQUIVO_CACHE = "cache_tendencias.json"
 SERPAPI_KEY = st.secrets.get("SERPAPI_KEY", "")
 
 # ============================================================
-# SISTEMA DE CACHE DIARIO
+# SISTEMA DE CACHE COM VALIDADE CONFIGURAVEL
 # ============================================================
 class CacheDiario:
     def __init__(self, arquivo=ARQUIVO_CACHE):
@@ -49,19 +49,25 @@ class CacheDiario:
         with open(self.arquivo, 'w', encoding='utf-8') as f:
             json.dump(self.dados, f, ensure_ascii=False, indent=2)
     
-    def obter(self, chave, validade_horas=24):
+    def obter(self, chave, validade_horas=None):
+        if validade_horas is None:
+            validade_horas = st.session_state.get("validade_cache", 1)
+        
         hoje = datetime.now().date().isoformat()
         dados = self.dados.get(chave, {})
         
         if dados and dados.get("data") == hoje:
-            hora_cache = datetime.strptime(dados.get("hora", "00:00"), "%H:%M")
-            hora_atual = datetime.now()
-            diferenca = (hora_atual - hora_cache.replace(year=hora_atual.year, 
-                                                         month=hora_atual.month, 
-                                                         day=hora_atual.day)).total_seconds() / 3600
-            
-            if diferenca < validade_horas:
-                return dados.get("valor")
+            try:
+                hora_cache = datetime.strptime(dados.get("hora", "00:00"), "%H:%M")
+                hora_atual = datetime.now()
+                diferenca = (hora_atual - hora_cache.replace(year=hora_atual.year, 
+                                                             month=hora_atual.month, 
+                                                             day=hora_atual.day)).total_seconds() / 3600
+                
+                if diferenca < validade_horas:
+                    return dados.get("valor")
+            except:
+                return None
         
         return None
     
@@ -78,6 +84,17 @@ class CacheDiario:
     def limpar(self):
         self.dados = {}
         self.salvar()
+    
+    def info(self):
+        """Retorna informacoes sobre o cache"""
+        total_chaves = len(self.dados)
+        hoje = datetime.now().date().isoformat()
+        chaves_hoje = sum(1 for k, v in self.dados.items() if v.get("data") == hoje)
+        return {
+            "total_chaves": total_chaves,
+            "chaves_hoje": chaves_hoje,
+            "arquivo": self.arquivo
+        }
 
 # ============================================================
 # CLASSE PARA GOOGLE SHOPPING (VIA SERPAPI)
@@ -340,33 +357,55 @@ def verificar_login():
 # ============================================================
 verificar_login()
 
-# INICIALIZA AS APIS AQUI (ANTES DE USAR)
+# Inicializa cache
 cache = CacheDiario()
+
+# Inicializa as APIs
 google_shopping = GoogleShoppingAPI()
 ml_scraper = MercadoLivreScraper()
 
 st.title("Minerador de Produtos - Afiliados")
-st.caption("Consultas diarias com cache automatico - Google Shopping + Mercado Livre + Google Trends")
+st.caption("Consultas com cache configuravel - Google Shopping + Mercado Livre")
 
 # Status no sidebar
 with st.sidebar:
-    st.markdown("### Status")
-    st.markdown(f"**Data/Hora:** {datetime.now().strftime('%d/%m/%Y %H:%M')}")
+    st.markdown("### Configuracao de Cache")
     
-    st.markdown("**Cache:**")
-    st.caption(f"Arquivo: {ARQUIVO_CACHE}")
-    st.caption("Validade: 24 horas")
+    # Selector de validade do cache
+    validade = st.selectbox(
+        "Validade do cache:",
+        [1, 2, 4, 6, 12, 24],
+        index=0,
+        help="Tempo em horas que os dados ficam armazenados"
+    )
+    st.session_state.validade_cache = validade
     
+    # Informacoes sobre o cache
+    if validade == 1:
+        st.caption("Dados atualizados a cada hora")
+    elif validade == 24:
+        st.caption("Dados atualizados uma vez por dia")
+    else:
+        st.caption(f"Dados atualizados a cada {validade} horas")
+    
+    info_cache = cache.info()
+    st.markdown("---")
+    st.markdown("### Status do Cache")
+    st.caption(f"Total de chaves: {info_cache['total_chaves']}")
+    st.caption(f"Chaves de hoje: {info_cache['chaves_hoje']}")
+    
+    st.markdown("---")
+    st.markdown("### Acao")
+    if st.button("Limpar Cache (Forcar atualizacao)"):
+        cache.limpar()
+        st.success("Cache limpo! Proxima busca sera real-time")
+        st.rerun()
+    
+    st.markdown("---")
     if SERPAPI_KEY:
         st.success("Google Shopping (SerpApi) - OK")
     else:
         st.warning("SerpApi Key nao configurada")
-    
-    st.markdown("---")
-    if st.button("Limpar Cache"):
-        cache.limpar()
-        st.success("Cache limpo com sucesso!")
-        st.rerun()
 
 st.markdown("---")
 
@@ -391,18 +430,18 @@ with col2:
 st.markdown("---")
 
 # ===== SECAO 2: BUSCAR PRODUTOS =====
-st.markdown("## Buscar Produtos (Cache Diario)")
+st.markdown("## Buscar Produtos")
 
 termo_busca = st.text_input("Digite um produto:", placeholder="Ex: smartwatch, fone bluetooth...")
 
 col_forcar = st.columns([3, 1])
 with col_forcar[0]:
-    if termo_busca and st.button("Buscar", type="primary"):
+    if termo_busca and st.button("Buscar (Cache)", type="primary"):
         st.session_state.termo_busca = termo_busca
         st.session_state.forcar = False
 
 with col_forcar[1]:
-    if termo_busca and st.button("Atualizar", type="secondary"):
+    if termo_busca and st.button("Atualizar (Real-time)", type="secondary"):
         st.session_state.termo_busca = termo_busca
         st.session_state.forcar = True
 
@@ -413,7 +452,9 @@ if "termo_busca" in st.session_state and st.session_state.termo_busca:
     st.markdown(f"### Resultados para '{termo}'")
     
     if forcar:
-        st.info("Atualizacao forcada - buscando dados novos...")
+        st.info("Modo REAL-TIME - Buscando dados novos...")
+    else:
+        st.info(f"Modo CACHE - Validade: {st.session_state.get('validade_cache', 1)} horas")
     
     with st.spinner("Buscando no Google Shopping..."):
         produtos_google = google_shopping.buscar_produtos(termo, 8, forcar)
@@ -473,12 +514,11 @@ st.markdown("---")
 # ===== SECAO 3: MINERADOR PRO =====
 st.markdown("## Minerador Pro - Oportunidades")
 
-if st.button("Analisar Oportunidades Diarias", type="primary"):
+if st.button("Analisar Oportunidades", type="primary"):
     with st.spinner("Analisando oportunidades..."):
         mes_atual = datetime.now().month
         resultados = []
         
-        # Adiciona tendencias do Pinterest
         todos_termos = list(DADOS_HISTORICOS.get(mes_atual, ["smartwatch", "fone"]))
         
         for categoria in TENDENCIAS_PINTEREST["2026"].values():
@@ -486,23 +526,25 @@ if st.button("Analisar Oportunidades Diarias", type="primary"):
                 if item not in todos_termos:
                     todos_termos.append(item)
         
+        # Usa cache (validade configurada)
+        usar_cache = st.session_state.get("validade_cache", 1) > 0
+        
         for termo in todos_termos[:10]:
-            produtos = google_shopping.buscar_produtos(termo, 3, False)
-            total = google_shopping.buscar_total_resultados(termo, False) + ml_scraper.buscar_total_resultados(termo, False)
+            produtos = google_shopping.buscar_produtos(termo, 3, not usar_cache)
+            total = google_shopping.buscar_total_resultados(termo, not usar_cache) + ml_scraper.buscar_total_resultados(termo, not usar_cache)
             score = calcular_score(total, produtos)
             
             resultados.append({
                 "Produto": termo,
                 "Score": score,
                 "Total Resultados": total,
-                "Produtos Encontrados": len(produtos),
-                "Fonte": "Pinterest" if termo in str(TENDENCIAS_PINTEREST) else "Historico"
+                "Produtos Encontrados": len(produtos)
             })
-            time.sleep(0.5)
+            time.sleep(0.3)
         
         df = pd.DataFrame(resultados).sort_values("Score", ascending=False).reset_index(drop=True)
         
-        st.markdown("### Oportunidades do Dia")
+        st.markdown("### Oportunidades")
         st.caption(f"Atualizado em: {datetime.now().strftime('%d/%m/%Y %H:%M')}")
         st.dataframe(df, use_container_width=True, hide_index=True)
         
@@ -510,22 +552,28 @@ if st.button("Analisar Oportunidades Diarias", type="primary"):
 
 st.markdown("---")
 
-# ===== CONFIGURACAO =====
-with st.expander("Sobre o Cache Diario"):
+# ===== SECAO 4: SOBRE O CACHE =====
+with st.expander("Como funciona o sistema de cache"):
     st.markdown("""
-    **Como funciona o cache diario:**
+    **Modos de operacao:**
     
-    - Os dados sao armazenados localmente por 24 horas
-    - Consultas repetidas usam o cache para economizar recursos
-    - Clique em 'Atualizar' para forcar uma nova consulta
-    - Clique em 'Limpar Cache' para remover todos os dados armazenados
+    1. **Modo Cache (padrao)**:
+       - Dados sao armazenados localmente
+       - Validade configurável (1 a 24 horas)
+       - Mais rapido e economico
     
-    **Vantagens:**
+    2. **Modo Real-time**:
+       - Clique em "Atualizar (Real-time)"
+       - Ignora o cache e busca dados novos
+       - Dados sempre atuais
+    
+    **Vantagens do cache:**
     - Menos requisicoes as APIs
     - Resposta mais rapida
     - Economia de cotas (SerpApi)
-    - Dados consistentes durante o dia
-    """)
+    - Dados consistentes durante o periodo
     
-    if not SERPAPI_KEY:
-        st.warning("SerpApi Key nao configurada. Obtenha em serpapi.com")
+    **Quando usar cada modo:**
+    - Para analises diarias: use Cache
+    - Para lancamentos/picos: use Real-time
+    """)
