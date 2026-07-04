@@ -293,12 +293,10 @@ with st.sidebar:
     
     st.markdown("---")
     st.markdown("**Fontes de dados:**")
-    st.markdown("""
-    - Google Shopping (SerpApi)
-    - Mercado Livre (publico)
-    - Google Trends (pytrends)
-    - Dados historicos
-    """)
+    st.markdown("- Google Shopping (SerpApi)")
+    st.markdown("- Mercado Livre (publico)")
+    st.markdown("- Google Trends (pytrends)")
+    st.markdown("- Dados historicos")
 
 # Inicializa as APIs
 google_shopping = GoogleShoppingAPI()
@@ -449,10 +447,13 @@ with st.expander("Configuracao da SerpApi"):
     st.markdown("""
     **Como obter sua chave SerpApi:**
     
-    1. Acesse [SerpApi](https://serpapi.com)
+    1. Acesse SerpApi (https://serpapi.com)
     2. Crie uma conta gratuita (100 buscas/mes)
     3. Copie sua API Key
-    4. Adicione no arquivo `.streamlit/secrets.toml`:
+    4. Adicione no arquivo .streamlit/secrets.toml:
     
-    ```toml
     SERPAPI_KEY = "sua_chave_aqui"
+    """)
+    
+    if not SERPAPI_KEY:
+        st.warning("SerpApi Key nao configurada. Algumas funcionalidades serao limitadas.")
