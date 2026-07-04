@@ -212,26 +212,21 @@ class SnapGenVideoGenerator:
         self.password = SNAPGEN_PASSWORD
         self.galeria = GaleriaVideos()
         self.creditos = CreditosDiarios()
-        self.base_url = "https://api.snapgen.ai"  # Domínio atualizado
+        self.base_url = "https://api.snapgen.ai"
     
     def gerar_video(self, prompt, licenca, duracao=6, resolucao="480p", estilo="Realista", modelo="SnapGen"):
-        """
-        Gera um vídeo usando a API do SnapGen
-        """
         if not self.api_key and not (self.email and self.password):
-            return {"erro": "Credenciais SnapGen não configuradas. Adicione SNAPGEN_API_KEY ou SNAPGEN_EMAIL e SNAPGEN_PASSWORD"}
+            return {"erro": "Credenciais SnapGen nao configuradas"}
         
         if not self.creditos.usar_credito(licenca):
-            return {"erro": "Créditos diários esgotados. Volte amanhã!"}
+            return {"erro": "Creditos diarios esgotados. Volte amanha!"}
         
         try:
-            # Configura a autenticação
             headers = {"Content-Type": "application/json"}
             
             if self.api_key:
                 headers["Authorization"] = f"Bearer {self.api_key}"
             elif self.email and self.password:
-                # Autenticação com e-mail/senha para obter token
                 auth_response = requests.post(
                     f"{self.base_url}/auth/login",
                     json={"email": self.email, "password": self.password},
@@ -241,22 +236,20 @@ class SnapGenVideoGenerator:
                     token = auth_response.json().get("token")
                     headers["Authorization"] = f"Bearer {token}"
                 else:
-                    return {"erro": f"Falha na autenticação: {auth_response.text}"}
+                    return {"erro": f"Falha na autenticacao: {auth_response.text}"}
             
-            # Prepara a requisição
             payload = {
                 "prompt": prompt,
                 "duration": duracao,
-                "aspect_ratio": "9:16",  # Vertical para TikTok/Reels
+                "aspect_ratio": "9:16",
                 "style": estilo,
                 "model": modelo,
                 "resolution": resolucao
             }
             
-            st.info(f"🎬 Iniciando geração com SnapGen...")
-            st.caption(f"⏱️ Duração: {duracao}s | 📐 9:16 | 📺 {resolucao}")
+            st.info(f"Iniciando geracao com SnapGen...")
+            st.caption(f"Duracao: {duracao}s | 9:16 | {resolucao}")
             
-            # Faz a requisição para gerar o vídeo
             response = requests.post(
                 f"{self.base_url}/generate",
                 json=payload,
@@ -267,11 +260,9 @@ class SnapGenVideoGenerator:
             if response.status_code == 200:
                 data = response.json()
                 
-                # Verifica se o vídeo foi gerado
                 if "video_url" in data or "url" in data:
                     video_url = data.get("video_url") or data.get("url")
                     
-                    # Baixa o vídeo
                     video_response = requests.get(video_url, timeout=30)
                     if video_response.status_code == 200:
                         filename = f"video_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4"
@@ -290,30 +281,30 @@ class SnapGenVideoGenerator:
                         }
                         
                         self.galeria.adicionar(video_info)
-                        st.success("✅ Vídeo gerado com sucesso!")
+                        st.success("Video gerado com sucesso!")
                         return video_info
                     else:
-                        return {"erro": f"Erro ao baixar vídeo: {video_response.status_code}"}
+                        return {"erro": f"Erro ao baixar video: {video_response.status_code}"}
                 else:
                     return {"erro": f"Erro: {data}"}
             else:
-                return {"erro": f"Erro na geração: {response.text}"}
+                return {"erro": f"Erro na geracao: {response.text}"}
                 
         except Exception as e:
-            return {"erro": f"Erro na geração: {str(e)}"}
+            return {"erro": f"Erro na geracao: {str(e)}"}
 
 # ============================================================
 # DADOS DE PRODUTOS SUGERIDOS
 # ============================================================
 PRODUTOS_SUGESTAO = [
-    {"Produto": "casaco", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🟢 Alto", "Pins": "3400 pins", "Crescimento": "+45%", "Views": "5.8M", "Resultados": "Histórico"},
-    {"Produto": "blusa de lã", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🟢 Alto", "Pins": "2800 pins", "Crescimento": "+38%", "Views": "4.2M", "Resultados": "Histórico"},
-    {"Produto": "bota", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🟡 Médio", "Pins": "1500 pins", "Crescimento": "+20%", "Views": "2.8M", "Resultados": "Histórico"},
-    {"Produto": "cachecol", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🟡 Médio", "Pins": "1200 pins", "Crescimento": "+15%", "Views": "1.9M", "Resultados": "Histórico"},
-    {"Produto": "cobertor", "Categoria": "Casa", "Evento": "Férias Escolares", "Potencial": "🟡 Médio", "Pins": "950 pins", "Crescimento": "+12%", "Views": "1.5M", "Resultados": "Histórico"},
-    {"Produto": "meia", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🟡 Médio", "Pins": "800 pins", "Crescimento": "+10%", "Views": "1.1M", "Resultados": "Histórico"},
-    {"Produto": "luva", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🔴 Baixo", "Pins": "500 pins", "Crescimento": "+8%", "Views": "0.6M", "Resultados": "Histórico"},
-    {"Produto": "jaqueta", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🔴 Baixo", "Pins": "450 pins", "Crescimento": "+5%", "Views": "0.5M", "Resultados": "Histórico"}
+    {"Produto": "casaco", "Categoria": "Moda", "Evento": "Ferias Escolares", "Potencial": "Alto", "Pins": "3400 pins", "Crescimento": "+45%", "Views": "5.8M", "Resultados": "Historico"},
+    {"Produto": "blusa de la", "Categoria": "Moda", "Evento": "Ferias Escolares", "Potencial": "Alto", "Pins": "2800 pins", "Crescimento": "+38%", "Views": "4.2M", "Resultados": "Historico"},
+    {"Produto": "bota", "Categoria": "Moda", "Evento": "Ferias Escolares", "Potencial": "Medio", "Pins": "1500 pins", "Crescimento": "+20%", "Views": "2.8M", "Resultados": "Historico"},
+    {"Produto": "cachecol", "Categoria": "Moda", "Evento": "Ferias Escolares", "Potencial": "Medio", "Pins": "1200 pins", "Crescimento": "+15%", "Views": "1.9M", "Resultados": "Historico"},
+    {"Produto": "cobertor", "Categoria": "Casa", "Evento": "Ferias Escolares", "Potencial": "Medio", "Pins": "950 pins", "Crescimento": "+12%", "Views": "1.5M", "Resultados": "Historico"},
+    {"Produto": "meia", "Categoria": "Moda", "Evento": "Ferias Escolares", "Potencial": "Medio", "Pins": "800 pins", "Crescimento": "+10%", "Views": "1.1M", "Resultados": "Historico"},
+    {"Produto": "luva", "Categoria": "Moda", "Evento": "Ferias Escolares", "Potencial": "Baixo", "Pins": "500 pins", "Crescimento": "+8%", "Views": "0.6M", "Resultados": "Historico"},
+    {"Produto": "jaqueta", "Categoria": "Moda", "Evento": "Ferias Escolares", "Potencial": "Baixo", "Pins": "450 pins", "Crescimento": "+5%", "Views": "0.5M", "Resultados": "Historico"}
 ]
 
 # ============================================================
@@ -324,23 +315,23 @@ def verificar_login():
         st.session_state.logado = False
 
     if not st.session_state.logado:
-        st.title("🛒 Minerador de Produtos")
-        st.markdown("### 🔐 Acesso ao Sistema")
+        st.title("Minerador de Produtos")
+        st.markdown("### Acesso ao Sistema")
         
-        licenca = st.text_input("Digite sua Licença de Acesso:", type="password")
+        licenca = st.text_input("Digite sua Licenca de Acesso:", type="password")
         
-        if st.button("🔓 Entrar", type="primary", use_container_width=True):
+        if st.button("Entrar", type="primary", use_container_width=True):
             if licenca == LICENCA_ACESSO:
                 st.session_state.logado = True
                 st.session_state.licenca_usuario = licenca
-                st.success("✅ Licença válida! Acesso liberado.")
+                st.success("Licenca valida! Acesso liberado.")
                 time.sleep(1)
                 st.rerun()
             else:
-                st.error("❌ Licença inválida.")
+                st.error("Licenca invalida.")
         
         st.markdown("---")
-        st.caption("🔒 Sistema protegido por licença.")
+        st.caption("Sistema protegido por licenca.")
         st.stop()
 
 # ============================================================
@@ -348,7 +339,6 @@ def verificar_login():
 # ============================================================
 verificar_login()
 
-# Inicializa créditos
 creditos = CreditosDiarios()
 licenca = st.session_state.get('licenca_usuario', LICENCA_PADRAO)
 creditos_restantes = creditos.obter_creditos(licenca)
@@ -357,22 +347,22 @@ creditos_restantes = creditos.obter_creditos(licenca)
 # MENU LATERAL
 # ============================================================
 with st.sidebar:
-    st.markdown("### ⚙️ Menu")
+    st.markdown("### Menu")
     
-    status_api = "✅ Conectado" if (SNAPGEN_API_KEY or (SNAPGEN_EMAIL and SNAPGEN_PASSWORD)) else "❌ Desconectado"
-    st.markdown(f"**🔌 Status API:** {status_api}")
+    status_api = "Conectado" if (SNAPGEN_API_KEY or (SNAPGEN_EMAIL and SNAPGEN_PASSWORD)) else "Desconectado"
+    st.markdown(f"**Status API:** {status_api}")
     
     st.markdown("---")
     
-    st.markdown("### 🎫 Créditos")
-    st.metric("Disponíveis hoje", f"{creditos_restantes} / {CREDITOS_DIARIOS}")
+    st.markdown("### Creditos")
+    st.metric("Disponiveis hoje", f"{creditos_restantes} / {CREDITOS_DIARIOS}")
     
     if creditos_restantes == 0:
-        st.warning("⚠️ Créditos esgotados! Volte amanhã.")
+        st.warning("Creditos esgotados! Volte amanha.")
     
     st.markdown("---")
     
-    if st.button("🚪 Sair", use_container_width=True):
+    if st.button("Sair", use_container_width=True):
         st.session_state.logado = False
         st.rerun()
 
@@ -380,42 +370,42 @@ with st.sidebar:
 # TABS
 # ============================================================
 tab1, tab2, tab3, tab4 = st.tabs([
-    "📊 Dashboard",
-    "📌 Sugestões de Produtos",
-    "📅 Calendário de Conteúdo",
-    "🎬 Criar Vídeo IA"
+    "Dashboard",
+    "Sugestoes de Produtos",
+    "Calendario de Conteudo",
+    "Criar Video IA"
 ])
 
 # ============================================================
 # TAB 1: DASHBOARD
 # ============================================================
 with tab1:
-    st.title("📊 Minerador de Produtos")
-    st.caption(f"📅 {datetime.now().strftime('%A, %d de %B de %Y - %H:%M')}")
+    st.title("Minerador de Produtos")
+    st.caption(f"{datetime.now().strftime('%A, %d de %B de %Y - %H:%M')}")
     
-    st.markdown("## 📊 Visão Geral do Mês")
+    st.markdown("## Visao Geral do Mes")
     
     col1, col2, col3 = st.columns([2, 1, 1])
     with col1:
         st.markdown("""
-        **Inverno no auge! Casacos e blusas de lã são os mais procurados. Aproveite as férias para conteúdo de viagens e looks de inverno.**
+        **Inverno no auge! Casacos e blusas de la sao os mais procurados. Aproveite as ferias para conteudo de viagens e looks de inverno.**
         """)
     with col2:
         st.markdown("""
         **Destaques:**
-        - ✅ Produto em alta: **casaco** (Moda)
-        - ✨ Crescimento médio: 19.1%
-        - 🏠 Foco principal: Férias Escolares
+        - Produto em alta: **casaco** (Moda)
+        - Crescimento medio: 19.1%
+        - Foco principal: Ferias Escolares
         """)
     with col3:
         st.markdown("""
         **Melhor oportunidade:**
-        - 🟢 Produtos com status Alto potencial
+        - Produtos com status Alto potencial
         """)
     
     st.markdown("---")
     
-    st.markdown("## 🎯 Sugestões de Produtos para este Mês")
+    st.markdown("## Sugestoes de Produtos para este Mes")
     
     df = pd.DataFrame(PRODUTOS_SUGESTAO)
     df["Buscar na Shopee"] = df["Produto"].apply(lambda x: f"https://shopee.com.br/search?keyword={quote(x)}")
@@ -431,7 +421,7 @@ with tab1:
             "Potencial": "Potencial",
             "Pins": "Pins no Pinterest",
             "Crescimento": "Crescimento",
-            "Views": "Visualizações TikTok",
+            "Views": "Visualizacoes TikTok",
             "Resultados": "Resultados",
             "Buscar na Shopee": st.column_config.LinkColumn("Buscar na Shopee", validate=False)
         }
@@ -441,60 +431,60 @@ with tab1:
     
     st.markdown("---")
     
-    st.markdown("## 💡 Insights Estratégicos")
+    st.markdown("## Insights Estrategicos")
     
     col1, col2 = st.columns(2)
     with col1:
-        st.markdown("### 🏆 Produto com Maior Potencial")
+        st.markdown("### Produto com Maior Potencial")
         with st.container(border=True):
             st.markdown("### casaco")
             st.markdown("""
             - **Categoria:** Moda
             - **Pinterest:** 3400 pins
             - **Crescimento:** +45%
-            - **TikTok:** 5.8M visualizações
+            - **TikTok:** 5.8M visualizacoes
             """)
-            st.success("🚀 **Ação:** Crie conteúdo URGENTE sobre este produto!")
+            st.success("**Acao:** Crie conteudo URGENTE sobre este produto!")
     
     with col2:
-        st.markdown("### 📈 Tendência Mais Viral")
+        st.markdown("### Tendencia Mais Viral")
         with st.container(border=True):
             st.markdown("### casaco")
             st.markdown("""
             - **3400 pins no Pinterest**
             - **Crescimento de +45%**
             """)
-            st.info("💡 **Dica:** Produto com alto engajamento nas redes sociais. Aproveite o momento para criar conteúdo patrocinado!")
+            st.info("**Dica:** Produto com alto engajamento nas redes sociais. Aproveite o momento para criar conteudo patrocinado!")
     
     st.markdown("---")
     
-    st.markdown("## 📌 Legenda de Potencial")
+    st.markdown("## Legenda de Potencial")
     
     col1, col2, col3 = st.columns(3)
     with col1:
         st.markdown("""
-        **🟢 Alto**
-        - Baixa concorrência, alta demanda
+        **Alto**
+        - Baixa concorrencia, alta demanda
         """)
     with col2:
         st.markdown("""
-        **🟡 Médio**
-        - Concorrência moderada
+        **Medio**
+        - Concorrencia moderada
         """)
     with col3:
         st.markdown("""
-        **🔴 Baixo**
+        **Baixo**
         - Mercado concorrido
         """)
     
     st.caption("Mais de 200 resultados no Google Shopping")
 
 # ============================================================
-# TAB 2: SUGESTÕES DE PRODUTOS
+# TAB 2: SUGESTOES DE PRODUTOS
 # ============================================================
 with tab2:
-    st.markdown("## 🎯 Sugestões de Produtos Estratégicos")
-    st.caption("Produtos em alta baseados em tendências de mercado e datas comemorativas")
+    st.markdown("## Sugestoes de Produtos Estrategicos")
+    st.caption("Produtos em alta baseados em tendencias de mercado e datas comemorativas")
     
     st.dataframe(
         df,
@@ -507,40 +497,40 @@ with tab2:
             "Potencial": "Potencial",
             "Pins": "Pins no Pinterest",
             "Crescimento": "Crescimento",
-            "Views": "Visualizações TikTok",
+            "Views": "Visualizacoes TikTok",
             "Resultados": "Resultados",
             "Buscar na Shopee": st.column_config.LinkColumn("Buscar na Shopee", validate=False)
         }
     )
 
 # ============================================================
-# TAB 3: CALENDÁRIO DE CONTEÚDO
+# TAB 3: CALENDARIO DE CONTEUDO
 # ============================================================
 with tab3:
-    st.markdown("## 📅 Calendário de Conteúdo Estratégico")
-    st.caption("Selecione um mês para ver sugestões de produtos e insights")
+    st.markdown("## Calendario de Conteudo Estrategico")
+    st.caption("Selecione um mes para ver sugestoes de produtos e insights")
     
-    meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", 
+    meses = ["Janeiro", "Fevereiro", "Marco", "Abril", "Maio", "Junho", 
              "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
     
-    mes_selecionado = st.selectbox("Selecione o mês:", meses, index=datetime.now().month - 1)
+    mes_selecionado = st.selectbox("Selecione o mes:", meses, index=datetime.now().month - 1)
     
     if mes_selecionado:
-        st.markdown(f"### 📌 Eventos - {mes_selecionado}")
+        st.markdown(f"### Eventos - {mes_selecionado}")
         
         eventos = {
-            "01-01": {"nome": "Ano Novo", "produtos": ["decoração", "roupa branca", "espumante"]},
-            "02-14": {"nome": "Dia dos Namorados", "produtos": ["perfume", "jantar", "kit romântico"]},
+            "01-01": {"nome": "Ano Novo", "produtos": ["decoracao", "roupa branca", "espumante"]},
+            "02-14": {"nome": "Dia dos Namorados", "produtos": ["perfume", "jantar", "kit romantico"]},
             "03-08": {"nome": "Dia da Mulher", "produtos": ["flores", "perfumes", "kits de beleza"]},
-            "05-13": {"nome": "Dia das Mães", "produtos": ["perfume", "bolsa", "vestido"]},
+            "05-13": {"nome": "Dia das Maes", "produtos": ["perfume", "bolsa", "vestido"]},
             "06-12": {"nome": "Dia dos Namorados", "produtos": ["perfume", "vinho", "jantar"]},
-            "07-09": {"nome": "Férias Escolares", "produtos": ["casaco", "blusa de lã", "bota"]},
-            "08-14": {"nome": "Dia dos Pais", "produtos": ["ferramentas", "relógio", "cinto"]},
-            "10-12": {"nome": "Dia das Crianças", "produtos": ["brinquedo", "boneca", "carrinho"]},
-            "10-31": {"nome": "Halloween", "produtos": ["fantasia", "decoração", "doces"]},
-            "11-25": {"nome": "Black Friday", "produtos": ["eletrônicos", "celular", "smartwatch"]},
-            "12-25": {"nome": "Natal", "produtos": ["presentes", "árvore", "decoração"]},
-            "12-31": {"nome": "Réveillon", "produtos": ["roupa branca", "espumante"]}
+            "07-09": {"nome": "Ferias Escolares", "produtos": ["casaco", "blusa de la", "bota"]},
+            "08-14": {"nome": "Dia dos Pais", "produtos": ["ferramentas", "relogio", "cinto"]},
+            "10-12": {"nome": "Dia das Criancas", "produtos": ["brinquedo", "boneca", "carrinho"]},
+            "10-31": {"nome": "Halloween", "produtos": ["fantasia", "decoracao", "doces"]},
+            "11-25": {"nome": "Black Friday", "produtos": ["eletronicos", "celular", "smartwatch"]},
+            "12-25": {"nome": "Natal", "produtos": ["presentes", "arvore", "decoracao"]},
+            "12-31": {"nome": "Reveillon", "produtos": ["roupa branca", "espumante"]}
         }
         
         eventos_mes = {k: v for k, v in eventos.items() if k.startswith(f"{meses.index(mes_selecionado)+1:02d}")}
@@ -551,25 +541,154 @@ with tab3:
                 with (col1 if i % 2 == 0 else col2):
                     with st.container(border=True):
                         dia = data.split("-")[1]
-                        st.markdown(f"**📅 {dia}** - {evento['nome']}")
-                        st.caption(f"📦 Produtos sugeridos: {', '.join(evento['produtos'][:3])}")
-                        st.caption(f"⏰ Prepare-se com 7 dias de antecedência")
+                        st.markdown(f"**{dia}** - {evento['nome']}")
+                        st.caption(f"Produtos sugeridos: {', '.join(evento['produtos'][:3])}")
+                        st.caption(f"Prepare-se com 7 dias de antecedencia")
         else:
-            st.info("📭 Nenhum evento programado para este mês.")
+            st.info("Nenhum evento programado para este mes.")
 
 # ============================================================
-# TAB 4: CRIAR VÍDEO IA (COM SNAPGEN)
+# TAB 4: CRIAR VIDEO IA
 # ============================================================
 with tab4:
-    st.markdown("## 🎬 Criar Vídeo com IA (9:16)")
-    st.caption("Gere vídeos para TikTok, Reels e Shorts com SnapGen AI")
+    st.markdown("## Criar Video com IA (9:16)")
+    st.caption("Gere videos para TikTok, Reels e Shorts com SnapGen AI")
     
     if not (SNAPGEN_API_KEY or (SNAPGEN_EMAIL and SNAPGEN_PASSWORD)):
-        st.warning("⚠️ **Credenciais SnapGen não configuradas.**")
-        st.info("""
-        **Configure no arquivo `.streamlit/secrets.toml`:**\n
-        ```toml
-        SNAPGEN_API_KEY = "sua_chave_api_aqui"
-        # OU
-        SNAPGEN_EMAIL = "seu_email@exemplo.com"
-        SNAPGEN_PASSWORD = "sua_senha"
+        st.warning("**Credenciais SnapGen nao configuradas.**")
+        st.info("Configure no arquivo .streamlit/secrets.toml:\n\nSNAPGEN_API_KEY = 'sua_chave_api_aqui'\nOU\nSNAPGEN_EMAIL = 'seu_email@exemplo.com'\nSNAPGEN_PASSWORD = 'sua_senha'")
+    
+    col1, col2 = st.columns([1, 1])
+    
+    with col1:
+        st.markdown("#### Configuracao do Video")
+        
+        modelo = st.selectbox(
+            "Modelo",
+            ["SnapGen", "SnapGen Fast", "SnapGen Pro"],
+            help="SnapGen Pro tem melhor qualidade | Fast e mais rapido"
+        )
+        
+        imagem_upload = st.file_uploader(
+            "Selecionar Imagem (opcional)",
+            type=["png", "jpg", "jpeg", "webp"],
+            help="Alguns modelos suportam referencia visual"
+        )
+        
+        prompt = st.text_area(
+            "Comando",
+            placeholder="Descreva o video que deseja gerar...\n\nEx: 'Extreme close-up of a smartwatch with city reflected in it, cinematic lighting, 4k quality'",
+            height=120
+        )
+    
+    with col2:
+        st.markdown("#### Configuracoes Tecnicas")
+        
+        resolucao = st.radio(
+            "Qualidade",
+            ["480p", "720p", "1080p"],
+            index=1,
+            help="480p: Rapido | 720p: Bom | 1080p: Melhor qualidade"
+        )
+        
+        duracao = st.selectbox(
+            "Duracao (segundos)",
+            [4, 6, 8, 10],
+            index=1,
+            help="SnapGen suporta ate 10 segundos"
+        )
+        
+        estilo = st.selectbox(
+            "Estilo Visual",
+            ["Realista", "Cinematografico", "Animado", "Minimalista", "Vintage"],
+            help="Define o estilo visual do video"
+        )
+        
+        st.markdown("---")
+        
+        if creditos_restantes > 0:
+            st.metric("Creditos restantes", f"{creditos_restantes} / {CREDITOS_DIARIOS}")
+            st.caption("Cada video consome 1 credito")
+        else:
+            st.error("Creditos esgotados! Volte amanha.")
+        
+        if st.button("Gerar Video", type="primary", width='stretch'):
+            if not prompt:
+                st.error("Por favor, descreva o video no campo 'Comando'.")
+            elif not (SNAPGEN_API_KEY or (SNAPGEN_EMAIL and SNAPGEN_PASSWORD)):
+                st.error("Credenciais SnapGen nao configuradas.")
+            elif creditos_restantes <= 0:
+                st.error("Creditos esgotados! Volte amanha.")
+            else:
+                generator = SnapGenVideoGenerator()
+                resultado = generator.gerar_video(
+                    prompt=prompt,
+                    licenca=licenca,
+                    duracao=duracao,
+                    resolucao=resolucao,
+                    estilo=estilo,
+                    modelo=modelo
+                )
+                
+                if "erro" in resultado:
+                    st.error(f"{resultado['erro']}")
+                else:
+                    st.success("Video gerado com sucesso!")
+                    
+                    if os.path.exists(resultado["url"]):
+                        st.video(resultado["url"])
+                        with open(resultado["url"], "rb") as f:
+                            st.download_button(
+                                label="Baixar Video",
+                                data=f,
+                                file_name=f"video_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4",
+                                mime="video/mp4",
+                                use_container_width=True
+                            )
+                    else:
+                        st.video(resultado["url"])
+                    
+                    st.rerun()
+    
+    # ===== GALERIA DE VIDEOS =====
+    st.markdown("---")
+    st.markdown("### Galeria de Videos Gerados")
+    
+    galeria = GaleriaVideos()
+    videos = galeria.listar(12)
+    
+    if videos:
+        cols = st.columns(4)
+        for i, video in enumerate(videos[:8]):
+            with cols[i % 4]:
+                with st.container(border=True):
+                    if os.path.exists(video.get("url", "")):
+                        st.video(video["url"])
+                        with open(video["url"], "rb") as f:
+                            st.download_button(
+                                label="Baixar",
+                                data=f,
+                                file_name=os.path.basename(video["url"]),
+                                mime="video/mp4",
+                                key=f"dl_{video.get('id', i)}"
+                            )
+                    else:
+                        st.video(video.get("url", "https://placehold.co/600x400/000000/FFFFFF?text=Video"))
+                    
+                    st.caption(f"Modelo: {video.get('modelo', 'IA')}")
+                    st.caption(f"Prompt: {video.get('prompt', '')[:40]}...")
+                    st.caption(f"Duracao: {video.get('duracao', 6)}s | {video.get('resolucao', '480p')}")
+                    
+                    if st.button("Remover", key=f"del_{video.get('id', i)}"):
+                        if os.path.exists(video.get("url", "")):
+                            os.remove(video["url"])
+                        galeria.remover(video.get('id'))
+                        st.rerun()
+    else:
+        st.info("Nenhum video gerado ainda. Crie seu primeiro video acima!")
+
+# ============================================================
+# RODAPE
+# ============================================================
+st.markdown("---")
+st.caption(f"Minerador de Produtos v3.0 | {datetime.now().year} | Gerador de Video com SnapGen AI")
