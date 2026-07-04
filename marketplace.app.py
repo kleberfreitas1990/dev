@@ -5,6 +5,8 @@ from urllib.parse import quote
 from datetime import datetime, date, timedelta
 import time
 import random
+import json
+import os
 
 # ============================================================
 # CONFIGURACAO DA PAGINA
@@ -19,12 +21,70 @@ st.set_page_config(
 # CONSTANTES
 # ============================================================
 CHAVE_TESTE = "TESTE-AFILIADO-2026"
+ARQUIVO_CACHE = "cache_tendencias.json"
 
 # ============================================================
 # CONFIGURACAO DAS APIS
 # ============================================================
-# SerpApi - Cadastre-se em https://serpapi.com (100 buscas gratis/mes)
 SERPAPI_KEY = st.secrets.get("SERPAPI_KEY", "")
+
+# ============================================================
+# SISTEMA DE CACHE DIARIO
+# ============================================================
+class CacheDiario:
+    def __init__(self, arquivo=ARQUIVO_CACHE):
+        self.arquivo = arquivo
+        self.dados = self.carregar()
+    
+    def carregar(self):
+        """Carrega o cache do arquivo"""
+        if os.path.exists(self.arquivo):
+            try:
+                with open(self.arquivo, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            except:
+                return {}
+        return {}
+    
+    def salvar(self):
+        """Salva o cache no arquivo"""
+        with open(self.arquivo, 'w', encoding='utf-8') as f:
+            json.dump(self.dados, f, ensure_ascii=False, indent=2)
+    
+    def obter(self, chave, validade_horas=24):
+        """Obtem um valor do cache se ainda for valido"""
+        hoje = datetime.now().date().isoformat()
+        dados = self.dados.get(chave, {})
+        
+        # Verifica se o cache existe e ainda esta valido
+        if dados and dados.get("data") == hoje:
+            # Verifica se passou do limite de horas
+            hora_cache = datetime.strptime(dados.get("hora", "00:00"), "%H:%M")
+            hora_atual = datetime.now()
+            diferenca = (hora_atual - hora_cache.replace(year=hora_atual.year, 
+                                                         month=hora_atual.month, 
+                                                         day=hora_atual.day)).total_seconds() / 3600
+            
+            if diferenca < validade_horas:
+                return dados.get("valor")
+        
+        return None
+    
+    def definir(self, chave, valor):
+        """Define um valor no cache com a data atual"""
+        hoje = datetime.now()
+        self.dados[chave] = {
+            "valor": valor,
+            "data": hoje.date().isoformat(),
+            "hora": hoje.strftime("%H:%M")
+        }
+        self.salvar()
+        return valor
+    
+    def limpar(self):
+        """Limpa todo o cache"""
+        self.dados = {}
+        self.salvar()
 
 # ============================================================
 # CLASSE PARA GOOGLE SHOPPING (VIA SERPAPI)
@@ -33,11 +93,20 @@ class GoogleShoppingAPI:
     def __init__(self):
         self.api_key = SERPAPI_KEY
         self.base_url = "https://serpapi.com/search.json"
+        self.cache = CacheDiario()
     
-    def buscar_produtos(self, termo, limite=10):
-        """Busca produtos no Google Shopping"""
+    def buscar_produtos(self, termo, limite=10, forcar_atualizacao=False):
+        """Busca produtos no Google Shopping com cache diario"""
         if not self.api_key:
             return []
+        
+        chave_cache = f"produtos_{termo}_{limite}"
+        
+        # Tenta obter do cache
+        if not forcar_atualizacao:
+            cache_valor = self.cache.obter(chave_cache)
+            if cache_valor is not None:
+                return cache_valor
         
         try:
             params = {
@@ -70,18 +139,28 @@ class GoogleShoppingAPI:
                     "imagem": item.get("thumbnail", ""),
                     "avaliacao": item.get("rating", None),
                     "reviews": item.get("reviews", 0),
-                    "plataforma": "Google Shopping"
+                    "plataforma": "Google Shopping",
+                    "data_consulta": datetime.now().isoformat()
                 })
             
+            # Salva no cache
+            self.cache.definir(chave_cache, produtos)
             return produtos
         except Exception as e:
             st.error(f"Erro no Google Shopping: {e}")
             return []
     
-    def buscar_total_resultados(self, termo):
-        """Retorna o numero total de resultados"""
+    def buscar_total_resultados(self, termo, forcar_atualizacao=False):
+        """Retorna o numero total de resultados com cache"""
         if not self.api_key:
             return 0
+        
+        chave_cache = f"total_{termo}"
+        
+        if not forcar_atualizacao:
+            cache_valor = self.cache.obter(chave_cache)
+            if cache_valor is not None:
+                return cache_valor
         
         try:
             params = {
@@ -94,7 +173,10 @@ class GoogleShoppingAPI:
             }
             resp = requests.get(self.base_url, params=params, timeout=10)
             data = resp.json()
-            return data.get("search_information", {}).get("total_results", 0)
+            total = data.get("search_information", {}).get("total_results", 0)
+            
+            self.cache.definir(chave_cache, total)
+            return total
         except:
             return 0
 
@@ -104,9 +186,17 @@ class GoogleShoppingAPI:
 class MercadoLivreScraper:
     def __init__(self):
         self.base_url = "https://api.mercadolibre.com/sites/MLB/search"
+        self.cache = CacheDiario()
     
-    def buscar_produtos(self, termo, limite=10):
-        """Busca produtos via API publica do ML"""
+    def buscar_produtos(self, termo, limite=10, forcar_atualizacao=False):
+        """Busca produtos via API publica do ML com cache"""
+        chave_cache = f"ml_produtos_{termo}_{limite}"
+        
+        if not forcar_atualizacao:
+            cache_valor = self.cache.obter(chave_cache)
+            if cache_valor is not None:
+                return cache_valor
+        
         try:
             params = {
                 "q": termo,
@@ -132,20 +222,33 @@ class MercadoLivreScraper:
                     "link": item.get("permalink", ""),
                     "vendas": item.get("sold_quantity", 0),
                     "imagem": item.get("thumbnail", ""),
-                    "plataforma": "Mercado Livre"
+                    "plataforma": "Mercado Livre",
+                    "data_consulta": datetime.now().isoformat()
                 })
+            
+            self.cache.definir(chave_cache, produtos)
             return produtos
         except:
             return []
     
-    def buscar_total_resultados(self, termo):
+    def buscar_total_resultados(self, termo, forcar_atualizacao=False):
+        """Busca total de resultados com cache"""
+        chave_cache = f"ml_total_{termo}"
+        
+        if not forcar_atualizacao:
+            cache_valor = self.cache.obter(chave_cache)
+            if cache_valor is not None:
+                return cache_valor
+        
         try:
             params = {"q": termo, "limit": 1}
             headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
             resp = requests.get(self.base_url, params=params, headers=headers, timeout=10)
             if resp.status_code == 200:
                 data = resp.json()
-                return data.get("paging", {}).get("total", 0)
+                total = data.get("paging", {}).get("total", 0)
+                self.cache.definir(chave_cache, total)
+                return total
             return 0
         except:
             return 0
@@ -156,16 +259,24 @@ class MercadoLivreScraper:
 class GoogleTrendsAPI:
     def __init__(self):
         self.pytrends = None
+        self.cache = CacheDiario()
         try:
             from pytrends.request import TrendReq
             self.pytrends = TrendReq(hl='pt-BR', tz=-180)
         except:
             pass
     
-    def buscar_tendencias(self, termos, timeframe='now 7-d'):
-        """Busca interesse ao longo do tempo"""
+    def buscar_tendencias(self, termos, timeframe='now 7-d', forcar_atualizacao=False):
+        """Busca interesse ao longo do tempo com cache"""
         if not self.pytrends:
             return None
+        
+        chave_cache = f"trends_{'_'.join(termos[:3])}_{timeframe}"
+        
+        if not forcar_atualizacao:
+            cache_valor = self.cache.obter(chave_cache)
+            if cache_valor is not None:
+                return cache_valor
         
         try:
             self.pytrends.build_payload(
@@ -179,6 +290,10 @@ class GoogleTrendsAPI:
                 return None
             if 'isPartial' in dados.columns:
                 dados = dados.drop('isPartial', axis=1)
+            
+            # Converte para dict para salvar no cache
+            dados_dict = dados.to_dict()
+            self.cache.definir(chave_cache, dados_dict)
             return dados
         except:
             return None
@@ -225,6 +340,24 @@ def calcular_score(total_resultados, produtos):
     return min(score, 10)
 
 # ============================================================
+# TENDENCIAS PINTEREST 2025-2026
+# ============================================================
+TENDENCIAS_PINTEREST = {
+    "2025": {
+        "beauty": ["jelly blush", "maquiagem glacial", "makeup gótica"],
+        "fashion": ["broches", "terno oversized", "rendas", "estilo expedicao"],
+        "decor": ["afrodecor", "neo deco", "lar ludico"],
+        "gifts": ["entre postais", "infancia retro", "perfume nichado"]
+    },
+    "2026": {
+        "beauty": ["blush em gel", "iluminador furta-cor", "batom metalico"],
+        "fashion": ["maximalismo", "moda utilitaria", "acessorios vintage"],
+        "decor": ["decoração circense", "arte etiope", "marmore vermelho"],
+        "gifts": ["brinquedos anos 2000", "papelaria criativa", "kits de perfume"]
+    }
+}
+
+# ============================================================
 # DADOS HISTORICOS (FALLBACK)
 # ============================================================
 DADOS_HISTORICOS = {
@@ -240,19 +373,6 @@ DADOS_HISTORICOS = {
     10: ["fantasia halloween", "decoracao", "brinquedo", "fone", "smartwatch"],
     11: ["black friday", "eletronico", "celular", "tv", "smartwatch"],
     12: ["natal", "presente", "arvore", "decoracao", "smartwatch"]
-}
-
-DATAS_COMEMORATIVAS = {
-    (1, 1): "Ano Novo",
-    (2, 14): "Carnaval",
-    (3, 8): "Dia da Mulher",
-    (5, 11): "Dia das Maes",
-    (6, 12): "Dia dos Namorados",
-    (8, 10): "Dia dos Pais",
-    (10, 12): "Dia das Criancas",
-    (10, 31): "Halloween",
-    (11, 25): "Black Friday",
-    (12, 25): "Natal"
 }
 
 # ============================================================
@@ -279,47 +399,89 @@ def verificar_login():
 verificar_login()
 
 st.title("Minerador de Produtos - Afiliados")
-st.caption("Busca em Google Shopping + Mercado Livre + Google Trends")
+st.caption("Consultas diarias com cache automatico - Google Shopping + Mercado Livre + Google Trends")
 
-# Status das APIs no sidebar
+# Inicializa o cache
+cache = CacheDiario()
+
+# Status no sidebar
 with st.sidebar:
-    st.markdown("### Status das APIs")
+    st.markdown("### Status")
+    st.markdown(f"**Data/Hora:** {datetime.now().strftime('%d/%m/%Y %H:%M')}")
+    
+    # Informacoes do cache
+    st.markdown("**Cache:**")
+    st.caption(f"Arquivo: {ARQUIVO_CACHE}")
+    st.caption("Validade: 24 horas")
     
     if SERPAPI_KEY:
         st.success("Google Shopping (SerpApi) - OK")
     else:
         st.warning("SerpApi Key nao configurada")
-        st.caption("Obtenha em: serpapi.com")
     
     st.markdown("---")
-    st.markdown("**Fontes de dados:**")
-    st.markdown("- Google Shopping (SerpApi)")
-    st.markdown("- Mercado Livre (publico)")
-    st.markdown("- Google Trends (pytrends)")
-    st.markdown("- Dados historicos")
-
-# Inicializa as APIs
-google_shopping = GoogleShoppingAPI()
-ml_scraper = MercadoLivreScraper()
-trends = GoogleTrendsAPI()
+    if st.button("Limpar Cache"):
+        cache.limpar()
+        st.success("Cache limpo com sucesso!")
+        st.rerun()
 
 st.markdown("---")
 
-# ===== SECAO 1: BUSCAR PRODUTOS =====
-st.markdown("## Buscar Produtos")
+# ===== SECAO 1: TENDENCIAS PINTEREST =====
+st.markdown("## Tendências Pinterest 2025-2026")
+
+col1, col2 = st.columns(2)
+with col1:
+    st.markdown("**2025**")
+    for categoria, items in TENDENCIAS_PINTEREST["2025"].items():
+        st.markdown(f"*{categoria}*")
+        for item in items[:3]:
+            st.markdown(f"- {item}")
+
+with col2:
+    st.markdown("**2026**")
+    for categoria, items in TENDENCIAS_PINTEREST["2026"].items():
+        st.markdown(f"*{categoria}*")
+        for item in items[:3]:
+            st.markdown(f"- {item}")
+
+st.markdown("---")
+
+# ===== SECAO 2: BUSCAR PRODUTOS =====
+st.markdown("## Buscar Produtos (Cache Diario)")
 
 termo_busca = st.text_input("Digite um produto:", placeholder="Ex: smartwatch, fone bluetooth...")
 
-if termo_busca and st.button("Buscar", type="primary"):
-    st.markdown(f"### Resultados para '{termo_busca}'")
+col_forcar = st.columns([3, 1])
+with col_forcar[0]:
+    if termo_busca and st.button("Buscar", type="primary"):
+        st.session_state.termo_busca = termo_busca
+        st.session_state.forcar = False
+
+with col_forcar[1]:
+    if termo_busca and st.button("Atualizar", type="secondary"):
+        st.session_state.termo_busca = termo_busca
+        st.session_state.forcar = True
+
+if "termo_busca" in st.session_state and st.session_state.termo_busca:
+    termo = st.session_state.termo_busca
+    forcar = st.session_state.get("forcar", False)
+    
+    st.markdown(f"### Resultados para '{termo}'")
+    
+    if forcar:
+        st.info("Atualizacao forçada - buscando dados novos...")
     
     with st.spinner("Buscando no Google Shopping..."):
-        produtos_google = google_shopping.buscar_produtos(termo_busca, 8)
-        total_google = google_shopping.buscar_total_resultados(termo_busca)
+        produtos_google = google_shopping.buscar_produtos(termo, 8, forcar)
+        total_google = google_shopping.buscar_total_resultados(termo, forcar)
     
     with st.spinner("Buscando no Mercado Livre..."):
-        produtos_ml = ml_scraper.buscar_produtos(termo_busca, 5)
-        total_ml = ml_scraper.buscar_total_resultados(termo_busca)
+        produtos_ml = ml_scraper.buscar_produtos(termo, 5, forcar)
+        total_ml = ml_scraper.buscar_total_resultados(termo, forcar)
+    
+    # Exibe hora da consulta
+    st.caption(f"Consulta realizada em: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
     
     col1, col2, col3 = st.columns(3)
     with col1:
@@ -366,76 +528,40 @@ if termo_busca and st.button("Buscar", type="primary"):
 
 st.markdown("---")
 
-# ===== SECAO 2: ANALISE DE SATURACAO =====
-st.markdown("## Analise de saturacao")
+# ===== SECAO 3: MINERADOR PRO =====
+st.markdown("## Minerador Pro - Oportunidades")
 
-termo_sat = st.text_input("Digite um produto para analisar:", placeholder="Ex: smartwatch...", key="sat")
-
-if termo_sat and st.button("Analisar", key="btn_sat"):
-    with st.spinner("Analisando..."):
-        total_google = google_shopping.buscar_total_resultados(termo_sat)
-        total_ml = ml_scraper.buscar_total_resultados(termo_sat)
-        total = total_google + total_ml
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            st.metric("Google Shopping", total_google)
-        with col2:
-            st.metric("Mercado Livre", total_ml)
-        
-        saturacao = analisar_saturacao(total)
-        st.markdown(f"### {saturacao['nivel']}")
-        st.markdown(f"{saturacao['recomendacao']}")
-
-st.markdown("---")
-
-# ===== SECAO 3: SUGESTOES POR DATA =====
-st.markdown("## Sugestoes por Data")
-
-mes_atual = datetime.now().month
-dados_mes = DADOS_HISTORICOS.get(mes_atual, ["smartwatch", "fone"])
-
-hoje = datetime.now()
-evento_hoje = None
-for (m, d), nome in DATAS_COMEMORATIVAS.items():
-    if m == hoje.month and d == hoje.day:
-        evento_hoje = nome
-        break
-
-if evento_hoje:
-    st.success(f"Hoje e {evento_hoje}!")
-else:
-    st.info("Nenhuma data comemorativa hoje.")
-
-st.markdown("#### Produtos em tendencia para este mes")
-for t in dados_mes[:6]:
-    st.markdown(f"- {t}")
-
-st.markdown("---")
-
-# ===== SECAO 4: MINERADOR PRO =====
-st.markdown("## Minerador Pro")
-
-if st.button("Analisar Oportunidades", type="primary"):
+if st.button("Analisar Oportunidades Diarias", type="primary"):
     with st.spinner("Analisando oportunidades..."):
+        mes_atual = datetime.now().month
         resultados = []
         
-        for termo in list(DADOS_HISTORICOS.get(mes_atual, ["smartwatch", "fone"]))[:8]:
-            produtos = google_shopping.buscar_produtos(termo, 3)
-            total = google_shopping.buscar_total_resultados(termo) + ml_scraper.buscar_total_resultados(termo)
+        # Adiciona tendencias do Pinterest
+        todos_termos = list(DADOS_HISTORICOS.get(mes_atual, ["smartwatch", "fone"]))
+        
+        for categoria in TENDENCIAS_PINTEREST["2026"].values():
+            for item in categoria[:2]:
+                if item not in todos_termos:
+                    todos_termos.append(item)
+        
+        for termo in todos_termos[:10]:
+            produtos = google_shopping.buscar_produtos(termo, 3, False)
+            total = google_shopping.buscar_total_resultados(termo, False) + ml_scraper.buscar_total_resultados(termo, False)
             score = calcular_score(total, produtos)
             
             resultados.append({
                 "Produto": termo,
                 "Score": score,
                 "Total Resultados": total,
-                "Produtos Encontrados": len(produtos)
+                "Produtos Encontrados": len(produtos),
+                "Fonte": "Pinterest" if termo in str(TENDENCIAS_PINTEREST) else "Historico"
             })
             time.sleep(0.5)
         
         df = pd.DataFrame(resultados).sort_values("Score", ascending=False).reset_index(drop=True)
         
-        st.markdown("### Oportunidades")
+        st.markdown("### Oportunidades do Dia")
+        st.caption(f"Atualizado em: {datetime.now().strftime('%d/%m/%Y %H:%M')}")
         st.dataframe(df, use_container_width=True, hide_index=True)
         
         st.info("Foque nos produtos com maior Score e menor numero de resultados!")
@@ -443,17 +569,21 @@ if st.button("Analisar Oportunidades", type="primary"):
 st.markdown("---")
 
 # ===== CONFIGURACAO =====
-with st.expander("Configuracao da SerpApi"):
+with st.expander("Sobre o Cache Diario"):
     st.markdown("""
-    **Como obter sua chave SerpApi:**
+    **Como funciona o cache diario:**
     
-    1. Acesse SerpApi (https://serpapi.com)
-    2. Crie uma conta gratuita (100 buscas/mes)
-    3. Copie sua API Key
-    4. Adicione no arquivo .streamlit/secrets.toml:
+    - Os dados sao armazenados localmente por 24 horas
+    - Consultas repetidas usam o cache para economizar recursos
+    - Clique em 'Atualizar' para forcar uma nova consulta
+    - Clique em 'Limpar Cache' para remover todos os dados armazenados
     
-    SERPAPI_KEY = "sua_chave_aqui"
+    **Vantagens:**
+    - Menos requisicoes as APIs
+    - Resposta mais rapida
+    - Economia de cotas (SerpApi)
+    - Dados consistentes durante o dia
     """)
     
     if not SERPAPI_KEY:
-        st.warning("SerpApi Key nao configurada. Algumas funcionalidades serao limitadas.")
+        st.warning("SerpApi Key nao configurada. Obtenha em serpapi.com")
