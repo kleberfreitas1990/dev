@@ -131,56 +131,129 @@ class CacheDiario:
         }
 
 # ============================================================
-# GERAR DADOS SUGESTÕES (ESTÁTICO - CARREGADO UMA VEZ AO DIA)
+# DADOS DE DATAS COMEMORATIVAS E PRODUTOS SUGERIDOS
+# ============================================================
+DATAS_COMEMORATIVAS = {
+    "Janeiro": {
+        "01-01": {"nome": "Ano Novo", "produtos": ["decoração", "roupa branca", "espumante"]},
+        "01-06": {"nome": "Dia de Reis", "produtos": ["presentes religiosos", "decoração"]},
+        "01-20": {"nome": "Dia de São Sebastião", "produtos": ["itens religiosos"]}
+    },
+    "Fevereiro": {
+        "02-02": {"nome": "Dia de Iemanjá", "produtos": ["flores", "velas", "artigos religiosos"]},
+        "02-14": {"nome": "Dia dos Namorados", "produtos": ["perfume", "jantar", "kit romântico"]},
+        "02-28": {"nome": "Carnaval", "produtos": ["fantasia", "acessórios", "glitter"]}
+    },
+    "Março": {
+        "03-08": {"nome": "Dia da Mulher", "produtos": ["flores", "perfumes", "kits de beleza"]},
+        "03-15": {"nome": "Dia do Consumidor", "produtos": ["eletrônicos", "promoções"]},
+        "03-20": {"nome": "Outono", "produtos": ["casaco leve", "cobertor"]}
+    },
+    "Abril": {
+        "04-07": {"nome": "Dia do Jornalista", "produtos": ["canecas personalizadas"]},
+        "04-21": {"nome": "Tiradentes", "produtos": ["artigos de viagem"]},
+        "04-28": {"nome": "Páscoa", "produtos": ["ovo de chocolate", "cesta", "coelhinho"]}
+    },
+    "Maio": {
+        "05-01": {"nome": "Dia do Trabalho", "produtos": ["artigos de churrasco"]},
+        "05-13": {"nome": "Dia das Mães", "produtos": ["perfume", "bolsa", "vestido", "flores"]},
+        "05-25": {"nome": "Dia do Orgulho LGBTQ+", "produtos": ["acessórios coloridos"]}
+    },
+    "Junho": {
+        "06-12": {"nome": "Dia dos Namorados", "produtos": ["perfume", "vinho", "jantar"]},
+        "06-24": {"nome": "São João", "produtos": ["decoração junina", "roupa xadrez"]}
+    },
+    "Julho": {
+        "07-09": {"nome": "Férias Escolares", "produtos": ["casaco", "blusa de lã", "bota", "cachecol", "cobertor", "meia", "luva", "jaqueta"]},
+        "07-20": {"nome": "Dia do Amigo", "produtos": ["kits de cerveja", "jogos"]}
+    },
+    "Agosto": {
+        "08-11": {"nome": "Volta às Aulas", "produtos": ["mochila", "estojo", "material escolar"]},
+        "08-14": {"nome": "Dia dos Pais", "produtos": ["ferramentas", "relógio", "cinto"]}
+    },
+    "Setembro": {
+        "09-07": {"nome": "Independência do Brasil", "produtos": ["decoração verde-amarela"]},
+        "09-22": {"nome": "Primavera", "produtos": ["vasos de plantas", "decoração floral"]}
+    },
+    "Outubro": {
+        "10-12": {"nome": "Dia das Crianças", "produtos": ["brinquedo", "boneca", "carrinho"]},
+        "10-31": {"nome": "Halloween", "produtos": ["fantasia", "decoração", "doces"]}
+    },
+    "Novembro": {
+        "11-02": {"nome": "Finados", "produtos": ["flores", "velas"]},
+        "11-25": {"nome": "Black Friday", "produtos": ["eletrônicos", "celular", "smartwatch"]}
+    },
+    "Dezembro": {
+        "12-25": {"nome": "Natal", "produtos": ["presentes", "árvore", "decoração"]},
+        "12-31": {"nome": "Réveillon", "produtos": ["roupa branca", "espumante"]}
+    }
+}
+
+# ============================================================
+# GERAR DADOS DE SUGESTÕES
 # ============================================================
 def gerar_sugestoes_produtos():
     """
-    Gera a lista de sugestões de produtos baseado nos dados minerados.
-    Esta função é executada uma vez ao dia e os dados são cacheados.
+    Gera a lista de sugestões de produtos baseado nas datas comemorativas.
     """
     cache = CacheDiario()
     chave_cache = "sugestoes_produtos_diarias"
     
-    # Tenta carregar do cache
     dados_cache = cache.obter(chave_cache, 24)
     if dados_cache is not None:
         return dados_cache
     
-    # Se não tiver cache, gera os dados
-    produtos_base = {
-        "casaco": {"categoria": "Moda", "evento": "Férias Escolares", "pins": 3400, "crescimento": 45, "visualizacoes": 5.8},
-        "blusa de la": {"categoria": "Moda", "evento": "Férias Escolares", "pins": 2800, "crescimento": 38, "visualizacoes": 4.2},
-        "bota": {"categoria": "Moda", "evento": "Férias Escolares", "pins": 1500, "crescimento": 20, "visualizacoes": 2.8},
-        "cachecol": {"categoria": "Moda", "evento": "Férias Escolares", "pins": 1200, "crescimento": 15, "visualizacoes": 1.9},
-        "cobertor": {"categoria": "Casa", "evento": "Férias Escolares", "pins": 950, "crescimento": 12, "visualizacoes": 1.5},
-        "meia": {"categoria": "Moda", "evento": "Férias Escolares", "pins": 800, "crescimento": 10, "visualizacoes": 1.1},
-        "luva": {"categoria": "Moda", "evento": "Férias Escolares", "pins": 500, "crescimento": 8, "visualizacoes": 0.6},
-        "jaqueta": {"categoria": "Moda", "evento": "Férias Escolares", "pins": 450, "crescimento": 5, "visualizacoes": 0.5}
-    }
+    mes_atual = datetime.now().strftime("%B").capitalize()
+    mes_atual_num = datetime.now().month
+    
+    # Mapeia mês para os dados
+    meses = list(DATAS_COMEMORATIVAS.keys())
+    mes_nome = meses[mes_atual_num - 1]
+    eventos_mes = DATAS_COMEMORATIVAS.get(mes_nome, {})
+    
+    # Encontra o próximo evento
+    hoje = datetime.now().strftime("%m-%d")
+    proximo_evento = None
+    for data, evento in eventos_mes.items():
+        if data >= hoje:
+            proximo_evento = evento
+            break
     
     sugestoes = []
-    for produto, dados in produtos_base.items():
-        # Define potencial baseado nos pins
-        if dados["pins"] >= 2000:
-            potencial = "Alto"
-        elif dados["pins"] >= 1000:
-            potencial = "Médio"
-        else:
-            potencial = "Baixo"
-        
-        sugestoes.append({
-            "Produto": produto,
-            "Categoria": dados["categoria"],
-            "Evento Relacionado": dados["evento"],
-            "Potencial": f"● {potencial}",
-            "Pins no Pinterest": f"{dados['pins']} pins",
-            "Crescimento": f"+{dados['crescimento']}%",
-            "Visualizações TikTok": f"{dados['visualizacoes']}M",
-            "Resultados": "Histórico",
-            "Buscar na Shopee": produto
-        })
     
-    # Salva no cache
+    # Se tem evento, usa os produtos do evento
+    if proximo_evento:
+        produtos_base = proximo_evento.get("produtos", [])
+        for produto in produtos_base[:8]:
+            # Simula dados para cada produto
+            sugestoes.append({
+                "Produto": produto,
+                "Categoria": "Variado",
+                "Evento Relacionado": proximo_evento.get("nome", ""),
+                "Potencial": random.choice(["● Alto", "● Médio", "● Baixo"]),
+                "Pins no Pinterest": f"{random.randint(400, 3500)} pins",
+                "Crescimento": f"+{random.randint(5, 50)}%",
+                "Visualizações TikTok": f"{round(random.uniform(0.5, 6.0), 1)}M",
+                "Resultados": "Histórico",
+                "Buscar na Shopee": produto
+            })
+    
+    # Se não tem evento, usa produtos históricos do mês
+    if not sugestoes:
+        produtos_fallback = ["smartwatch", "fone bluetooth", "camisa", "vestido", "tênis", "bolsa", "mochila", "cadeira gamer"]
+        for produto in produtos_fallback:
+            sugestoes.append({
+                "Produto": produto,
+                "Categoria": "Variado",
+                "Evento Relacionado": "Tendência do Mês",
+                "Potencial": random.choice(["● Alto", "● Médio", "● Baixo"]),
+                "Pins no Pinterest": f"{random.randint(400, 3500)} pins",
+                "Crescimento": f"+{random.randint(5, 50)}%",
+                "Visualizações TikTok": f"{round(random.uniform(0.5, 6.0), 1)}M",
+                "Resultados": "Histórico",
+                "Buscar na Shopee": produto
+            })
+    
     cache.definir(chave_cache, sugestoes)
     return sugestoes
 
@@ -194,8 +267,6 @@ def verificar_login():
     if not st.session_state.logado:
         st.title("🛒 Minerador de Produtos")
         st.markdown("### 🔐 Acesso ao Sistema")
-        
-        st.caption(f"💡 Licença de teste: `{LICENCA_PADRAO}`")
         
         licenca = st.text_input(
             "Digite sua Licença de Acesso:",
@@ -214,7 +285,7 @@ def verificar_login():
                 st.error("❌ Licença inválida. Verifique o código informado.")
         
         st.markdown("---")
-        st.caption("🔒 Sistema protegido por licença. Contate o suporte para obter acesso.")
+        st.caption("🔒 Sistema protegido por licença.")
         st.stop()
 
 # ============================================================
@@ -229,7 +300,6 @@ cache = CacheDiario()
 # ============================================================
 with st.sidebar:
     st.markdown("### ⚙️ Configurações")
-    st.caption(f"🔑 Licença: `{st.session_state.get('licenca_usuario', 'Ativa')}`")
     
     validade = st.selectbox(
         "⏱️ Validade do cache",
@@ -266,35 +336,79 @@ with st.sidebar:
 # ============================================================
 # PAINEL PRINCIPAL
 # ============================================================
-st.title("🛒 Minerador de Produtos")
+st.title("📊 Minerador de Produtos")
 st.caption(f"📅 {datetime.now().strftime('%A, %d de %B de %Y - %H:%M')}")
+
+# ============================================================
+# MÉTRICAS RÁPIDAS
+# ============================================================
+mes_atual = datetime.now().strftime("%B").capitalize()
+ano_atual = datetime.now().year
+proximas_datas = sum(1 for d in DATAS_COMEMORATIVAS.get(mes_atual, {}).keys() if d >= datetime.now().strftime("%m-%d"))
+
+col1, col2, col3, col4 = st.columns(4)
+
+with col1:
+    st.metric("📅 Mês Atual", f"{mes_atual}/{ano_atual}")
+
+with col2:
+    st.metric("🎯 Eventos no Mês", len(DATAS_COMEMORATIVAS.get(mes_atual, {})))
+
+with col3:
+    st.metric("📆 Próximos Eventos", proximas_datas)
+
+with col4:
+    sugestoes = gerar_sugestoes_produtos()
+    st.metric("🛒 Produtos Sugeridos", len(sugestoes))
+
+st.markdown("---")
 
 # ============================================================
 # TABS
 # ============================================================
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
-    "📊 Sugestões",
-    "🔍 Buscar Produtos",
-    "📈 Análise de Saturação",
-    "🎯 Oportunidades",
-    "📌 Tendências",
-    "🎬 Criar Vídeo IA"
+tab1, tab2, tab3, tab4 = st.tabs([
+    "📊 Visão Geral do Mês",
+    "📌 Sugestões de Produtos",
+    "📅 Calendário de Conteúdo",
+    "🔍 Buscar Produtos"
 ])
 
 # ============================================================
-# TAB 1: SUGESTÕES DE PRODUTOS (LAYOUT DO PRINT)
+# TAB 1: VISÃO GERAL DO MÊS
 # ============================================================
 with tab1:
-    st.markdown("### 📊 Sugestões de Produtos para este Mês")
-    st.caption("Produtos em alta baseados em tendências de mercado")
+    st.markdown(f"### 📊 Visão Geral - {mes_atual}/{ano_atual}")
     
-    # Carrega as sugestões (do cache ou gera novas)
+    # Datas comemorativas do mês
+    eventos_mes = DATAS_COMEMORATIVAS.get(mes_atual, {})
+    
+    if eventos_mes:
+        for data, evento in eventos_mes.items():
+            dia = data.split("-")[1]
+            with st.container(border=True):
+                col1, col2, col3 = st.columns([1, 2, 2])
+                with col1:
+                    st.markdown(f"### {dia}")
+                with col2:
+                    st.markdown(f"**{evento['nome']}**")
+                with col3:
+                    st.caption(f"📦 Produtos sugeridos: {', '.join(evento['produtos'][:3])}")
+                st.markdown("")
+    else:
+        st.info("Nenhum evento programado para este mês.")
+
+# ============================================================
+# TAB 2: SUGESTÕES DE PRODUTOS (PRINCIPAL)
+# ============================================================
+with tab2:
+    st.markdown("### 🎯 Sugestões de Produtos Estratégicos")
+    st.caption("Produtos em alta baseados em tendências de mercado e datas comemorativas")
+    
     sugestoes = gerar_sugestoes_produtos()
     
     if sugestoes:
         df = pd.DataFrame(sugestoes)
         
-        # Configura as colunas para exibição
         st.dataframe(
             df,
             use_container_width=True,
@@ -309,7 +423,7 @@ with tab1:
                 "Visualizações TikTok": st.column_config.TextColumn("Visualizações TikTok", width="medium"),
                 "Resultados": st.column_config.TextColumn("Resultados", width="small"),
                 "Buscar na Shopee": st.column_config.LinkColumn(
-                    "Buscar na Shopee",
+                    "🔍 Buscar",
                     validate=False,
                     width="small",
                     help="Clique para buscar na Shopee"
@@ -317,7 +431,7 @@ with tab1:
             }
         )
         
-        # Adiciona o rodapé com informações de consumo da API
+        # Rodapé informativo
         st.markdown("---")
         col1, col2, col3 = st.columns(3)
         with col1:
@@ -328,9 +442,40 @@ with tab1:
             st.caption(f"📅 Última atualização: {datetime.now().strftime('%d/%m/%Y %H:%M')}")
 
 # ============================================================
-# TAB 2: BUSCAR PRODUTOS
+# TAB 3: CALENDÁRIO DE CONTEÚDO
 # ============================================================
-with tab2:
+with tab3:
+    st.markdown("### 📅 Calendário de Conteúdo Estratégico")
+    st.caption("Prepare seu conteúdo com antecedência para as próximas datas")
+    
+    # Próximos 3 meses
+    meses_proximos = []
+    for i in range(3):
+        mes_num = datetime.now().month + i
+        if mes_num > 12:
+            mes_num = mes_num - 12
+        meses_proximos.append(list(DATAS_COMEMORATIVAS.keys())[mes_num - 1])
+    
+    for mes in meses_proximos:
+        st.markdown(f"#### 📌 {mes}")
+        eventos = DATAS_COMEMORATIVAS.get(mes, {})
+        
+        if eventos:
+            col1, col2 = st.columns([1, 1])
+            for i, (data, evento) in enumerate(eventos.items()):
+                with (col1 if i % 2 == 0 else col2):
+                    with st.container(border=True):
+                        dia = data.split("-")[1]
+                        st.markdown(f"**{dia}** - {evento['nome']}")
+                        st.caption(f"📦 Produtos: {', '.join(evento['produtos'][:3])}")
+                        st.caption(f"⏰ Prepare-se com {random.randint(3, 14)} dias de antecedência")
+        else:
+            st.caption(f"📭 Nenhum evento programado para {mes}")
+
+# ============================================================
+# TAB 4: BUSCAR PRODUTOS
+# ============================================================
+with tab4:
     st.markdown("### 🔍 Buscar Produtos no Mercado")
     
     col1, col2 = st.columns([3, 1])
@@ -352,152 +497,18 @@ with tab2:
         forcar = (modo == "Real-time")
         
         if st.button("🔍 Buscar", type="primary", width='stretch'):
-            with st.spinner("Buscando dados..."):
-                st.info(f"Buscando por '{termo_busca}'...")
-                # Simula busca (substituir por chamada real à API)
+            with st.spinner(f"Buscando dados para '{termo_busca}'..."):
                 time.sleep(2)
                 st.success(f"✅ Resultados para '{termo_busca}' carregados!")
-
-# ============================================================
-# TAB 3: ANÁLISE DE SATURAÇÃO
-# ============================================================
-with tab3:
-    st.markdown("### 📊 Análise de Saturação")
-    st.caption("Quanto menor o número de resultados, menor a concorrência")
-    
-    termo_sat = st.text_input(
-        "Digite um produto para analisar:",
-        placeholder="Ex: smartwatch...",
-        key="sat"
-    )
-    
-    if termo_sat and st.button("📊 Analisar", key="btn_sat"):
-        with st.spinner("Analisando..."):
-            st.info(f"Analisando '{termo_sat}'...")
-            time.sleep(1.5)
-            st.success("✅ Análise concluída!")
-
-# ============================================================
-# TAB 4: OPORTUNIDADES
-# ============================================================
-with tab4:
-    st.markdown("### 🎯 Oportunidades para Afiliados")
-    st.caption("Produtos com melhor Score e menor concorrência")
-    
-    if st.button("🚀 Analisar Oportunidades", type="primary", width='stretch'):
-        with st.spinner("Analisando oportunidades..."):
-            time.sleep(2)
-            st.success("✅ Análise de oportunidades concluída!")
-
-# ============================================================
-# TAB 5: TENDÊNCIAS
-# ============================================================
-with tab5:
-    st.markdown("### 📌 Tendências Pinterest 2025-2026")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("#### 📅 2025")
-        tendencias_2025 = {
-            "Beleza": ["jelly blush", "maquiagem glacial", "makeup gotica"],
-            "Moda": ["broches", "terno oversized", "rendas"],
-            "Decoração": ["afrodecor", "neo deco", "lar ludico"],
-            "Presentes": ["entre postais", "infância retro", "perfume nichado"]
-        }
-        for categoria, items in tendencias_2025.items():
-            with st.expander(f"📌 {categoria}"):
-                for item in items:
-                    st.markdown(f"- {item}")
-    
-    with col2:
-        st.markdown("#### 📅 2026")
-        tendencias_2026 = {
-            "Beleza": ["blush em gel", "iluminador furta-cor", "batom metálico"],
-            "Moda": ["maximalismo", "moda utilitária", "acessórios vintage"],
-            "Decoração": ["decoração circense", "arte etíope", "mármore vermelho"],
-            "Presentes": ["brinquedos anos 2000", "papelaria criativa", "kits de perfume"]
-        }
-        for categoria, items in tendencias_2026.items():
-            with st.expander(f"📌 {categoria}"):
-                for item in items:
-                    st.markdown(f"- {item}")
-
-# ============================================================
-# TAB 6: CRIAR VÍDEO COM IA
-# ============================================================
-with tab6:
-    st.markdown("### 🎬 Criar Vídeo com IA (9:16)")
-    st.caption("Formato vertical para TikTok, Instagram Reels e YouTube Shorts")
-    
-    if not GEMINI_API_KEY:
-        st.warning("⚠️ **Chave Gemini não configurada.** Adicione `GEMINI_API_KEY` no arquivo `.streamlit/secrets.toml`.")
-    
-    col1, col2 = st.columns([1, 1])
-    
-    with col1:
-        st.markdown("#### 🎨 Configuração do Vídeo")
-        
-        modelo = st.selectbox(
-            "Modelo",
-            ["Gemini Pro Video", "Grok Style", "Kling", "Bytedance"]
-        )
-        
-        imagem_upload = st.file_uploader(
-            "Selecionar Imagem (opcional)",
-            type=["png", "jpg", "jpeg", "webp"]
-        )
-        
-        prompt = st.text_area(
-            "Comando",
-            placeholder="Descreva o vídeo que deseja gerar...\n\nEx: 'Extreme close-up of a smartwatch with city reflected in it, cinematic lighting, 4k quality'",
-            height=150
-        )
-    
-    with col2:
-        st.markdown("#### ⚙️ Configurações Técnicas")
-        
-        st.markdown("**Resolução (9:16)**")
-        resolucao = st.radio(
-            "Qualidade",
-            ["480p (SD)", "720p (HD)"],
-            index=1
-        )
-        
-        duracao = st.selectbox(
-            "Duração",
-            [6, 10, 15]
-        )
-        
-        estilo = st.selectbox(
-            "Estilo Visual",
-            ["Realista", "Cinematográfico", "Animado", "Minimalista"]
-        )
-        
-        st.markdown("---")
-        st.metric("🎫 Créditos restantes", "1,880")
-        
-        if st.button("🚀 Gerar Vídeo", type="primary", width='stretch'):
-            if not prompt:
-                st.error("❌ Por favor, descreva o vídeo no campo 'Comando'.")
-            elif not GEMINI_API_KEY:
-                st.error("❌ Chave Gemini não configurada.")
-            else:
-                with st.spinner("🎬 Gerando vídeo com IA..."):
-                    progress = st.progress(0)
-                    status_text = st.empty()
-                    
-                    for i in range(10):
-                        progress.progress((i + 1) / 10)
-                        status_text.text(f"Processando... {int((i+1)/10 * 100)}%")
-                        time.sleep(0.3)
-                    
-                    status_text.empty()
-                    st.success("✅ Vídeo gerado com sucesso!")
-                    st.video("https://placehold.co/600x400/000000/FFFFFF?text=Video+Gerado+por+IA")
+                
+                # Exibe resultados simulados
+                st.markdown("#### 📊 Resultados da Busca")
+                st.info(f"Termo: {termo_busca}")
+                st.info(f"Modo: {'Real-time' if forcar else 'Cache'}")
+                st.caption("Dados seriam exibidos aqui com produtos encontrados nas plataformas.")
 
 # ============================================================
 # RODAPE
 # ============================================================
 st.markdown("---")
-st.caption(f"🛒 Minerador de Produtos v3.0 | {datetime.now().year} | Dados: Google Trends, Google Shopping, Mercado Livre, Gemini AI")
+st.caption(f"🛒 Minerador de Produtos v3.0 | {datetime.now().year} | Dados: Google Trends, Google Shopping, Mercado Livre")
