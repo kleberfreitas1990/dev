@@ -3,10 +3,8 @@ import pandas as pd
 import requests
 from urllib.parse import quote
 from datetime import datetime, date, timedelta
-import random
-import re
 import json
-import time
+import re
 
 # ============================================================
 # CONFIGURAÇÃO DA PÁGINA
@@ -18,98 +16,102 @@ st.set_page_config(
 )
 
 # ============================================================
-# CONSTANTES
+# CREDENCIAIS (use secrets em produção)
 # ============================================================
+# Para teste, você pode definir diretamente aqui
+# MAS EM PRODUÇÃO USE st.secrets
+MERCADO_LIVRE_ACCESS_TOKEN = "APP_USR-1720081667983577-070321-47260a48b656320ec5f335509feb480d-28997765"
+MERCADO_LIVRE_REFRESH_TOKEN = "TG-6a48687c5d204f00016bfdd9-28997765"
+CLIENT_ID = "1720081667983577"
+CLIENT_SECRET = "1crhfNc8AQpYSpPFrWL0FxhxvwpZLCsw"  # ATUALIZE COM O NOVO SECRET APÓS REVOGAR
+
 CHAVE_TESTE = "TESTE-AFILIADO-2026"
 
-# ===== CONFIGURAÇÕES DE API =====
-# SerpApi - para Google Shopping e Google Trends (requer chave)
-# Cadastre-se em: https://serpapi.com (100 buscas grátis/mês)
-SERPAPI_KEY = st.secrets.get("SERPAPI_KEY", "")
-
-# ===== DADOS HISTÓRICOS COMPLETOS =====
+# ============================================================
+# DADOS HISTÓRICOS
+# ============================================================
 DADOS_HISTORICOS_COMPLETOS = {
     1: {
-        "tendencias_ml": ["smartwatch", "fone bluetooth", "material escolar", "mochila", "tênis"],
-        "tendencias_pinterest": ["decoração ano novo", "organização", "looks verão"],
-        "tendencias_google": ["smartwatch", "fone", "caderno", "mochila"],
+        "tendencias": ["smartwatch", "fone bluetooth", "material escolar", "mochila", "tênis"],
+        "pinterest": ["decoração ano novo", "organização", "looks verão"],
+        "google": ["smartwatch", "fone", "caderno", "mochila"],
         "sazonais": ["✏️ Material Escolar", "🎯 Smartwatch", "🏃 Tênis"],
         "volume_base": {"smartwatch": 150, "fone bluetooth": 200, "material escolar": 300}
     },
     2: {
-        "tendencias_ml": ["fantasia", "biquíni", "sungas", "protetor solar", "fone"],
-        "tendencias_pinterest": ["fantasia carnaval", "looks praia", "maquiagem colorida"],
-        "tendencias_google": ["fantasia", "biquíni", "chinelo", "protetor"],
+        "tendencias": ["fantasia", "biquíni", "sungas", "protetor solar", "fone"],
+        "pinterest": ["fantasia carnaval", "looks praia", "maquiagem colorida"],
+        "google": ["fantasia", "biquíni", "chinelo", "protetor"],
         "sazonais": ["🎭 Fantasias", "🏖️ Moda Praia", "☀️ Protetor Solar"],
         "volume_base": {"fantasia": 250, "biquíni": 180, "protetor solar": 120}
     },
     3: {
-        "tendencias_ml": ["kit praia", "canga", "chapéu", "óculos sol", "smartwatch"],
-        "tendencias_pinterest": ["looks outono", "decoração Páscoa", "jardinagem"],
-        "tendencias_google": ["canga", "chapéu", "óculos", "smartwatch"],
+        "tendencias": ["kit praia", "canga", "chapéu", "óculos sol", "smartwatch"],
+        "pinterest": ["looks outono", "decoração Páscoa", "jardinagem"],
+        "google": ["canga", "chapéu", "óculos", "smartwatch"],
         "sazonais": ["🏖️ Kit Praia", "🎯 Smartwatch", "👒 Chapéu"],
         "volume_base": {"kit praia": 200, "canga": 150, "chapéu": 100}
     },
     4: {
-        "tendencias_ml": ["ovo páscoa", "chocolate", "cesta", "fone", "smartwatch"],
-        "tendencias_pinterest": ["decoração Páscoa", "receitas", "ovos decorados"],
-        "tendencias_google": ["ovo páscoa", "chocolate", "cesta", "fone"],
+        "tendencias": ["ovo páscoa", "chocolate", "cesta", "fone", "smartwatch"],
+        "pinterest": ["decoração Páscoa", "receitas", "ovos decorados"],
+        "google": ["ovo páscoa", "chocolate", "cesta", "fone"],
         "sazonais": ["🐣 Ovo Páscoa", "🍫 Chocolate", "🧺 Cesta"],
         "volume_base": {"ovo páscoa": 400, "chocolate": 250, "cesta": 180}
     },
     5: {
-        "tendencias_ml": ["dia das mães", "perfume", "bolsa", "vestido", "smartwatch"],
-        "tendencias_pinterest": ["presentes mães", "DIY", "flores", "looks outono"],
-        "tendencias_google": ["dia das mães", "perfume", "bolsa", "vestido"],
+        "tendencias": ["dia das mães", "perfume", "bolsa", "vestido", "smartwatch"],
+        "pinterest": ["presentes mães", "DIY", "flores", "looks outono"],
+        "google": ["dia das mães", "perfume", "bolsa", "vestido"],
         "sazonais": ["👩 Dia das Mães", "💐 Flores", "🎁 Presentes"],
         "volume_base": {"dia das mães": 500, "perfume": 200, "bolsa": 150}
     },
     6: {
-        "tendencias_ml": ["dia dos namorados", "perfume", "vinho", "chocolate", "fone"],
-        "tendencias_pinterest": ["presentes românticos", "jantar", "looks", "viagem"],
-        "tendencias_google": ["dia dos namorados", "perfume", "vinho", "chocolate"],
+        "tendencias": ["dia dos namorados", "perfume", "vinho", "chocolate", "fone"],
+        "pinterest": ["presentes românticos", "jantar", "looks", "viagem"],
+        "google": ["dia dos namorados", "perfume", "vinho", "chocolate"],
         "sazonais": ["💝 Dia dos Namorados", "🍷 Vinho", "🎧 Fone"],
         "volume_base": {"dia dos namorados": 450, "perfume": 180, "vinho": 120}
     },
     7: {
-        "tendencias_ml": ["casaco", "bota", "cachecol", "fone", "smartwatch"],
-        "tendencias_pinterest": ["looks inverno", "decoração", "viagem", "conforto"],
-        "tendencias_google": ["casaco", "bota", "cachecol", "fone"],
+        "tendencias": ["casaco", "bota", "cachecol", "fone", "smartwatch"],
+        "pinterest": ["looks inverno", "decoração", "viagem", "conforto"],
+        "google": ["casaco", "bota", "cachecol", "fone"],
         "sazonais": ["🧥 Casaco", "👢 Bota", "🧣 Cachecol"],
         "volume_base": {"casaco": 300, "bota": 200, "cachecol": 120}
     },
     8: {
-        "tendencias_ml": ["dia dos pais", "relógio", "cinto", "ferramenta", "smartwatch"],
-        "tendencias_pinterest": ["presentes pais", "DIY", "volta aulas", "decoração"],
-        "tendencias_google": ["dia dos pais", "relógio", "cinto", "ferramenta"],
+        "tendencias": ["dia dos pais", "relógio", "cinto", "ferramenta", "smartwatch"],
+        "pinterest": ["presentes pais", "DIY", "volta aulas", "decoração"],
+        "google": ["dia dos pais", "relógio", "cinto", "ferramenta"],
         "sazonais": ["👨 Dia dos Pais", "⌚ Relógio", "🔧 Ferramenta"],
         "volume_base": {"dia dos pais": 400, "relógio": 180, "ferramenta": 150}
     },
     9: {
-        "tendencias_ml": ["camisa", "calça", "vestido", "tênis", "smartwatch"],
-        "tendencias_pinterest": ["looks primavera", "decoração", "jardinagem", "viagens"],
-        "tendencias_google": ["camisa", "calça", "vestido", "tênis"],
+        "tendencias": ["camisa", "calça", "vestido", "tênis", "smartwatch"],
+        "pinterest": ["looks primavera", "decoração", "jardinagem", "viagens"],
+        "google": ["camisa", "calça", "vestido", "tênis"],
         "sazonais": ["🌸 Moda Primavera", "👕 Camisa", "👟 Tênis"],
         "volume_base": {"camisa": 200, "calça": 180, "vestido": 160}
     },
     10: {
-        "tendencias_ml": ["fantasia halloween", "decoração", "brinquedo", "fone", "smartwatch"],
-        "tendencias_pinterest": ["fantasia halloween", "decoração", "maquiagem", "receitas"],
-        "tendencias_google": ["halloween", "fantasia", "decoração", "brinquedo"],
+        "tendencias": ["fantasia halloween", "decoração", "brinquedo", "fone", "smartwatch"],
+        "pinterest": ["fantasia halloween", "decoração", "maquiagem", "receitas"],
+        "google": ["halloween", "fantasia", "decoração", "brinquedo"],
         "sazonais": ["🎃 Halloween", "🧙 Fantasia", "🕷️ Decoração"],
         "volume_base": {"fantasia halloween": 350, "decoração": 200, "brinquedo": 180}
     },
     11: {
-        "tendencias_ml": ["black friday", "eletrônico", "celular", "tv", "smartwatch"],
-        "tendencias_pinterest": ["ideias presentes", "decoração natal", "receitas", "black friday"],
-        "tendencias_google": ["black friday", "eletrônico", "celular", "tv"],
+        "tendencias": ["black friday", "eletrônico", "celular", "tv", "smartwatch"],
+        "pinterest": ["ideias presentes", "decoração natal", "receitas", "black friday"],
+        "google": ["black friday", "eletrônico", "celular", "tv"],
         "sazonais": ["🛒 Black Friday", "📱 Eletrônicos", "🎄 Natal"],
         "volume_base": {"black friday": 800, "eletrônico": 300, "smartwatch": 250}
     },
     12: {
-        "tendencias_ml": ["natal", "presente", "árvore", "decoração", "smartwatch"],
-        "tendencias_pinterest": ["decoração natal", "presentes", "receitas", "réveillon"],
-        "tendencias_google": ["natal", "presente", "árvore", "decoração"],
+        "tendencias": ["natal", "presente", "árvore", "decoração", "smartwatch"],
+        "pinterest": ["decoração natal", "presentes", "receitas", "réveillon"],
+        "google": ["natal", "presente", "árvore", "decoração"],
         "sazonais": ["🎄 Natal", "🎁 Presentes", "✨ Decoração"],
         "volume_base": {"natal": 600, "presente": 400, "decoração": 250}
     }
@@ -155,30 +157,59 @@ CATEGORIAS_TERMOS = {
 
 
 # ============================================================
-# APIs PÚBLICAS (SEM AUTENTICAÇÃO RESTRITA)
+# FUNÇÕES DE AUTENTICAÇÃO E RENOVAÇÃO DO TOKEN
 # ============================================================
+def renovar_token_ml():
+    """Renova o Access Token usando o Refresh Token"""
+    url = "https://api.mercadolibre.com/oauth/token"
+    payload = {
+        "grant_type": "refresh_token",
+        "client_id": CLIENT_ID,
+        "client_secret": CLIENT_SECRET,
+        "refresh_token": MERCADO_LIVRE_REFRESH_TOKEN
+    }
+    try:
+        resp = requests.post(url, data=payload, timeout=10)
+        data = resp.json()
+        if "access_token" in data:
+            return data["access_token"]
+        else:
+            st.error(f"Erro ao renovar token: {data}")
+            return None
+    except Exception as e:
+        st.error(f"Erro na renovação: {e}")
+        return None
 
-def buscar_mercadolivre_publico(termo, limite=5):
-    """
-    Busca no Mercado Livre via endpoint público 
-    (pode ter bloqueios, mas é a versão mais simples)
-    """
+
+# ============================================================
+# FUNÇÕES DA API MERCADO LIVRE (COM AUTENTICAÇÃO)
+# ============================================================
+def buscar_produtos_mercadolivre(termo, limite=5):
+    """Busca produtos no Mercado Livre com autenticação"""
     try:
         url = "https://api.mercadolibre.com/sites/MLB/search"
         params = {
             "q": termo,
             "limit": limite,
-            "condition": "new"  # Apenas produtos novos
+            "condition": "new"
         }
         headers = {
+            "Authorization": f"Bearer {MERCADO_LIVRE_ACCESS_TOKEN}",
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
         }
         resp = requests.get(url, params=params, headers=headers, timeout=10)
         
-        if resp.status_code == 403:
-            # Se o ML está bloqueando, tenta o endpoint alternativo
-            return buscar_mercadolivre_alternativo(termo, limite)
-            
+        # Se token expirou, tenta renovar
+        if resp.status_code == 401:
+            st.warning("Token expirado. Renovando...")
+            novo_token = renovar_token_ml()
+            if novo_token:
+                # Atualiza o token e tenta novamente
+                global MERCADO_LIVRE_ACCESS_TOKEN
+                MERCADO_LIVRE_ACCESS_TOKEN = novo_token
+                headers["Authorization"] = f"Bearer {novo_token}"
+                resp = requests.get(url, params=params, headers=headers, timeout=10)
+        
         resp.raise_for_status()
         data = resp.json()
         
@@ -193,194 +224,162 @@ def buscar_mercadolivre_publico(termo, limite=5):
                 "loja": "Mercado Livre"
             })
         return produtos
+    except requests.exceptions.HTTPError as e:
+        if e.response.status_code == 403:
+            st.error("🚫 Erro 403: Acesso negado. Verifique as permissões do token.")
+        elif e.response.status_code == 429:
+            st.error("⏳ Muitas requisições. Aguarde um momento e tente novamente.")
+        else:
+            st.error(f"Erro HTTP: {e}")
+        return []
     except Exception as e:
+        st.error(f"Erro na busca ML: {e}")
         return []
 
-def buscar_mercadolivre_alternativo(termo, limite=5):
-    """
-    Busca via endpoint alternativo do ML (pode funcionar quando o principal bloqueia)
-    """
-    try:
-        # Usa o endpoint de busca do site (HTML) com parser
-        url = f"https://lista.mercadolivre.com.br/{quote(termo)}"
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-            "Accept": "text/html",
-        }
-        resp = requests.get(url, headers=headers, timeout=10)
-        
-        # Como é HTML, precisaríamos de um parser (BeautifulSoup)
-        # Por enquanto, retorna vazio - indica que precisa de scraping
-        return []
-    except Exception:
-        return []
 
-def buscar_google_shopping(termo, limite=5):
-    """
-    Busca no Google Shopping via SerpApi (pago, mas com plano gratuito)
-    Cadastre-se em: https://serpapi.com
-    """
-    if not SERPAPI_KEY:
-        return []
-    
+def buscar_total_resultados_ml(termo):
+    """Busca total de resultados para um termo no Mercado Livre"""
     try:
-        url = "https://serpapi.com/search.json"
+        url = "https://api.mercadolibre.com/sites/MLB/search"
         params = {
             "q": termo,
-            "tbm": "shop",
-            "api_key": SERPAPI_KEY,
-            "gl": "br",
-            "hl": "pt",
-            "num": limite
+            "limit": 1,
+            "condition": "new"
         }
-        resp = requests.get(url, params=params, timeout=10)
-        data = resp.json()
+        headers = {
+            "Authorization": f"Bearer {MERCADO_LIVRE_ACCESS_TOKEN}",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+        }
+        resp = requests.get(url, params=params, headers=headers, timeout=10)
         
+        if resp.status_code == 401:
+            novo_token = renovar_token_ml()
+            if novo_token:
+                global MERCADO_LIVRE_ACCESS_TOKEN
+                MERCADO_LIVRE_ACCESS_TOKEN = novo_token
+                headers["Authorization"] = f"Bearer {novo_token}"
+                resp = requests.get(url, params=params, headers=headers, timeout=10)
+        
+        resp.raise_for_status()
+        data = resp.json()
+        return data.get("paging", {}).get("total", 0)
+    except Exception:
+        return 0
+
+
+def buscar_produtos_shopee(termo, limite=5):
+    """Busca produtos na Shopee (pode ser bloqueado)"""
+    try:
+        url = "https://shopee.com.br/api/v4/search/search_items"
+        params = {
+            "by": "relevancy",
+            "keyword": termo,
+            "limit": limite,
+            "newest": 0,
+            "order": "desc",
+            "page_type": "search",
+            "scenario": "PAGE_GLOBAL_SEARCH",
+            "version": 2,
+        }
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            "Referer": f"https://shopee.com.br/search?keyword={quote(termo)}",
+        }
+        resp = requests.get(url, params=params, headers=headers, timeout=10)
+        resp.raise_for_status()
+        data = resp.json()
         produtos = []
-        for item in data.get("shopping_results", [])[:limite]:
+        for item in data.get("items", [])[:limite]:
+            info = item.get("item_basic", item)
+            preco = info.get("price", 0) / 100000
+            itemid = info.get("itemid")
+            shopid = info.get("shopid")
+            link = f"https://shopee.com.br/product/{shopid}/{itemid}" if itemid and shopid else ""
             produtos.append({
-                "nome": item.get("title", ""),
-                "preco": item.get("price", ""),
-                "loja": item.get("source", ""),
-                "link": item.get("link", ""),
-                "imagem": item.get("thumbnail", ""),
-                "avaliacao": item.get("rating", None)
+                "nome": info.get("name", ""),
+                "preco": f"R$ {preco:.2f}",
+                "vendas": info.get("historical_sold", info.get("sold", 0)),
+                "link": link,
+                "loja": "Shopee"
             })
         return produtos
     except Exception:
         return []
 
-def buscar_google_trends(termo, geo="BR", timeframe="now 7-d"):
-    """
-    Busca dados do Google Trends via SerpApi
-    """
-    if not SERPAPI_KEY:
-        return None
-    
-    try:
-        url = "https://serpapi.com/search.json"
-        params = {
-            "q": termo,
-            "engine": "google_trends",
-            "data_type": "TIMESERIES",
-            "api_key": SERPAPI_KEY,
-            "geo": geo,
-            "timeframe": timeframe
-        }
-        resp = requests.get(url, params=params, timeout=10)
-        data = resp.json()
-        
-        # Extrai valores de interesse
-        timeline = data.get("interest_over_time", {}).get("timeline_data", [])
-        if timeline:
-            valores = [int(item.get("value", [0])[0]) for item in timeline if item.get("value")]
-            return {
-                "media": sum(valores) / len(valores) if valores else 0,
-                "pico": max(valores) if valores else 0,
-                "tendencia": "crescendo" if valores and valores[-1] > valores[0] else "estável"
-            }
-        return None
-    except Exception:
-        return None
-
-def buscar_pinterest_trends(termo):
-    """
-    Verifica se um termo está em alta no Pinterest
-    Usa a API pública de sugestões do Pinterest
-    """
-    try:
-        url = f"https://www.pinterest.com/resource/BaseSearchResource/get/"
-        params = {
-            "source_url": f"/search/pins/?q={quote(termo)}",
-            "data": '{"options":{"query":"' + termo + '","scope":"pins"}}'
-        }
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-        }
-        # O Pinterest bloqueia requisições sem autenticação
-        # Esta é uma tentativa, mas provavelmente falhará
-        return {"esta_em_alta": False, "fonte": "Pinterest (limitado)"}
-    except Exception:
-        return {"esta_em_alta": False, "fonte": "Pinterest (não disponível)"}
-
 
 # ============================================================
-# FUNÇÕES DE ANÁLISE COMBINADA
+# FUNÇÕES DE ANÁLISE
 # ============================================================
+def analisar_saturacao(total):
+    if total == 0:
+        return {"nivel": "Sem dados", "recomendacao": "Nenhum produto encontrado"}
+    elif total < 50:
+        return {"nivel": "🟢 Baixa Saturação", "recomendacao": "Ótimo! Pouca concorrência. Aproveite!"}
+    elif total < 200:
+        return {"nivel": "🟡 Saturação Moderada", "recomendacao": "Concorrência razoável. Ainda há espaço."}
+    elif total < 500:
+        return {"nivel": "🟠 Saturação Alta", "recomendacao": "Mercado concorrido. Foque em nichos específicos."}
+    else:
+        return {"nivel": "🔴 Saturação Muito Alta", "recomendacao": "Mercado saturado. Busque variações menos competitivas."}
 
-def analisar_produto_multifonte(termo, mes_atual):
-    """
-    Analisa produto combinando múltiplas fontes:
-    1. ML (público)
-    2. Google Shopping (via SerpApi)
-    3. Google Trends (via SerpApi)
-    """
-    historico = DADOS_HISTORICOS_COMPLETOS.get(mes_atual, DADOS_HISTORICOS_COMPLETOS[1])
-    
-    # Busca em múltiplas fontes
-    produtos_ml = buscar_mercadolivre_publico(termo, 3)
-    produtos_google = buscar_google_shopping(termo, 3)
-    
-    # Tendências do Google
-    trends = buscar_google_trends(termo)
-    
-    # Dados históricos
-    volume_historico = historico.get("volume_base", {}).get(termo, 0)
-    esta_no_pinterest = termo.lower() in [t.lower() for t in historico.get("tendencias_pinterest", [])]
-    esta_no_google_historico = termo.lower() in [t.lower() for t in historico.get("tendencias_google", [])]
-    
-    # Calcula volume atual (aproximado pelo número de produtos encontrados)
-    volume_atual = len(produtos_ml) * 100  # Estimativa
-    
-    # Calcula crescimento
-    if volume_historico > 0:
-        crescimento = ((volume_atual - volume_historico) / volume_historico) * 100
+
+def calcular_score_oportunidade(total_resultados, media_vendas):
+    if total_resultados <= 0:
+        score_saturacao = 0
     else:
-        crescimento = 0
+        score_saturacao = max(0, 6 - (total_resultados / 100))
+    score_vendas = min(media_vendas / 20, 4)
+    return round(min(score_saturacao + score_vendas, 10), 1)
+
+
+def analisar_produto_completo(termo, categoria):
+    total_ml = buscar_total_resultados_ml(termo)
+    produtos_ml = buscar_produtos_mercadolivre(termo, 5)
     
-    # Sinais de saturação
-    sinais_saturacao = []
+    # Calcular média de vendas
+    vendas = [p.get("vendas", 0) for p in produtos_ml if p.get("vendas", 0) > 0]
+    media_vendas = (sum(vendas) / len(vendas)) if vendas else 0
     
-    if len(produtos_ml) >= 3:
-        sinais_saturacao.append("📈 Múltiplos produtos no ML")
-    if len(produtos_google) >= 3:
-        sinais_saturacao.append("🛒 Múltiplos produtos no Google Shopping")
-    if crescimento > 50:
-        sinais_saturacao.append("🚀 Crescimento acelerado (>50%)")
-    if esta_no_pinterest and esta_no_google_historico:
-        sinais_saturacao.append("🔥 Tendência em múltiplas fontes")
-    if trends and trends.get("media", 0) > 50:
-        sinais_saturacao.append("📊 Alta no Google Trends")
-    
-    # Status
-    if len(sinais_saturacao) >= 3:
-        status = "🔴 COMEÇANDO A SATURAR"
-        recomendacao = "Produto com sinais claros de saturação. Entre rápido ou busque nichos."
-    elif len(sinais_saturacao) >= 2:
-        status = "🟡 MONITORAR - Crescendo rapidamente"
-        recomendacao = "Ainda há oportunidade, mas a concorrência está aumentando."
-    elif len(sinais_saturacao) >= 1:
-        status = "🟢 OPORTUNIDADE - Mercado em crescimento"
-        recomendacao = "Bom momento para entrar. Poucos sinais de saturação."
-    else:
-        status = "⚪ OPORTUNIDADE INICIAL"
-        recomendacao = "Mercado ainda não validado. Pode ser uma aposta."
+    saturacao_pct = min(round((total_ml / 500) * 100, 1), 100) if total_ml else 0
+    score = calcular_score_oportunidade(total_ml, media_vendas)
     
     return {
-        "termo": termo,
-        "produtos_ml": produtos_ml,
-        "produtos_google": produtos_google,
-        "trends": trends,
-        "volume_historico": volume_historico,
-        "crescimento": crescimento,
-        "sinais_saturacao": sinais_saturacao,
-        "status": status,
-        "recomendacao": recomendacao
+        "Produto": termo,
+        "Categoria": categoria,
+        "Score": score,
+        "Saturação (%)": saturacao_pct,
+        "Vendas Médias": round(media_vendas, 1),
+        "Total Resultados": total_ml,
+        "Recomendação": analisar_saturacao(total_ml)["recomendacao"]
     }
 
 
 # ============================================================
-# LOGIN
+# FUNÇÕES DE DATAS E SUGESTÕES
+# ============================================================
+def get_dados_historicos_mes(mes):
+    return DADOS_HISTORICOS_COMPLETOS.get(mes, DADOS_HISTORICOS_COMPLETOS[1])
+
+
+def verificar_data_comemorativa(mes, dia):
+    hoje = date.today()
+    proximo_evento = None
+    menor_diff = None
+    for (m, d), nome in DATAS_COMEMORATIVAS.items():
+        try:
+            data_evento = date(hoje.year, m, d)
+        except ValueError:
+            continue
+        diff = (data_evento - hoje).days
+        if 0 <= diff <= 7:
+            if menor_diff is None or diff < menor_diff:
+                menor_diff = diff
+                proximo_evento = nome
+    return proximo_evento
+
+
+# ============================================================
+# FUNÇÃO DE LOGIN
 # ============================================================
 def verificar_login():
     if "logado" not in st.session_state:
@@ -399,162 +398,165 @@ def verificar_login():
 
 
 # ============================================================
-# APP
+# APP PRINCIPAL
 # ============================================================
 verificar_login()
 
 st.title("🛒 Minerador de Produtos - Afiliados")
-st.caption("Análise de produtos com dados de ML, Google Shopping e Google Trends")
+st.caption("Análise de produtos com dados do Mercado Livre (autenticado) e Shopee")
 
-# ===== SIDEBAR: CONFIGURAÇÕES =====
+# Status do token
 with st.sidebar:
-    st.markdown("### ⚙️ Configurações")
-    
-    serp_key = st.text_input("SerpApi Key (opcional)", type="password", value=SERPAPI_KEY)
-    if serp_key != SERPAPI_KEY:
-        SERPAPI_KEY = serp_key
-        st.success("Chave atualizada!")
-    
-    st.markdown("---")
-    st.markdown("**🔗 Fontes de dados:**")
+    st.markdown("### 🔐 Status da API ML")
+    st.success("✅ Token autenticado")
+    st.caption(f"User ID: 28997765")
+    st.caption("Expira em: 6 horas")
+    st.caption(f"Refresh Token: {MERCADO_LIVRE_REFRESH_TOKEN[:20]}...")
+
+st.markdown("---")
+
+# ===== SEÇÃO 1: BUSCAR PRODUTOS =====
+st.markdown("## 🔍 Buscar Produtos no Mercado Livre")
+
+termo_busca = st.text_input("🔍 Digite um produto:", placeholder="Ex: smartwatch, fone bluetooth...")
+
+if termo_busca and st.button("📊 Buscar", type="primary"):
+    with st.spinner(f"Buscando '{termo_busca}'..."):
+        produtos = buscar_produtos_mercadolivre(termo_busca, 10)
+        total = buscar_total_resultados_ml(termo_busca)
+        saturacao = analisar_saturacao(total)
+        
+        st.markdown(f"### 📊 Resultados para '{termo_busca}'")
+        
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("Total de Resultados", total)
+        with col2:
+            st.metric("Produtos Exibidos", len(produtos))
+        with col3:
+            st.metric("Saturação", saturacao["nivel"])
+        
+        st.markdown("---")
+        st.markdown(f"💡 {saturacao['recomendacao']}")
+        
+        if produtos:
+            st.markdown("---")
+            st.markdown("### 🛒 Produtos Encontrados")
+            for p in produtos[:5]:
+                with st.container(border=True):
+                    c1, c2 = st.columns([3, 1])
+                    with c1:
+                        st.markdown(f"**{p.get('nome', '')[:80]}**")
+                        st.markdown(f"💰 {p.get('preco', '')} | 📦 {p.get('vendas', 0)} vendidos")
+                    with c2:
+                        if p.get("link"):
+                            st.link_button("🔗 Ver", p["link"], width='stretch')
+
+st.markdown("---")
+
+# ===== SEÇÃO 2: ANÁLISE DE SATURAÇÃO =====
+st.markdown("## 🎯 Análise de Saturação")
+
+with st.expander("🔍 O que é a Análise de Saturação?"):
     st.markdown("""
-    - Mercado Livre (público)
-    - Google Shopping (via SerpApi)
-    - Google Trends (via SerpApi)
-    - Dados históricos (built-in)
+    A análise de saturação mede a concorrência para um produto no Mercado Livre.
+    Quanto menor o número de resultados, **menor a concorrência** e **melhor a oportunidade**.
+    
+    - 🟢 **Baixa Saturação** (< 50 resultados) → Ótima oportunidade
+    - 🟡 **Moderada** (50-200 resultados) → Concorrência razoável
+    - 🟠 **Alta** (200-500 resultados) → Mercado concorrido
+    - 🔴 **Muito Alta** (> 500 resultados) → Mercado saturado
     """)
-    
-    if not SERPAPI_KEY:
-        st.warning("⚠️ Sem SerpApi Key. Algumas funcionalidades serão limitadas.")
-        st.markdown("[Obter chave grátis](https://serpapi.com)")
+
+termo_sat = st.text_input("🔍 Digite um produto para analisar saturação:", placeholder="Ex: smartwatch, fone bluetooth...", key="sat")
+
+if termo_sat and st.button("📊 Analisar Saturação", key="btn_sat"):
+    with st.spinner(f"Analisando '{termo_sat}'..."):
+        total = buscar_total_resultados_ml(termo_sat)
+        produtos = buscar_produtos_mercadolivre(termo_sat, 3)
+        saturacao = analisar_saturacao(total)
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric("Total de Resultados", total)
+        with col2:
+            st.metric("Status", saturacao["nivel"])
+        
+        st.markdown(f"💡 {saturacao['recomendacao']}")
+        
+        if produtos:
+            st.markdown("---")
+            st.markdown("#### 📦 Primeiros produtos encontrados:")
+            for p in produtos[:3]:
+                st.markdown(f"- **{p.get('nome', '')[:50]}** - 💰 {p.get('preco', '')}")
 
 st.markdown("---")
 
-# ===== SEÇÃO 1: ANÁLISE MULTIFONTE =====
-st.markdown("## 🔍 Análise de Produto - Múltiplas Fontes")
-st.caption("Cruza dados do Mercado Livre, Google Shopping e Google Trends")
-
-termo_busca = st.text_input("🔍 Digite um produto para analisar:", placeholder="Ex: smartwatch, fone bluetooth...")
-
-if termo_busca and st.button("📊 Analisar Produto", type="primary"):
-    mes_atual = datetime.now().month
-    
-    with st.spinner(f"Cruzando dados para '{termo_busca}'..."):
-        analise = analisar_produto_multifonte(termo_busca, mes_atual)
-        
-        # Status
-        st.markdown(f"### {analise['status']}")
-        st.markdown(f"**💡 {analise['recomendacao']}**")
-        
-        st.markdown("---")
-        
-        # Métricas
-        c1, c2, c3 = st.columns(3)
-        with c1:
-            st.metric("🔵 ML", f"{len(analise['produtos_ml'])} produtos")
-        with c2:
-            st.metric("🛒 Google Shopping", f"{len(analise['produtos_google'])} produtos")
-        with c3:
-            st.metric("📈 Crescimento YoY", f"{analise['crescimento']:.1f}%")
-        
-        st.markdown("---")
-        
-        # Sinais de saturação
-        st.markdown("#### 🚨 Sinais de Saturação")
-        if analise["sinais_saturacao"]:
-            for sinal in analise["sinais_saturacao"]:
-                st.markdown(f"- {sinal}")
-        else:
-            st.info("✅ Nenhum sinal de saturação detectado.")
-        
-        st.markdown("---")
-        
-        # Produtos ML
-        c1, c2 = st.columns(2)
-        
-        with c1:
-            st.markdown("#### 🔵 Mercado Livre")
-            if analise["produtos_ml"]:
-                for p in analise["produtos_ml"]:
-                    st.markdown(f"- **{p.get('nome', '')[:50]}**")
-                    st.markdown(f"  💰 {p.get('preco', '')} | 📦 {p.get('vendas', 0)} vendidos")
-                    if p.get("link"):
-                        st.markdown(f"  [🔗 Ver]({p['link']})")
-                    st.markdown("")
-            else:
-                st.info("Nenhum produto encontrado (possível bloqueio do ML)")
-        
-        with c2:
-            st.markdown("#### 🛒 Google Shopping")
-            if analise["produtos_google"]:
-                for p in analise["produtos_google"]:
-                    st.markdown(f"- **{p.get('nome', '')[:50]}**")
-                    st.markdown(f"  💰 {p.get('preco', '')} | 🏪 {p.get('loja', '')}")
-                    if p.get("link"):
-                        st.markdown(f"  [🔗 Ver]({p['link']})")
-                    st.markdown("")
-            else:
-                if SERPAPI_KEY:
-                    st.info("Nenhum produto encontrado no Google Shopping")
-                else:
-                    st.warning("SerpApi Key necessária para Google Shopping")
-        
-        st.markdown("---")
-        
-        # Links rápidos
-        c1, c2 = st.columns(2)
-        with c1:
-            st.link_button("🔍 Buscar no ML", f"https://lista.mercadolivre.com.br/{quote(termo_busca)}", width='stretch')
-        with c2:
-            st.link_button("🔍 Buscar no Google Shopping", f"https://www.google.com/search?q={quote(termo_busca)}&tbm=shop", width='stretch')
-
-st.markdown("---")
-
-# ===== SEÇÃO 2: SUGESTÕES SAZONAIS =====
-st.markdown("## 📅 Sugestões para o Mês Atual")
+# ===== SEÇÃO 3: SUGESTÕES POR DATA =====
+st.markdown("## 📅 Sugestões por Data")
 
 mes_atual = datetime.now().month
-dados_mes = DADOS_HISTORICOS_COMPLETOS.get(mes_atual, DADOS_HISTORICOS_COMPLETOS[1])
+dados_mes = get_dados_historicos_mes(mes_atual)
+evento = verificar_data_comemorativa(datetime.now().month, datetime.now().day)
 
-st.markdown(f"**Mês:** {datetime.now().strftime('%B').capitalize()}")
+if evento:
+    st.success(f"🎉 Data comemorativa próxima: **{evento}**")
+else:
+    st.info("Nenhuma data comemorativa nos próximos 7 dias.")
 
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    st.markdown("**🔵 Mercado Livre**")
-    for t in dados_mes.get("tendencias_ml", [])[:4]:
+    st.markdown("**🛒 Em Alta no ML**")
+    for t in dados_mes.get("tendencias", [])[:4]:
         st.markdown(f"- {t}")
 
 with col2:
     st.markdown("**📌 Pinterest**")
-    for t in dados_mes.get("tendencias_pinterest", [])[:4]:
+    for t in dados_mes.get("pinterest", [])[:4]:
         st.markdown(f"- {t}")
 
 with col3:
     st.markdown("**🔍 Google Trends**")
-    for t in dados_mes.get("tendencias_google", [])[:4]:
+    for t in dados_mes.get("google", [])[:4]:
         st.markdown(f"- {t}")
 
 st.markdown("---")
-
 st.markdown("#### 🎯 Produtos Sazonais em Destaque")
 for s in dados_mes.get("sazonais", []):
     st.markdown(f"- {s}")
 
 st.markdown("---")
 
-# ===== SEÇÃO 3: STATUS DAS APIS =====
-with st.expander("🔧 Status das APIs"):
-    st.markdown("""
-    | Fonte | Status | Observação |
-    |-------|--------|------------|
-    | Mercado Livre (público) | ⚠️ | Pode bloquear requisições repetidas |
-    | Google Shopping (SerpApi) | ✅ | Funciona, requer chave |
-    | Google Trends (SerpApi) | ✅ | Funciona, requer chave |
-    | Pinterest | ⚠️ | Limitado, sem API pública |
-    | Dados históricos | ✅ | Sempre disponível |
-    """)
-    
-    if not SERPAPI_KEY:
-        st.warning("🔑 **Configure sua SerpApi Key** para acessar Google Shopping e Google Trends.")
-        st.markdown("[Obter chave gratuita na SerpApi](https://serpapi.com)")
+# ===== SEÇÃO 4: MINERADOR PRO =====
+st.markdown("## 🛍️ Minerador Pro - Oportunidades para Afiliados")
+
+if st.button("🚀 Analisar Oportunidades", type="primary"):
+    with st.spinner("Analisando produtos..."):
+        resultados = [
+            analisar_produto_completo(termo, categoria)
+            for termo, categoria in CATEGORIAS_TERMOS.items()
+        ]
+        df = pd.DataFrame(resultados).sort_values("Score", ascending=False).reset_index(drop=True)
+        
+        st.markdown("### 📊 Oportunidades por Score")
+        st.dataframe(df, width='stretch', hide_index=True)
+        
+        st.markdown("---")
+        st.markdown("### 💡 Estratégia para Afiliados")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.success(
+                "**🎯 Oportunidades Excelentes (Score ≥ 8)**\n\n"
+                "- ✅ Baixa concorrência\n"
+                "- ✅ Produto já validado\n"
+                "- ✅ Boa margem para conteúdo\n\n"
+                "**Ação:** crie conteúdo com urgência!"
+            )
+        with col2:
+            st.info(
+                "**⭐ Boas Oportunidades (Score ≥ 6)**\n\n"
+                "- ⚠️ Concorrência moderada\n"
+                "- 📈 Produto com potencial\n\n"
+                "**Ação:** analise a concorrência e crie conteúdo diferenciado"
+            )
