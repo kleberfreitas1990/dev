@@ -32,7 +32,7 @@ ARQUIVO_GALERIA = "galeria_videos.json"
 CREDITOS_DIARIOS = 10
 
 # ============================================================
-# CARREGAR SECRETS (DO STREAMLIT CLOUD)
+# CARREGAR SECRETS
 # ============================================================
 def carregar_secrets():
     try:
@@ -144,7 +144,7 @@ class GaleriaVideos:
         self.salvar()
 
 # ============================================================
-# GERADOR DE VÍDEO COM SNAPGEN AI (CORRIGIDO)
+# GERADOR DE VÍDEO COM SNAPGEN AI (CORRIGIDO - MÚLTIPLOS ENDPOINTS)
 # ============================================================
 class SnapGenVideoGenerator:
     def __init__(self):
@@ -153,8 +153,14 @@ class SnapGenVideoGenerator:
         self.password = SNAPGEN_PASSWORD
         self.galeria = GaleriaVideos()
         self.creditos = CreditosDiarios()
-        # Endpoint correto baseado na documentação
-        self.base_url = "https://api.snapgen.ai/uapi/v1/generate"
+        # Lista de endpoints possíveis
+        self.endpoints = [
+            "https://api.snapgen.ai/uapi/v1/generate",
+            "https://api.snapgen.ai/v1/generate",
+            "https://api.snapgen.ai/generate",
+            "https://api.snapgen.ai/api/v1/generate",
+            "https://api.snapgen.ai/uapi/generate"
+        ]
 
     def gerar_video(self, prompt, licenca, duracao=6, resolucao="480p", estilo="Realista", modelo="SnapGen"):
         if not self.api_key and not (self.email and self.password):
@@ -164,13 +170,11 @@ class SnapGenVideoGenerator:
             return {"erro": "Créditos diários esgotados. Volte amanhã!"}
         
         try:
-            # Cabeçalhos com a chave de API
             headers = {
                 "x-api-key": self.api_key,
                 "Content-Type": "application/json"
             }
             
-            # Se não tiver API Key, tenta autenticar com email/senha
             if not self.api_key and self.email and self.password:
                 try:
                     auth_response = requests.post(
@@ -188,7 +192,6 @@ class SnapGenVideoGenerator:
             if "x-api-key" not in headers or not headers["x-api-key"]:
                 return {"erro": "Nenhuma chave de API válida encontrada."}
 
-            # Payload no formato correto para vídeo
             payload = {
                 "type": "video",
                 "prompt": prompt,
@@ -202,62 +205,67 @@ class SnapGenVideoGenerator:
             st.info(f"🎬 Iniciando geração com SnapGen...")
             st.caption(f"⏱️ Duração: {duracao}s | 📐 9:16 | 📺 {resolucao}")
             
-            # Faz a requisição
-            response = requests.post(
-                self.base_url,
-                json=payload,
-                headers=headers,
-                timeout=120
-            )
-            
-            # Processa a resposta
-            if response.status_code == 200:
-                data = response.json()
-                
-                # Tenta encontrar a URL do vídeo
-                video_url = None
-                if "video_url" in data:
-                    video_url = data["video_url"]
-                elif "url" in data:
-                    video_url = data["url"]
-                elif "output" in data and isinstance(data["output"], dict):
-                    video_url = data["output"].get("url")
-                elif "data" in data and isinstance(data["data"], dict):
-                    video_url = data["data"].get("url")
-                elif "result" in data and isinstance(data["result"], dict):
-                    video_url = data["result"].get("url")
-                
-                if video_url:
-                    # Baixa o vídeo
-                    video_response = requests.get(video_url, timeout=30)
-                    if video_response.status_code == 200:
-                        filename = f"video_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4"
-                        with open(filename, "wb") as f:
-                            f.write(video_response.content)
-                        
-                        video_info = {
-                            "url": filename,
-                            "prompt": prompt,
-                            "duracao": duracao,
-                            "resolucao": resolucao,
-                            "estilo": estilo,
-                            "modelo": modelo,
-                            "status": "concluido"
-                        }
-                        
-                        self.galeria.adicionar(video_info)
-                        st.success("✅ Vídeo gerado com sucesso!")
-                        return video_info
-                    else:
-                        return {"erro": f"Erro ao baixar vídeo: Status {video_response.status_code}"}
-                else:
-                    return {"erro": f"Resposta da API: {data}"}
-            else:
+            # Tenta todos os endpoints
+            for endpoint in self.endpoints:
                 try:
-                    erro_detalhado = response.json()
-                except:
-                    erro_detalhado = response.text
-                return {"erro": f"Erro na geração (Status {response.status_code}): {erro_detalhado}"}
+                    response = requests.post(
+                        endpoint,
+                        json=payload,
+                        headers=headers,
+                        timeout=120
+                    )
+                    
+                    if response.status_code == 200:
+                        data = response.json()
+                        video_url = None
+                        
+                        if "video_url" in data:
+                            video_url = data["video_url"]
+                        elif "url" in data:
+                            video_url = data["url"]
+                        elif "output" in data and isinstance(data["output"], dict):
+                            video_url = data["output"].get("url")
+                        elif "data" in data and isinstance(data["data"], dict):
+                            video_url = data["data"].get("url")
+                        elif "result" in data and isinstance(data["result"], dict):
+                            video_url = data["result"].get("url")
+                        
+                        if video_url:
+                            video_response = requests.get(video_url, timeout=30)
+                            if video_response.status_code == 200:
+                                filename = f"video_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4"
+                                with open(filename, "wb") as f:
+                                    f.write(video_response.content)
+                                
+                                video_info = {
+                                    "url": filename,
+                                    "prompt": prompt,
+                                    "duracao": duracao,
+                                    "resolucao": resolucao,
+                                    "estilo": estilo,
+                                    "modelo": modelo,
+                                    "status": "concluido"
+                                }
+                                
+                                self.galeria.adicionar(video_info)
+                                st.success(f"✅ Vídeo gerado com sucesso!")
+                                return video_info
+                            else:
+                                return {"erro": f"Erro ao baixar vídeo: Status {video_response.status_code}"}
+                        else:
+                            return {"erro": f"Resposta da API: {data}"}
+                    elif response.status_code == 404:
+                        continue
+                    else:
+                        try:
+                            erro_detalhado = response.json()
+                        except:
+                            erro_detalhado = response.text
+                        return {"erro": f"Erro na geração (Status {response.status_code}): {erro_detalhado}"}
+                except Exception as e:
+                    continue
+            
+            return {"erro": "Nenhum endpoint disponível. Verifique sua chave API."}
                 
         except requests.exceptions.Timeout:
             return {"erro": "A requisição excedeu o tempo limite."}
@@ -417,12 +425,10 @@ def render_dashboard():
 # ============================================================
 licenca = verificar_login()
 
-# Inicializa sistemas
 creditos = CreditosDiarios()
 galeria = GaleriaVideos()
 creditos_restantes = creditos.obter_creditos(licenca)
 
-# Status da API
 status_api = "✅ Conectado" if (SNAPGEN_API_KEY or (SNAPGEN_EMAIL and SNAPGEN_PASSWORD)) else "❌ Desconectado"
 
 # ============================================================
@@ -542,8 +548,8 @@ with tab4:
         
         modelo = st.selectbox(
             "Modelo",
-            ["SnapGen", "SnapGen Fast", "SnapGen Pro"],
-            help="SnapGen Pro tem melhor qualidade | Fast é mais rápido"
+            ["SnapGen", "SnapGen Fast", "SnapGen Pro", "SnapGen Lite", "SnapGen HD"],
+            help="SnapGen Pro tem melhor qualidade | Fast é mais rápido | Lite é mais econômico"
         )
         
         imagem_upload = st.file_uploader(
