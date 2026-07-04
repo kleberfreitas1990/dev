@@ -21,7 +21,7 @@ st.set_page_config(
     page_title="Minerador de Produtos - Afiliados",
     page_icon="🛒",
     layout="wide",
-    initial_sidebar_state="collapsed"  # Sidebar recolhida por padrão
+    initial_sidebar_state="collapsed"
 )
 
 # ============================================================
@@ -312,14 +312,14 @@ class SnapGenVideoGenerator:
 # DADOS DE PRODUTOS SUGERIDOS
 # ============================================================
 PRODUTOS_SUGESTAO = [
-    {"Produto": "casaco", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🟢 Alto", "Pins": "3400 pins", "Crescimento": "+45%", "Views": "5.8M", "Resultados": "Histórico"},
-    {"Produto": "blusa de lã", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🟢 Alto", "Pins": "2800 pins", "Crescimento": "+38%", "Views": "4.2M", "Resultados": "Histórico"},
-    {"Produto": "bota", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🟡 Médio", "Pins": "1500 pins", "Crescimento": "+20%", "Views": "2.8M", "Resultados": "Histórico"},
-    {"Produto": "cachecol", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🟡 Médio", "Pins": "1200 pins", "Crescimento": "+15%", "Views": "1.9M", "Resultados": "Histórico"},
-    {"Produto": "cobertor", "Categoria": "Casa", "Evento": "Férias Escolares", "Potencial": "🟡 Médio", "Pins": "950 pins", "Crescimento": "+12%", "Views": "1.5M", "Resultados": "Histórico"},
-    {"Produto": "meia", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🟡 Médio", "Pins": "800 pins", "Crescimento": "+10%", "Views": "1.1M", "Resultados": "Histórico"},
-    {"Produto": "luva", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🔴 Baixo", "Pins": "500 pins", "Crescimento": "+8%", "Views": "0.6M", "Resultados": "Histórico"},
-    {"Produto": "jaqueta", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🔴 Baixo", "Pins": "450 pins", "Crescimento": "+5%", "Views": "0.5M", "Resultados": "Histórico"}
+    {"Produto": "casaco", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🟢 Alto", "Pins": "3400 pins", "Crescimento": "+45%", "Views": "5.8M"},
+    {"Produto": "blusa de lã", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🟢 Alto", "Pins": "2800 pins", "Crescimento": "+38%", "Views": "4.2M"},
+    {"Produto": "bota", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🟡 Médio", "Pins": "1500 pins", "Crescimento": "+20%", "Views": "2.8M"},
+    {"Produto": "cachecol", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🟡 Médio", "Pins": "1200 pins", "Crescimento": "+15%", "Views": "1.9M"},
+    {"Produto": "cobertor", "Categoria": "Casa", "Evento": "Férias Escolares", "Potencial": "🟡 Médio", "Pins": "950 pins", "Crescimento": "+12%", "Views": "1.5M"},
+    {"Produto": "meia", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🟡 Médio", "Pins": "800 pins", "Crescimento": "+10%", "Views": "1.1M"},
+    {"Produto": "luva", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🔴 Baixo", "Pins": "500 pins", "Crescimento": "+8%", "Views": "0.6M"},
+    {"Produto": "jaqueta", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🔴 Baixo", "Pins": "450 pins", "Crescimento": "+5%", "Views": "0.5M"}
 ]
 
 # ============================================================
@@ -352,13 +352,12 @@ def verificar_login():
     return st.session_state.get('licenca_usuario', LICENCA_PADRAO)
 
 # ============================================================
-# FUNCAO RENDER_DASHBOARD (SEM INDICADORES RÁPIDOS)
+# FUNCAO RENDER_DASHBOARD
 # ============================================================
 def render_dashboard():
     st.title("📊 Minerador de Produtos")
     st.caption(f"📅 {datetime.now().strftime('%A, %d de %B de %Y - %H:%M')}")
     
-    # Status e Créditos na tela principal
     col_status1, col_status2, col_status3 = st.columns(3)
     with col_status1:
         status_api = "✅ Conectado" if (SNAPGEN_API_KEY or (SNAPGEN_EMAIL and SNAPGEN_PASSWORD)) else "❌ Desconectado"
@@ -422,24 +421,18 @@ def render_dashboard():
     st.markdown("## 🎯 Sugestões de Produtos para este Mês")
     
     df = pd.DataFrame(PRODUTOS_SUGESTAO)
-    df["Buscar na Shopee"] = df["Produto"].apply(lambda x: f"https://shopee.com.br/search?keyword={quote(x)}")
     
-    st.dataframe(
-        df,
-        use_container_width=True,
-        hide_index=True,
-        column_config={
-            "Produto": "Produto",
-            "Categoria": "Categoria",
-            "Evento": "Evento Relacionado",
-            "Potencial": "Potencial",
-            "Pins": "Pins no Pinterest",
-            "Crescimento": "Crescimento",
-            "Views": "Visualizações TikTok",
-            "Resultados": "Resultados",
-            "Buscar na Shopee": st.column_config.LinkColumn("Buscar na Shopee", validate=False)
-        }
+    # Cria coluna com botão em HTML
+    df["Buscar na Shopee"] = df["Produto"].apply(
+        lambda x: f'<a href="https://shopee.com.br/search?keyword={quote(x)}" target="_blank"><button style="background-color: #FF6B00; color: white; border: none; padding: 5px 12px; border-radius: 5px; cursor: pointer; font-size: 12px;">🔍 Buscar</button></a>'
     )
+    
+    # Remove coluna "Resultados" se existir
+    if "Resultados" in df.columns:
+        df = df.drop(columns=["Resultados"])
+    
+    # Exibe a tabela com HTML
+    st.html(df.to_html(escape=False, index=False))
     
     st.caption("3 de 3 consultas SerpApi usadas hoje")
     
@@ -525,22 +518,7 @@ with tab2:
         st.markdown("## 🎯 Sugestões de Produtos Estratégicos")
         st.caption("Produtos em alta baseados em tendências de mercado e datas comemorativas")
         
-        st.dataframe(
-            df,
-            use_container_width=True,
-            hide_index=True,
-            column_config={
-                "Produto": "Produto",
-                "Categoria": "Categoria",
-                "Evento": "Evento Relacionado",
-                "Potencial": "Potencial",
-                "Pins": "Pins no Pinterest",
-                "Crescimento": "Crescimento",
-                "Views": "Visualizações TikTok",
-                "Resultados": "Resultados",
-                "Buscar na Shopee": st.column_config.LinkColumn("Buscar na Shopee", validate=False)
-            }
-        )
+        st.html(df.to_html(escape=False, index=False))
     else:
         st.warning("Carregue o Dashboard primeiro")
 
