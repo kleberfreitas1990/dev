@@ -422,17 +422,16 @@ def render_dashboard():
     
     df = pd.DataFrame(PRODUTOS_SUGESTAO)
     
-    # Cria coluna com botão em HTML
+    # Botão discreto em HTML
     df["Buscar na Shopee"] = df["Produto"].apply(
-        lambda x: f'<a href="https://shopee.com.br/search?keyword={quote(x)}" target="_blank"><button style="background-color: #FF6B00; color: white; border: none; padding: 5px 12px; border-radius: 5px; cursor: pointer; font-size: 12px;">🔍 Buscar</button></a>'
+        lambda x: f'<a href="https://shopee.com.br/search?keyword={quote(x)}" target="_blank" style="text-decoration: none;"><span style="background-color: #f0f0f0; color: #333; padding: 2px 10px; border-radius: 12px; font-size: 12px; border: 1px solid #ddd;">🔍 Buscar</span></a>'
     )
     
-    # Remove coluna "Resultados" se existir
-    if "Resultados" in df.columns:
-        df = df.drop(columns=["Resultados"])
-    
-    # Exibe a tabela com HTML
-    st.html(df.to_html(escape=False, index=False))
+    # Exibe a tabela ocupando toda a largura
+    st.markdown(
+        df.to_html(escape=False, index=False),
+        unsafe_allow_html=True
+    )
     
     st.caption("3 de 3 consultas SerpApi usadas hoje")
     
@@ -518,7 +517,10 @@ with tab2:
         st.markdown("## 🎯 Sugestões de Produtos Estratégicos")
         st.caption("Produtos em alta baseados em tendências de mercado e datas comemorativas")
         
-        st.html(df.to_html(escape=False, index=False))
+        st.markdown(
+            df.to_html(escape=False, index=False),
+            unsafe_allow_html=True
+        )
     else:
         st.warning("Carregue o Dashboard primeiro")
 
