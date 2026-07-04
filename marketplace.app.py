@@ -309,6 +309,108 @@ class SnapGenVideoGenerator:
         return video_info
 
 # ============================================================
+# PALAVRAS-CHAVE DE CAUDA LONGA
+# ============================================================
+PALAVRAS_CHAVE_CAUDA_LONGA = {
+    "casaco": [
+        "casaco feminino inverno 2026", 
+        "casaco masculino elegante", 
+        "casaco de lã para frio intenso",
+        "casaco oversized com capuz",
+        "casaco longo feminino bege",
+        "casaco de couro ecológico",
+        "casaco de tricô artesanal",
+        "casaco com cinto de cintura",
+        "casaco para viagem de inverno",
+        "casaco plus size com bolsos"
+    ],
+    "blusa de lã": [
+        "blusa de lã feminina elegante",
+        "blusa de lã com gola alta",
+        "blusa de lã para trabalho",
+        "blusa de lã fina e confortável",
+        "blusa de lã com botões de madrepérola",
+        "blusa de lã listrada para inverno",
+        "blusa de lã plus size 2026",
+        "blusa de lã modelo túnicas",
+        "blusa de lã decote redondo",
+        "blusa de lã com bolsos frontais"
+    ],
+    "bota": [
+        "bota feminina cano médio",
+        "bota de couro confortável",
+        "bota para chuva e inverno",
+        "bota salto grosso pretinho",
+        "bota camurça com cadarço",
+        "bota de segurança para trabalho",
+        "bota de rodeio estilo country",
+        "bota com zíper lateral",
+        "bota feminina confortável 2026",
+        "bota plus size com elástico"
+    ],
+    "cachecol": [
+        "cachecol de lã para frio extremo",
+        "cachecol feminino elegante",
+        "cachecol masculino em cashmere",
+        "cachecol xadrez para inverno",
+        "cachecol longo com franjas",
+        "cachecol de tricô artesanal",
+        "cachecol plus size 2026",
+        "cachecol infantil para crianças",
+        "cachecol de seda para meia estação",
+        "cachecol com capuz integrado"
+    ],
+    "cobertor": [
+        "cobertor de lã para cama king",
+        "cobertor super quente 2026",
+        "cobertor com design escandinavo",
+        "cobertor de microfibra antialérgico",
+        "cobertor pesado para ansiedade",
+        "cobertor com mangas para sofá",
+        "cobertor elétrico econômico",
+        "cobertor infantil com estampa",
+        "cobertor de casal com jogo de lençóis",
+        "cobertor em cashmere para presente"
+    ],
+    "meia": [
+        "meia de lã para frio extremo",
+        "meia de compressão para viagem",
+        "meia cano alto feminina",
+        "meia esportiva para corrida",
+        "meia de tração antiderrapante",
+        "meia térmica para neve",
+        "meia infantil 2026",
+        "meia de algodão orgânico",
+        "meia listrada moderna",
+        "meia com bolso lateral para celular"
+    ],
+    "luva": [
+        "luva de lã para frio intenso",
+        "luva de toque para celular",
+        "luva infantil para neve",
+        "luva de couro feminina 2026",
+        "luva térmica esportiva",
+        "luva descanso de punho",
+        "luva de corrida antiderrapante",
+        "luva de base de maquiagem",
+        "luva de segurança para trabalho",
+        "luva de cashmere de presente"
+    ],
+    "jaqueta": [
+        "jaqueta jeans feminina 2026",
+        "jaqueta de couro ecológica",
+        "jaqueta militar com patches",
+        "jaqueta de inverno com capuz",
+        "jaqueta bomber para usar no dia a dia",
+        "jaqueta parka para frio extremo",
+        "jaqueta de lã para trabalho",
+        "jaqueta de chuva impermeável",
+        "jaqueta plus size com cinto",
+        "jaqueta de veludo cotelê"
+    ]
+}
+
+# ============================================================
 # DADOS DE PRODUTOS SUGERIDOS
 # ============================================================
 PRODUTOS_SUGESTAO = [
@@ -422,10 +524,19 @@ def render_dashboard():
     
     df = pd.DataFrame(PRODUTOS_SUGESTAO)
     
+    # Adiciona a coluna de Palavra-chave de Cauda Longa (primeira sugestão)
+    df["🔑 Palavra-chave"] = df["Produto"].apply(
+        lambda x: PALAVRAS_CHAVE_CAUDA_LONGA.get(x, [f"{x} tendência 2026"])[0]
+    )
+    
     # Botão discreto em HTML
     df["Buscar na Shopee"] = df["Produto"].apply(
         lambda x: f'<a href="https://shopee.com.br/search?keyword={quote(x)}" target="_blank" style="text-decoration: none;"><span style="background-color: #f0f0f0; color: #333; padding: 2px 10px; border-radius: 12px; font-size: 12px; border: 1px solid #ddd;">🔍 Buscar</span></a>'
     )
+    
+    # Reorganiza as colunas
+    colunas = ["Produto", "🔑 Palavra-chave", "Categoria", "Evento", "Potencial", "Pins", "Crescimento", "Views", "Buscar na Shopee"]
+    df = df[colunas]
     
     # Exibe a tabela ocupando toda a largura
     st.markdown(
