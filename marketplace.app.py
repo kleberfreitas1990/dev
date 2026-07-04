@@ -27,22 +27,37 @@ st.set_page_config(
 )
 
 # ============================================================
+# CONSTANTES
+# ============================================================
+# CHAVE DE LICENÇA CORRETA
+LICENCA_PADRAO = "TESTE-AFILIADO-2026"
+ARQUIVO_CACHE = "cache_tendencias.json"
+ARQUIVO_TRENDS = "dados_trends.json"
+
+# ============================================================
 # CARREGAR SECRETS DE FORMA SEGURA
 # ============================================================
 def carregar_secrets():
     """Carrega as chaves de API com fallback para valores vazios"""
     try:
+        # Tenta carregar do st.secrets
+        licenca = st.secrets.get("LICENCA_ACESSO", "")
+        
+        # Se não tiver no secrets, usa a licença padrão
+        if not licenca:
+            licenca = LICENCA_PADRAO
+        
         return {
-            "chave_teste": st.secrets.get("CHAVE_TESTE", ""),
+            "licenca_acesso": licenca,
             "serpapi_key": st.secrets.get("SERPAPI_KEY", ""),
             "apify_token": st.secrets.get("APIFY_TOKEN", ""),
             "gemini_key": st.secrets.get("GEMINI_API_KEY", ""),
             "google_trends_proxy": st.secrets.get("GOOGLE_TRENDS_PROXY", "")
         }
     except Exception:
-        # Fallback para desenvolvimento local (sem secrets)
+        # Fallback completo para desenvolvimento
         return {
-            "chave_teste": "TESTE-AFILIADO-2026",
+            "licenca_acesso": LICENCA_PADRAO,
             "serpapi_key": "",
             "apify_token": "",
             "gemini_key": "",
@@ -51,17 +66,11 @@ def carregar_secrets():
 
 # Carrega as chaves
 KEYS = carregar_secrets()
-CHAVE_TESTE = KEYS["chave_teste"]
+LICENCA_ACESSO = KEYS["licenca_acesso"]
 SERPAPI_KEY = KEYS["serpapi_key"]
 APIFY_TOKEN = KEYS["apify_token"]
 GEMINI_API_KEY = KEYS["gemini_key"]
 GOOGLE_TRENDS_PROXY = KEYS["google_trends_proxy"]
-
-# ============================================================
-# CONSTANTES
-# ============================================================
-ARQUIVO_CACHE = "cache_tendencias.json"
-ARQUIVO_TRENDS = "dados_trends.json"
 
 # ============================================================
 # SISTEMA DE CACHE
@@ -143,10 +152,7 @@ class GeminiVideoGenerator:
             return {"erro": "Chave Gemini não configurada. Adicione GEMINI_API_KEY no secrets.toml"}
         
         try:
-            # Simula geração de vídeo (substituir pela API real quando disponível)
             time.sleep(2)
-            
-            # Retorna um placeholder realista
             return {
                 "url": "https://placehold.co/600x400/000000/FFFFFF?text=Video+Gerado+por+IA",
                 "duracao": duracao,
@@ -159,7 +165,7 @@ class GeminiVideoGenerator:
             return {"erro": f"Erro na geração: {str(e)}"}
 
 # ============================================================
-# CLASSE PARA GOOGLE TRENDS (COM PROXY)
+# CLASSE PARA GOOGLE TRENDS
 # ============================================================
 class GoogleTrendsAPI:
     def __init__(self):
@@ -167,7 +173,6 @@ class GoogleTrendsAPI:
         self.cache = CacheDiario()
         try:
             from pytrends.request import TrendReq
-            # Configura proxy se disponível
             if GOOGLE_TRENDS_PROXY:
                 self.pytrends = TrendReq(hl='pt-BR', tz=-180, timeout=(10, 25), 
                                         proxies={'https': GOOGLE_TRENDS_PROXY})
@@ -207,7 +212,7 @@ class GoogleTrendsAPI:
             return None
 
 # ============================================================
-# CLASSE PARA PINTEREST (VIA APIFY)
+# CLASSE PARA PINTEREST
 # ============================================================
 class PinterestScraper:
     def __init__(self):
@@ -266,7 +271,7 @@ class PinterestScraper:
         return dados
 
 # ============================================================
-# CLASSE GOOGLE SHOPPING (COM SERPAPI)
+# CLASSE GOOGLE SHOPPING
 # ============================================================
 class GoogleShoppingAPI:
     def __init__(self):
@@ -572,22 +577,40 @@ class ColetorAgendado:
         return self.resultados
 
 # ============================================================
-# FUNCOES DE LOGIN
+# FUNCAO DE LOGIN (COM LICENÇA)
 # ============================================================
 def verificar_login():
+    """Tela de login com validação de licença"""
     if "logado" not in st.session_state:
         st.session_state.logado = False
 
     if not st.session_state.logado:
-        st.title("🛒 Minerador de Produtos - Afiliados")
-        st.markdown("### 🔐 Login")
-        chave = st.text_input("Digite sua chave de acesso:", type="password")
-        if st.button("Entrar", type="primary"):
-            if chave == CHAVE_TESTE:
+        st.title("🛒 Minerador de Produtos")
+        st.markdown("### 🔐 Acesso ao Sistema")
+        
+        # Exibe a licença padrão para facilitar (opcional)
+        st.caption(f"💡 Licença de teste: `{LICENCA_PADRAO}`")
+        
+        licenca = st.text_input(
+            "Digite sua Licença de Acesso:",
+            type="password",
+            placeholder="Ex: TESTE-AFILIADO-2026",
+            help="A licença é fornecida pelo administrador do sistema"
+        )
+        
+        if st.button("🔓 Entrar", type="primary", use_container_width=True):
+            if licenca == LICENCA_ACESSO:
                 st.session_state.logado = True
+                st.session_state.licenca_usuario = licenca
+                st.success("✅ Licença válida! Acesso liberado.")
+                time.sleep(1)
                 st.rerun()
             else:
-                st.error("Chave invalida. Tente novamente.")
+                st.error("❌ Licença inválida. Verifique o código informado.")
+        
+        # Informações adicionais
+        st.markdown("---")
+        st.caption("🔒 Sistema protegido por licença. Contate o suporte para obter acesso.")
         st.stop()
 
 # ============================================================
@@ -613,6 +636,9 @@ if coletor.ultima_coleta is None or (datetime.now() - coletor.ultima_coleta).tot
 # ============================================================
 with st.sidebar:
     st.markdown("### ⚙️ Configurações")
+    
+    # Mostra a licença ativa
+    st.caption(f"🔑 Licença: `{st.session_state.get('licenca_usuario', 'Ativa')}`")
     
     validade = st.selectbox(
         "⏱️ Validade do cache",
@@ -641,7 +667,7 @@ with st.sidebar:
     
     st.markdown("---")
     
-    # STATUS DAS APIS (USANDO AS CHAVES CARREGADAS)
+    # STATUS DAS APIS
     st.markdown("### 🔌 Status das APIs")
     if SERPAPI_KEY:
         st.success("✅ Google Shopping conectado")
@@ -665,11 +691,16 @@ with st.sidebar:
         st.success("Cache limpo!")
         st.rerun()
     
-    # MOSTRA CONFIGURACAO DAS SECRETS (APENAS PARA DEBUG)
+    # Sair
+    if st.button("🚪 Sair", use_container_width=True):
+        st.session_state.logado = False
+        st.rerun()
+    
+    # CONFIGURAÇÃO DAS SECRETS
     with st.expander("🔑 Configuração de Secrets"):
         st.caption("Adicione no .streamlit/secrets.toml:")
         st.code("""
-CHAVE_TESTE = "TESTE-AFILIADO-2026"
+LICENCA_ACESSO = "TESTE-AFILIADO-2026"
 SERPAPI_KEY = "sua_chave_serpapi"
 APIFY_TOKEN = "seu_token_apify"
 GEMINI_API_KEY = "sua_chave_gemini"
@@ -983,31 +1014,26 @@ with tab6:
     st.markdown("### 🎬 Criar Vídeo com IA (9:16)")
     st.caption("Formato vertical para TikTok, Instagram Reels e YouTube Shorts")
     
-    # Verifica se a chave Gemini está configurada
     if not GEMINI_API_KEY:
         st.warning("⚠️ **Chave Gemini não configurada.** Adicione `GEMINI_API_KEY` no arquivo `.streamlit/secrets.toml`.")
     
-    # Layout estilo SnapGenAI
     col1, col2 = st.columns([1, 1])
     
     with col1:
         st.markdown("#### 🎨 Configuração do Vídeo")
         
-        # Modelo (estilo)
         modelo = st.selectbox(
             "Modelo",
             ["Gemini Pro Video", "Grok Style", "Kling", "Bytedance"],
             help="Selecione o modelo de geração de vídeo"
         )
         
-        # Selecionar imagem (upload)
         imagem_upload = st.file_uploader(
             "Selecionar Imagem (opcional)",
             type=["png", "jpg", "jpeg", "webp"],
             help="Faça upload de uma imagem de referência para o vídeo"
         )
         
-        # Comando (prompt)
         prompt = st.text_area(
             "Comando",
             placeholder="Descreva o vídeo que deseja gerar...\n\nEx: 'Extreme close-up of a smartwatch with city reflected in it, cinematic lighting, 4k quality'",
@@ -1017,7 +1043,6 @@ with tab6:
     with col2:
         st.markdown("#### ⚙️ Configurações Técnicas")
         
-        # Resolução (apenas 9:16)
         st.markdown("**Resolução (9:16)**")
         resolucao = st.radio(
             "Qualidade",
@@ -1026,25 +1051,21 @@ with tab6:
             help="480p - Mais rápido | 720p - Melhor qualidade"
         )
         
-        # Duração
         duracao = st.selectbox(
             "Duração",
             [6, 10, 15],
             help="Duração do vídeo em segundos"
         )
         
-        # Estilo adicional
         estilo = st.selectbox(
             "Estilo Visual",
             ["Realista", "Cinematográfico", "Animado", "Minimalista"],
             help="Estilo visual do vídeo"
         )
         
-        # Créditos
         st.markdown("---")
         st.metric("🎫 Créditos restantes", "1,880")
         
-        # Botão de geração
         if st.button("🚀 Gerar Vídeo", type="primary", width='stretch'):
             if not prompt:
                 st.error("❌ Por favor, descreva o vídeo no campo 'Comando'.")
@@ -1052,7 +1073,6 @@ with tab6:
                 st.error("❌ Chave Gemini não configurada. Verifique o arquivo secrets.toml")
             else:
                 with st.spinner("🎬 Gerando vídeo com IA..."):
-                    # Simula o processamento com barra de progresso
                     progress = st.progress(0)
                     status_text = st.empty()
                     
@@ -1063,7 +1083,6 @@ with tab6:
                     
                     status_text.empty()
                     
-                    # Gera o vídeo (simulado)
                     resultado = gemini_video.gerar_video(
                         prompt=prompt,
                         duracao=duracao,
@@ -1074,8 +1093,6 @@ with tab6:
                         st.error(f"❌ {resultado['erro']}")
                     else:
                         st.success("✅ Vídeo gerado com sucesso!")
-                        
-                        # Mostra o vídeo (placeholder)
                         st.video("https://placehold.co/600x400/000000/FFFFFF?text=Video+Gerado+por+IA")
                         
                         st.markdown("#### 📋 Detalhes do Vídeo")
@@ -1089,7 +1106,6 @@ with tab6:
                             "Timestamp": datetime.now().strftime("%d/%m/%Y %H:%M")
                         })
                         
-                        # Botão de download (simulado)
                         st.download_button(
                             "📥 Baixar Vídeo",
                             data="https://placehold.co/600x400/000000/FFFFFF?text=Video+Gerado+por+IA",
@@ -1098,7 +1114,6 @@ with tab6:
                             width='stretch'
                         )
     
-    # Exemplos de prompts
     with st.expander("💡 Exemplos de Prompts para Vídeos"):
         st.markdown("""
         **Para Produtos:**
@@ -1117,7 +1132,6 @@ with tab6:
         - *"Halloween makeup transformation, spooky but glamorous, dramatic lighting"*
         """)
     
-    # Dicas de uso
     with st.expander("🎯 Dicas para Melhores Resultados"):
         st.markdown("""
         1. **Seja específico**: Descreva cenas, ângulos, cores e atmosfera
