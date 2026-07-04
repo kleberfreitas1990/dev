@@ -7,6 +7,8 @@ import time
 import random
 import json
 import os
+import plotly.express as px
+import plotly.graph_objects as go
 
 # ============================================================
 # CONFIGURACAO DA PAGINA
@@ -14,7 +16,8 @@ import os
 st.set_page_config(
     page_title="Minerador de Produtos - Afiliados",
     page_icon="🛒",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
 # ============================================================
@@ -29,7 +32,7 @@ ARQUIVO_CACHE = "cache_tendencias.json"
 SERPAPI_KEY = st.secrets.get("SERPAPI_KEY", "")
 
 # ============================================================
-# SISTEMA DE CACHE COM VALIDADE CONFIGURAVEL
+# SISTEMA DE CACHE
 # ============================================================
 class CacheDiario:
     def __init__(self, arquivo=ARQUIVO_CACHE):
@@ -86,7 +89,6 @@ class CacheDiario:
         self.salvar()
     
     def info(self):
-        """Retorna informacoes sobre o cache"""
         total_chaves = len(self.dados)
         hoje = datetime.now().date().isoformat()
         chaves_hoje = sum(1 for k, v in self.dados.items() if v.get("data") == hoje)
@@ -97,7 +99,7 @@ class CacheDiario:
         }
 
 # ============================================================
-# CLASSE PARA GOOGLE SHOPPING (VIA SERPAPI)
+# CLASSE GOOGLE SHOPPING
 # ============================================================
 class GoogleShoppingAPI:
     def __init__(self):
@@ -187,7 +189,7 @@ class GoogleShoppingAPI:
             return 0
 
 # ============================================================
-# CLASSE PARA MERCADO LIVRE (VIA API PUBLICA)
+# CLASSE MERCADO LIVRE
 # ============================================================
 class MercadoLivreScraper:
     def __init__(self):
@@ -258,7 +260,7 @@ class MercadoLivreScraper:
             return 0
 
 # ============================================================
-# TENDENCIAS PINTEREST 2025-2026
+# DADOS E TENDENCIAS
 # ============================================================
 TENDENCIAS_PINTEREST = {
     "2025": {
@@ -275,9 +277,6 @@ TENDENCIAS_PINTEREST = {
     }
 }
 
-# ============================================================
-# DADOS HISTORICOS (FALLBACK)
-# ============================================================
 DADOS_HISTORICOS = {
     1: ["smartwatch", "fone bluetooth", "material escolar", "mochila", "tenis"],
     2: ["fantasia", "biquini", "sungas", "protetor solar", "fone"],
@@ -298,15 +297,15 @@ DADOS_HISTORICOS = {
 # ============================================================
 def analisar_saturacao(total):
     if total == 0:
-        return {"nivel": "Sem dados", "recomendacao": "Nenhum produto encontrado"}
+        return {"nivel": "Sem dados", "cor": "gray", "recomendacao": "Nenhum produto encontrado"}
     elif total < 50:
-        return {"nivel": "Baixa saturacao", "recomendacao": "Otimo! Pouca concorrencia. Aproveite!"}
+        return {"nivel": "Baixa saturacao", "cor": "green", "recomendacao": "Otimo! Pouca concorrencia. Aproveite!"}
     elif total < 200:
-        return {"nivel": "Saturacao moderada", "recomendacao": "Concorrencia razoavel. Ainda ha espaco."}
+        return {"nivel": "Saturacao moderada", "cor": "orange", "recomendacao": "Concorrencia razoavel. Ainda ha espaco."}
     elif total < 500:
-        return {"nivel": "Saturacao alta", "recomendacao": "Mercado concorrido. Foque em nichos especificos."}
+        return {"nivel": "Saturacao alta", "cor": "red", "recomendacao": "Mercado concorrido. Foque em nichos especificos."}
     else:
-        return {"nivel": "Saturacao muito alta", "recomendacao": "Mercado saturado. Busque variacoes menos competitivas."}
+        return {"nivel": "Saturacao muito alta", "cor": "darkred", "recomendacao": "Mercado saturado. Busque variacoes menos competitivas."}
 
 def calcular_score(total_resultados, produtos):
     if total_resultados <= 0:
@@ -342,9 +341,10 @@ def verificar_login():
         st.session_state.logado = False
 
     if not st.session_state.logado:
-        st.title("Minerador de Produtos - Login")
+        st.title("🛒 Minerador de Produtos - Afiliados")
+        st.markdown("### 🔐 Login")
         chave = st.text_input("Digite sua chave de acesso:", type="password")
-        if st.button("Entrar"):
+        if st.button("Entrar", type="primary"):
             if chave == CHAVE_TESTE:
                 st.session_state.logado = True
                 st.rerun()
@@ -357,223 +357,313 @@ def verificar_login():
 # ============================================================
 verificar_login()
 
-# Inicializa cache
+# Inicializa cache e APIs
 cache = CacheDiario()
-
-# Inicializa as APIs
 google_shopping = GoogleShoppingAPI()
 ml_scraper = MercadoLivreScraper()
 
-st.title("Minerador de Produtos - Afiliados")
-st.caption("Consultas com cache configuravel - Google Shopping + Mercado Livre")
-
-# Status no sidebar
+# ============================================================
+# SIDEBAR - CONFIGURACOES
+# ============================================================
 with st.sidebar:
-    st.markdown("### Configuracao de Cache")
+    st.image("https://img.icons8.com/fluency/96/000000/shopping-cart.png", width=60)
+    st.markdown("### ⚙️ Configurações")
     
-    # Selector de validade do cache
     validade = st.selectbox(
-        "Validade do cache:",
+        "⏱️ Validade do cache",
         [1, 2, 4, 6, 12, 24],
         index=0,
         help="Tempo em horas que os dados ficam armazenados"
     )
     st.session_state.validade_cache = validade
     
-    # Informacoes sobre o cache
     if validade == 1:
-        st.caption("Dados atualizados a cada hora")
+        st.caption("🔄 Dados atualizados a cada hora")
     elif validade == 24:
-        st.caption("Dados atualizados uma vez por dia")
+        st.caption("📅 Dados atualizados uma vez por dia")
     else:
-        st.caption(f"Dados atualizados a cada {validade} horas")
+        st.caption(f"🔄 Dados atualizados a cada {validade} horas")
+    
+    st.markdown("---")
     
     info_cache = cache.info()
-    st.markdown("---")
-    st.markdown("### Status do Cache")
-    st.caption(f"Total de chaves: {info_cache['total_chaves']}")
-    st.caption(f"Chaves de hoje: {info_cache['chaves_hoje']}")
+    st.markdown("### 📊 Status do Cache")
+    st.caption(f"📁 Total de chaves: {info_cache['total_chaves']}")
+    st.caption(f"📅 Chaves de hoje: {info_cache['chaves_hoje']}")
     
     st.markdown("---")
-    st.markdown("### Acao")
-    if st.button("Limpar Cache (Forcar atualizacao)"):
-        cache.limpar()
-        st.success("Cache limpo! Proxima busca sera real-time")
-        st.rerun()
     
-    st.markdown("---")
     if SERPAPI_KEY:
-        st.success("Google Shopping (SerpApi) - OK")
+        st.success("✅ Google Shopping conectado")
     else:
-        st.warning("SerpApi Key nao configurada")
+        st.warning("⚠️ SerpApi Key nao configurada")
+        st.caption("Obtenha em: serpapi.com")
+    
+    st.markdown("---")
+    
+    if st.button("🗑️ Limpar Cache", use_container_width=True):
+        cache.limpar()
+        st.success("Cache limpo!")
+        st.rerun()
 
-st.markdown("---")
+# ============================================================
+# PAINEL PRINCIPAL
+# ============================================================
+st.title("🛒 Minerador de Produtos")
+st.caption(f"📅 {datetime.now().strftime('%A, %d de %B de %Y - %H:%M')}")
 
-# ===== SECAO 1: TENDENCIAS PINTEREST =====
-st.markdown("## Tendencias Pinterest 2025-2026")
+# ============================================================
+# METRICAS RAPIDAS
+# ============================================================
+col1, col2, col3, col4 = st.columns(4)
 
-col1, col2 = st.columns(2)
 with col1:
-    st.markdown("**2025**")
-    for categoria, items in TENDENCIAS_PINTEREST["2025"].items():
-        st.markdown(f"*{categoria}*")
-        for item in items[:3]:
-            st.markdown(f"- {item}")
+    st.metric("📦 Produtos no Cache", info_cache['total_chaves'])
 
 with col2:
-    st.markdown("**2026**")
-    for categoria, items in TENDENCIAS_PINTEREST["2026"].items():
-        st.markdown(f"*{categoria}*")
-        for item in items[:3]:
-            st.markdown(f"- {item}")
+    st.metric("📊 Categorias", len(TENDENCIAS_PINTEREST["2026"]))
+
+with col3:
+    mes_atual = datetime.now().month
+    st.metric("📅 Mês Atual", f"{mes_atual}/12")
+
+with col4:
+    status_api = "✅" if SERPAPI_KEY else "⚠️"
+    st.metric("🔌 API Status", status_api)
 
 st.markdown("---")
 
-# ===== SECAO 2: BUSCAR PRODUTOS =====
-st.markdown("## Buscar Produtos")
+# ============================================================
+# TABS PRINCIPAIS
+# ============================================================
+tab1, tab2, tab3, tab4 = st.tabs([
+    "🔍 Buscar Produtos",
+    "📊 Análise de Saturação",
+    "🎯 Oportunidades",
+    "📌 Tendências"
+])
 
-termo_busca = st.text_input("Digite um produto:", placeholder="Ex: smartwatch, fone bluetooth...")
-
-col_forcar = st.columns([3, 1])
-with col_forcar[0]:
-    if termo_busca and st.button("Buscar (Cache)", type="primary"):
-        st.session_state.termo_busca = termo_busca
-        st.session_state.forcar = False
-
-with col_forcar[1]:
-    if termo_busca and st.button("Atualizar (Real-time)", type="secondary"):
-        st.session_state.termo_busca = termo_busca
-        st.session_state.forcar = True
-
-if "termo_busca" in st.session_state and st.session_state.termo_busca:
-    termo = st.session_state.termo_busca
-    forcar = st.session_state.get("forcar", False)
+# ============================================================
+# TAB 1: BUSCAR PRODUTOS
+# ============================================================
+with tab1:
+    st.markdown("### 🔍 Buscar Produtos no Mercado")
     
-    st.markdown(f"### Resultados para '{termo}'")
-    
-    if forcar:
-        st.info("Modo REAL-TIME - Buscando dados novos...")
-    else:
-        st.info(f"Modo CACHE - Validade: {st.session_state.get('validade_cache', 1)} horas")
-    
-    with st.spinner("Buscando no Google Shopping..."):
-        produtos_google = google_shopping.buscar_produtos(termo, 8, forcar)
-        total_google = google_shopping.buscar_total_resultados(termo, forcar)
-    
-    with st.spinner("Buscando no Mercado Livre..."):
-        produtos_ml = ml_scraper.buscar_produtos(termo, 5, forcar)
-        total_ml = ml_scraper.buscar_total_resultados(termo, forcar)
-    
-    st.caption(f"Consulta realizada em: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
-    
-    col1, col2, col3 = st.columns(3)
+    col1, col2 = st.columns([3, 1])
     with col1:
-        st.metric("Google Shopping", f"{len(produtos_google)} produtos")
+        termo_busca = st.text_input(
+            "Digite um produto para buscar:",
+            placeholder="Ex: smartwatch, fone bluetooth, camisa...",
+            label_visibility="collapsed"
+        )
     with col2:
-        st.metric("Mercado Livre", f"{len(produtos_ml)} produtos")
-    with col3:
-        total = total_google + total_ml
-        st.metric("Total Resultados", total)
+        modo = st.radio(
+            "Modo:",
+            ["Cache", "Real-time"],
+            horizontal=True,
+            index=0
+        )
     
-    st.markdown("---")
-    
-    saturacao = analisar_saturacao(total)
-    st.markdown(f"### {saturacao['nivel']}")
-    st.markdown(f"{saturacao['recomendacao']}")
-    
-    st.markdown("---")
-    
-    if produtos_google:
-        st.markdown("#### Google Shopping")
-        for p in produtos_google[:5]:
-            with st.container(border=True):
-                col1, col2 = st.columns([3, 1])
-                with col1:
-                    st.markdown(f"**{p.get('nome', '')[:80]}**")
-                    st.markdown(f"Preco: {p.get('preco', '')} | Loja: {p.get('loja', '')}")
-                    if p.get('avaliacao'):
-                        st.caption(f"Avaliacao: {p.get('avaliacao')} ({p.get('reviews', 0)} reviews)")
-                with col2:
-                    if p.get("link"):
-                        st.link_button("Ver", p["link"], use_container_width=True)
-    
-    if produtos_ml:
-        st.markdown("#### Mercado Livre")
-        for p in produtos_ml[:3]:
-            with st.container(border=True):
-                col1, col2 = st.columns([3, 1])
-                with col1:
-                    st.markdown(f"**{p.get('nome', '')[:80]}**")
-                    st.markdown(f"Preco: {p.get('preco', '')} | Vendas: {p.get('vendas', 0)}")
-                with col2:
-                    if p.get("link"):
-                        st.link_button("Ver", p["link"], use_container_width=True)
+    if termo_busca:
+        forcar = (modo == "Real-time")
+        
+        if st.button("🔍 Buscar", type="primary", use_container_width=True):
+            with st.spinner("Buscando dados..."):
+                produtos_google = google_shopping.buscar_produtos(termo_busca, 8, forcar)
+                total_google = google_shopping.buscar_total_resultados(termo_busca, forcar)
+                produtos_ml = ml_scraper.buscar_produtos(termo_busca, 5, forcar)
+                total_ml = ml_scraper.buscar_total_resultados(termo_busca, forcar)
+                total = total_google + total_ml
+                
+                st.markdown(f"### 📊 Resultados para '{termo_busca}'")
+                
+                # Metricas
+                c1, c2, c3, c4 = st.columns(4)
+                c1.metric("🛒 Google Shopping", len(produtos_google))
+                c2.metric("📦 Mercado Livre", len(produtos_ml))
+                c3.metric("📊 Total Resultados", total)
+                
+                saturacao = analisar_saturacao(total)
+                c4.metric("📈 Saturação", saturacao["nivel"])
+                
+                st.markdown("---")
+                
+                # Mostra produtos
+                if produtos_google:
+                    st.markdown("#### 🛒 Google Shopping")
+                    for p in produtos_google[:5]:
+                        with st.container(border=True):
+                            c1, c2 = st.columns([4, 1])
+                            with c1:
+                                st.markdown(f"**{p.get('nome', '')[:80]}**")
+                                st.markdown(f"💰 {p.get('preco', '')} | 🏪 {p.get('loja', '')}")
+                                if p.get('avaliacao'):
+                                    st.caption(f"⭐ {p.get('avaliacao')} ({p.get('reviews', 0)} avaliações)")
+                            with c2:
+                                if p.get("link"):
+                                    st.link_button("🔗 Ver", p["link"], use_container_width=True)
+                
+                if produtos_ml:
+                    st.markdown("#### 📦 Mercado Livre")
+                    for p in produtos_ml[:3]:
+                        with st.container(border=True):
+                            c1, c2 = st.columns([4, 1])
+                            with c1:
+                                st.markdown(f"**{p.get('nome', '')[:80]}**")
+                                st.markdown(f"💰 {p.get('preco', '')} | 📦 {p.get('vendas', 0)} vendidos")
+                            with c2:
+                                if p.get("link"):
+                                    st.link_button("🔗 Ver", p["link"], use_container_width=True)
 
-st.markdown("---")
-
-# ===== SECAO 3: MINERADOR PRO =====
-st.markdown("## Minerador Pro - Oportunidades")
-
-if st.button("Analisar Oportunidades", type="primary"):
-    with st.spinner("Analisando oportunidades..."):
-        mes_atual = datetime.now().month
-        resultados = []
-        
-        todos_termos = list(DADOS_HISTORICOS.get(mes_atual, ["smartwatch", "fone"]))
-        
-        for categoria in TENDENCIAS_PINTEREST["2026"].values():
-            for item in categoria[:2]:
-                if item not in todos_termos:
-                    todos_termos.append(item)
-        
-        # Usa cache (validade configurada)
-        usar_cache = st.session_state.get("validade_cache", 1) > 0
-        
-        for termo in todos_termos[:10]:
-            produtos = google_shopping.buscar_produtos(termo, 3, not usar_cache)
-            total = google_shopping.buscar_total_resultados(termo, not usar_cache) + ml_scraper.buscar_total_resultados(termo, not usar_cache)
-            score = calcular_score(total, produtos)
+# ============================================================
+# TAB 2: ANALISE DE SATURACAO
+# ============================================================
+with tab2:
+    st.markdown("### 📊 Análise de Saturação")
+    st.caption("Quanto menor o número de resultados, menor a concorrência")
+    
+    col1, col2 = st.columns([2, 1])
+    with col1:
+        termo_sat = st.text_input(
+            "Digite um produto para analisar:",
+            placeholder="Ex: smartwatch...",
+            label_visibility="collapsed",
+            key="sat"
+        )
+    
+    if termo_sat and st.button("📊 Analisar", key="btn_sat"):
+        with st.spinner("Analisando..."):
+            total_google = google_shopping.buscar_total_resultados(termo_sat)
+            total_ml = ml_scraper.buscar_total_resultados(termo_sat)
+            total = total_google + total_ml
             
-            resultados.append({
-                "Produto": termo,
-                "Score": score,
-                "Total Resultados": total,
-                "Produtos Encontrados": len(produtos)
-            })
-            time.sleep(0.3)
-        
-        df = pd.DataFrame(resultados).sort_values("Score", ascending=False).reset_index(drop=True)
-        
-        st.markdown("### Oportunidades")
-        st.caption(f"Atualizado em: {datetime.now().strftime('%d/%m/%Y %H:%M')}")
-        st.dataframe(df, use_container_width=True, hide_index=True)
-        
-        st.info("Foque nos produtos com maior Score e menor numero de resultados!")
+            saturacao = analisar_saturacao(total)
+            
+            # Gráfico de gauge
+            fig = go.Figure(go.Indicator(
+                mode = "gauge+number",
+                value = min(total / 5, 100),
+                title = {'text': "Nível de Saturação"},
+                gauge = {
+                    'axis': {'range': [None, 100]},
+                    'bar': {'color': saturacao['cor']},
+                    'steps': [
+                        {'range': [0, 20], 'color': "lightgreen"},
+                        {'range': [20, 50], 'color': "yellow"},
+                        {'range': [50, 80], 'color': "orange"},
+                        {'range': [80, 100], 'color': "red"}
+                    ]
+                }
+            ))
+            fig.update_layout(height=300)
+            st.plotly_chart(fig, use_container_width=True)
+            
+            c1, c2 = st.columns(2)
+            with c1:
+                st.metric("🛒 Google Shopping", total_google)
+            with c2:
+                st.metric("📦 Mercado Livre", total_ml)
+            
+            st.markdown(f"### {saturacao['nivel']}")
+            st.markdown(f"💡 {saturacao['recomendacao']}")
 
-st.markdown("---")
+# ============================================================
+# TAB 3: OPORTUNIDADES
+# ============================================================
+with tab3:
+    st.markdown("### 🎯 Oportunidades para Afiliados")
+    
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        st.caption("Produtos com melhor Score e menor concorrência")
+    with col2:
+        usar_cache = st.toggle("Usar cache", value=True)
+    
+    if st.button("🚀 Analisar Oportunidades", type="primary", use_container_width=True):
+        with st.spinner("Analisando oportunidades..."):
+            mes_atual = datetime.now().month
+            resultados = []
+            
+            # Combina dados históricos e tendências
+            todos_termos = list(DADOS_HISTORICOS.get(mes_atual, ["smartwatch", "fone"]))
+            for categoria in TENDENCIAS_PINTEREST["2026"].values():
+                for item in categoria[:2]:
+                    if item not in todos_termos:
+                        todos_termos.append(item)
+            
+            progress = st.progress(0)
+            for i, termo in enumerate(todos_termos[:10]):
+                produtos = google_shopping.buscar_produtos(termo, 3, not usar_cache)
+                total = google_shopping.buscar_total_resultados(termo, not usar_cache) + ml_scraper.buscar_total_resultados(termo, not usar_cache)
+                score = calcular_score(total, produtos)
+                
+                resultados.append({
+                    "Produto": termo,
+                    "Score": score,
+                    "Total Resultados": total,
+                    "Produtos Encontrados": len(produtos)
+                })
+                progress.progress((i + 1) / 10)
+                time.sleep(0.2)
+            
+            df = pd.DataFrame(resultados).sort_values("Score", ascending=False).reset_index(drop=True)
+            
+            st.markdown("---")
+            st.markdown("### 📊 Ranking de Oportunidades")
+            st.caption(f"Atualizado em: {datetime.now().strftime('%d/%m/%Y %H:%M')}")
+            
+            # Destaque do melhor
+            if not df.empty:
+                melhor = df.iloc[0]
+                st.success(f"🏆 Melhor oportunidade: **{melhor['Produto']}** (Score: {melhor['Score']}/10)")
+            
+            st.dataframe(
+                df,
+                use_container_width=True,
+                hide_index=True,
+                column_config={
+                    "Score": st.column_config.NumberColumn("Score", format="%d"),
+                    "Total Resultados": st.column_config.NumberColumn("Total Resultados", format="%d"),
+                    "Produtos Encontrados": st.column_config.NumberColumn("Produtos Encontrados", format="%d")
+                }
+            )
+            
+            st.info("💡 Foque nos produtos com maior Score e menor número de resultados!")
 
-# ===== SECAO 4: SOBRE O CACHE =====
-with st.expander("Como funciona o sistema de cache"):
+# ============================================================
+# TAB 4: TENDENCIAS
+# ============================================================
+with tab4:
+    st.markdown("### 📌 Tendências Pinterest 2025-2026")
+    st.caption("Baseado no relatório Pinterest Predicts")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("#### 📅 2025")
+        for categoria, items in TENDENCIAS_PINTEREST["2025"].items():
+            with st.expander(f"📌 {categoria.capitalize()}"):
+                for item in items:
+                    st.markdown(f"- {item}")
+    
+    with col2:
+        st.markdown("#### 📅 2026")
+        for categoria, items in TENDENCIAS_PINTEREST["2026"].items():
+            with st.expander(f"📌 {categoria.capitalize()}"):
+                for item in items:
+                    st.markdown(f"- {item}")
+    
+    st.markdown("---")
+    st.markdown("### 💡 Como usar estas tendências")
     st.markdown("""
-    **Modos de operacao:**
-    
-    1. **Modo Cache (padrao)**:
-       - Dados sao armazenados localmente
-       - Validade configurável (1 a 24 horas)
-       - Mais rapido e economico
-    
-    2. **Modo Real-time**:
-       - Clique em "Atualizar (Real-time)"
-       - Ignora o cache e busca dados novos
-       - Dados sempre atuais
-    
-    **Vantagens do cache:**
-    - Menos requisicoes as APIs
-    - Resposta mais rapida
-    - Economia de cotas (SerpApi)
-    - Dados consistentes durante o periodo
-    
-    **Quando usar cada modo:**
-    - Para analises diarias: use Cache
-    - Para lancamentos/picos: use Real-time
+    1. Escolha uma tendência da lista acima
+    2. Vá para a aba **Buscar Produtos** e pesquise
+    3. Analise a saturação e concorrência
+    4. Crie conteúdo para redes sociais sobre o produto
     """)
+
+# ============================================================
+# RODAPE
+# ============================================================
+st.markdown("---")
+st.caption(f"🛒 Minerador de Produtos v1.0 | {datetime.now().year} | Dados: Google Shopping, Mercado Livre")
