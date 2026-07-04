@@ -37,7 +37,6 @@ class CacheDiario:
         self.dados = self.carregar()
     
     def carregar(self):
-        """Carrega o cache do arquivo"""
         if os.path.exists(self.arquivo):
             try:
                 with open(self.arquivo, 'r', encoding='utf-8') as f:
@@ -47,18 +46,14 @@ class CacheDiario:
         return {}
     
     def salvar(self):
-        """Salva o cache no arquivo"""
         with open(self.arquivo, 'w', encoding='utf-8') as f:
             json.dump(self.dados, f, ensure_ascii=False, indent=2)
     
     def obter(self, chave, validade_horas=24):
-        """Obtem um valor do cache se ainda for valido"""
         hoje = datetime.now().date().isoformat()
         dados = self.dados.get(chave, {})
         
-        # Verifica se o cache existe e ainda esta valido
         if dados and dados.get("data") == hoje:
-            # Verifica se passou do limite de horas
             hora_cache = datetime.strptime(dados.get("hora", "00:00"), "%H:%M")
             hora_atual = datetime.now()
             diferenca = (hora_atual - hora_cache.replace(year=hora_atual.year, 
@@ -71,7 +66,6 @@ class CacheDiario:
         return None
     
     def definir(self, chave, valor):
-        """Define um valor no cache com a data atual"""
         hoje = datetime.now()
         self.dados[chave] = {
             "valor": valor,
@@ -82,7 +76,6 @@ class CacheDiario:
         return valor
     
     def limpar(self):
-        """Limpa todo o cache"""
         self.dados = {}
         self.salvar()
 
@@ -96,13 +89,11 @@ class GoogleShoppingAPI:
         self.cache = CacheDiario()
     
     def buscar_produtos(self, termo, limite=10, forcar_atualizacao=False):
-        """Busca produtos no Google Shopping com cache diario"""
         if not self.api_key:
             return []
         
         chave_cache = f"produtos_{termo}_{limite}"
         
-        # Tenta obter do cache
         if not forcar_atualizacao:
             cache_valor = self.cache.obter(chave_cache)
             if cache_valor is not None:
@@ -143,7 +134,6 @@ class GoogleShoppingAPI:
                     "data_consulta": datetime.now().isoformat()
                 })
             
-            # Salva no cache
             self.cache.definir(chave_cache, produtos)
             return produtos
         except Exception as e:
@@ -151,7 +141,6 @@ class GoogleShoppingAPI:
             return []
     
     def buscar_total_resultados(self, termo, forcar_atualizacao=False):
-        """Retorna o numero total de resultados com cache"""
         if not self.api_key:
             return 0
         
@@ -189,7 +178,6 @@ class MercadoLivreScraper:
         self.cache = CacheDiario()
     
     def buscar_produtos(self, termo, limite=10, forcar_atualizacao=False):
-        """Busca produtos via API publica do ML com cache"""
         chave_cache = f"ml_produtos_{termo}_{limite}"
         
         if not forcar_atualizacao:
@@ -232,7 +220,6 @@ class MercadoLivreScraper:
             return []
     
     def buscar_total_resultados(self, termo, forcar_atualizacao=False):
-        """Busca total de resultados com cache"""
         chave_cache = f"ml_total_{termo}"
         
         if not forcar_atualizacao:
@@ -254,49 +241,40 @@ class MercadoLivreScraper:
             return 0
 
 # ============================================================
-# CLASSE PARA GOOGLE TRENDS (VIA PYTREADS)
+# TENDENCIAS PINTEREST 2025-2026
 # ============================================================
-class GoogleTrendsAPI:
-    def __init__(self):
-        self.pytrends = None
-        self.cache = CacheDiario()
-        try:
-            from pytrends.request import TrendReq
-            self.pytrends = TrendReq(hl='pt-BR', tz=-180)
-        except:
-            pass
-    
-    def buscar_tendencias(self, termos, timeframe='now 7-d', forcar_atualizacao=False):
-        """Busca interesse ao longo do tempo com cache"""
-        if not self.pytrends:
-            return None
-        
-        chave_cache = f"trends_{'_'.join(termos[:3])}_{timeframe}"
-        
-        if not forcar_atualizacao:
-            cache_valor = self.cache.obter(chave_cache)
-            if cache_valor is not None:
-                return cache_valor
-        
-        try:
-            self.pytrends.build_payload(
-                kw_list=termos[:5],
-                cat=0,
-                timeframe=timeframe,
-                geo='BR'
-            )
-            dados = self.pytrends.interest_over_time()
-            if dados.empty:
-                return None
-            if 'isPartial' in dados.columns:
-                dados = dados.drop('isPartial', axis=1)
-            
-            # Converte para dict para salvar no cache
-            dados_dict = dados.to_dict()
-            self.cache.definir(chave_cache, dados_dict)
-            return dados
-        except:
-            return None
+TENDENCIAS_PINTEREST = {
+    "2025": {
+        "beauty": ["jelly blush", "maquiagem glacial", "makeup gotica"],
+        "fashion": ["broches", "terno oversized", "rendas", "estilo expedicao"],
+        "decor": ["afrodecor", "neo deco", "lar ludico"],
+        "gifts": ["entre postais", "infancia retro", "perfume nichado"]
+    },
+    "2026": {
+        "beauty": ["blush em gel", "iluminador furta-cor", "batom metalico"],
+        "fashion": ["maximalismo", "moda utilitaria", "acessorios vintage"],
+        "decor": ["decoracao circense", "arte etiope", "marmore vermelho"],
+        "gifts": ["brinquedos anos 2000", "papelaria criativa", "kits de perfume"]
+    }
+}
+
+# ============================================================
+# DADOS HISTORICOS (FALLBACK)
+# ============================================================
+DADOS_HISTORICOS = {
+    1: ["smartwatch", "fone bluetooth", "material escolar", "mochila", "tenis"],
+    2: ["fantasia", "biquini", "sungas", "protetor solar", "fone"],
+    3: ["kit praia", "canga", "chapeu", "oculos sol", "smartwatch"],
+    4: ["ovo pascoa", "chocolate", "cesta", "fone", "smartwatch"],
+    5: ["dia das maes", "perfume", "bolsa", "vestido", "smartwatch"],
+    6: ["dia dos namorados", "perfume", "vinho", "chocolate", "fone"],
+    7: ["casaco", "bota", "cachecol", "fone", "smartwatch"],
+    8: ["dia dos pais", "relogio", "cinto", "ferramenta", "smartwatch"],
+    9: ["camisa", "calca", "vestido", "tenis", "smartwatch"],
+    10: ["fantasia halloween", "decoracao", "brinquedo", "fone", "smartwatch"],
+    11: ["black friday", "eletronico", "celular", "tv", "smartwatch"],
+    12: ["natal", "presente", "arvore", "decoracao", "smartwatch"]
+}
 
 # ============================================================
 # FUNCOES DE ANALISE
@@ -340,42 +318,6 @@ def calcular_score(total_resultados, produtos):
     return min(score, 10)
 
 # ============================================================
-# TENDENCIAS PINTEREST 2025-2026
-# ============================================================
-TENDENCIAS_PINTEREST = {
-    "2025": {
-        "beauty": ["jelly blush", "maquiagem glacial", "makeup gótica"],
-        "fashion": ["broches", "terno oversized", "rendas", "estilo expedicao"],
-        "decor": ["afrodecor", "neo deco", "lar ludico"],
-        "gifts": ["entre postais", "infancia retro", "perfume nichado"]
-    },
-    "2026": {
-        "beauty": ["blush em gel", "iluminador furta-cor", "batom metalico"],
-        "fashion": ["maximalismo", "moda utilitaria", "acessorios vintage"],
-        "decor": ["decoração circense", "arte etiope", "marmore vermelho"],
-        "gifts": ["brinquedos anos 2000", "papelaria criativa", "kits de perfume"]
-    }
-}
-
-# ============================================================
-# DADOS HISTORICOS (FALLBACK)
-# ============================================================
-DADOS_HISTORICOS = {
-    1: ["smartwatch", "fone bluetooth", "material escolar", "mochila", "tenis"],
-    2: ["fantasia", "biquini", "sungas", "protetor solar", "fone"],
-    3: ["kit praia", "canga", "chapeu", "oculos sol", "smartwatch"],
-    4: ["ovo pascoa", "chocolate", "cesta", "fone", "smartwatch"],
-    5: ["dia das maes", "perfume", "bolsa", "vestido", "smartwatch"],
-    6: ["dia dos namorados", "perfume", "vinho", "chocolate", "fone"],
-    7: ["casaco", "bota", "cachecol", "fone", "smartwatch"],
-    8: ["dia dos pais", "relogio", "cinto", "ferramenta", "smartwatch"],
-    9: ["camisa", "calca", "vestido", "tenis", "smartwatch"],
-    10: ["fantasia halloween", "decoracao", "brinquedo", "fone", "smartwatch"],
-    11: ["black friday", "eletronico", "celular", "tv", "smartwatch"],
-    12: ["natal", "presente", "arvore", "decoracao", "smartwatch"]
-}
-
-# ============================================================
 # FUNCOES DE LOGIN
 # ============================================================
 def verificar_login():
@@ -398,18 +340,19 @@ def verificar_login():
 # ============================================================
 verificar_login()
 
+# INICIALIZA AS APIS AQUI (ANTES DE USAR)
+cache = CacheDiario()
+google_shopping = GoogleShoppingAPI()
+ml_scraper = MercadoLivreScraper()
+
 st.title("Minerador de Produtos - Afiliados")
 st.caption("Consultas diarias com cache automatico - Google Shopping + Mercado Livre + Google Trends")
-
-# Inicializa o cache
-cache = CacheDiario()
 
 # Status no sidebar
 with st.sidebar:
     st.markdown("### Status")
     st.markdown(f"**Data/Hora:** {datetime.now().strftime('%d/%m/%Y %H:%M')}")
     
-    # Informacoes do cache
     st.markdown("**Cache:**")
     st.caption(f"Arquivo: {ARQUIVO_CACHE}")
     st.caption("Validade: 24 horas")
@@ -428,7 +371,7 @@ with st.sidebar:
 st.markdown("---")
 
 # ===== SECAO 1: TENDENCIAS PINTEREST =====
-st.markdown("## Tendências Pinterest 2025-2026")
+st.markdown("## Tendencias Pinterest 2025-2026")
 
 col1, col2 = st.columns(2)
 with col1:
@@ -470,7 +413,7 @@ if "termo_busca" in st.session_state and st.session_state.termo_busca:
     st.markdown(f"### Resultados para '{termo}'")
     
     if forcar:
-        st.info("Atualizacao forçada - buscando dados novos...")
+        st.info("Atualizacao forcada - buscando dados novos...")
     
     with st.spinner("Buscando no Google Shopping..."):
         produtos_google = google_shopping.buscar_produtos(termo, 8, forcar)
@@ -480,7 +423,6 @@ if "termo_busca" in st.session_state and st.session_state.termo_busca:
         produtos_ml = ml_scraper.buscar_produtos(termo, 5, forcar)
         total_ml = ml_scraper.buscar_total_resultados(termo, forcar)
     
-    # Exibe hora da consulta
     st.caption(f"Consulta realizada em: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
     
     col1, col2, col3 = st.columns(3)
