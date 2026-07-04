@@ -42,7 +42,6 @@ APIFY_TOKEN = st.secrets.get("APIFY_TOKEN", "")
 # LIMITE DE BUSCAS POR DIA
 # ============================================================
 class ControleBuscas:
-    """Controla o limite de buscas na SerpApi (3 por dia)"""
     def __init__(self):
         self.arquivo = "controle_buscas.json"
         self.dados = self.carregar()
@@ -61,24 +60,18 @@ class ControleBuscas:
             json.dump(self.dados, f, ensure_ascii=False, indent=2)
     
     def pode_buscar(self):
-        """Verifica se ainda pode fazer buscas hoje"""
         hoje = datetime.now().date().isoformat()
-        
-        # Inicializa se não existir
         if hoje not in self.dados:
             self.dados[hoje] = {"buscas": 0, "termos": []}
             self.salvar()
         
-        # Verifica se já atingiu o limite de 3
         if self.dados[hoje]["buscas"] >= 3:
             return False, f"Limite de 3 buscas/dia atingido. Aguarde amanhã."
         
         return True, f"Restam {3 - self.dados[hoje]['buscas']} buscas hoje"
     
     def registrar_busca(self, termo):
-        """Registra uma busca realizada"""
         hoje = datetime.now().date().isoformat()
-        
         if hoje not in self.dados:
             self.dados[hoje] = {"buscas": 0, "termos": []}
         
@@ -124,7 +117,7 @@ class CacheDiario:
     
     def obter(self, chave, validade_horas=None):
         if validade_horas is None:
-            validade_horas = st.session_state.get("validade_cache", 1)
+            validade_horas = st.session_state.get("validade_cache", 24)
         
         hoje = datetime.now().date().isoformat()
         dados = self.dados.get(chave, {})
@@ -169,7 +162,7 @@ class CacheDiario:
         }
 
 # ============================================================
-# CLASSE PARA GOOGLE SHOPPING (VIA SERPAPI - LIMITADO)
+# CLASSE GOOGLE SHOPPING
 # ============================================================
 class GoogleShoppingAPI:
     def __init__(self):
@@ -182,21 +175,20 @@ class GoogleShoppingAPI:
         if not self.api_key:
             return []
         
-        # Verifica se pode buscar
-        pode, mensagem = self.controle.pode_buscar()
-        if not pode and not forcar_atualizacao:
-            st.warning(f"⚠️ {mensagem}")
-            return self._buscar_cache_fallback(termo)
-        
         chave_cache = f"produtos_{termo}_{limite}"
         
-        # Tenta cache primeiro (24h)
+        # Tenta cache primeiro
         if not forcar_atualizacao:
             cache_valor = self.cache.obter(chave_cache, 24)
             if cache_valor is not None:
                 return cache_valor
         
-        # Se chegou aqui, faz a busca real
+        # Verifica se pode buscar
+        pode, mensagem = self.controle.pode_buscar()
+        if not pode:
+            st.warning(f"⚠️ {mensagem}")
+            return self._buscar_cache_fallback(termo)
+        
         try:
             params = {
                 "q": termo,
@@ -233,7 +225,6 @@ class GoogleShoppingAPI:
                     "data_consulta": datetime.now().isoformat()
                 })
             
-            # Registra a busca
             self.controle.registrar_busca(termo)
             self.cache.definir(chave_cache, produtos)
             return produtos
@@ -243,11 +234,10 @@ class GoogleShoppingAPI:
             return self._buscar_cache_fallback(termo)
     
     def _buscar_cache_fallback(self, termo):
-        """Tenta buscar do cache mesmo que expirado"""
         chave_cache = f"produtos_{termo}_10"
-        cache_valor = self.cache.obter(chave_cache, 720)  # 30 dias
+        cache_valor = self.cache.obter(chave_cache, 720)
         if cache_valor is not None:
-            st.info("📌 Usando dados em cache (limite de buscas diárias atingido)")
+            st.info("📌 Usando dados em cache (limite de buscas atingido)")
             return cache_valor
         return []
     
@@ -255,7 +245,6 @@ class GoogleShoppingAPI:
         if not self.api_key:
             return 0
         
-        # Usa cache para total também
         chave_cache = f"total_{termo}"
         
         if not forcar_atualizacao:
@@ -263,9 +252,8 @@ class GoogleShoppingAPI:
             if cache_valor is not None:
                 return cache_valor
         
-        # Verifica limite de buscas
         pode, _ = self.controle.pode_buscar()
-        if not pode and not forcar_atualizacao:
+        if not pode:
             return self.cache.obter(chave_cache, 720) or 0
         
         try:
@@ -281,7 +269,6 @@ class GoogleShoppingAPI:
             data = resp.json()
             total = data.get("search_information", {}).get("total_results", 0)
             
-            # Registra a busca (se ainda nao registrou)
             self.controle.registrar_busca(termo)
             self.cache.definir(chave_cache, total)
             return total
@@ -289,7 +276,6 @@ class GoogleShoppingAPI:
             return self.cache.obter(chave_cache, 720) or 0
     
     def get_status_buscas(self):
-        """Retorna status das buscas do dia"""
         return {
             "hoje": self.controle.get_buscas_hoje(),
             "limite": 3,
@@ -298,7 +284,7 @@ class GoogleShoppingAPI:
         }
 
 # ============================================================
-# CLASSE PARA GOOGLE TRENDS (VIA SERPAPI)
+# CLASSE GOOGLE TRENDS
 # ============================================================
 class GoogleTrendsAPI:
     def __init__(self):
@@ -311,16 +297,15 @@ class GoogleTrendsAPI:
         if not self.api_key:
             return None
         
-        # Verifica limite de buscas
-        pode, _ = self.controle.pode_buscar()
-        if not pode:
-            st.warning(f"⚠️ Limite de buscas atingido. Usando cache.")
-            return self._buscar_cache_fallback(termo)
-        
         chave_cache = f"trends_{termo}_{timeframe}"
         cache_valor = self.cache.obter(chave_cache, 24)
         if cache_valor is not None:
             return cache_valor
+        
+        pode, _ = self.controle.pode_buscar()
+        if not pode:
+            st.warning(f"⚠️ Limite de buscas atingido.")
+            return self._buscar_cache_fallback(termo)
         
         try:
             params = {
@@ -356,7 +341,6 @@ class GoogleTrendsAPI:
                     df = pd.DataFrame(dados)
                     if not df.empty:
                         df = df.set_index('date')
-                        # Registra a busca
                         self.controle.registrar_busca(termo)
                         self.cache.definir(chave_cache, df.to_dict())
                         return df
@@ -367,7 +351,6 @@ class GoogleTrendsAPI:
             return self._buscar_cache_fallback(termo)
     
     def _buscar_cache_fallback(self, termo):
-        """Tenta buscar do cache mesmo que expirado"""
         chave_cache = f"trends_{termo}_now 1-d"
         cache_valor = self.cache.obter(chave_cache, 720)
         if cache_valor is not None:
@@ -376,66 +359,7 @@ class GoogleTrendsAPI:
         return None
 
 # ============================================================
-# CLASSE PARA PINTEREST (VIA APIFY OU SIMULADO - SEM LIMITE)
-# ============================================================
-class PinterestScraper:
-    def __init__(self):
-        self.apify_token = APIFY_TOKEN
-        self.cache = CacheDiario()
-    
-    def buscar_tendencias(self, termo, limite=10):
-        chave_cache = f"pinterest_{termo}_{limite}"
-        cache_valor = self.cache.obter(chave_cache, 24)
-        if cache_valor is not None:
-            return cache_valor
-        
-        if self.apify_token:
-            try:
-                url = "https://api.apify.com/v2/acts/curious_coder~pinterest-search-scraper/runs"
-                params = {
-                    "token": self.apify_token,
-                    "keyword": termo,
-                    "limit": limite
-                }
-                resp = requests.post(url, params=params, timeout=30)
-                if resp.status_code == 200:
-                    data = resp.json()
-                    self.cache.definir(chave_cache, data)
-                    return data
-            except Exception as e:
-                pass
-        
-        dados_simulados = self._gerar_dados_simulados(termo, limite)
-        self.cache.definir(chave_cache, dados_simulados)
-        return dados_simulados
-    
-    def _gerar_dados_simulados(self, termo, limite):
-        termos_relacionados = {
-            "smartwatch": ["smartwatch feminino", "smartwatch esportivo", "smartwatch barato"],
-            "fone bluetooth": ["fone bluetooth JBL", "fone bluetooth Samsung", "fone bluetooth barato"],
-            "jelly blush": ["blush em gel", "blush cremoso", "maquiagem viral"],
-            "maquiagem glacial": ["make azul", "glitter gelado", "maquiagem colorida"],
-            "broche": ["broche feminino", "broche vintage", "broche personalizado"],
-            "maximalismo": ["moda maximalista", "roupas coloridas", "looks ousados"],
-            "decoracao circense": ["decoracao ludica", "quartos criativos", "decoracao colorida"],
-            "kits de perfume": ["perfume kits", "fragrancias exclusivas", "perfume nichado"]
-        }
-        
-        termos = termos_relacionados.get(termo, [f"{termo} tendencia", f"{termo} estilo", f"{termo} 2026"])
-        
-        dados = []
-        for i, t in enumerate(termos[:limite]):
-            dados.append({
-                "termo": t,
-                "pins": random.randint(100, 5000),
-                "crescimento": random.randint(50, 300),
-                "categoria": "Moda" if "moda" in t.lower() or "roupa" in t.lower() else "Beleza" if "make" in t.lower() or "maquiagem" in t.lower() else "Decoracao" if "decoracao" in t.lower() or "ludica" in t.lower() else "Geral"
-            })
-        
-        return dados
-
-# ============================================================
-# CLASSE MERCADO LIVRE (FALLBACK - SEM LIMITE)
+# CLASSE MERCADO LIVRE
 # ============================================================
 class MercadoLivreScraper:
     def __init__(self):
@@ -539,6 +463,32 @@ DADOS_HISTORICOS = {
 }
 
 # ============================================================
+# SUGESTOES PRE-CALCULADAS (PARA EXIBIR SEM PESQUISAR)
+# ============================================================
+SUGESTOES_PRODUTOS = {
+    "Baixa saturacao": [
+        {"produto": "jelly blush", "categoria": "Beleza", "motivo": "Tendência Pinterest 2025 com +130% de busca"},
+        {"produto": "broche personalizado", "categoria": "Moda", "motivo": "Tendência Pinterest 2025 com +110% de busca"},
+        {"produto": "blush em gel", "categoria": "Beleza", "motivo": "Tendência Pinterest 2026 em alta"},
+        {"produto": "kits de perfume", "categoria": "Presentes", "motivo": "Crescimento de +500% no Pinterest"},
+        {"produto": "decoracao circense", "categoria": "Decoracao", "motivo": "Tendência Pinterest 2026 com +130% de busca"},
+        {"produto": "terno oversized", "categoria": "Moda", "motivo": "Tendência Pinterest 2025 com +225% de busca"}
+    ],
+    "Moderada saturacao": [
+        {"produto": "smartwatch", "categoria": "Eletrônicos", "motivo": "Mercado consolidado, ainda com espaço"},
+        {"produto": "fone bluetooth", "categoria": "Eletrônicos", "motivo": "Alta demanda, concorrencia moderada"},
+        {"produto": "camisa feminina", "categoria": "Moda", "motivo": "Sempre em alta, mas com nichos especificos"},
+        {"produto": "cadeira gamer", "categoria": "Casa", "motivo": "Mercado em crescimento, publico fiel"}
+    ],
+    "Alta saturacao": [
+        {"produto": "tenis", "categoria": "Moda", "motivo": "Mercado muito concorrido, nichos especificos"},
+        {"produto": "bolsa", "categoria": "Moda", "motivo": "Muitas opcoes, mas sazonais funcionam"},
+        {"produto": "perfume", "categoria": "Beleza", "motivo": "Alta concorrencia, mas com margem"},
+        {"produto": "carregador portatil", "categoria": "Eletrônicos", "motivo": "Mercado saturado, pouca diferenciacao"}
+    ]
+}
+
+# ============================================================
 # FUNCOES DE ANALISE
 # ============================================================
 def analisar_saturacao(total):
@@ -580,91 +530,6 @@ def calcular_score(total_resultados, produtos):
     return min(score, 10)
 
 # ============================================================
-# COLETOR DE DADOS (LIMITADO)
-# ============================================================
-class ColetorAgendado:
-    def __init__(self):
-        self.google_trends = GoogleTrendsAPI()
-        self.pinterest = PinterestScraper()
-        self.google_shopping = GoogleShoppingAPI()
-        self.ml_scraper = MercadoLivreScraper()
-        self.ultima_coleta = None
-        self.termos_prioritarios = ["smartwatch", "fone bluetooth", "camisa"]
-        self.termos_secundarios = ["vestido", "tenis", "bolsa"]
-        self.resultados = []
-        self.controle = ControleBuscas()
-    
-    def coletar_dados(self):
-        """Coleta apenas 3 produtos por dia (prioritários)"""
-        try:
-            dados_coletados = {
-                "timestamp": datetime.now().isoformat(),
-                "google_trends": {},
-                "pinterest": {},
-                "produtos": {},
-                "buscas_realizadas": []
-            }
-            
-            # Prioriza os termos mais importantes (apenas 3)
-            termos_para_buscar = self.termos_prioritarios[:3]
-            
-            for termo in termos_para_buscar:
-                # Só busca se tiver limite disponível
-                pode, _ = self.controle.pode_buscar()
-                if not pode:
-                    st.warning(f"⚠️ Limite de 3 buscas/dia atingido. Pulando '{termo}'.")
-                    break
-                
-                # Google Trends
-                historico = self.google_trends.buscar_interesse_historico(termo, 'now 1-d')
-                if historico is not None:
-                    dados_coletados["google_trends"][termo] = historico.to_dict()
-                
-                # Pinterest (sem limite)
-                tendencias = self.pinterest.buscar_tendencias(termo, 5)
-                if tendencias:
-                    dados_coletados["pinterest"][termo] = tendencias
-                
-                # Produtos (Google Shopping - consome 1 busca)
-                produtos_gs = self.google_shopping.buscar_produtos(termo, 3, True)
-                produtos_ml = self.ml_scraper.buscar_produtos(termo, 3, True)
-                dados_coletados["produtos"][termo] = {
-                    "google_shopping": produtos_gs,
-                    "mercado_livre": produtos_ml
-                }
-                
-                dados_coletados["buscas_realizadas"].append({
-                    "termo": termo,
-                    "hora": datetime.now().strftime("%H:%M")
-                })
-                
-                time.sleep(1)  # Delay entre buscas
-            
-            with open(ARQUIVO_TRENDS, 'w', encoding='utf-8') as f:
-                json.dump(dados_coletados, f, ensure_ascii=False, indent=2)
-            
-            self.ultima_coleta = datetime.now()
-            self.resultados = dados_coletados
-            
-            return dados_coletados
-            
-        except Exception as e:
-            st.error(f"Erro na coleta: {e}")
-            return None
-    
-    def carregar_ultima_coleta(self):
-        if os.path.exists(ARQUIVO_TRENDS):
-            try:
-                with open(ARQUIVO_TRENDS, 'r', encoding='utf-8') as f:
-                    dados = json.load(f)
-                    self.resultados = dados
-                    self.ultima_coleta = datetime.fromisoformat(dados.get("timestamp", datetime.now().isoformat()))
-                    return dados
-            except:
-                pass
-        return None
-
-# ============================================================
 # FUNCOES DE LOGIN
 # ============================================================
 def verificar_login():
@@ -692,16 +557,7 @@ cache = CacheDiario()
 google_shopping = GoogleShoppingAPI()
 ml_scraper = MercadoLivreScraper()
 google_trends = GoogleTrendsAPI()
-pinterest_scraper = PinterestScraper()
-coletor = ColetorAgendado()
 controle = ControleBuscas()
-
-coletor.carregar_ultima_coleta()
-
-# Coleta automática se necessário (apenas 3 por dia)
-if coletor.ultima_coleta is None or (datetime.now() - coletor.ultima_coleta).total_seconds() / 3600 >= 24:
-    with st.spinner("Coletando dados diários (3 produtos)..."):
-        coletor.coletar_dados()
 
 # ============================================================
 # SIDEBAR
@@ -712,14 +568,13 @@ with st.sidebar:
     validade = st.selectbox(
         "⏱️ Validade do cache",
         [1, 2, 4, 6, 12, 24],
-        index=4,  # Padrão: 24 horas
+        index=4,
         help="Tempo em horas que os dados ficam armazenados"
     )
     st.session_state.validade_cache = validade
     
     st.markdown("---")
     
-    # Status das buscas SerpApi
     status_buscas = google_shopping.get_status_buscas()
     st.markdown("### 🔢 Buscas SerpApi Hoje")
     st.caption(f"📊 {status_buscas['hoje']} de {status_buscas['limite']} usadas")
@@ -730,34 +585,23 @@ with st.sidebar:
         st.warning("⚠️ Limite de 3 buscas/dia atingido")
     
     if status_buscas['termos']:
-        st.caption(f"📌 Termos buscados: {', '.join(status_buscas['termos'])}")
+        st.caption(f"📌 Termos: {', '.join(status_buscas['termos'])}")
     
     st.markdown("---")
     
     st.markdown("### 🔌 Status das APIs")
     if SERPAPI_KEY:
         st.success("✅ SerpApi configurada")
-        st.caption("Google Shopping + Google Trends (3 buscas/dia)")
+        st.caption("3 buscas/dia")
     else:
         st.warning("⚠️ SerpApi nao configurada")
     
     st.markdown("---")
     
-    st.markdown("### 🔄 Coleta Automática")
-    st.caption(f"Última coleta: {coletor.ultima_coleta.strftime('%d/%m/%Y %H:%M') if coletor.ultima_coleta else 'Nunca'}")
-    st.caption("📌 3 produtos prioritários por dia")
-    
-    if st.button("🔄 Coletar Hoje", width='stretch'):
-        with st.spinner("Coletando dados (3 produtos)..."):
-            coletor.coletar_dados()
-            st.rerun()
-    
-    st.markdown("---")
-    
     info_cache = cache.info()
-    st.markdown("### 📊 Status do Cache")
-    st.caption(f"📁 Total de chaves: {info_cache['total_chaves']}")
-    st.caption(f"📅 Chaves de hoje: {info_cache['chaves_hoje']}")
+    st.markdown("### 📊 Cache")
+    st.caption(f"📁 Chaves: {info_cache['total_chaves']}")
+    st.caption(f"📅 Hoje: {info_cache['chaves_hoje']}")
     
     st.markdown("---")
     
@@ -772,74 +616,130 @@ with st.sidebar:
 st.title("🛒 Minerador de Produtos")
 st.caption(f"📅 {datetime.now().strftime('%A, %d de %B de %Y - %H:%M')}")
 
-# Métricas rápidas
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-    st.metric("📦 Produtos no Cache", info_cache['total_chaves'])
+    st.metric("📦 Cache", info_cache['total_chaves'])
 
 with col2:
     st.metric("📊 Categorias", len(TENDENCIAS_PINTEREST["2026"]))
 
 with col3:
     mes_atual = datetime.now().month
-    st.metric("📅 Mês Atual", f"{mes_atual}/12")
+    st.metric("📅 Mês", f"{mes_atual}/12")
 
 with col4:
     buscas_hoje = controle.get_buscas_hoje()
-    st.metric("🔍 Buscas Hoje", f"{buscas_hoje}/3")
+    st.metric("🔍 Buscas", f"{buscas_hoje}/3")
 
 st.markdown("---")
 
 # ============================================================
 # TABS
 # ============================================================
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
+tab1, tab2, tab3 = st.tabs([
+    "💡 Sugestões",
     "🔍 Buscar Produtos",
-    "📊 Análise de Saturação",
-    "🎯 Oportunidades",
-    "📌 Tendências",
     "📈 Google Trends"
 ])
 
 # ============================================================
-# TAB 1: BUSCAR PRODUTOS (COM AVISO DO LIMITE)
+# TAB 1: SUGESTOES (SEM PESQUISAR)
 # ============================================================
 with tab1:
+    st.markdown("### 💡 Sugestões de Produtos")
+    st.caption("Recomendações baseadas em tendências Pinterest e dados históricos")
+    
+    status_buscas = google_shopping.get_status_buscas()
+    if status_buscas['restam'] > 0:
+        st.info(f"📌 {status_buscas['restam']} buscas disponíveis hoje para detalhamento")
+    
+    # Sugestões por nível de saturação
+    for nivel, produtos in SUGESTOES_PRODUTOS.items():
+        with st.expander(f"📌 {nivel} - Clique para ver detalhes"):
+            for p in produtos:
+                col1, col2, col3 = st.columns([2, 1, 1])
+                with col1:
+                    st.markdown(f"**{p['produto']}**")
+                    st.caption(p['categoria'])
+                with col2:
+                    st.caption(p['motivo'])
+                with col3:
+                    if st.button(f"🔍 Pesquisar {p['produto']}", key=f"btn_{p['produto']}"):
+                        st.session_state.termo_busca = p['produto']
+                        st.rerun()
+                st.markdown("---")
+    
+    # Dicas rápidas
+    st.markdown("---")
+    st.markdown("### 💡 Dicas para Afiliados")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.info("""
+        **🔥 Melhores Oportunidades**
+        - Jelly Blush (+130% Pinterest)
+        - Broches (+110% Pinterest)
+        - Kits de Perfume (+500% Pinterest)
+        """)
+    with col2:
+        st.success("""
+        **📈 Como usar estas sugestões**
+        1. Escolha um produto da lista
+        2. Clique em "Pesquisar" para ver dados reais
+        3. Analise a saturação e concorrência
+        4. Crie conteúdo para redes sociais
+        """)
+
+# ============================================================
+# TAB 2: BUSCAR PRODUTOS
+# ============================================================
+with tab2:
     st.markdown("### 🔍 Buscar Produtos no Mercado")
     st.caption("Dados REAIS do Google Shopping via SerpApi (3 buscas/dia)")
     
-    # Aviso sobre limite
+    # Verifica se veio de sugestão
+    termo_inicial = st.session_state.get("termo_busca", "")
+    if termo_inicial:
+        st.info(f"🔍 Buscando: {termo_inicial}")
+    
     status_buscas = google_shopping.get_status_buscas()
     if status_buscas['restam'] <= 0:
-        st.warning("⚠️ Limite de 3 buscas/dia atingido. Use o cache ou aguarde amanhã.")
+        st.warning("⚠️ Limite de 3 buscas/dia atingido. Aguarde amanhã.")
     else:
         st.info(f"📌 {status_buscas['restam']} buscas disponíveis hoje")
     
     col1, col2 = st.columns([3, 1])
     with col1:
         termo_busca = st.text_input(
-            "Digite um produto para buscar:",
-            placeholder="Ex: smartwatch, fone bluetooth, camisa...",
-            label_visibility="collapsed"
+            "Digite um produto:",
+            value=termo_inicial,
+            placeholder="Ex: smartwatch, jelly blush...",
+            label_visibility="collapsed",
+            key="busca_input"
         )
     with col2:
-        usar_cache = st.toggle("Usar cache", value=True)
+        usar_cache = st.checkbox("Usar cache", value=True, key="cache_checkbox")
+    
+    # Limpa o termo da sessão após usar
+    if termo_inicial and "termo_busca" in st.session_state:
+        del st.session_state.termo_busca
     
     if termo_busca:
         forcar = not usar_cache
         
         if st.button("🔍 Buscar", type="primary", width='stretch'):
-            with st.spinner("Buscando dados no Google Shopping..."):
+            with st.spinner("Buscando dados..."):
                 produtos_google = google_shopping.buscar_produtos(termo_busca, 8, forcar)
                 total_google = google_shopping.buscar_total_resultados(termo_busca, forcar)
                 
                 st.markdown(f"### 📊 Resultados para '{termo_busca}'")
                 
-                st.markdown(f"**Total de resultados:** {total_google}")
-                st.markdown(f"**Produtos exibidos:** {len(produtos_google)}")
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.metric("Total de Resultados", total_google)
+                with col2:
+                    st.metric("Produtos Exibidos", len(produtos_google))
                 
-                # Mostra status das buscas
                 status_atual = google_shopping.get_status_buscas()
                 st.caption(f"🔍 Buscas usadas hoje: {status_atual['hoje']}/3")
                 
@@ -859,205 +759,51 @@ with tab1:
                                 if p.get("link"):
                                     st.link_button("🔗 Ver", p["link"], width='stretch')
                 else:
-                    st.warning("Nenhum produto encontrado. Verifique o termo ou a chave SerpApi.")
+                    st.warning("Nenhum produto encontrado.")
 
 # ============================================================
-# TAB 2: ANALISE DE SATURACAO
-# ============================================================
-with tab2:
-    st.markdown("### 📊 Análise de Saturação")
-    st.caption("Quanto menor o número de resultados, menor a concorrência")
-    
-    col1, col2 = st.columns([2, 1])
-    with col1:
-        termo_sat = st.text_input(
-            "Digite um produto para analisar:",
-            placeholder="Ex: smartwatch...",
-            label_visibility="collapsed",
-            key="sat"
-        )
-    
-    if termo_sat and st.button("📊 Analisar", key="btn_sat"):
-        with st.spinner("Analisando..."):
-            total_google = google_shopping.buscar_total_resultados(termo_sat)
-            total_ml = ml_scraper.buscar_total_resultados(termo_sat)
-            total = total_google + total_ml
-            
-            saturacao = analisar_saturacao(total)
-            
-            st.markdown("#### Nível de Saturação")
-            col_barra, col_porcentagem = st.columns([4, 1])
-            
-            with col_barra:
-                pct = min(total / 5, 100)
-                cor = "green" if pct < 20 else "yellow" if pct < 50 else "orange" if pct < 80 else "red"
-                st.markdown(f"""
-                <div style="background: #e0e0e0; border-radius: 10px; height: 30px; position: relative;">
-                    <div style="background: {cor}; width: {pct}%; height: 30px; border-radius: 10px; transition: width 0.5s;">
-                        <span style="position: absolute; right: 10px; top: 5px; color: black; font-weight: bold;">{pct:.1f}%</span>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            with col_porcentagem:
-                st.metric("Saturação", f"{pct:.1f}%")
-            
-            c1, c2 = st.columns(2)
-            with c1:
-                st.metric("🛒 Google Shopping", total_google)
-            with c2:
-                st.metric("📦 Mercado Livre", total_ml)
-            
-            st.markdown(f"### {saturacao['cor']} {saturacao['nivel']}")
-            st.markdown(f"💡 {saturacao['recomendacao']}")
-
-# ============================================================
-# TAB 3: OPORTUNIDADES
+# TAB 3: GOOGLE TRENDS
 # ============================================================
 with tab3:
-    st.markdown("### 🎯 Oportunidades para Afiliados")
+    st.markdown("### 📈 Google Trends")
+    st.caption("Dados REAIS via SerpApi (3 buscas/dia)")
     
-    col1, col2 = st.columns([3, 1])
-    with col1:
-        st.caption("Produtos com melhor Score e menor concorrência")
-    with col2:
-        usar_cache = st.toggle("Usar cache", value=True)
-    
-    if st.button("🚀 Analisar Oportunidades", type="primary", width='stretch'):
-        with st.spinner("Analisando oportunidades..."):
-            mes_atual = datetime.now().month
-            resultados = []
-            
-            todos_termos = list(DADOS_HISTORICOS.get(mes_atual, ["smartwatch", "fone"]))
-            for categoria in TENDENCIAS_PINTEREST["2026"].values():
-                for item in categoria[:2]:
-                    if item not in todos_termos:
-                        todos_termos.append(item)
-            
-            progress_bar = st.progress(0)
-            status_text = st.empty()
-            
-            for i, termo in enumerate(todos_termos[:10]):
-                status_text.text(f"Analisando: {termo}...")
-                produtos = google_shopping.buscar_produtos(termo, 3, not usar_cache)
-                total = google_shopping.buscar_total_resultados(termo, not usar_cache) + ml_scraper.buscar_total_resultados(termo, not usar_cache)
-                score = calcular_score(total, produtos)
-                
-                resultados.append({
-                    "Produto": termo,
-                    "Score": score,
-                    "Total Resultados": total,
-                    "Produtos Encontrados": len(produtos)
-                })
-                progress_bar.progress((i + 1) / len(todos_termos[:10]))
-                time.sleep(0.2)
-            
-            status_text.empty()
-            
-            df = pd.DataFrame(resultados).sort_values("Score", ascending=False).reset_index(drop=True)
-            
-            st.markdown("---")
-            st.markdown("### 📊 Ranking de Oportunidades")
-            st.caption(f"Atualizado em: {datetime.now().strftime('%d/%m/%Y %H:%M')}")
-            
-            if not df.empty:
-                melhor = df.iloc[0]
-                st.success(f"🏆 Melhor oportunidade: **{melhor['Produto']}** (Score: {melhor['Score']}/10)")
-            
-            st.dataframe(
-                df,
-                width='stretch',
-                hide_index=True,
-                column_config={
-                    "Score": st.column_config.NumberColumn("Score", format="%d"),
-                    "Total Resultados": st.column_config.NumberColumn("Total Resultados", format="%d"),
-                    "Produtos Encontrados": st.column_config.NumberColumn("Produtos Encontrados", format="%d")
-                }
-            )
-            
-            if not df.empty:
-                st.markdown("#### 📈 Score por Produto")
-                df_chart = df.set_index("Produto")[["Score"]]
-                st.bar_chart(df_chart)
-            
-            st.info("💡 Foque nos produtos com maior Score e menor número de resultados!")
-
-# ============================================================
-# TAB 4: TENDENCIAS
-# ============================================================
-with tab4:
-    st.markdown("### 📌 Tendências Pinterest 2025-2026")
-    st.caption("Baseado no relatório Pinterest Predicts")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("#### 📅 2025")
-        for categoria, items in TENDENCIAS_PINTEREST["2025"].items():
-            with st.expander(f"📌 {categoria}"):
-                for item in items:
-                    st.markdown(f"- {item}")
-    
-    with col2:
-        st.markdown("#### 📅 2026")
-        for categoria, items in TENDENCIAS_PINTEREST["2026"].items():
-            with st.expander(f"📌 {categoria}"):
-                for item in items:
-                    st.markdown(f"- {item}")
-    
-    st.markdown("---")
-    st.markdown("### 💡 Como usar estas tendências")
-    st.markdown("""
-    1. Escolha uma tendência da lista acima
-    2. Vá para a aba **Buscar Produtos** e pesquise
-    3. Analise a saturação e concorrência
-    4. Crie conteúdo para redes sociais sobre o produto
-    """)
-
-# ============================================================
-# TAB 5: GOOGLE TRENDS
-# ============================================================
-with tab5:
-    st.markdown("### 📈 Google Trends - Interesse em Tempo Real")
-    st.caption("Dados REAIS do Google Trends via SerpApi (3 buscas/dia)")
-    
-    # Aviso sobre limite
     status_buscas = google_shopping.get_status_buscas()
     if status_buscas['restam'] <= 0:
-        st.warning("⚠️ Limite de 3 buscas/dia atingido. Use o cache ou aguarde amanhã.")
+        st.warning("⚠️ Limite de 3 buscas/dia atingido.")
     
     col1, col2 = st.columns([2, 1])
     with col1:
         termo_trends = st.text_input(
-            "Digite um termo para buscar:",
+            "Digite um termo:",
             placeholder="smartwatch",
+            label_visibility="collapsed",
             key="trends_input"
         )
     with col2:
-        if st.button("🔄 Buscar no Google Trends", type="primary", width='stretch'):
+        if st.button("🔄 Buscar Trends", type="primary", width='stretch'):
             if termo_trends:
-                with st.spinner("Buscando dados no Google Trends..."):
+                with st.spinner("Buscando dados..."):
                     dados_trends = google_trends.buscar_interesse_historico(termo_trends, 'now 1-d')
                     
                     if dados_trends is not None and not dados_trends.empty:
-                        st.markdown("#### 📊 Interesse ao Longo do Tempo (últimas 24h)")
+                        st.markdown("#### 📊 Interesse (últimas 24h)")
                         st.line_chart(dados_trends)
                         
-                        st.markdown("#### 📋 Dados Detalhados")
+                        st.markdown("#### 📋 Dados")
                         st.dataframe(dados_trends, width='stretch')
                         
-                        st.success(f"✅ Dados REAIS do Google Trends para '{termo_trends}'")
+                        st.success(f"✅ Dados para '{termo_trends}'")
                         
-                        # Mostra status atualizado
                         status_atual = google_shopping.get_status_buscas()
-                        st.caption(f"🔍 Buscas usadas hoje: {status_atual['hoje']}/3")
+                        st.caption(f"🔍 Buscas hoje: {status_atual['hoje']}/3")
                     else:
-                        st.warning("Nao foi possivel buscar dados. Verifique o termo ou a chave SerpApi.")
+                        st.warning("Não foi possível buscar dados.")
             else:
-                st.warning("Digite um termo para buscar.")
+                st.warning("Digite um termo.")
 
 # ============================================================
 # RODAPE
 # ============================================================
 st.markdown("---")
-st.caption(f"🛒 Minerador de Produtos v2.0 | 3 buscas/dia na SerpApi | Dados REAIS: Google Shopping + Google Trends")
+st.caption(f"🛒 Minerador de Produtos v2.0 | 3 buscas/dia SerpApi")
