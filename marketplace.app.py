@@ -98,176 +98,188 @@ class ControleConsultas:
         }
 
 # ============================================================
-# DADOS HISTORICOS POR MES (APENAS PARA SUGESTAO)
+# DADOS HISTORICOS POR MES (COM INSIGHTS ADICIONAIS)
 # ============================================================
 DADOS_HISTORICOS = {
     1: {
         "tendencias": [
-            {"produto": "material escolar", "categoria": "Papelaria", "potencial": "Alto"},
-            {"produto": "mochila escolar", "categoria": "Moda", "potencial": "Alto"},
-            {"produto": "smartwatch", "categoria": "Eletrônicos", "potencial": "Médio"},
-            {"produto": "fone bluetooth", "categoria": "Eletrônicos", "potencial": "Médio"},
-            {"produto": "tenis", "categoria": "Moda", "potencial": "Médio"},
-            {"produto": "caderno", "categoria": "Papelaria", "potencial": "Médio"},
-            {"produto": "estojo", "categoria": "Papelaria", "potencial": "Médio"},
-            {"produto": "luminaria de mesa", "categoria": "Casa", "potencial": "Baixo"}
+            {"produto": "material escolar", "categoria": "Papelaria", "potencial": "Alto", "pins": 4500, "crescimento": "+35%", "tiktok": "8.2M"},
+            {"produto": "mochila escolar", "categoria": "Moda", "potencial": "Alto", "pins": 3200, "crescimento": "+28%", "tiktok": "5.1M"},
+            {"produto": "smartwatch", "categoria": "Eletrônicos", "potencial": "Médio", "pins": 1800, "crescimento": "+12%", "tiktok": "3.4M"},
+            {"produto": "fone bluetooth", "categoria": "Eletrônicos", "potencial": "Médio", "pins": 1500, "crescimento": "+8%", "tiktok": "2.8M"},
+            {"produto": "tenis", "categoria": "Moda", "potencial": "Médio", "pins": 2800, "crescimento": "+5%", "tiktok": "4.2M"},
+            {"produto": "caderno", "categoria": "Papelaria", "potencial": "Médio", "pins": 900, "crescimento": "+15%", "tiktok": "1.2M"},
+            {"produto": "estojo", "categoria": "Papelaria", "potencial": "Médio", "pins": 750, "crescimento": "+10%", "tiktok": "0.9M"},
+            {"produto": "luminaria de mesa", "categoria": "Casa", "potencial": "Baixo", "pins": 600, "crescimento": "+3%", "tiktok": "0.5M"}
         ],
         "eventos": ["Volta às Aulas", "Ano Novo"],
-        "sazonal": "Verão"
+        "sazonal": "Verão",
+        "insight": "Foco em produtos para estudantes: mochilas e material escolar estão em alta. Aproveite o início do ano letivo."
     },
     2: {
         "tendencias": [
-            {"produto": "fantasia carnaval", "categoria": "Moda", "potencial": "Alto"},
-            {"produto": "biquini", "categoria": "Moda", "potencial": "Alto"},
-            {"produto": "protetor solar", "categoria": "Beleza", "potencial": "Alto"},
-            {"produto": "caixa de som", "categoria": "Eletrônicos", "potencial": "Médio"},
-            {"produto": "chinelo", "categoria": "Moda", "potencial": "Médio"},
-            {"produto": "glitter", "categoria": "Beleza", "potencial": "Médio"},
-            {"produto": "maquiagem", "categoria": "Beleza", "potencial": "Médio"},
-            {"produto": "sungas", "categoria": "Moda", "potencial": "Baixo"}
+            {"produto": "fantasia carnaval", "categoria": "Moda", "potencial": "Alto", "pins": 5200, "crescimento": "+45%", "tiktok": "12.5M"},
+            {"produto": "biquini", "categoria": "Moda", "potencial": "Alto", "pins": 3800, "crescimento": "+30%", "tiktok": "6.8M"},
+            {"produto": "protetor solar", "categoria": "Beleza", "potencial": "Alto", "pins": 2100, "crescimento": "+25%", "tiktok": "4.5M"},
+            {"produto": "caixa de som", "categoria": "Eletrônicos", "potencial": "Médio", "pins": 1200, "crescimento": "+10%", "tiktok": "2.1M"},
+            {"produto": "chinelo", "categoria": "Moda", "potencial": "Médio", "pins": 1600, "crescimento": "+8%", "tiktok": "3.2M"},
+            {"produto": "glitter", "categoria": "Beleza", "potencial": "Médio", "pins": 800, "crescimento": "+20%", "tiktok": "1.8M"},
+            {"produto": "maquiagem", "categoria": "Beleza", "potencial": "Médio", "pins": 1400, "crescimento": "+12%", "tiktok": "3.8M"},
+            {"produto": "sungas", "categoria": "Moda", "potencial": "Baixo", "pins": 500, "crescimento": "+5%", "tiktok": "0.7M"}
         ],
         "eventos": ["Carnaval"],
-        "sazonal": "Verão"
+        "sazonal": "Verão",
+        "insight": "Carnaval é o destaque! Fantasias e acessórios para folia estão bombando. Produtos para praia também têm alta demanda."
     },
     3: {
         "tendencias": [
-            {"produto": "kit praia", "categoria": "Moda", "potencial": "Alto"},
-            {"produto": "oculos sol", "categoria": "Moda", "potencial": "Alto"},
-            {"produto": "canga", "categoria": "Moda", "potencial": "Médio"},
-            {"produto": "vestido", "categoria": "Moda", "potencial": "Médio"},
-            {"produto": "sandalia", "categoria": "Moda", "potencial": "Médio"},
-            {"produto": "bolsa praia", "categoria": "Moda", "potencial": "Médio"},
-            {"produto": "toalha", "categoria": "Casa", "potencial": "Baixo"},
-            {"produto": "chapeu", "categoria": "Moda", "potencial": "Baixo"}
+            {"produto": "kit praia", "categoria": "Moda", "potencial": "Alto", "pins": 3400, "crescimento": "+32%", "tiktok": "5.8M"},
+            {"produto": "oculos sol", "categoria": "Moda", "potencial": "Alto", "pins": 2900, "crescimento": "+28%", "tiktok": "4.9M"},
+            {"produto": "canga", "categoria": "Moda", "potencial": "Médio", "pins": 1200, "crescimento": "+15%", "tiktok": "1.5M"},
+            {"produto": "vestido", "categoria": "Moda", "potencial": "Médio", "pins": 2100, "crescimento": "+10%", "tiktok": "3.6M"},
+            {"produto": "sandalia", "categoria": "Moda", "potencial": "Médio", "pins": 1800, "crescimento": "+8%", "tiktok": "2.9M"},
+            {"produto": "bolsa praia", "categoria": "Moda", "potencial": "Médio", "pins": 950, "crescimento": "+12%", "tiktok": "1.1M"},
+            {"produto": "toalha", "categoria": "Casa", "potencial": "Baixo", "pins": 700, "crescimento": "+5%", "tiktok": "0.6M"},
+            {"produto": "chapeu", "categoria": "Moda", "potencial": "Baixo", "pins": 650, "crescimento": "+3%", "tiktok": "0.8M"}
         ],
         "eventos": ["Dia da Mulher", "Outono"],
-        "sazonal": "Outono"
+        "sazonal": "Outono",
+        "insight": "Transição de verão para outono. Kits praia ainda em alta, mas já comece a preparar conteúdo para moda outono."
     },
     4: {
         "tendencias": [
-            {"produto": "ovo pascoa", "categoria": "Alimentos", "potencial": "Alto"},
-            {"produto": "chocolate", "categoria": "Alimentos", "potencial": "Alto"},
-            {"produto": "cesta", "categoria": "Casa", "potencial": "Alto"},
-            {"produto": "brinquedo", "categoria": "Brinquedos", "potencial": "Médio"},
-            {"produto": "pelucia", "categoria": "Brinquedos", "potencial": "Médio"},
-            {"produto": "jogo", "categoria": "Brinquedos", "potencial": "Médio"},
-            {"produto": "boneca", "categoria": "Brinquedos", "potencial": "Baixo"},
-            {"produto": "carrinho", "categoria": "Brinquedos", "potencial": "Baixo"}
+            {"produto": "ovo pascoa", "categoria": "Alimentos", "potencial": "Alto", "pins": 4600, "crescimento": "+55%", "tiktok": "8.9M"},
+            {"produto": "chocolate", "categoria": "Alimentos", "potencial": "Alto", "pins": 3900, "crescimento": "+40%", "tiktok": "7.2M"},
+            {"produto": "cesta", "categoria": "Casa", "potencial": "Alto", "pins": 1800, "crescimento": "+35%", "tiktok": "2.5M"},
+            {"produto": "brinquedo", "categoria": "Brinquedos", "potencial": "Médio", "pins": 2200, "crescimento": "+18%", "tiktok": "4.1M"},
+            {"produto": "pelucia", "categoria": "Brinquedos", "potencial": "Médio", "pins": 1400, "crescimento": "+12%", "tiktok": "2.2M"},
+            {"produto": "jogo", "categoria": "Brinquedos", "potencial": "Médio", "pins": 1100, "crescimento": "+8%", "tiktok": "1.8M"},
+            {"produto": "boneca", "categoria": "Brinquedos", "potencial": "Baixo", "pins": 800, "crescimento": "+5%", "tiktok": "1.2M"},
+            {"produto": "carrinho", "categoria": "Brinquedos", "potencial": "Baixo", "pins": 700, "crescimento": "+3%", "tiktok": "0.9M"}
         ],
         "eventos": ["Páscoa", "Tiradentes"],
-        "sazonal": "Outono"
+        "sazonal": "Outono",
+        "insight": "Páscoa é o grande evento! Ovos de chocolate e cestas estão com alta demanda. Brinquedos também são uma boa oportunidade."
     },
     5: {
         "tendencias": [
-            {"produto": "dia das maes", "categoria": "Presentes", "potencial": "Alto"},
-            {"produto": "perfume", "categoria": "Beleza", "potencial": "Alto"},
-            {"produto": "bolsa", "categoria": "Moda", "potencial": "Alto"},
-            {"produto": "flores", "categoria": "Presentes", "potencial": "Médio"},
-            {"produto": "kit beleza", "categoria": "Beleza", "potencial": "Médio"},
-            {"produto": "caneca", "categoria": "Presentes", "potencial": "Médio"},
-            {"produto": "bijuteria", "categoria": "Moda", "potencial": "Baixo"},
-            {"produto": "cartao presente", "categoria": "Presentes", "potencial": "Baixo"}
+            {"produto": "dia das maes", "categoria": "Presentes", "potencial": "Alto", "pins": 5800, "crescimento": "+60%", "tiktok": "15.2M"},
+            {"produto": "perfume", "categoria": "Beleza", "potencial": "Alto", "pins": 3500, "crescimento": "+35%", "tiktok": "6.8M"},
+            {"produto": "bolsa", "categoria": "Moda", "potencial": "Alto", "pins": 2800, "crescimento": "+28%", "tiktok": "4.5M"},
+            {"produto": "flores", "categoria": "Presentes", "potencial": "Médio", "pins": 1600, "crescimento": "+20%", "tiktok": "3.2M"},
+            {"produto": "kit beleza", "categoria": "Beleza", "potencial": "Médio", "pins": 1200, "crescimento": "+15%", "tiktok": "2.1M"},
+            {"produto": "caneca", "categoria": "Presentes", "potencial": "Médio", "pins": 900, "crescimento": "+10%", "tiktok": "1.5M"},
+            {"produto": "bijuteria", "categoria": "Moda", "potencial": "Baixo", "pins": 650, "crescimento": "+5%", "tiktok": "0.8M"},
+            {"produto": "cartao presente", "categoria": "Presentes", "potencial": "Baixo", "pins": 500, "crescimento": "+3%", "tiktok": "0.6M"}
         ],
         "eventos": ["Dia das Mães", "Dia do Trabalho"],
-        "sazonal": "Outono"
+        "sazonal": "Outono",
+        "insight": "Dia das Mães é a maior oportunidade do mês! Perfumes, bolsas e kits de beleza são os mais procurados. Crie conteúdo focado em presentes."
     },
     6: {
         "tendencias": [
-            {"produto": "dia dos namorados", "categoria": "Presentes", "potencial": "Alto"},
-            {"produto": "perfume", "categoria": "Beleza", "potencial": "Alto"},
-            {"produto": "vinho", "categoria": "Alimentos", "potencial": "Alto"},
-            {"produto": "kit jantar", "categoria": "Casa", "potencial": "Médio"},
-            {"produto": "lingerie", "categoria": "Moda", "potencial": "Médio"},
-            {"produto": "jantar", "categoria": "Presentes", "potencial": "Médio"},
-            {"produto": "flores", "categoria": "Presentes", "potencial": "Baixo"},
-            {"produto": "chocolate", "categoria": "Alimentos", "potencial": "Baixo"}
+            {"produto": "dia dos namorados", "categoria": "Presentes", "potencial": "Alto", "pins": 6200, "crescimento": "+70%", "tiktok": "18.5M"},
+            {"produto": "perfume", "categoria": "Beleza", "potencial": "Alto", "pins": 3800, "crescimento": "+40%", "tiktok": "7.8M"},
+            {"produto": "vinho", "categoria": "Alimentos", "potencial": "Alto", "pins": 2100, "crescimento": "+30%", "tiktok": "3.5M"},
+            {"produto": "kit jantar", "categoria": "Casa", "potencial": "Médio", "pins": 1100, "crescimento": "+18%", "tiktok": "1.8M"},
+            {"produto": "lingerie", "categoria": "Moda", "potencial": "Médio", "pins": 1400, "crescimento": "+22%", "tiktok": "2.5M"},
+            {"produto": "jantar", "categoria": "Presentes", "potencial": "Médio", "pins": 800, "crescimento": "+12%", "tiktok": "1.2M"},
+            {"produto": "flores", "categoria": "Presentes", "potencial": "Baixo", "pins": 600, "crescimento": "+8%", "tiktok": "0.9M"},
+            {"produto": "chocolate", "categoria": "Alimentos", "potencial": "Baixo", "pins": 550, "crescimento": "+5%", "tiktok": "0.7M"}
         ],
         "eventos": ["Dia dos Namorados", "Festa Junina"],
-        "sazonal": "Inverno"
+        "sazonal": "Inverno",
+        "insight": "Dia dos Namorados é o ápice! Perfumes e presentes românticos são os mais buscados. Vinho e kits de jantar também têm alta procura."
     },
     7: {
         "tendencias": [
-            {"produto": "casaco", "categoria": "Moda", "potencial": "Alto"},
-            {"produto": "blusa de la", "categoria": "Moda", "potencial": "Alto"},
-            {"produto": "bota", "categoria": "Moda", "potencial": "Médio"},
-            {"produto": "cachecol", "categoria": "Moda", "potencial": "Médio"},
-            {"produto": "cobertor", "categoria": "Casa", "potencial": "Médio"},
-            {"produto": "meia", "categoria": "Moda", "potencial": "Médio"},
-            {"produto": "luva", "categoria": "Moda", "potencial": "Baixo"},
-            {"produto": "jaqueta", "categoria": "Moda", "potencial": "Baixo"}
+            {"produto": "casaco", "categoria": "Moda", "potencial": "Alto", "pins": 3400, "crescimento": "+45%", "tiktok": "5.8M"},
+            {"produto": "blusa de la", "categoria": "Moda", "potencial": "Alto", "pins": 2800, "crescimento": "+38%", "tiktok": "4.2M"},
+            {"produto": "bota", "categoria": "Moda", "potencial": "Médio", "pins": 1500, "crescimento": "+20%", "tiktok": "2.8M"},
+            {"produto": "cachecol", "categoria": "Moda", "potencial": "Médio", "pins": 1200, "crescimento": "+15%", "tiktok": "1.9M"},
+            {"produto": "cobertor", "categoria": "Casa", "potencial": "Médio", "pins": 950, "crescimento": "+12%", "tiktok": "1.5M"},
+            {"produto": "meia", "categoria": "Moda", "potencial": "Médio", "pins": 800, "crescimento": "+10%", "tiktok": "1.1M"},
+            {"produto": "luva", "categoria": "Moda", "potencial": "Baixo", "pins": 500, "crescimento": "+8%", "tiktok": "0.6M"},
+            {"produto": "jaqueta", "categoria": "Moda", "potencial": "Baixo", "pins": 450, "crescimento": "+5%", "tiktok": "0.5M"}
         ],
         "eventos": ["Férias Escolares"],
-        "sazonal": "Inverno"
+        "sazonal": "Inverno",
+        "insight": "Inverno no auge! Casacos e blusas de lã são os mais procurados. Aproveite as férias para conteúdo de viagens e looks de inverno."
     },
     8: {
         "tendencias": [
-            {"produto": "dia dos pais", "categoria": "Presentes", "potencial": "Alto"},
-            {"produto": "relogio", "categoria": "Moda", "potencial": "Alto"},
-            {"produto": "ferramenta", "categoria": "Casa", "potencial": "Alto"},
-            {"produto": "camisa", "categoria": "Moda", "potencial": "Médio"},
-            {"produto": "perfume masculino", "categoria": "Beleza", "potencial": "Médio"},
-            {"produto": "kit churrasco", "categoria": "Casa", "potencial": "Médio"},
-            {"produto": "caneca", "categoria": "Presentes", "potencial": "Baixo"},
-            {"produto": "carteira", "categoria": "Moda", "potencial": "Baixo"}
+            {"produto": "dia dos pais", "categoria": "Presentes", "potencial": "Alto", "pins": 4900, "crescimento": "+55%", "tiktok": "14.2M"},
+            {"produto": "relogio", "categoria": "Moda", "potencial": "Alto", "pins": 2700, "crescimento": "+32%", "tiktok": "4.8M"},
+            {"produto": "ferramenta", "categoria": "Casa", "potencial": "Alto", "pins": 1900, "crescimento": "+28%", "tiktok": "3.2M"},
+            {"produto": "camisa", "categoria": "Moda", "potencial": "Médio", "pins": 1600, "crescimento": "+18%", "tiktok": "2.5M"},
+            {"produto": "perfume masculino", "categoria": "Beleza", "potencial": "Médio", "pins": 1300, "crescimento": "+15%", "tiktok": "2.1M"},
+            {"produto": "kit churrasco", "categoria": "Casa", "potencial": "Médio", "pins": 850, "crescimento": "+12%", "tiktok": "1.4M"},
+            {"produto": "caneca", "categoria": "Presentes", "potencial": "Baixo", "pins": 600, "crescimento": "+8%", "tiktok": "0.8M"},
+            {"produto": "carteira", "categoria": "Moda", "potencial": "Baixo", "pins": 500, "crescimento": "+5%", "tiktok": "0.6M"}
         ],
         "eventos": ["Dia dos Pais", "Volta às Aulas"],
-        "sazonal": "Inverno"
+        "sazonal": "Inverno",
+        "insight": "Dia dos Pais! Relógios e ferramentas são os presentes mais procurados. Também comece a preparar conteúdo para volta às aulas."
     },
     9: {
         "tendencias": [
-            {"produto": "camisa", "categoria": "Moda", "potencial": "Alto"},
-            {"produto": "calca", "categoria": "Moda", "potencial": "Alto"},
-            {"produto": "tenis", "categoria": "Moda", "potencial": "Alto"},
-            {"produto": "blusa", "categoria": "Moda", "potencial": "Médio"},
-            {"produto": "jaqueta jeans", "categoria": "Moda", "potencial": "Médio"},
-            {"produto": "sapato social", "categoria": "Moda", "potencial": "Médio"},
-            {"produto": "mochila", "categoria": "Moda", "potencial": "Baixo"},
-            {"produto": "bolsa", "categoria": "Moda", "potencial": "Baixo"}
+            {"produto": "camisa", "categoria": "Moda", "potencial": "Alto", "pins": 2200, "crescimento": "+25%", "tiktok": "3.8M"},
+            {"produto": "calca", "categoria": "Moda", "potencial": "Alto", "pins": 1900, "crescimento": "+22%", "tiktok": "3.2M"},
+            {"produto": "tenis", "categoria": "Moda", "potencial": "Alto", "pins": 2500, "crescimento": "+20%", "tiktok": "4.5M"},
+            {"produto": "blusa", "categoria": "Moda", "potencial": "Médio", "pins": 1400, "crescimento": "+15%", "tiktok": "2.8M"},
+            {"produto": "jaqueta jeans", "categoria": "Moda", "potencial": "Médio", "pins": 1100, "crescimento": "+12%", "tiktok": "1.9M"},
+            {"produto": "sapato social", "categoria": "Moda", "potencial": "Médio", "pins": 850, "crescimento": "+10%", "tiktok": "1.5M"},
+            {"produto": "mochila", "categoria": "Moda", "potencial": "Baixo", "pins": 700, "crescimento": "+8%", "tiktok": "1.1M"},
+            {"produto": "bolsa", "categoria": "Moda", "potencial": "Baixo", "pins": 650, "crescimento": "+5%", "tiktok": "0.9M"}
         ],
         "eventos": ["Independência do Brasil", "Primavera"],
-        "sazonal": "Primavera"
+        "sazonal": "Primavera",
+        "insight": "Primavera chegando! Moda leve e colorida começa a bombar. Camisas e calças são a base do guarda-roupa de primavera."
     },
     10: {
         "tendencias": [
-            {"produto": "fantasia halloween", "categoria": "Moda", "potencial": "Alto"},
-            {"produto": "brinquedo", "categoria": "Brinquedos", "potencial": "Alto"},
-            {"produto": "decoracao", "categoria": "Casa", "potencial": "Alto"},
-            {"produto": "maquiagem", "categoria": "Beleza", "potencial": "Médio"},
-            {"produto": "doces", "categoria": "Alimentos", "potencial": "Médio"},
-            {"produto": "mascara", "categoria": "Moda", "potencial": "Médio"},
-            {"produto": "abobora", "categoria": "Casa", "potencial": "Baixo"},
-            {"produto": "livro infantil", "categoria": "Livros", "potencial": "Baixo"}
+            {"produto": "fantasia halloween", "categoria": "Moda", "potencial": "Alto", "pins": 4800, "crescimento": "+65%", "tiktok": "12.8M"},
+            {"produto": "brinquedo", "categoria": "Brinquedos", "potencial": "Alto", "pins": 3200, "crescimento": "+40%", "tiktok": "5.8M"},
+            {"produto": "decoracao", "categoria": "Casa", "potencial": "Alto", "pins": 2100, "crescimento": "+35%", "tiktok": "3.5M"},
+            {"produto": "maquiagem", "categoria": "Beleza", "potencial": "Médio", "pins": 1400, "crescimento": "+20%", "tiktok": "2.8M"},
+            {"produto": "doces", "categoria": "Alimentos", "potencial": "Médio", "pins": 1100, "crescimento": "+18%", "tiktok": "2.2M"},
+            {"produto": "mascara", "categoria": "Moda", "potencial": "Médio", "pins": 850, "crescimento": "+15%", "tiktok": "1.6M"},
+            {"produto": "abobora", "categoria": "Casa", "potencial": "Baixo", "pins": 550, "crescimento": "+10%", "tiktok": "0.9M"},
+            {"produto": "livro infantil", "categoria": "Livros", "potencial": "Baixo", "pins": 450, "crescimento": "+8%", "tiktok": "0.6M"}
         ],
         "eventos": ["Dia das Crianças", "Halloween"],
-        "sazonal": "Primavera"
+        "sazonal": "Primavera",
+        "insight": "Halloween e Dia das Crianças! Fantasias e brinquedos estão em alta. Decoração também tem grande procura para festas."
     },
     11: {
         "tendencias": [
-            {"produto": "black friday", "categoria": "Eletrônicos", "potencial": "Alto"},
-            {"produto": "smartwatch", "categoria": "Eletrônicos", "potencial": "Alto"},
-            {"produto": "fone", "categoria": "Eletrônicos", "potencial": "Alto"},
-            {"produto": "celular", "categoria": "Eletrônicos", "potencial": "Médio"},
-            {"produto": "caixa de som", "categoria": "Eletrônicos", "potencial": "Médio"},
-            {"produto": "carregador", "categoria": "Eletrônicos", "potencial": "Médio"},
-            {"produto": "power bank", "categoria": "Eletrônicos", "potencial": "Baixo"},
-            {"produto": "notebook", "categoria": "Eletrônicos", "potencial": "Baixo"}
+            {"produto": "black friday", "categoria": "Eletrônicos", "potencial": "Alto", "pins": 7200, "crescimento": "+85%", "tiktok": "25.5M"},
+            {"produto": "smartwatch", "categoria": "Eletrônicos", "potencial": "Alto", "pins": 4500, "crescimento": "+50%", "tiktok": "8.5M"},
+            {"produto": "fone", "categoria": "Eletrônicos", "potencial": "Alto", "pins": 3800, "crescimento": "+45%", "tiktok": "7.2M"},
+            {"produto": "celular", "categoria": "Eletrônicos", "potencial": "Médio", "pins": 2900, "crescimento": "+30%", "tiktok": "5.8M"},
+            {"produto": "caixa de som", "categoria": "Eletrônicos", "potencial": "Médio", "pins": 1600, "crescimento": "+20%", "tiktok": "3.2M"},
+            {"produto": "carregador", "categoria": "Eletrônicos", "potencial": "Médio", "pins": 1200, "crescimento": "+15%", "tiktok": "2.1M"},
+            {"produto": "power bank", "categoria": "Eletrônicos", "potencial": "Baixo", "pins": 850, "crescimento": "+10%", "tiktok": "1.5M"},
+            {"produto": "notebook", "categoria": "Eletrônicos", "potencial": "Baixo", "pins": 700, "crescimento": "+8%", "tiktok": "1.2M"}
         ],
         "eventos": ["Black Friday", "Cyber Monday"],
-        "sazonal": "Primavera"
+        "sazonal": "Primavera",
+        "insight": "Black Friday é o evento do ano! Eletrônicos dominam as buscas. Smartwatches e fones estão com crescimento explosivo."
     },
     12: {
         "tendencias": [
-            {"produto": "natal", "categoria": "Presentes", "potencial": "Alto"},
-            {"produto": "brinquedo", "categoria": "Brinquedos", "potencial": "Alto"},
-            {"produto": "perfume", "categoria": "Beleza", "potencial": "Alto"},
-            {"produto": "decoracao", "categoria": "Casa", "potencial": "Médio"},
-            {"produto": "kit beleza", "categoria": "Beleza", "potencial": "Médio"},
-            {"produto": "vinho", "categoria": "Alimentos", "potencial": "Médio"},
-            {"produto": "espumante", "categoria": "Alimentos", "potencial": "Baixo"},
-            {"produto": "arvore", "categoria": "Casa", "potencial": "Baixo"}
+            {"produto": "natal", "categoria": "Presentes", "potencial": "Alto", "pins": 8500, "crescimento": "+95%", "tiktok": "32.5M"},
+            {"produto": "brinquedo", "categoria": "Brinquedos", "potencial": "Alto", "pins": 5200, "crescimento": "+60%", "tiktok": "9.8M"},
+            {"produto": "perfume", "categoria": "Beleza", "potencial": "Alto", "pins": 4200, "crescimento": "+50%", "tiktok": "7.5M"},
+            {"produto": "decoracao", "categoria": "Casa", "potencial": "Médio", "pins": 2800, "crescimento": "+35%", "tiktok": "4.8M"},
+            {"produto": "kit beleza", "categoria": "Beleza", "potencial": "Médio", "pins": 1600, "crescimento": "+25%", "tiktok": "2.8M"},
+            {"produto": "vinho", "categoria": "Alimentos", "potencial": "Médio", "pins": 1200, "crescimento": "+20%", "tiktok": "2.1M"},
+            {"produto": "espumante", "categoria": "Alimentos", "potencial": "Baixo", "pins": 800, "crescimento": "+15%", "tiktok": "1.4M"},
+            {"produto": "arvore", "categoria": "Casa", "potencial": "Baixo", "pins": 650, "crescimento": "+12%", "tiktok": "1.1M"}
         ],
         "eventos": ["Natal", "Réveillon"],
-        "sazonal": "Verão"
+        "sazonal": "Verão",
+        "insight": "Natal é o pico do ano! Presentes, brinquedos e perfumes dominam as buscas. Decoração também tem alta demanda."
     }
 }
 
@@ -358,17 +370,15 @@ def verificar_login():
         st.stop()
 
 # ============================================================
-# FUNCAO PARA ATUALIZAR SUGESTOES COM DADOS DA SERPAPI
+# FUNCAO PARA ATUALIZAR SUGESTOES COM SERPAPI
 # ============================================================
 def atualizar_sugestoes_com_serpapi(tendencias):
-    """Atualiza sugestões com dados reais da SerpApi"""
     controle = ControleConsultas()
     resultados = []
     
     for item in tendencias:
         termo = item["produto"]
         
-        # Tenta buscar dados reais se tiver consulta disponível
         if controle.pode_consultar():
             produtos = google_shopping.buscar_produtos(termo, 2)
             total = google_shopping.buscar_total_resultados(termo)
@@ -376,22 +386,10 @@ def atualizar_sugestoes_com_serpapi(tendencias):
             if produtos:
                 controle.registrar_consulta(termo)
                 
-                # Calcula score baseado nos dados reais
-                score = 0
                 if total < 50:
-                    score = 10  # Excelente
-                elif total < 200:
-                    score = 7   # Bom
-                elif total < 500:
-                    score = 4   # Médio
-                else:
-                    score = 1   # Baixo
-                
-                # Ajusta potencial baseado nos dados reais
-                if score >= 7:
                     potencial = "Alto"
                     status = "🟢"
-                elif score >= 4:
+                elif total < 200:
                     potencial = "Médio"
                     status = "🟡"
                 else:
@@ -405,11 +403,12 @@ def atualizar_sugestoes_com_serpapi(tendencias):
                     "status": status,
                     "total_resultados": total,
                     "produtos_encontrados": len(produtos),
-                    "score": score,
+                    "pins": item.get("pins", "N/A"),
+                    "crescimento": item.get("crescimento", "N/A"),
+                    "tiktok": item.get("tiktok", "N/A"),
                     "evento": ", ".join([e for e in item.get("eventos", ["Geral"])])
                 })
             else:
-                # Fallback: usa dados históricos
                 resultados.append({
                     "produto": termo,
                     "categoria": item["categoria"],
@@ -417,11 +416,12 @@ def atualizar_sugestoes_com_serpapi(tendencias):
                     "status": "🟡" if item["potencial"] == "Alto" else "🟠",
                     "total_resultados": "N/A",
                     "produtos_encontrados": 0,
-                    "score": 0,
+                    "pins": item.get("pins", "N/A"),
+                    "crescimento": item.get("crescimento", "N/A"),
+                    "tiktok": item.get("tiktok", "N/A"),
                     "evento": ", ".join([e for e in item.get("eventos", ["Geral"])])
                 })
         else:
-            # Sem consultas disponíveis: usa dados históricos
             resultados.append({
                 "produto": termo,
                 "categoria": item["categoria"],
@@ -429,7 +429,9 @@ def atualizar_sugestoes_com_serpapi(tendencias):
                 "status": "🟢" if item["potencial"] == "Alto" else "🟡" if item["potencial"] == "Médio" else "🟠",
                 "total_resultados": "N/A",
                 "produtos_encontrados": 0,
-                "score": 0,
+                "pins": item.get("pins", "N/A"),
+                "crescimento": item.get("crescimento", "N/A"),
+                "tiktok": item.get("tiktok", "N/A"),
                 "evento": ", ".join([e for e in item.get("eventos", ["Geral"])])
             })
     
@@ -501,39 +503,41 @@ st.markdown(f"""
 st.markdown("---")
 
 # ============================================================
-# ATUALIZA SUGESTOES COM SERPAPI (APENAS 3 POR DIA)
+# ATUALIZA SUGESTOES COM SERPAPI
 # ============================================================
 with st.spinner("Atualizando sugestões com dados reais..."):
     sugestoes_atualizadas = atualizar_sugestoes_com_serpapi(dados_mes["tendencias"])
 
 # ============================================================
-# TABELA DE SUGESTOES COM STATUS VISUAIS
+# TABELA DE SUGESTOES (SEM COLUNA STATUS, SEM BUSCA ESPECIFICA)
 # ============================================================
 st.markdown("### 🎯 Sugestões de Produtos para este Mês")
 
 # Prepara dados para tabela
 dados_tabela = []
 for item in sugestoes_atualizadas:
-    # Define cores baseadas no potencial
+    # Define status visual
     if item["potencial"] == "Alto":
-        status_display = "🟢 Excelente"
+        potencial_display = "🟢 Alto"
     elif item["potencial"] == "Médio":
-        status_display = "🟡 Boa"
+        potencial_display = "🟡 Médio"
     else:
-        status_display = "🟠 Média"
+        potencial_display = "🟠 Baixo"
     
     # Formata resultados
     if item["total_resultados"] != "N/A":
         resultados_str = f"{item['total_resultados']} resultados"
     else:
-        resultados_str = "Dados históricos"
+        resultados_str = "Histórico"
     
     dados_tabela.append({
-        "Status": status_display,
         "Produto": item["produto"],
         "Categoria": item["categoria"],
         "Evento": item["evento"],
-        "Potencial": f"{item['status']} {item['potencial']}",
+        "Potencial": potencial_display,
+        "📌 Pinterest": f"{item['pins']} pins",
+        "📈 Crescimento": item["crescimento"],
+        "📱 TikTok": item["tiktok"],
         "Resultados": resultados_str,
         "Ação": f"🔍 {item['produto']}"
     })
@@ -541,15 +545,17 @@ for item in sugestoes_atualizadas:
 # Cria DataFrame
 df_sugestoes = pd.DataFrame(dados_tabela)
 
-# Exibe tabela com status visuais
+# Exibe tabela
 st.dataframe(
     df_sugestoes,
     column_config={
-        "Status": "Status",
         "Produto": "Produto",
         "Categoria": "Categoria",
         "Evento": "Evento Relacionado",
         "Potencial": "Potencial",
+        "📌 Pinterest": "Pins no Pinterest",
+        "📈 Crescimento": "Crescimento",
+        "📱 TikTok": "Visualizações TikTok",
         "Resultados": "Resultados",
         "Ação": st.column_config.Column(
             "Buscar na Shopee",
@@ -560,126 +566,86 @@ st.dataframe(
     hide_index=True
 )
 
-# Mostra status das consultas
+# Status das consultas
 status = controle_consultas.get_status()
 st.caption(f"📊 {status['usadas']} de {status['limite']} consultas SerpApi usadas hoje")
 
 st.markdown("---")
 
 # ============================================================
-# AREA DE BUSCA ESPECIFICA (CONSULTA MANUAL)
-# ============================================================
-st.markdown("### 🔍 Buscar Produto Específico")
-
-col1, col2 = st.columns([3, 1])
-with col1:
-    termo_busca = st.text_input(
-        "Digite um produto:",
-        placeholder="Ex: smartwatch, jelly blush...",
-        label_visibility="collapsed",
-        key="busca_input"
-    )
-with col2:
-    if st.button("🔍 Buscar", type="primary", use_container_width=True):
-        if termo_busca:
-            st.session_state.termo_busca = termo_busca
-            st.session_state.buscar = True
-
-# Verifica se deve buscar
-if st.session_state.get("buscar", False) and st.session_state.get("termo_busca"):
-    termo = st.session_state.termo_busca
-    
-    with st.spinner(f"Buscando '{termo}' no Google Shopping..."):
-        produtos = google_shopping.buscar_produtos(termo, 8)
-        total = google_shopping.buscar_total_resultados(termo)
-        
-        st.markdown(f"### 📊 Resultados para '{termo}'")
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            st.metric("Total de Resultados", total if total > 0 else "N/A")
-        with col2:
-            st.metric("Produtos Exibidos", len(produtos))
-        
-        st.markdown("---")
-        
-        if produtos:
-            df_produtos = pd.DataFrame([{
-                "Produto": p.get("nome", "")[:60],
-                "Preço": p.get("preco", ""),
-                "Loja": p.get("loja", ""),
-                "Avaliação": f"⭐ {p.get('avaliacao', 'N/A')} ({p.get('reviews', 0)})" if p.get('avaliacao') else "Sem avaliação",
-                "Link": p.get("link", "")
-            } for p in produtos])
-            
-            st.dataframe(
-                df_produtos,
-                column_config={
-                    "Produto": "Produto",
-                    "Preço": "Preço",
-                    "Loja": "Loja",
-                    "Avaliação": "Avaliação",
-                    "Link": st.column_config.LinkColumn("Ver Produto")
-                },
-                use_container_width=True,
-                hide_index=True
-            )
-        else:
-            st.warning("Nenhum produto encontrado. Tente outro termo.")
-    
-    # Limpa estado
-    st.session_state.buscar = False
-    st.session_state.termo_busca = ""
-
-st.markdown("---")
-
-# ============================================================
-# LEGENDA
+# LEGENDA E INSIGHTS (COM DADOS DA TABELA)
 # ============================================================
 st.markdown("### 📌 Legenda de Potencial")
 
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    st.markdown("🟢 **Excelente** - Baixa concorrência, alta demanda")
-    st.caption("Produtos com menos de 50 resultados")
+    st.markdown("🟢 **Alto** - Baixa concorrência, alta demanda")
+    st.caption("Menos de 50 resultados no Google Shopping")
 
 with col2:
-    st.markdown("🟡 **Boa** - Concorrência moderada")
-    st.caption("Produtos com 50-200 resultados")
+    st.markdown("🟡 **Médio** - Concorrência moderada")
+    st.caption("50-200 resultados no Google Shopping")
 
 with col3:
-    st.markdown("🟠 **Média** - Mercado concorrido")
-    st.caption("Produtos com mais de 200 resultados")
+    st.markdown("🟠 **Baixo** - Mercado concorrido")
+    st.caption("Mais de 200 resultados no Google Shopping")
 
 st.markdown("---")
 
 # ============================================================
-# DICAS E ESTRATEGIAS
+# INSIGHTS ESTRATEGICOS COM DADOS DA TABELA
 # ============================================================
-st.markdown("### 💡 Estratégias para Afiliados")
+st.markdown("### 💡 Insights Estratégicos")
 
+# Encontra os melhores produtos
+melhores = [p for p in sugestoes_atualizadas if p["potencial"] == "Alto" and p["total_resultados"] != "N/A"]
+melhores_pins = sorted(sugestoes_atualizadas, key=lambda x: int(str(x["pins"]).replace("K", "000")) if isinstance(x["pins"], str) and "K" in str(x["pins"]) else 0, reverse=True)[:2]
+
+# Gera insights baseados nos dados
 col1, col2 = st.columns(2)
 
 with col1:
-    st.info("""
-    **📅 Datas Comemorativas**
+    st.info(f"""
+    **🔥 Produto com Maior Potencial**
     
-    Aproveite os eventos do mês:
-    - Posts sobre presentes
-    - Vídeos de unboxing
-    - Listas de 'O que comprar'
+    **{melhores[0]['produto'] if melhores else sugestoes_atualizadas[0]['produto']}**
+    - Categoria: {melhores[0]['categoria'] if melhores else sugestoes_atualizadas[0]['categoria']}
+    - Pinterest: {melhores[0]['pins'] if melhores else sugestoes_atualizadas[0]['pins']} pins
+    - Crescimento: {melhores[0]['crescimento'] if melhores else sugestoes_atualizadas[0]['crescimento']}
+    - TikTok: {melhores[0]['tiktok'] if melhores else sugestoes_atualizadas[0]['tiktok']} visualizações
+    
+    **Ação:** Crie conteúdo URGENTE sobre este produto!
     """)
 
 with col2:
-    st.success("""
-    **🎯 Foco nos Status 🟢**
+    st.success(f"""
+    **📈 Tendência Mais Viral**
     
-    Produtos com status 🟢 Excelente:
-    - Menor concorrência
-    - Maior potencial de venda
-    - Ideal para conteúdo novo
+    **{melhores_pins[0]['produto'] if melhores_pins else sugestoes_atualizadas[0]['produto']}**
+    - {melhores_pins[0]['pins'] if melhores_pins else sugestoes_atualizadas[0]['pins']} pins no Pinterest
+    - Crescimento de {melhores_pins[0]['crescimento'] if melhores_pins else sugestoes_atualizadas[0]['crescimento']}
+    
+    **Dica:** Produto com alto engajamento nas redes sociais.
+    Aproveite o momento para criar conteúdo patrocinado!
     """)
+
+st.markdown("---")
+
+# ============================================================
+# INSIGHT GERAL DO MES
+# ============================================================
+st.markdown("### 📊 Visão Geral do Mês")
+
+st.info(f"""
+**📌 {dados_mes['insight']}**
+
+**Destaques:**
+- 🔥 Produto em alta: **{sugestoes_atualizadas[0]['produto']}** ({sugestoes_atualizadas[0]['categoria']})
+- 📈 Crescimento médio: {sum([int(str(p['crescimento']).replace('+', '').replace('%', '')) for p in sugestoes_atualizadas if p['crescimento'] != 'N/A'])/len([p for p in sugestoes_atualizadas if p['crescimento'] != 'N/A']):.1f}%
+- 🎯 Foco principal: {dados_mes['eventos'][0]}
+- 🏆 Melhor oportunidade: Produtos com status 🟢 (Alto potencial)
+""")
 
 st.markdown("---")
 
