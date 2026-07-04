@@ -7,6 +7,7 @@ import time
 import json
 import os
 import warnings
+import random
 
 # ============================================================
 # SUPRIMIR WARNINGS
@@ -29,6 +30,7 @@ st.set_page_config(
 # ============================================================
 CHAVE_TESTE = "TESTE-AFILIADO-2026"
 ARQUIVO_CACHE = "cache_tendencias.json"
+ARQUIVO_CONSULTAS = "consultas_dia.json"
 
 # ============================================================
 # CONFIGURACAO DAS APIS
@@ -36,92 +38,248 @@ ARQUIVO_CACHE = "cache_tendencias.json"
 SERPAPI_KEY = st.secrets.get("SERPAPI_KEY", "")
 
 # ============================================================
+# CONTROLE DE CONSULTAS DIARIAS
+# ============================================================
+class ControleConsultas:
+    def __init__(self):
+        self.arquivo = ARQUIVO_CONSULTAS
+        self.dados = self.carregar()
+        self.limite_diario = 3
+    
+    def carregar(self):
+        if os.path.exists(self.arquivo):
+            try:
+                with open(self.arquivo, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            except:
+                return {}
+        return {}
+    
+    def salvar(self):
+        with open(self.arquivo, 'w', encoding='utf-8') as f:
+            json.dump(self.dados, f, ensure_ascii=False, indent=2)
+    
+    def consultas_hoje(self):
+        hoje = datetime.now().date().isoformat()
+        if hoje not in self.dados:
+            self.dados[hoje] = {"consultas": 0, "termos": []}
+            self.salvar()
+        return self.dados[hoje]["consultas"]
+    
+    def pode_consultar(self):
+        return self.consultas_hoje() < self.limite_diario
+    
+    def registrar_consulta(self, termo):
+        hoje = datetime.now().date().isoformat()
+        if hoje not in self.dados:
+            self.dados[hoje] = {"consultas": 0, "termos": []}
+        
+        self.dados[hoje]["consultas"] += 1
+        self.dados[hoje]["termos"].append({
+            "termo": termo,
+            "hora": datetime.now().strftime("%H:%M")
+        })
+        self.salvar()
+    
+    def get_status(self):
+        hoje = datetime.now().date().isoformat()
+        if hoje in self.dados:
+            return {
+                "usadas": self.dados[hoje]["consultas"],
+                "limite": self.limite_diario,
+                "restam": self.limite_diario - self.dados[hoje]["consultas"],
+                "termos": [t["termo"] for t in self.dados[hoje]["termos"]]
+            }
+        return {
+            "usadas": 0,
+            "limite": self.limite_diario,
+            "restam": self.limite_diario,
+            "termos": []
+        }
+
+# ============================================================
 # DADOS HISTORICOS POR MES (APENAS PARA SUGESTAO)
 # ============================================================
 DADOS_HISTORICOS = {
     1: {
-        "tendencias": ["smartwatch", "fone bluetooth", "material escolar", "mochila", "tenis", 
-                       "caderno", "caneta", "estojo", "mochila escolar", "luminaria de mesa"],
+        "tendencias": [
+            {"produto": "material escolar", "categoria": "Papelaria", "potencial": "Alto"},
+            {"produto": "mochila escolar", "categoria": "Moda", "potencial": "Alto"},
+            {"produto": "smartwatch", "categoria": "Eletrônicos", "potencial": "Médio"},
+            {"produto": "fone bluetooth", "categoria": "Eletrônicos", "potencial": "Médio"},
+            {"produto": "tenis", "categoria": "Moda", "potencial": "Médio"},
+            {"produto": "caderno", "categoria": "Papelaria", "potencial": "Médio"},
+            {"produto": "estojo", "categoria": "Papelaria", "potencial": "Médio"},
+            {"produto": "luminaria de mesa", "categoria": "Casa", "potencial": "Baixo"}
+        ],
         "eventos": ["Volta às Aulas", "Ano Novo"],
         "sazonal": "Verão"
     },
     2: {
-        "tendencias": ["fantasia", "biquini", "sungas", "protetor solar", "fone", 
-                       "carnaval", "glitter", "maquiagem", "chinelo", "caixa de som"],
+        "tendencias": [
+            {"produto": "fantasia carnaval", "categoria": "Moda", "potencial": "Alto"},
+            {"produto": "biquini", "categoria": "Moda", "potencial": "Alto"},
+            {"produto": "protetor solar", "categoria": "Beleza", "potencial": "Alto"},
+            {"produto": "caixa de som", "categoria": "Eletrônicos", "potencial": "Médio"},
+            {"produto": "chinelo", "categoria": "Moda", "potencial": "Médio"},
+            {"produto": "glitter", "categoria": "Beleza", "potencial": "Médio"},
+            {"produto": "maquiagem", "categoria": "Beleza", "potencial": "Médio"},
+            {"produto": "sungas", "categoria": "Moda", "potencial": "Baixo"}
+        ],
         "eventos": ["Carnaval"],
         "sazonal": "Verão"
     },
     3: {
-        "tendencias": ["kit praia", "canga", "chapeu", "oculos sol", "smartwatch",
-                       "vestido", "sandalia", "protetor solar", "toalha", "bolsa praia"],
+        "tendencias": [
+            {"produto": "kit praia", "categoria": "Moda", "potencial": "Alto"},
+            {"produto": "oculos sol", "categoria": "Moda", "potencial": "Alto"},
+            {"produto": "canga", "categoria": "Moda", "potencial": "Médio"},
+            {"produto": "vestido", "categoria": "Moda", "potencial": "Médio"},
+            {"produto": "sandalia", "categoria": "Moda", "potencial": "Médio"},
+            {"produto": "bolsa praia", "categoria": "Moda", "potencial": "Médio"},
+            {"produto": "toalha", "categoria": "Casa", "potencial": "Baixo"},
+            {"produto": "chapeu", "categoria": "Moda", "potencial": "Baixo"}
+        ],
         "eventos": ["Dia da Mulher", "Outono"],
         "sazonal": "Outono"
     },
     4: {
-        "tendencias": ["ovo pascoa", "chocolate", "cesta", "fone", "smartwatch",
-                       "brinquedo", "pelucia", "jogo", "boneca", "carrinho"],
+        "tendencias": [
+            {"produto": "ovo pascoa", "categoria": "Alimentos", "potencial": "Alto"},
+            {"produto": "chocolate", "categoria": "Alimentos", "potencial": "Alto"},
+            {"produto": "cesta", "categoria": "Casa", "potencial": "Alto"},
+            {"produto": "brinquedo", "categoria": "Brinquedos", "potencial": "Médio"},
+            {"produto": "pelucia", "categoria": "Brinquedos", "potencial": "Médio"},
+            {"produto": "jogo", "categoria": "Brinquedos", "potencial": "Médio"},
+            {"produto": "boneca", "categoria": "Brinquedos", "potencial": "Baixo"},
+            {"produto": "carrinho", "categoria": "Brinquedos", "potencial": "Baixo"}
+        ],
         "eventos": ["Páscoa", "Tiradentes"],
         "sazonal": "Outono"
     },
     5: {
-        "tendencias": ["dia das maes", "perfume", "bolsa", "vestido", "smartwatch",
-                       "flores", "kit beleza", "caneca", "cartao presente", "bijuteria"],
+        "tendencias": [
+            {"produto": "dia das maes", "categoria": "Presentes", "potencial": "Alto"},
+            {"produto": "perfume", "categoria": "Beleza", "potencial": "Alto"},
+            {"produto": "bolsa", "categoria": "Moda", "potencial": "Alto"},
+            {"produto": "flores", "categoria": "Presentes", "potencial": "Médio"},
+            {"produto": "kit beleza", "categoria": "Beleza", "potencial": "Médio"},
+            {"produto": "caneca", "categoria": "Presentes", "potencial": "Médio"},
+            {"produto": "bijuteria", "categoria": "Moda", "potencial": "Baixo"},
+            {"produto": "cartao presente", "categoria": "Presentes", "potencial": "Baixo"}
+        ],
         "eventos": ["Dia das Mães", "Dia do Trabalho"],
         "sazonal": "Outono"
     },
     6: {
-        "tendencias": ["dia dos namorados", "perfume", "vinho", "chocolate", "fone",
-                       "kit jantar", "lingerie", "presente romantico", "jantar", "flores"],
+        "tendencias": [
+            {"produto": "dia dos namorados", "categoria": "Presentes", "potencial": "Alto"},
+            {"produto": "perfume", "categoria": "Beleza", "potencial": "Alto"},
+            {"produto": "vinho", "categoria": "Alimentos", "potencial": "Alto"},
+            {"produto": "kit jantar", "categoria": "Casa", "potencial": "Médio"},
+            {"produto": "lingerie", "categoria": "Moda", "potencial": "Médio"},
+            {"produto": "jantar", "categoria": "Presentes", "potencial": "Médio"},
+            {"produto": "flores", "categoria": "Presentes", "potencial": "Baixo"},
+            {"produto": "chocolate", "categoria": "Alimentos", "potencial": "Baixo"}
+        ],
         "eventos": ["Dia dos Namorados", "Festa Junina"],
         "sazonal": "Inverno"
     },
     7: {
-        "tendencias": ["casaco", "bota", "cachecol", "fone", "smartwatch",
-                       "blusa de la", "jaqueta", "cobertor", "meia", "luva"],
+        "tendencias": [
+            {"produto": "casaco", "categoria": "Moda", "potencial": "Alto"},
+            {"produto": "blusa de la", "categoria": "Moda", "potencial": "Alto"},
+            {"produto": "bota", "categoria": "Moda", "potencial": "Médio"},
+            {"produto": "cachecol", "categoria": "Moda", "potencial": "Médio"},
+            {"produto": "cobertor", "categoria": "Casa", "potencial": "Médio"},
+            {"produto": "meia", "categoria": "Moda", "potencial": "Médio"},
+            {"produto": "luva", "categoria": "Moda", "potencial": "Baixo"},
+            {"produto": "jaqueta", "categoria": "Moda", "potencial": "Baixo"}
+        ],
         "eventos": ["Férias Escolares"],
         "sazonal": "Inverno"
     },
     8: {
-        "tendencias": ["dia dos pais", "relogio", "cinto", "ferramenta", "smartwatch",
-                       "camisa", "perfume masculino", "kit churrasco", "caneca", "carteira"],
+        "tendencias": [
+            {"produto": "dia dos pais", "categoria": "Presentes", "potencial": "Alto"},
+            {"produto": "relogio", "categoria": "Moda", "potencial": "Alto"},
+            {"produto": "ferramenta", "categoria": "Casa", "potencial": "Alto"},
+            {"produto": "camisa", "categoria": "Moda", "potencial": "Médio"},
+            {"produto": "perfume masculino", "categoria": "Beleza", "potencial": "Médio"},
+            {"produto": "kit churrasco", "categoria": "Casa", "potencial": "Médio"},
+            {"produto": "caneca", "categoria": "Presentes", "potencial": "Baixo"},
+            {"produto": "carteira", "categoria": "Moda", "potencial": "Baixo"}
+        ],
         "eventos": ["Dia dos Pais", "Volta às Aulas"],
         "sazonal": "Inverno"
     },
     9: {
-        "tendencias": ["camisa", "calca", "vestido", "tenis", "smartwatch",
-                       "blusa", "jaqueta jeans", "sapato social", "mochila", "bolsa"],
+        "tendencias": [
+            {"produto": "camisa", "categoria": "Moda", "potencial": "Alto"},
+            {"produto": "calca", "categoria": "Moda", "potencial": "Alto"},
+            {"produto": "tenis", "categoria": "Moda", "potencial": "Alto"},
+            {"produto": "blusa", "categoria": "Moda", "potencial": "Médio"},
+            {"produto": "jaqueta jeans", "categoria": "Moda", "potencial": "Médio"},
+            {"produto": "sapato social", "categoria": "Moda", "potencial": "Médio"},
+            {"produto": "mochila", "categoria": "Moda", "potencial": "Baixo"},
+            {"produto": "bolsa", "categoria": "Moda", "potencial": "Baixo"}
+        ],
         "eventos": ["Independência do Brasil", "Primavera"],
         "sazonal": "Primavera"
     },
     10: {
-        "tendencias": ["fantasia halloween", "decoracao", "brinquedo", "fone", "smartwatch",
-                       "maquiagem", "doces", "abobora", "mascara", "livro infantil"],
+        "tendencias": [
+            {"produto": "fantasia halloween", "categoria": "Moda", "potencial": "Alto"},
+            {"produto": "brinquedo", "categoria": "Brinquedos", "potencial": "Alto"},
+            {"produto": "decoracao", "categoria": "Casa", "potencial": "Alto"},
+            {"produto": "maquiagem", "categoria": "Beleza", "potencial": "Médio"},
+            {"produto": "doces", "categoria": "Alimentos", "potencial": "Médio"},
+            {"produto": "mascara", "categoria": "Moda", "potencial": "Médio"},
+            {"produto": "abobora", "categoria": "Casa", "potencial": "Baixo"},
+            {"produto": "livro infantil", "categoria": "Livros", "potencial": "Baixo"}
+        ],
         "eventos": ["Dia das Crianças", "Halloween"],
         "sazonal": "Primavera"
     },
     11: {
-        "tendencias": ["black friday", "eletronico", "celular", "tv", "smartwatch",
-                       "notebook", "fone", "caixa de som", "carregador", "power bank"],
+        "tendencias": [
+            {"produto": "black friday", "categoria": "Eletrônicos", "potencial": "Alto"},
+            {"produto": "smartwatch", "categoria": "Eletrônicos", "potencial": "Alto"},
+            {"produto": "fone", "categoria": "Eletrônicos", "potencial": "Alto"},
+            {"produto": "celular", "categoria": "Eletrônicos", "potencial": "Médio"},
+            {"produto": "caixa de som", "categoria": "Eletrônicos", "potencial": "Médio"},
+            {"produto": "carregador", "categoria": "Eletrônicos", "potencial": "Médio"},
+            {"produto": "power bank", "categoria": "Eletrônicos", "potencial": "Baixo"},
+            {"produto": "notebook", "categoria": "Eletrônicos", "potencial": "Baixo"}
+        ],
         "eventos": ["Black Friday", "Cyber Monday"],
         "sazonal": "Primavera"
     },
     12: {
-        "tendencias": ["natal", "presente", "arvore", "decoracao", "smartwatch",
-                       "brinquedo", "perfume", "kit beleza", "vinho", "espumante"],
+        "tendencias": [
+            {"produto": "natal", "categoria": "Presentes", "potencial": "Alto"},
+            {"produto": "brinquedo", "categoria": "Brinquedos", "potencial": "Alto"},
+            {"produto": "perfume", "categoria": "Beleza", "potencial": "Alto"},
+            {"produto": "decoracao", "categoria": "Casa", "potencial": "Médio"},
+            {"produto": "kit beleza", "categoria": "Beleza", "potencial": "Médio"},
+            {"produto": "vinho", "categoria": "Alimentos", "potencial": "Médio"},
+            {"produto": "espumante", "categoria": "Alimentos", "potencial": "Baixo"},
+            {"produto": "arvore", "categoria": "Casa", "potencial": "Baixo"}
+        ],
         "eventos": ["Natal", "Réveillon"],
         "sazonal": "Verão"
     }
 }
 
 # ============================================================
-# FUNCOES DE API (APENAS QUANDO USUARIO CLICAR)
+# FUNCOES DE API
 # ============================================================
 class GoogleShoppingAPI:
     def __init__(self):
         self.api_key = SERPAPI_KEY
         self.base_url = "https://serpapi.com/search.json"
     
-    def buscar_produtos(self, termo, limite=5):
+    def buscar_produtos(self, termo, limite=3):
         if not self.api_key:
             return []
         
@@ -159,7 +317,6 @@ class GoogleShoppingAPI:
             
             return produtos
         except Exception as e:
-            st.error(f"Erro na busca: {e}")
             return []
     
     def buscar_total_resultados(self, termo):
@@ -201,11 +358,90 @@ def verificar_login():
         st.stop()
 
 # ============================================================
+# FUNCAO PARA ATUALIZAR SUGESTOES COM DADOS DA SERPAPI
+# ============================================================
+def atualizar_sugestoes_com_serpapi(tendencias):
+    """Atualiza sugestões com dados reais da SerpApi"""
+    controle = ControleConsultas()
+    resultados = []
+    
+    for item in tendencias:
+        termo = item["produto"]
+        
+        # Tenta buscar dados reais se tiver consulta disponível
+        if controle.pode_consultar():
+            produtos = google_shopping.buscar_produtos(termo, 2)
+            total = google_shopping.buscar_total_resultados(termo)
+            
+            if produtos:
+                controle.registrar_consulta(termo)
+                
+                # Calcula score baseado nos dados reais
+                score = 0
+                if total < 50:
+                    score = 10  # Excelente
+                elif total < 200:
+                    score = 7   # Bom
+                elif total < 500:
+                    score = 4   # Médio
+                else:
+                    score = 1   # Baixo
+                
+                # Ajusta potencial baseado nos dados reais
+                if score >= 7:
+                    potencial = "Alto"
+                    status = "🟢"
+                elif score >= 4:
+                    potencial = "Médio"
+                    status = "🟡"
+                else:
+                    potencial = "Baixo"
+                    status = "🟠"
+                
+                resultados.append({
+                    "produto": termo,
+                    "categoria": item["categoria"],
+                    "potencial": potencial,
+                    "status": status,
+                    "total_resultados": total,
+                    "produtos_encontrados": len(produtos),
+                    "score": score,
+                    "evento": ", ".join([e for e in item.get("eventos", ["Geral"])])
+                })
+            else:
+                # Fallback: usa dados históricos
+                resultados.append({
+                    "produto": termo,
+                    "categoria": item["categoria"],
+                    "potencial": item["potencial"],
+                    "status": "🟡" if item["potencial"] == "Alto" else "🟠",
+                    "total_resultados": "N/A",
+                    "produtos_encontrados": 0,
+                    "score": 0,
+                    "evento": ", ".join([e for e in item.get("eventos", ["Geral"])])
+                })
+        else:
+            # Sem consultas disponíveis: usa dados históricos
+            resultados.append({
+                "produto": termo,
+                "categoria": item["categoria"],
+                "potencial": item["potencial"],
+                "status": "🟢" if item["potencial"] == "Alto" else "🟡" if item["potencial"] == "Médio" else "🟠",
+                "total_resultados": "N/A",
+                "produtos_encontrados": 0,
+                "score": 0,
+                "evento": ", ".join([e for e in item.get("eventos", ["Geral"])])
+            })
+    
+    return resultados
+
+# ============================================================
 # APP PRINCIPAL
 # ============================================================
 verificar_login()
 
 google_shopping = GoogleShoppingAPI()
+controle_consultas = ControleConsultas()
 
 # ============================================================
 # SIDEBAR
@@ -213,21 +449,33 @@ google_shopping = GoogleShoppingAPI()
 with st.sidebar:
     st.markdown("### ⚙️ Configurações")
     
+    status = controle_consultas.get_status()
+    st.markdown("### 🔢 Consultas SerpApi Hoje")
+    st.caption(f"📊 {status['usadas']} de {status['limite']} usadas")
+    
+    if status['restam'] > 0:
+        st.success(f"✅ {status['restam']} consultas restantes")
+    else:
+        st.warning("⚠️ Limite de 3 consultas/dia atingido")
+    
+    if status['termos']:
+        st.caption(f"📌 Termos: {', '.join(status['termos'])}")
+    
     st.markdown("---")
     
     st.markdown("### 🔌 Status da API")
     if SERPAPI_KEY:
         st.success("✅ SerpApi configurada")
-        st.caption("Busca apenas quando clicar em 'Buscar'")
+        st.caption("3 consultas automáticas/dia")
     else:
-        st.warning("⚠️ SerpApi nao configurada")
+        st.warning("⚠️ SerpApi não configurada")
     
     st.markdown("---")
     
     st.markdown("### 📌 Como funciona")
     st.caption("1. Sugestões baseadas no mês atual")
-    st.caption("2. Clique em 'Buscar' para consultar")
-    st.caption("3. Dados reais do Google Shopping")
+    st.caption("2. 3 consultas automáticas na SerpApi")
+    st.caption("3. Status visuais indicam oportunidade")
 
 # ============================================================
 # PAINEL PRINCIPAL
@@ -241,6 +489,10 @@ st.caption(f"📅 {datetime.now().strftime('%A, %d de %B de %Y - %H:%M')}")
 mes_atual = datetime.now().month
 dados_mes = DADOS_HISTORICOS.get(mes_atual, DADOS_HISTORICOS[1])
 
+# Adiciona eventos aos itens
+for item in dados_mes["tendencias"]:
+    item["eventos"] = dados_mes["eventos"]
+
 st.markdown(f"""
 ### 📊 Tendências para {datetime.now().strftime('%B').capitalize()}
 **Eventos:** {', '.join(dados_mes['eventos'])} | **Sazonal:** {dados_mes['sazonal']}
@@ -249,32 +501,56 @@ st.markdown(f"""
 st.markdown("---")
 
 # ============================================================
-# TABELA DE SUGESTOES (ESTILO PRINT)
+# ATUALIZA SUGESTOES COM SERPAPI (APENAS 3 POR DIA)
+# ============================================================
+with st.spinner("Atualizando sugestões com dados reais..."):
+    sugestoes_atualizadas = atualizar_sugestoes_com_serpapi(dados_mes["tendencias"])
+
+# ============================================================
+# TABELA DE SUGESTOES COM STATUS VISUAIS
 # ============================================================
 st.markdown("### 🎯 Sugestões de Produtos para este Mês")
 
 # Prepara dados para tabela
 dados_tabela = []
-for termo in dados_mes["tendencias"]:
+for item in sugestoes_atualizadas:
+    # Define cores baseadas no potencial
+    if item["potencial"] == "Alto":
+        status_display = "🟢 Excelente"
+    elif item["potencial"] == "Médio":
+        status_display = "🟡 Boa"
+    else:
+        status_display = "🟠 Média"
+    
+    # Formata resultados
+    if item["total_resultados"] != "N/A":
+        resultados_str = f"{item['total_resultados']} resultados"
+    else:
+        resultados_str = "Dados históricos"
+    
     dados_tabela.append({
-        "Produto": termo,
-        "Categoria": "Geral",
-        "Evento": ", ".join(dados_mes['eventos']),
-        "Potencial": "Médio",
-        "Ação": f"🔍 {termo}"
+        "Status": status_display,
+        "Produto": item["produto"],
+        "Categoria": item["categoria"],
+        "Evento": item["evento"],
+        "Potencial": f"{item['status']} {item['potencial']}",
+        "Resultados": resultados_str,
+        "Ação": f"🔍 {item['produto']}"
     })
 
 # Cria DataFrame
 df_sugestoes = pd.DataFrame(dados_tabela)
 
-# Exibe tabela
+# Exibe tabela com status visuais
 st.dataframe(
     df_sugestoes,
     column_config={
+        "Status": "Status",
         "Produto": "Produto",
         "Categoria": "Categoria",
         "Evento": "Evento Relacionado",
         "Potencial": "Potencial",
+        "Resultados": "Resultados",
         "Ação": st.column_config.Column(
             "Buscar na Shopee",
             help="Clique para abrir a busca"
@@ -284,10 +560,14 @@ st.dataframe(
     hide_index=True
 )
 
+# Mostra status das consultas
+status = controle_consultas.get_status()
+st.caption(f"📊 {status['usadas']} de {status['limite']} consultas SerpApi usadas hoje")
+
 st.markdown("---")
 
 # ============================================================
-# AREA DE BUSCA (ONDE USA SERPAPI)
+# AREA DE BUSCA ESPECIFICA (CONSULTA MANUAL)
 # ============================================================
 st.markdown("### 🔍 Buscar Produto Específico")
 
@@ -324,7 +604,6 @@ if st.session_state.get("buscar", False) and st.session_state.get("termo_busca")
         st.markdown("---")
         
         if produtos:
-            # Cria DataFrame com resultados
             df_produtos = pd.DataFrame([{
                 "Produto": p.get("nome", "")[:60],
                 "Preço": p.get("preco", ""),
@@ -355,6 +634,27 @@ if st.session_state.get("buscar", False) and st.session_state.get("termo_busca")
 st.markdown("---")
 
 # ============================================================
+# LEGENDA
+# ============================================================
+st.markdown("### 📌 Legenda de Potencial")
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.markdown("🟢 **Excelente** - Baixa concorrência, alta demanda")
+    st.caption("Produtos com menos de 50 resultados")
+
+with col2:
+    st.markdown("🟡 **Boa** - Concorrência moderada")
+    st.caption("Produtos com 50-200 resultados")
+
+with col3:
+    st.markdown("🟠 **Média** - Mercado concorrido")
+    st.caption("Produtos com mais de 200 resultados")
+
+st.markdown("---")
+
+# ============================================================
 # DICAS E ESTRATEGIAS
 # ============================================================
 st.markdown("### 💡 Estratégias para Afiliados")
@@ -365,21 +665,20 @@ with col1:
     st.info("""
     **📅 Datas Comemorativas**
     
-    Aproveite os eventos do mês para criar conteúdo:
+    Aproveite os eventos do mês:
     - Posts sobre presentes
     - Vídeos de unboxing
-    - Listas de "O que comprar"
+    - Listas de 'O que comprar'
     """)
 
 with col2:
     st.success("""
-    **🎯 Produtos com Maior Potencial**
+    **🎯 Foco nos Status 🟢**
     
-    Foque em produtos que combinam:
-    - Tendência sazonal
-    - Baixa concorrência
-    - Preço entre R$30-R$150
-    - Bom volume de vendas
+    Produtos com status 🟢 Excelente:
+    - Menor concorrência
+    - Maior potencial de venda
+    - Ideal para conteúdo novo
     """)
 
 st.markdown("---")
@@ -387,4 +686,4 @@ st.markdown("---")
 # ============================================================
 # RODAPE
 # ============================================================
-st.caption(f"🛒 Minerador de Produtos v2.0 | Sugestões baseadas em dados históricos | Buscas na SerpApi apenas quando clicar")
+st.caption(f"🛒 Minerador de Produtos v2.0 | {status['usadas']}/3 consultas SerpApi hoje")
