@@ -177,13 +177,11 @@ class GoogleShoppingAPI:
         
         chave_cache = f"produtos_{termo}_{limite}"
         
-        # Tenta cache primeiro
         if not forcar_atualizacao:
             cache_valor = self.cache.obter(chave_cache, 24)
             if cache_valor is not None:
                 return cache_valor
         
-        # Verifica se pode buscar
         pode, mensagem = self.controle.pode_buscar()
         if not pode:
             st.warning(f"⚠️ {mensagem}")
@@ -304,7 +302,6 @@ class GoogleTrendsAPI:
         
         pode, _ = self.controle.pode_buscar()
         if not pode:
-            st.warning(f"⚠️ Limite de buscas atingido.")
             return self._buscar_cache_fallback(termo)
         
         try:
@@ -347,14 +344,12 @@ class GoogleTrendsAPI:
             
             return None
         except Exception as e:
-            st.error(f"Erro no Google Trends: {e}")
             return self._buscar_cache_fallback(termo)
     
     def _buscar_cache_fallback(self, termo):
         chave_cache = f"trends_{termo}_now 1-d"
         cache_valor = self.cache.obter(chave_cache, 720)
         if cache_valor is not None:
-            st.info("📌 Usando dados em cache do Google Trends")
             return cache_valor
         return None
 
@@ -463,30 +458,90 @@ DADOS_HISTORICOS = {
 }
 
 # ============================================================
-# SUGESTOES PRE-CALCULADAS (PARA EXIBIR SEM PESQUISAR)
+# SUGESTOES PRE-CALCULADAS (EXIBIDAS DIRETAMENTE)
 # ============================================================
-SUGESTOES_PRODUTOS = {
-    "Baixa saturacao": [
-        {"produto": "jelly blush", "categoria": "Beleza", "motivo": "Tendência Pinterest 2025 com +130% de busca"},
-        {"produto": "broche personalizado", "categoria": "Moda", "motivo": "Tendência Pinterest 2025 com +110% de busca"},
-        {"produto": "blush em gel", "categoria": "Beleza", "motivo": "Tendência Pinterest 2026 em alta"},
-        {"produto": "kits de perfume", "categoria": "Presentes", "motivo": "Crescimento de +500% no Pinterest"},
-        {"produto": "decoracao circense", "categoria": "Decoracao", "motivo": "Tendência Pinterest 2026 com +130% de busca"},
-        {"produto": "terno oversized", "categoria": "Moda", "motivo": "Tendência Pinterest 2025 com +225% de busca"}
-    ],
-    "Moderada saturacao": [
-        {"produto": "smartwatch", "categoria": "Eletrônicos", "motivo": "Mercado consolidado, ainda com espaço"},
-        {"produto": "fone bluetooth", "categoria": "Eletrônicos", "motivo": "Alta demanda, concorrencia moderada"},
-        {"produto": "camisa feminina", "categoria": "Moda", "motivo": "Sempre em alta, mas com nichos especificos"},
-        {"produto": "cadeira gamer", "categoria": "Casa", "motivo": "Mercado em crescimento, publico fiel"}
-    ],
-    "Alta saturacao": [
-        {"produto": "tenis", "categoria": "Moda", "motivo": "Mercado muito concorrido, nichos especificos"},
-        {"produto": "bolsa", "categoria": "Moda", "motivo": "Muitas opcoes, mas sazonais funcionam"},
-        {"produto": "perfume", "categoria": "Beleza", "motivo": "Alta concorrencia, mas com margem"},
-        {"produto": "carregador portatil", "categoria": "Eletrônicos", "motivo": "Mercado saturado, pouca diferenciacao"}
-    ]
-}
+SUGESTOES_PRODUTOS = [
+    {
+        "produto": "jelly blush",
+        "categoria": "Beleza",
+        "oportunidade": "🔥 Excelente",
+        "motivo": "Tendência Pinterest +130% em 2025",
+        "cor": "green",
+        "link": "https://shopee.com.br/search?keyword=jelly%20blush"
+    },
+    {
+        "produto": "broche personalizado",
+        "categoria": "Moda",
+        "oportunidade": "🔥 Excelente",
+        "motivo": "Tendência Pinterest +110% em 2025",
+        "cor": "green",
+        "link": "https://shopee.com.br/search?keyword=broche%20personalizado"
+    },
+    {
+        "produto": "kits de perfume",
+        "categoria": "Presentes",
+        "oportunidade": "🚀 Alta",
+        "motivo": "Crescimento +500% no Pinterest 2026",
+        "cor": "green",
+        "link": "https://shopee.com.br/search?keyword=kit%20perfume"
+    },
+    {
+        "produto": "blush em gel",
+        "categoria": "Beleza",
+        "oportunidade": "🚀 Alta",
+        "motivo": "Tendência Pinterest 2026 em alta",
+        "cor": "green",
+        "link": "https://shopee.com.br/search?keyword=blush%20em%20gel"
+    },
+    {
+        "produto": "decoracao circense",
+        "categoria": "Decoracao",
+        "oportunidade": "🚀 Alta",
+        "motivo": "Tendência Pinterest +130% em 2026",
+        "cor": "green",
+        "link": "https://shopee.com.br/search?keyword=decoracao%20circense"
+    },
+    {
+        "produto": "terno oversized",
+        "categoria": "Moda",
+        "oportunidade": "⭐ Boa",
+        "motivo": "Tendência Pinterest +225% em 2025",
+        "cor": "yellow",
+        "link": "https://shopee.com.br/search?keyword=terno%20oversized"
+    },
+    {
+        "produto": "smartwatch",
+        "categoria": "Eletrônicos",
+        "oportunidade": "📊 Média",
+        "motivo": "Mercado consolidado, ainda com espaço",
+        "cor": "orange",
+        "link": "https://shopee.com.br/search?keyword=smartwatch"
+    },
+    {
+        "produto": "fone bluetooth",
+        "categoria": "Eletrônicos",
+        "oportunidade": "📊 Média",
+        "motivo": "Alta demanda, concorrência moderada",
+        "cor": "orange",
+        "link": "https://shopee.com.br/search?keyword=fone%20bluetooth"
+    },
+    {
+        "produto": "camisa feminina",
+        "categoria": "Moda",
+        "oportunidade": "📊 Média",
+        "motivo": "Sempre em alta, nichos específicos",
+        "cor": "orange",
+        "link": "https://shopee.com.br/search?keyword=camisa%20feminina"
+    },
+    {
+        "produto": "cadeira gamer",
+        "categoria": "Casa",
+        "oportunidade": "📊 Média",
+        "motivo": "Mercado em crescimento",
+        "cor": "orange",
+        "link": "https://shopee.com.br/search?keyword=cadeira%20gamer"
+    }
+]
 
 # ============================================================
 # FUNCOES DE ANALISE
@@ -638,41 +693,68 @@ st.markdown("---")
 # TABS
 # ============================================================
 tab1, tab2, tab3 = st.tabs([
-    "💡 Sugestões",
+    "💡 Sugestões de Produtos",
     "🔍 Buscar Produtos",
     "📈 Google Trends"
 ])
 
 # ============================================================
-# TAB 1: SUGESTOES (SEM PESQUISAR)
+# TAB 1: SUGESTOES (VISIVEL SEM EXPANDIR)
 # ============================================================
 with tab1:
-    st.markdown("### 💡 Sugestões de Produtos")
-    st.caption("Recomendações baseadas em tendências Pinterest e dados históricos")
+    st.markdown("### 🎯 Produtos Recomendados para Afiliados")
+    st.caption("Baseado em tendências Pinterest 2025-2026 e dados históricos")
     
     status_buscas = google_shopping.get_status_buscas()
     if status_buscas['restam'] > 0:
         st.info(f"📌 {status_buscas['restam']} buscas disponíveis hoje para detalhamento")
+    else:
+        st.warning("⚠️ Limite de buscas atingido. Use o cache para ver detalhes.")
     
-    # Sugestões por nível de saturação
-    for nivel, produtos in SUGESTOES_PRODUTOS.items():
-        with st.expander(f"📌 {nivel} - Clique para ver detalhes"):
-            for p in produtos:
-                col1, col2, col3 = st.columns([2, 1, 1])
-                with col1:
-                    st.markdown(f"**{p['produto']}**")
-                    st.caption(p['categoria'])
-                with col2:
-                    st.caption(p['motivo'])
-                with col3:
-                    if st.button(f"🔍 Pesquisar {p['produto']}", key=f"btn_{p['produto']}"):
+    st.markdown("---")
+    
+    # Exibe produtos em cards (sem expandir)
+    for p in SUGESTOES_PRODUTOS:
+        cor = p['cor']
+        oportunidade = p['oportunidade']
+        
+        with st.container(border=True):
+            col1, col2, col3, col4 = st.columns([3, 1.5, 1.5, 1])
+            
+            with col1:
+                st.markdown(f"**{p['produto']}**")
+                st.caption(f"📂 {p['categoria']}")
+            
+            with col2:
+                if "🔥" in oportunidade:
+                    st.markdown(f"🟢 **{oportunidade}**")
+                elif "🚀" in oportunidade:
+                    st.markdown(f"🟢 **{oportunidade}**")
+                elif "⭐" in oportunidade:
+                    st.markdown(f"🟡 **{oportunidade}**")
+                else:
+                    st.markdown(f"🟠 **{oportunidade}**")
+            
+            with col3:
+                st.caption(p['motivo'])
+            
+            with col4:
+                # Botão para pesquisar na Shopee
+                if st.button(f"🔍 Ver na Shopee", key=f"shopee_{p['produto']}"):
+                    # Abre o link em nova aba
+                    st.markdown(f'<a href="{p["link"]}" target="_blank">Abrir Shopee</a>', unsafe_allow_html=True)
+                
+                # Botão para buscar dados reais
+                if status_buscas['restam'] > 0:
+                    if st.button(f"📊 Detalhar", key=f"det_{p['produto']}"):
                         st.session_state.termo_busca = p['produto']
+                        st.session_state.aba_busca = "buscar"
                         st.rerun()
-                st.markdown("---")
     
     # Dicas rápidas
     st.markdown("---")
     st.markdown("### 💡 Dicas para Afiliados")
+    
     col1, col2 = st.columns(2)
     with col1:
         st.info("""
@@ -680,13 +762,14 @@ with tab1:
         - Jelly Blush (+130% Pinterest)
         - Broches (+110% Pinterest)
         - Kits de Perfume (+500% Pinterest)
+        - Blush em Gel (Tendência 2026)
         """)
     with col2:
         st.success("""
         **📈 Como usar estas sugestões**
         1. Escolha um produto da lista
-        2. Clique em "Pesquisar" para ver dados reais
-        3. Analise a saturação e concorrência
+        2. Clique em "Ver na Shopee" para ver produtos reais
+        3. Clique em "Detalhar" para ver dados de mercado
         4. Crie conteúdo para redes sociais
         """)
 
@@ -697,10 +780,12 @@ with tab2:
     st.markdown("### 🔍 Buscar Produtos no Mercado")
     st.caption("Dados REAIS do Google Shopping via SerpApi (3 buscas/dia)")
     
-    # Verifica se veio de sugestão
+    # Verifica se veio da aba de sugestões
     termo_inicial = st.session_state.get("termo_busca", "")
     if termo_inicial:
         st.info(f"🔍 Buscando: {termo_inicial}")
+        # Limpa após usar
+        st.session_state.termo_busca = ""
     
     status_buscas = google_shopping.get_status_buscas()
     if status_buscas['restam'] <= 0:
@@ -718,11 +803,7 @@ with tab2:
             key="busca_input"
         )
     with col2:
-        usar_cache = st.checkbox("Usar cache", value=True, key="cache_checkbox")
-    
-    # Limpa o termo da sessão após usar
-    if termo_inicial and "termo_busca" in st.session_state:
-        del st.session_state.termo_busca
+        usar_cache = st.checkbox("Usar cache", value=True, key="cache_checkbox_busca")
     
     if termo_busca:
         forcar = not usar_cache
