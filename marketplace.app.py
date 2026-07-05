@@ -132,6 +132,22 @@ DADOS_COMPLETOS = {
         "resultados_ml": 180,
         "categoria": "Moda",
         "evento": "Férias Escolares"
+    },
+    "smartwatch": {
+        "pins": 2800,
+        "crescimento": 35,
+        "views_tiktok": 4.5,
+        "resultados_ml": 1500,
+        "categoria": "Eletrônicos",
+        "evento": "Tendência"
+    },
+    "fone bluetooth": {
+        "pins": 2200,
+        "crescimento": 30,
+        "views_tiktok": 3.8,
+        "resultados_ml": 1200,
+        "categoria": "Eletrônicos",
+        "evento": "Tendência"
     }
 }
 
@@ -313,11 +329,10 @@ def buscar_produtos_serpapi(termo, limite=3):
 def gerar_sugestoes_diarias():
     """Gera as 3 melhores sugestões para o dia com dados completos"""
     # Lista de produtos base
-    produtos_base = ["casaco", "blusa de lã", "bota", "cachecol", "cobertor", "meia", "luva", "jaqueta"]
+    produtos_base = list(DADOS_COMPLETOS.keys())
     
-    # Embaralha e pega os 3 primeiros
-    random.seed(int(datetime.now().date().isoformat().replace("-", "")))
-    selecionados = random.sample(produtos_base, BUSCAS_DIARIAS)
+    # Usa os 3 primeiros da lista para garantir dados consistentes
+    selecionados = produtos_base[:BUSCAS_DIARIAS]
     
     resultados = []
     for termo in selecionados:
@@ -327,49 +342,58 @@ def gerar_sugestoes_diarias():
         # Dados completos do produto
         dados = DADOS_COMPLETOS.get(termo, {})
         
-        # Score: 50% da SerpApi + 50% dos dados completos
-        score_serp = min(len(produtos_serp) * 2, 5)
-        score_dados = 0
+        # Score: baseado nos dados completos
+        score = 0
         
         if dados.get("pins", 0) > 2000:
-            score_dados += 3
+            score += 3
         elif dados.get("pins", 0) > 1000:
-            score_dados += 2
+            score += 2
         else:
-            score_dados += 1
+            score += 1
         
         if dados.get("crescimento", 0) > 30:
-            score_dados += 2
+            score += 2
         elif dados.get("crescimento", 0) > 15:
-            score_dados += 1
+            score += 1
         
         if dados.get("views_tiktok", 0) > 3:
-            score_dados += 2
+            score += 2
         elif dados.get("views_tiktok", 0) > 1:
-            score_dados += 1
+            score += 1
         
-        score_total = score_serp + score_dados
+        if dados.get("resultados_ml", 0) > 500:
+            score += 2
+        elif dados.get("resultados_ml", 0) > 200:
+            score += 1
+        
+        # Bônus por produtos encontrados na SerpApi
+        if len(produtos_serp) > 0:
+            score += len(produtos_serp)
         
         # Determina potencial
-        if score_total >= 8:
+        if score >= 8:
             potencial = "🟢 Alto"
-        elif score_total >= 5:
+        elif score >= 5:
             potencial = "🟡 Médio"
         else:
             potencial = "🔴 Baixo"
         
-        resultados.append({
+        # Monta o resultado com todos os campos
+        resultado = {
             "Produto": termo,
             "Categoria": dados.get("categoria", "Geral"),
             "Evento": dados.get("evento", "Tendência"),
             "Potencial": potencial,
-            "Score": score_total,
+            "Score": score,
             "Pins": f"{dados.get('pins', 0)} pins",
             "Crescimento": f"+{dados.get('crescimento', 0)}%",
             "Views": f"{dados.get('views_tiktok', 0)}M",
             "Resultados ML": f"{dados.get('resultados_ml', 0)}",
             "Produtos Serp": len(produtos_serp)
-        })
+        }
+        
+        resultados.append(resultado)
     
     # Ordena por score
     resultados = sorted(resultados, key=lambda x: x["Score"], reverse=True)
@@ -387,7 +411,9 @@ PALAVRAS_CHAVE_CAUDA_LONGA = {
     "cobertor": "cobertor de lã para cama king",
     "meia": "meia de lã para frio extremo",
     "luva": "luva de lã para frio intenso",
-    "jaqueta": "jaqueta jeans feminina 2026"
+    "jaqueta": "jaqueta jeans feminina 2026",
+    "smartwatch": "smartwatch feminino elegante",
+    "fone bluetooth": "fone bluetooth JBL original"
 }
 
 # ============================================================
@@ -670,7 +696,7 @@ def render_dashboard():
     
     st.markdown("---")
     
-    # ===== TABELA DE PRODUTOS DO DIA (GRADE COMPLETA) =====
+    # ===== TABELA DE PRODUTOS DO DIA =====
     st.markdown("## 🎯 Sugestões de Produtos para Hoje")
     st.caption(f"🔄 Atualizado automaticamente todos os dias | {BUSCAS_DIARIAS} buscas realizadas")
     
