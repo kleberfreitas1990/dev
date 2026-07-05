@@ -71,138 +71,213 @@ SNAPGEN_PASSWORD = KEYS["snapgen_password"]
 DADOS_COMPLETOS = {
     "casaco": {
         "pins": 3400,
+        "pins_2025": 2900,
         "crescimento": 45,
+        "crescimento_2025": 38,
         "views_tiktok": 5.8,
         "resultados_ml": 1240,
         "buscas_mes": 15200,
+        "buscas_mes_2025": 12800,
         "categoria": "Moda",
-        "evento": "Férias Escolares"
+        "evento": "Férias Escolares",
+        "variacao_yoy": 17.2,
+        "tendencia_yoy": "📈 Em alta"
     },
     "blusa de lã": {
         "pins": 2800,
+        "pins_2025": 2200,
         "crescimento": 38,
+        "crescimento_2025": 32,
         "views_tiktok": 4.2,
         "resultados_ml": 890,
         "buscas_mes": 12500,
+        "buscas_mes_2025": 9800,
         "categoria": "Moda",
-        "evento": "Férias Escolares"
+        "evento": "Férias Escolares",
+        "variacao_yoy": 27.3,
+        "tendencia_yoy": "📈 Em alta"
     },
     "bota": {
         "pins": 1500,
+        "pins_2025": 1200,
         "crescimento": 20,
+        "crescimento_2025": 15,
         "views_tiktok": 2.8,
         "resultados_ml": 560,
         "buscas_mes": 8900,
+        "buscas_mes_2025": 7200,
         "categoria": "Moda",
-        "evento": "Férias Escolares"
+        "evento": "Férias Escolares",
+        "variacao_yoy": 25.0,
+        "tendencia_yoy": "📈 Em alta"
     },
     "cachecol": {
         "pins": 1200,
+        "pins_2025": 950,
         "crescimento": 15,
+        "crescimento_2025": 10,
         "views_tiktok": 1.9,
         "resultados_ml": 430,
         "buscas_mes": 7800,
+        "buscas_mes_2025": 6500,
         "categoria": "Moda",
-        "evento": "Férias Escolares"
+        "evento": "Férias Escolares",
+        "variacao_yoy": 26.3,
+        "tendencia_yoy": "📈 Em alta"
     },
     "cobertor": {
         "pins": 950,
+        "pins_2025": 780,
         "crescimento": 12,
+        "crescimento_2025": 8,
         "views_tiktok": 1.5,
         "resultados_ml": 380,
         "buscas_mes": 6500,
+        "buscas_mes_2025": 5200,
         "categoria": "Casa",
-        "evento": "Férias Escolares"
+        "evento": "Férias Escolares",
+        "variacao_yoy": 21.8,
+        "tendencia_yoy": "➡️ Estável"
     },
     "meia": {
         "pins": 800,
+        "pins_2025": 650,
         "crescimento": 10,
+        "crescimento_2025": 7,
         "views_tiktok": 1.1,
         "resultados_ml": 290,
         "buscas_mes": 5200,
+        "buscas_mes_2025": 4200,
         "categoria": "Moda",
-        "evento": "Férias Escolares"
+        "evento": "Férias Escolares",
+        "variacao_yoy": 23.1,
+        "tendencia_yoy": "📈 Em alta"
     },
     "luva": {
         "pins": 500,
+        "pins_2025": 400,
         "crescimento": 8,
+        "crescimento_2025": 5,
         "views_tiktok": 0.6,
         "resultados_ml": 210,
         "buscas_mes": 3800,
+        "buscas_mes_2025": 3200,
         "categoria": "Moda",
-        "evento": "Férias Escolares"
+        "evento": "Férias Escolares",
+        "variacao_yoy": 25.0,
+        "tendencia_yoy": "📈 Em alta"
     },
     "jaqueta": {
         "pins": 450,
+        "pins_2025": 380,
         "crescimento": 5,
+        "crescimento_2025": 4,
         "views_tiktok": 0.5,
         "resultados_ml": 180,
         "buscas_mes": 3200,
+        "buscas_mes_2025": 2800,
         "categoria": "Moda",
-        "evento": "Férias Escolares"
+        "evento": "Férias Escolares",
+        "variacao_yoy": 18.4,
+        "tendencia_yoy": "📈 Em alta"
     },
     "smartwatch": {
         "pins": 2800,
+        "pins_2025": 2500,
         "crescimento": 35,
+        "crescimento_2025": 30,
         "views_tiktok": 4.5,
         "resultados_ml": 1500,
         "buscas_mes": 18500,
+        "buscas_mes_2025": 15200,
         "categoria": "Eletrônicos",
-        "evento": "Tendência"
+        "evento": "Tendência",
+        "variacao_yoy": 12.0,
+        "tendencia_yoy": "📈 Em alta"
     },
     "fone bluetooth": {
         "pins": 2200,
+        "pins_2025": 2000,
         "crescimento": 30,
+        "crescimento_2025": 25,
         "views_tiktok": 3.8,
         "resultados_ml": 1200,
         "buscas_mes": 16500,
+        "buscas_mes_2025": 13800,
         "categoria": "Eletrônicos",
-        "evento": "Tendência"
+        "evento": "Tendência",
+        "variacao_yoy": 10.0,
+        "tendencia_yoy": "➡️ Estável"
     },
     "perfume": {
         "pins": 2100,
+        "pins_2025": 1800,
         "crescimento": 28,
+        "crescimento_2025": 22,
         "views_tiktok": 3.2,
         "resultados_ml": 1100,
         "buscas_mes": 14200,
+        "buscas_mes_2025": 11800,
         "categoria": "Beleza",
-        "evento": "Dia dos Namorados"
+        "evento": "Dia dos Namorados",
+        "variacao_yoy": 16.7,
+        "tendencia_yoy": "📈 Em alta"
     },
     "vestido": {
         "pins": 1900,
+        "pins_2025": 1600,
         "crescimento": 25,
+        "crescimento_2025": 20,
         "views_tiktok": 2.9,
         "resultados_ml": 980,
         "buscas_mes": 12500,
+        "buscas_mes_2025": 10500,
         "categoria": "Moda",
-        "evento": "Férias Escolares"
+        "evento": "Férias Escolares",
+        "variacao_yoy": 18.8,
+        "tendencia_yoy": "📈 Em alta"
     },
     "bolsa": {
         "pins": 1700,
+        "pins_2025": 1400,
         "crescimento": 22,
+        "crescimento_2025": 18,
         "views_tiktok": 2.5,
         "resultados_ml": 850,
         "buscas_mes": 11000,
+        "buscas_mes_2025": 9200,
         "categoria": "Moda",
-        "evento": "Férias Escolares"
+        "evento": "Férias Escolares",
+        "variacao_yoy": 21.4,
+        "tendencia_yoy": "📈 Em alta"
     },
     "mochila": {
         "pins": 1400,
+        "pins_2025": 1200,
         "crescimento": 18,
+        "crescimento_2025": 14,
         "views_tiktok": 2.1,
         "resultados_ml": 720,
         "buscas_mes": 9500,
+        "buscas_mes_2025": 7800,
         "categoria": "Moda",
-        "evento": "Volta às Aulas"
+        "evento": "Volta às Aulas",
+        "variacao_yoy": 16.7,
+        "tendencia_yoy": "📈 Em alta"
     },
     "tenis": {
         "pins": 1600,
+        "pins_2025": 1300,
         "crescimento": 20,
+        "crescimento_2025": 16,
         "views_tiktok": 2.3,
         "resultados_ml": 780,
         "buscas_mes": 10200,
+        "buscas_mes_2025": 8500,
         "categoria": "Moda",
-        "evento": "Férias Escolares"
+        "evento": "Férias Escolares",
+        "variacao_yoy": 23.1,
+        "tendencia_yoy": "📈 Em alta"
     }
 }
 
@@ -483,6 +558,9 @@ def calcular_score(produto, dados):
     elif dados.get("buscas_mes", 0) > 5000:
         score += 1
     
+    if dados.get("variacao_yoy", 0) > 15:
+        score += 1
+    
     return min(score, 10)
 
 def gerar_top10_produtos():
@@ -511,6 +589,9 @@ def gerar_top10_produtos():
             "Views TikTok": f"{dados.get('views_tiktok', 0)}M",
             "Buscas no Mês": f"{dados.get('buscas_mes', 0):,}",
             "Resultados ML": f"{dados.get('resultados_ml', 0):,}",
+            "Pins (YoY)": f"{dados.get('pins_2025', 0):,}",
+            "Variação YoY": f"{dados.get('variacao_yoy', 0):.1f}%",
+            "Tendência YoY": dados.get('tendencia_yoy', '➡️ Estável'),
             "Produtos Serp": len(produtos_serp)
         }
         
@@ -860,7 +941,7 @@ def render_dashboard():
         
         st.caption(f"{BUSCAS_DIARIAS} de {BUSCAS_DIARIAS} consultas SerpApi usadas hoje")
         
-        # ===== TOP 10 (SEM COLUNAS 2025) =====
+        # ===== TOP 10 (LAYOUT DO PRINT) =====
         st.markdown("---")
         st.markdown("## 🏆 Top 10 Produtos")
         st.caption("Ranking completo baseado em score, tendências e dados históricos")
@@ -869,8 +950,8 @@ def render_dashboard():
         
         df_top10 = pd.DataFrame(top10)
         
-        # Remove colunas com 2025
-        colunas_top10 = ["Produto", "Categoria", "Evento", "Potencial", "Score", "Pins", "Crescimento", "Views TikTok", "Buscas no Mês", "Resultados ML"]
+        # Renomeia as colunas para remover "2025" dos nomes
+        colunas_top10 = ["Produto", "Categoria", "Evento", "Potencial", "Score", "Pins", "Crescimento", "Views TikTok", "Buscas no Mês", "Resultados ML", "Pins (YoY)", "Variação YoY", "Tendência YoY"]
         df_top10 = df_top10[colunas_top10]
         
         st.markdown(
