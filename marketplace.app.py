@@ -29,7 +29,10 @@ st.set_page_config(
 # ============================================================
 LICENCA_PADRAO = "TESTE-AFILIADO-2026"
 ARQUIVO_GALERIA = "galeria_videos.json"
+ARQUIVO_DADOS_DIARIOS = "dados_diarios.json"
 CREDITOS_DIARIOS = 10
+BUSCAS_DIARIAS = 3
+BUSCAS_TOTAIS = 250
 
 # ============================================================
 # CARREGAR SECRETS
@@ -109,6 +112,69 @@ class CreditosDiarios:
         return False
 
 # ============================================================
+# SISTEMA DE DADOS DIÁRIOS (AUTOMÁTICO)
+# ============================================================
+class DadosDiarios:
+    def __init__(self, arquivo=ARQUIVO_DADOS_DIARIOS):
+        self.arquivo = arquivo
+        self.dados = self.carregar()
+        self.buscas_diarias = BUSCAS_DIARIAS
+    
+    def carregar(self):
+        if os.path.exists(self.arquivo):
+            try:
+                with open(self.arquivo, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            except:
+                return {}
+        return {}
+    
+    def salvar(self):
+        with open(self.arquivo, 'w', encoding='utf-8') as f:
+            json.dump(self.dados, f, ensure_ascii=False, indent=2)
+    
+    def obter_dados_hoje(self):
+        """Retorna os dados de hoje ou None se não existir"""
+        hoje = datetime.now().date().isoformat()
+        dados = self.dados.get(hoje, {})
+        
+        if dados and dados.get("produtos"):
+            return dados
+        
+        return None
+    
+    def salvar_dados_hoje(self, produtos):
+        """Salva os produtos de hoje"""
+        hoje = datetime.now().date().isoformat()
+        self.dados[hoje] = {
+            "data": hoje,
+            "produtos": produtos,
+            "total_buscas": len(produtos) if produtos else 0,
+            "timestamp": datetime.now().isoformat()
+        }
+        self.salvar()
+    
+    def precisa_atualizar(self):
+        """Verifica se precisa atualizar os dados de hoje"""
+        hoje = datetime.now().date().isoformat()
+        dados = self.dados.get(hoje, {})
+        
+        if not dados or not dados.get("produtos"):
+            return True
+        
+        # Verifica se já passou do horário de atualização (ex: 6h da manhã)
+        hora_atual = datetime.now().hour
+        hora_ultima = datetime.fromisoformat(dados.get("timestamp", datetime.now().isoformat())).hour
+        
+        # Atualiza se mudou de dia ou se é depois das 6h e a última atualização foi antes das 6h
+        if dados.get("data") != hoje:
+            return True
+        if hora_atual >= 6 and hora_ultima < 6:
+            return True
+        
+        return False
+
+# ============================================================
 # SISTEMA DE GALERIA DE VÍDEOS
 # ============================================================
 class GaleriaVideos:
@@ -142,6 +208,95 @@ class GaleriaVideos:
     def remover(self, video_id):
         self.videos = [v for v in self.videos if v.get('id') != video_id]
         self.salvar()
+
+# ============================================================
+# FUNÇÕES DE BUSCA (APENAS 3 POR DIA)
+# ============================================================
+def buscar_produtos_serpapi(termo, limite=3):
+    """Busca produtos no Google Shopping via SerpApi"""
+    if not SERPAPI_KEY:
+        return []
+    
+    try:
+        url = "https://serpapi.com/search.json"
+        params = {
+            "q": termo,
+            "tbm": "shop",
+            "api_key": SERPAPI_KEY,
+            "gl": "br",
+            "hl": "pt",
+            "num": limite
+        }
+        resp = requests.get(url, params=params, timeout=15)
+        data = resp.json()
+        
+        produtos = []
+        for item in data.get("shopping_results", [])[:limite]:
+            produtos.append({
+                "nome": item.get("title", ""),
+                "preco": item.get("price", "R$ 0"),
+                "loja": item.get("source", ""),
+                "link": item.get("link", ""),
+                "avaliacao": item.get("rating", None)
+            })
+        return produtos
+    except Exception as e:
+        return []
+
+def gerar_sugestoes_diarias():
+    """Gera as 3 melhores sugestões para o dia"""
+    # Lista de produtos base para análise
+    produtos_base = [
+        {"termo": "casaco", "categoria": "Moda", "evento": "Férias Escolares"},
+        {"termo": "blusa de lã", "categoria": "Moda", "evento": "Férias Escolares"},
+        {"termo": "bota", "categoria": "Moda", "evento": "Férias Escolares"},
+        {"termo": "cachecol", "categoria": "Moda", "evento": "Férias Escolares"},
+        {"termo": "cobertor", "categoria": "Casa", "evento": "Férias Escolares"},
+        {"termo": "meia", "categoria": "Moda", "evento": "Férias Escolares"},
+        {"termo": "luva", "categoria": "Moda", "evento": "Férias Escolares"},
+        {"termo": "jaqueta", "categoria": "Moda", "evento": "Férias Escolares"},
+        {"termo": "smartwatch", "categoria": "Eletrônicos", "evento": "Tendência"},
+        {"termo": "fone bluetooth", "categoria": "Eletrônicos", "evento": "Tendência"},
+    ]
+    
+    resultados = []
+    
+    # Busca apenas 3 produtos (limite diário)
+    for i, item in enumerate(produtos_base[:BUSCAS_DIARIAS]):
+        produtos = buscar_produtos_serpapi(item["termo"], 3)
+        
+        # Score baseado em disponibilidade e relevância
+        score = 0
+        if produtos:
+            score += 5  # Produto encontrado
+            score += min(len(produtos), 3)  # Quantidade de resultados
+            
+            # Análise de preço (quanto mais barato, melhor)
+            precos = [float(p.get("preco", "0").replace("R$", "").replace(",", ".").strip()) for p in produtos if p.get("preco")]
+            if precos:
+                preco_medio = sum(precos) / len(precos)
+                if preco_medio < 100:
+                    score += 3
+                elif preco_medio < 200:
+                    score += 2
+                else:
+                    score += 1
+        
+        resultados.append({
+            "Produto": item["termo"],
+            "Categoria": item["categoria"],
+            "Evento": item["evento"],
+            "Score": score,
+            "Produtos Encontrados": len(produtos),
+            "Total Resultados": len(produtos) * 10,  # Estimativa
+            "detalhes": produtos
+        })
+    
+    # Ordena por score (melhores primeiro)
+    resultados = sorted(resultados, key=lambda x: x["Score"], reverse=True)
+    
+    # Mantém apenas os 3 melhores
+    return resultados[:BUSCAS_DIARIAS]
 
 # ============================================================
 # GERADOR DE VÍDEO COM SNAPGEN AI
@@ -309,6 +464,229 @@ class SnapGenVideoGenerator:
         return video_info
 
 # ============================================================
+# FUNCAO DE LOGIN
+# ============================================================
+def verificar_login():
+    if "logado" not in st.session_state:
+        st.session_state.logado = False
+
+    if not st.session_state.logado:
+        st.title("🛒 Minerador de Produtos")
+        st.markdown("### 🔐 Acesso ao Sistema")
+        
+        licenca = st.text_input("Digite sua Licença de Acesso:", type="password")
+        
+        if st.button("🔓 Entrar", type="primary", use_container_width=True):
+            if licenca == LICENCA_ACESSO:
+                st.session_state.logado = True
+                st.session_state.licenca_usuario = licenca
+                st.success("✅ Licença válida! Acesso liberado.")
+                time.sleep(1)
+                st.rerun()
+            else:
+                st.error("❌ Licença inválida.")
+        
+        st.markdown("---")
+        st.caption("🔒 Sistema protegido por licença.")
+        st.stop()
+    
+    return st.session_state.get('licenca_usuario', LICENCA_PADRAO)
+
+# ============================================================
+# FUNCAO RENDER_DASHBOARD (COM DADOS DIÁRIOS)
+# ============================================================
+def render_dashboard():
+    st.title("📊 Minerador de Produtos")
+    st.caption(f"📅 {datetime.now().strftime('%A, %d de %B de %Y - %H:%M')}")
+    
+    # ===== ATUALIZAÇÃO AUTOMÁTICA DIÁRIA =====
+    dados_diarios = DadosDiarios()
+    
+    # Verifica se precisa atualizar (primeira vez do dia ou depois das 6h)
+    if dados_diarios.precisa_atualizar():
+        with st.spinner("🔄 Atualizando dados do dia..."):
+            produtos = gerar_sugestoes_diarias()
+            dados_diarios.salvar_dados_hoje(produtos)
+            st.success("✅ Dados do dia atualizados!")
+            time.sleep(1)
+            st.rerun()
+    
+    # ===== CARREGA DADOS DO DIA =====
+    dados_hoje = dados_diarios.obter_dados_hoje()
+    
+    # Status e Créditos
+    col_status1, col_status2, col_status3, col_status4 = st.columns(4)
+    with col_status1:
+        status_api = "✅ Conectado" if (SNAPGEN_API_KEY or (SNAPGEN_EMAIL and SNAPGEN_PASSWORD)) else "❌ Desconectado"
+        st.metric("🔌 Status API", status_api)
+    with col_status2:
+        creditos = CreditosDiarios()
+        licenca = st.session_state.get('licenca_usuario', LICENCA_PADRAO)
+        creditos_restantes = creditos.obter_creditos(licenca)
+        st.metric("🎫 Créditos IA", f"{creditos_restantes} / {CREDITOS_DIARIOS}")
+    with col_status3:
+        st.metric("👤 Licença", f"{licenca[:10]}...")
+    with col_status4:
+        if dados_hoje:
+            st.metric("📊 Buscas de Hoje", f"{dados_hoje.get('total_buscas', 0)} / {BUSCAS_DIARIAS}")
+        else:
+            st.metric("📊 Buscas de Hoje", f"0 / {BUSCAS_DIARIAS}")
+    
+    st.markdown("---")
+    
+    st.markdown("## 📊 Visão Geral do Mês")
+    
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        with st.container(border=True):
+            st.markdown("""
+            **❄️ Inverno no auge!** Casacos e blusas de lã são os mais procurados. 
+            Aproveite as férias para conteúdo de viagens e looks de inverno.
+            """)
+            
+            m1, m2, m3 = st.columns(3)
+            with m1:
+                st.metric("🔥 Produto em Alta", "casaco", delta="Moda")
+            with m2:
+                st.metric("📈 Crescimento Médio", "19.1%", delta="+2.3%")
+            with m3:
+                st.metric("🎯 Foco Principal", "Férias Escolares", delta="Alta demanda")
+    
+    with col2:
+        with st.container(border=True):
+            st.markdown("### 🎯 Melhor Oportunidade")
+            
+            st.markdown("**Potencial de Mercado**")
+            
+            potencial = 85
+            cor = "green" if potencial >= 70 else "orange" if potencial >= 40 else "red"
+            
+            st.markdown(f"""
+            <div style="background: #e0e0e0; border-radius: 10px; height: 20px; position: relative;">
+                <div style="background: {cor}; width: {potencial}%; height: 20px; border-radius: 10px; transition: width 0.5s;">
+                    <span style="position: absolute; right: 10px; top: 2px; color: black; font-weight: bold;">{potencial}%</span>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            st.caption("🟢 Produtos com status Alto potencial")
+            
+            col_s1, col_s2 = st.columns(2)
+            with col_s1:
+                st.success("✅ Alta Demanda")
+            with col_s2:
+                st.success("✅ Baixa Concorrência")
+    
+    st.markdown("---")
+    
+    # ===== TABELA DE PRODUTOS DO DIA =====
+    st.markdown("## 🎯 Sugestões de Produtos para Hoje")
+    st.caption(f"🔄 Atualizado automaticamente todos os dias às 6h | {BUSCAS_DIARIAS} buscas realizadas")
+    
+    if dados_hoje and dados_hoje.get("produtos"):
+        produtos = dados_hoje["produtos"]
+        
+        # Prepara os dados para a tabela
+        dados_tabela = []
+        for item in produtos:
+            # Pega a primeira palavra-chave de cauda longa
+            palavras_chave = PALAVRAS_CHAVE_CAUDA_LONGA.get(item["Produto"], [])
+            palavra_chave = palavras_chave[0] if palavras_chave else f"{item['Produto']} tendência 2026"
+            
+            dados_tabela.append({
+                "Produto": item["Produto"],
+                "🔑 Palavra-chave": palavra_chave,
+                "Categoria": item["Categoria"],
+                "Evento": item["Evento"],
+                "Potencial": "🟢 Alto" if item["Score"] >= 8 else "🟡 Médio" if item["Score"] >= 5 else "🔴 Baixo",
+                "Score": item["Score"],
+                "Produtos Encontrados": item["Produtos Encontrados"]
+            })
+        
+        df = pd.DataFrame(dados_tabela)
+        
+        # Botão discreto em HTML
+        df["Buscar na Shopee"] = df["Produto"].apply(
+            lambda x: f'<a href="https://shopee.com.br/search?keyword={quote(x)}" target="_blank" style="text-decoration: none;"><span style="background-color: #f0f0f0; color: #333; padding: 2px 10px; border-radius: 12px; font-size: 12px; border: 1px solid #ddd;">🔍 Buscar</span></a>'
+        )
+        
+        # Reorganiza as colunas
+        colunas = ["Produto", "🔑 Palavra-chave", "Categoria", "Evento", "Potencial", "Score", "Produtos Encontrados", "Buscar na Shopee"]
+        df = df[colunas]
+        
+        st.markdown(
+            df.to_html(escape=False, index=False),
+            unsafe_allow_html=True
+        )
+        
+        st.caption("3 de 3 consultas SerpApi usadas hoje")
+    else:
+        st.info("📭 Nenhum dado disponível para hoje. Tente recarregar a página.")
+    
+    st.markdown("---")
+    
+    st.markdown("## 💡 Insights Estratégicos")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown("### 🏆 Produto com Maior Potencial")
+        with st.container(border=True):
+            if dados_hoje and dados_hoje.get("produtos"):
+                melhor = max(dados_hoje["produtos"], key=lambda x: x.get("Score", 0))
+                st.markdown(f"### {melhor['Produto']}")
+                st.markdown(f"""
+                - **Categoria:** {melhor['Categoria']}
+                - **Score:** {melhor['Score']}/10
+                - **Produtos Encontrados:** {melhor['Produtos Encontrados']}
+                """)
+            else:
+                st.markdown("### Carregando...")
+            st.success("🚀 **Ação:** Crie conteúdo sobre este produto!")
+    
+    with col2:
+        st.markdown("### 📈 Tendência Mais Viral")
+        with st.container(border=True):
+            if dados_hoje and dados_hoje.get("produtos"):
+                melhor = max(dados_hoje["produtos"], key=lambda x: x.get("Score", 0))
+                st.markdown(f"### {melhor['Produto']}")
+                st.markdown(f"""
+                - **Score:** {melhor['Score']}/10
+                - **Produtos Encontrados:** {melhor['Produtos Encontrados']}
+                """)
+            else:
+                st.markdown("### Carregando...")
+            st.info("💡 **Dica:** Produto com alto potencial de venda!")
+    
+    st.markdown("---")
+    
+    st.markdown("## 📌 Legenda de Potencial")
+    
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.markdown("""
+        **🟢 Alto**
+        - Score ≥ 8
+        - Baixa concorrência
+        """)
+    with col2:
+        st.markdown("""
+        **🟡 Médio**
+        - Score 5-7
+        - Concorrência moderada
+        """)
+    with col3:
+        st.markdown("""
+        **🔴 Baixo**
+        - Score < 5
+        - Mercado concorrido
+        """)
+    
+    st.caption("Mais de 200 resultados no Google Shopping")
+    
+    return df if 'df' in locals() else None
+
+# ============================================================
 # PALAVRAS-CHAVE DE CAUDA LONGA
 # ============================================================
 PALAVRAS_CHAVE_CAUDA_LONGA = {
@@ -407,196 +785,32 @@ PALAVRAS_CHAVE_CAUDA_LONGA = {
         "jaqueta de chuva impermeável",
         "jaqueta plus size com cinto",
         "jaqueta de veludo cotelê"
+    ],
+    "smartwatch": [
+        "smartwatch feminino elegante",
+        "smartwatch esportivo com GPS",
+        "smartwatch para monitoramento de saúde",
+        "smartwatch barato 2026",
+        "smartwatch com chamadas e notificações",
+        "smartwatch infantil para crianças",
+        "smartwatch com pulseira de couro",
+        "smartwatch para corrida e academia",
+        "smartwatch com bateria de longa duração",
+        "smartwatch para mulheres 2026"
+    ],
+    "fone bluetooth": [
+        "fone bluetooth JBL original",
+        "fone bluetooth com cancelamento de ruído",
+        "fone bluetooth esportivo",
+        "fone bluetooth barato 2026",
+        "fone bluetooth Samsung Galaxy Buds",
+        "fone bluetooth para PC e celular",
+        "fone bluetooth infantil para crianças",
+        "fone bluetooth com estojo de carregamento",
+        "fone bluetooth para academia",
+        "fone bluetooth resistente a água"
     ]
 }
-
-# ============================================================
-# DADOS DE PRODUTOS SUGERIDOS
-# ============================================================
-PRODUTOS_SUGESTAO = [
-    {"Produto": "casaco", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🟢 Alto", "Pins": "3400 pins", "Crescimento": "+45%", "Views": "5.8M"},
-    {"Produto": "blusa de lã", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🟢 Alto", "Pins": "2800 pins", "Crescimento": "+38%", "Views": "4.2M"},
-    {"Produto": "bota", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🟡 Médio", "Pins": "1500 pins", "Crescimento": "+20%", "Views": "2.8M"},
-    {"Produto": "cachecol", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🟡 Médio", "Pins": "1200 pins", "Crescimento": "+15%", "Views": "1.9M"},
-    {"Produto": "cobertor", "Categoria": "Casa", "Evento": "Férias Escolares", "Potencial": "🟡 Médio", "Pins": "950 pins", "Crescimento": "+12%", "Views": "1.5M"},
-    {"Produto": "meia", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🟡 Médio", "Pins": "800 pins", "Crescimento": "+10%", "Views": "1.1M"},
-    {"Produto": "luva", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🔴 Baixo", "Pins": "500 pins", "Crescimento": "+8%", "Views": "0.6M"},
-    {"Produto": "jaqueta", "Categoria": "Moda", "Evento": "Férias Escolares", "Potencial": "🔴 Baixo", "Pins": "450 pins", "Crescimento": "+5%", "Views": "0.5M"}
-]
-
-# ============================================================
-# FUNCAO DE LOGIN
-# ============================================================
-def verificar_login():
-    if "logado" not in st.session_state:
-        st.session_state.logado = False
-
-    if not st.session_state.logado:
-        st.title("🛒 Minerador de Produtos")
-        st.markdown("### 🔐 Acesso ao Sistema")
-        
-        licenca = st.text_input("Digite sua Licença de Acesso:", type="password")
-        
-        if st.button("🔓 Entrar", type="primary", use_container_width=True):
-            if licenca == LICENCA_ACESSO:
-                st.session_state.logado = True
-                st.session_state.licenca_usuario = licenca
-                st.success("✅ Licença válida! Acesso liberado.")
-                time.sleep(1)
-                st.rerun()
-            else:
-                st.error("❌ Licença inválida.")
-        
-        st.markdown("---")
-        st.caption("🔒 Sistema protegido por licença.")
-        st.stop()
-    
-    return st.session_state.get('licenca_usuario', LICENCA_PADRAO)
-
-# ============================================================
-# FUNCAO RENDER_DASHBOARD
-# ============================================================
-def render_dashboard():
-    st.title("📊 Minerador de Produtos")
-    st.caption(f"📅 {datetime.now().strftime('%A, %d de %B de %Y - %H:%M')}")
-    
-    col_status1, col_status2, col_status3 = st.columns(3)
-    with col_status1:
-        status_api = "✅ Conectado" if (SNAPGEN_API_KEY or (SNAPGEN_EMAIL and SNAPGEN_PASSWORD)) else "❌ Desconectado"
-        st.metric("🔌 Status API", status_api)
-    with col_status2:
-        creditos = CreditosDiarios()
-        licenca = st.session_state.get('licenca_usuario', LICENCA_PADRAO)
-        creditos_restantes = creditos.obter_creditos(licenca)
-        st.metric("🎫 Créditos", f"{creditos_restantes} / {CREDITOS_DIARIOS}")
-    with col_status3:
-        st.metric("👤 Licença", f"{licenca[:10]}...")
-    
-    st.markdown("---")
-    
-    st.markdown("## 📊 Visão Geral do Mês")
-    
-    col1, col2 = st.columns([2, 1])
-    
-    with col1:
-        with st.container(border=True):
-            st.markdown("""
-            **❄️ Inverno no auge!** Casacos e blusas de lã são os mais procurados. 
-            Aproveite as férias para conteúdo de viagens e looks de inverno.
-            """)
-            
-            m1, m2, m3 = st.columns(3)
-            with m1:
-                st.metric("🔥 Produto em Alta", "casaco", delta="Moda")
-            with m2:
-                st.metric("📈 Crescimento Médio", "19.1%", delta="+2.3%")
-            with m3:
-                st.metric("🎯 Foco Principal", "Férias Escolares", delta="Alta demanda")
-    
-    with col2:
-        with st.container(border=True):
-            st.markdown("### 🎯 Melhor Oportunidade")
-            
-            st.markdown("**Potencial de Mercado**")
-            
-            potencial = 85
-            cor = "green" if potencial >= 70 else "orange" if potencial >= 40 else "red"
-            
-            st.markdown(f"""
-            <div style="background: #e0e0e0; border-radius: 10px; height: 20px; position: relative;">
-                <div style="background: {cor}; width: {potencial}%; height: 20px; border-radius: 10px; transition: width 0.5s;">
-                    <span style="position: absolute; right: 10px; top: 2px; color: black; font-weight: bold;">{potencial}%</span>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            st.caption("🟢 Produtos com status Alto potencial")
-            
-            col_s1, col_s2 = st.columns(2)
-            with col_s1:
-                st.success("✅ Alta Demanda")
-            with col_s2:
-                st.success("✅ Baixa Concorrência")
-    
-    st.markdown("---")
-    
-    st.markdown("## 🎯 Sugestões de Produtos para este Mês")
-    
-    df = pd.DataFrame(PRODUTOS_SUGESTAO)
-    
-    # Adiciona a coluna de Palavra-chave de Cauda Longa (primeira sugestão)
-    df["🔑 Palavra-chave"] = df["Produto"].apply(
-        lambda x: PALAVRAS_CHAVE_CAUDA_LONGA.get(x, [f"{x} tendência 2026"])[0]
-    )
-    
-    # Botão discreto em HTML
-    df["Buscar na Shopee"] = df["Produto"].apply(
-        lambda x: f'<a href="https://shopee.com.br/search?keyword={quote(x)}" target="_blank" style="text-decoration: none;"><span style="background-color: #f0f0f0; color: #333; padding: 2px 10px; border-radius: 12px; font-size: 12px; border: 1px solid #ddd;">🔍 Buscar</span></a>'
-    )
-    
-    # Reorganiza as colunas
-    colunas = ["Produto", "🔑 Palavra-chave", "Categoria", "Evento", "Potencial", "Pins", "Crescimento", "Views", "Buscar na Shopee"]
-    df = df[colunas]
-    
-    # Exibe a tabela ocupando toda a largura
-    st.markdown(
-        df.to_html(escape=False, index=False),
-        unsafe_allow_html=True
-    )
-    
-    st.caption("3 de 3 consultas SerpApi usadas hoje")
-    
-    st.markdown("---")
-    
-    st.markdown("## 💡 Insights Estratégicos")
-    
-    col1, col2 = st.columns(2)
-    with col1:
-        st.markdown("### 🏆 Produto com Maior Potencial")
-        with st.container(border=True):
-            st.markdown("### casaco")
-            st.markdown("""
-            - **Categoria:** Moda
-            - **Pinterest:** 3400 pins
-            - **Crescimento:** +45%
-            - **TikTok:** 5.8M visualizações
-            """)
-            st.success("🚀 **Ação:** Crie conteúdo URGENTE sobre este produto!")
-    
-    with col2:
-        st.markdown("### 📈 Tendência Mais Viral")
-        with st.container(border=True):
-            st.markdown("### casaco")
-            st.markdown("""
-            - **3400 pins no Pinterest**
-            - **Crescimento de +45%**
-            """)
-            st.info("💡 **Dica:** Produto com alto engajamento nas redes sociais. Aproveite o momento para criar conteúdo patrocinado!")
-    
-    st.markdown("---")
-    
-    st.markdown("## 📌 Legenda de Potencial")
-    
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.markdown("""
-        **🟢 Alto**
-        - Baixa concorrência, alta demanda
-        """)
-    with col2:
-        st.markdown("""
-        **🟡 Médio**
-        - Concorrência moderada
-        """)
-    with col3:
-        st.markdown("""
-        **🔴 Baixo**
-        - Mercado concorrido
-        """)
-    
-    st.caption("Mais de 200 resultados no Google Shopping")
-    
-    return df
 
 # ============================================================
 # APP PRINCIPAL
@@ -624,16 +838,45 @@ with tab1:
     df = render_dashboard()
 
 with tab2:
-    if 'df' in locals():
-        st.markdown("## 🎯 Sugestões de Produtos Estratégicos")
-        st.caption("Produtos em alta baseados em tendências de mercado e datas comemorativas")
+    st.markdown("## 🎯 Sugestões de Produtos Estratégicos")
+    st.caption("Produtos em alta baseados em tendências de mercado e datas comemorativas")
+    
+    dados_diarios = DadosDiarios()
+    dados_hoje = dados_diarios.obter_dados_hoje()
+    
+    if dados_hoje and dados_hoje.get("produtos"):
+        produtos = dados_hoje["produtos"]
+        
+        dados_tabela = []
+        for item in produtos:
+            palavras_chave = PALAVRAS_CHAVE_CAUDA_LONGA.get(item["Produto"], [])
+            palavra_chave = palavras_chave[0] if palavras_chave else f"{item['Produto']} tendência 2026"
+            
+            dados_tabela.append({
+                "Produto": item["Produto"],
+                "🔑 Palavra-chave": palavra_chave,
+                "Categoria": item["Categoria"],
+                "Evento": item["Evento"],
+                "Potencial": "🟢 Alto" if item["Score"] >= 8 else "🟡 Médio" if item["Score"] >= 5 else "🔴 Baixo",
+                "Score": item["Score"],
+                "Produtos Encontrados": item["Produtos Encontrados"]
+            })
+        
+        df = pd.DataFrame(dados_tabela)
+        
+        df["Buscar na Shopee"] = df["Produto"].apply(
+            lambda x: f'<a href="https://shopee.com.br/search?keyword={quote(x)}" target="_blank" style="text-decoration: none;"><span style="background-color: #f0f0f0; color: #333; padding: 2px 10px; border-radius: 12px; font-size: 12px; border: 1px solid #ddd;">🔍 Buscar</span></a>'
+        )
+        
+        colunas = ["Produto", "🔑 Palavra-chave", "Categoria", "Evento", "Potencial", "Score", "Produtos Encontrados", "Buscar na Shopee"]
+        df = df[colunas]
         
         st.markdown(
             df.to_html(escape=False, index=False),
             unsafe_allow_html=True
         )
     else:
-        st.warning("Carregue o Dashboard primeiro")
+        st.info("📭 Nenhum dado disponível para hoje.")
 
 with tab3:
     st.markdown("## 📅 Calendário de Conteúdo Estratégico")
@@ -811,4 +1054,4 @@ with tab4:
 # RODAPE
 # ============================================================
 st.markdown("---")
-st.caption(f"🛒 Minerador de Produtos v3.0 | {datetime.now().year} | Gerador de Vídeo com SnapGen AI")
+st.caption(f"🛒 Minerador de Produtos v3.0 | {datetime.now().year} | {BUSCAS_DIARIAS} buscas diárias | {BUSCAS_TOTAIS} buscas/mês")
