@@ -30,7 +30,6 @@ st.set_page_config(
 LICENCA_PADRAO = "TESTE-AFILIADO-2026"
 ARQUIVO_GALERIA = "galeria_videos.json"
 ARQUIVO_DADOS_DIARIOS = "dados_diarios.json"
-ARQUIVO_DADOS_HISTORICOS = "dados_historicos.json"
 CREDITOS_DIARIOS = 10
 BUSCAS_DIARIAS = 3
 BUSCAS_TOTAIS = 250
@@ -67,12 +66,11 @@ SNAPGEN_EMAIL = KEYS["snapgen_email"]
 SNAPGEN_PASSWORD = KEYS["snapgen_password"]
 
 # ============================================================
-# DADOS COMPLETOS (ATUAIS + HISTÓRICOS + CRESCIMENTO)
+# DADOS COMPLETOS
 # ============================================================
 DADOS_COMPLETOS = {
     "casaco": {
         "pins": 3400,
-        "pins_2025": 2900,
         "crescimento": 45,
         "views_tiktok": 5.8,
         "resultados_ml": 1240,
@@ -82,7 +80,6 @@ DADOS_COMPLETOS = {
     },
     "blusa de lã": {
         "pins": 2800,
-        "pins_2025": 2200,
         "crescimento": 38,
         "views_tiktok": 4.2,
         "resultados_ml": 890,
@@ -92,7 +89,6 @@ DADOS_COMPLETOS = {
     },
     "bota": {
         "pins": 1500,
-        "pins_2025": 1200,
         "crescimento": 20,
         "views_tiktok": 2.8,
         "resultados_ml": 560,
@@ -102,7 +98,6 @@ DADOS_COMPLETOS = {
     },
     "cachecol": {
         "pins": 1200,
-        "pins_2025": 950,
         "crescimento": 15,
         "views_tiktok": 1.9,
         "resultados_ml": 430,
@@ -112,7 +107,6 @@ DADOS_COMPLETOS = {
     },
     "cobertor": {
         "pins": 950,
-        "pins_2025": 780,
         "crescimento": 12,
         "views_tiktok": 1.5,
         "resultados_ml": 380,
@@ -122,7 +116,6 @@ DADOS_COMPLETOS = {
     },
     "meia": {
         "pins": 800,
-        "pins_2025": 650,
         "crescimento": 10,
         "views_tiktok": 1.1,
         "resultados_ml": 290,
@@ -132,7 +125,6 @@ DADOS_COMPLETOS = {
     },
     "luva": {
         "pins": 500,
-        "pins_2025": 400,
         "crescimento": 8,
         "views_tiktok": 0.6,
         "resultados_ml": 210,
@@ -142,7 +134,6 @@ DADOS_COMPLETOS = {
     },
     "jaqueta": {
         "pins": 450,
-        "pins_2025": 380,
         "crescimento": 5,
         "views_tiktok": 0.5,
         "resultados_ml": 180,
@@ -152,7 +143,6 @@ DADOS_COMPLETOS = {
     },
     "smartwatch": {
         "pins": 2800,
-        "pins_2025": 2500,
         "crescimento": 35,
         "views_tiktok": 4.5,
         "resultados_ml": 1500,
@@ -162,7 +152,6 @@ DADOS_COMPLETOS = {
     },
     "fone bluetooth": {
         "pins": 2200,
-        "pins_2025": 2000,
         "crescimento": 30,
         "views_tiktok": 3.8,
         "resultados_ml": 1200,
@@ -172,7 +161,6 @@ DADOS_COMPLETOS = {
     },
     "perfume": {
         "pins": 2100,
-        "pins_2025": 1800,
         "crescimento": 28,
         "views_tiktok": 3.2,
         "resultados_ml": 1100,
@@ -182,7 +170,6 @@ DADOS_COMPLETOS = {
     },
     "vestido": {
         "pins": 1900,
-        "pins_2025": 1600,
         "crescimento": 25,
         "views_tiktok": 2.9,
         "resultados_ml": 980,
@@ -192,7 +179,6 @@ DADOS_COMPLETOS = {
     },
     "bolsa": {
         "pins": 1700,
-        "pins_2025": 1400,
         "crescimento": 22,
         "views_tiktok": 2.5,
         "resultados_ml": 850,
@@ -202,7 +188,6 @@ DADOS_COMPLETOS = {
     },
     "mochila": {
         "pins": 1400,
-        "pins_2025": 1200,
         "crescimento": 18,
         "views_tiktok": 2.1,
         "resultados_ml": 720,
@@ -212,13 +197,78 @@ DADOS_COMPLETOS = {
     },
     "tenis": {
         "pins": 1600,
-        "pins_2025": 1300,
         "crescimento": 20,
         "views_tiktok": 2.3,
         "resultados_ml": 780,
         "buscas_mes": 10200,
         "categoria": "Moda",
         "evento": "Férias Escolares"
+    }
+}
+
+# ============================================================
+# PALAVRAS-CHAVE DE CAUDA LONGA E HASHTAGS
+# ============================================================
+PALAVRAS_CHAVE_CAUDA_LONGA = {
+    "casaco": {
+        "palavra": "casaco feminino inverno 2026",
+        "hashtags": ["#casacofeminino", "#inverno2026", "#lookinverno"]
+    },
+    "blusa de lã": {
+        "palavra": "blusa de lã feminina elegante",
+        "hashtags": ["#blusadelã", "#modainverno", "#lookelegante"]
+    },
+    "bota": {
+        "palavra": "bota feminina cano médio",
+        "hashtags": ["#botafeminina", "#modainverno", "#lookbota"]
+    },
+    "cachecol": {
+        "palavra": "cachecol de lã para frio extremo",
+        "hashtags": ["#cachecoldelã", "#acessóriosdeinverno", "#lookinverno"]
+    },
+    "cobertor": {
+        "palavra": "cobertor de lã para cama king",
+        "hashtags": ["#cobertorlã", "#decoraçãocasa", "#conforto"]
+    },
+    "meia": {
+        "palavra": "meia de lã para frio extremo",
+        "hashtags": ["#meiadelã", "#modainverno", "#conforto"]
+    },
+    "luva": {
+        "palavra": "luva de lã para frio intenso",
+        "hashtags": ["#luvadelã", "#acessóriosdeinverno", "#lookinverno"]
+    },
+    "jaqueta": {
+        "palavra": "jaqueta jeans feminina 2026",
+        "hashtags": ["#jaquetajeans", "#modainverno", "#lookcasual"]
+    },
+    "smartwatch": {
+        "palavra": "smartwatch feminino elegante",
+        "hashtags": ["#smartwatch", "#tecnologia", "#eletrônicos"]
+    },
+    "fone bluetooth": {
+        "palavra": "fone bluetooth JBL original",
+        "hashtags": ["#fonebluetooth", "#áudio", "#tecnologia"]
+    },
+    "perfume": {
+        "palavra": "perfume importado feminino",
+        "hashtags": ["#perfumeimportado", "#belezafeminina", "#presentes"]
+    },
+    "vestido": {
+        "palavra": "vestido feminino 2026",
+        "hashtags": ["#vestidofeminino", "#moda2026", "#lookverão"]
+    },
+    "bolsa": {
+        "palavra": "bolsa feminina couro",
+        "hashtags": ["#bolsafeminina", "#acessórios", "#moda"]
+    },
+    "mochila": {
+        "palavra": "mochila escolar infantil",
+        "hashtags": ["#mochilaescolar", "#voltaasaulas", "#materialescolar"]
+    },
+    "tenis": {
+        "palavra": "tênis esportivo feminino",
+        "hashtags": ["#tênisesportivo", "#modaesportiva", "#lookcasual"]
     }
 }
 
@@ -409,7 +459,6 @@ def buscar_produtos_serpapi(termo, limite=3):
         return []
 
 def calcular_score(produto, dados):
-    """Calcula score baseado em dados atuais e históricos"""
     score = 0
     
     if dados.get("pins", 0) > 2000:
@@ -437,11 +486,9 @@ def calcular_score(produto, dados):
     return min(score, 10)
 
 def gerar_top10_produtos():
-    """Gera Top 10 produtos baseado em dados atuais e históricos"""
     resultados = []
     
     for produto, dados in DADOS_COMPLETOS.items():
-        # Busca na SerpApi para os 3 primeiros
         produtos_serp = buscar_produtos_serpapi(produto, 2)
         
         score = calcular_score(produto, dados)
@@ -459,9 +506,8 @@ def gerar_top10_produtos():
             "Evento": dados.get("evento", "Tendência"),
             "Potencial": potencial,
             "Score": score,
-            "Pins Atual": f"{dados.get('pins', 0):,}",
-            "Pins 2025": f"{dados.get('pins_2025', 0):,}",
-            "Crescimento Atual": f"+{dados.get('crescimento', 0)}%",
+            "Pins": f"{dados.get('pins', 0):,}",
+            "Crescimento": f"+{dados.get('crescimento', 0)}%",
             "Views TikTok": f"{dados.get('views_tiktok', 0)}M",
             "Buscas no Mês": f"{dados.get('buscas_mes', 0):,}",
             "Resultados ML": f"{dados.get('resultados_ml', 0):,}",
@@ -474,7 +520,6 @@ def gerar_top10_produtos():
     return resultados[:10]
 
 def gerar_sugestoes_diarias():
-    """Gera as 3 melhores sugestões do dia (do Top 10)"""
     top10 = gerar_top10_produtos()
     selecionados = top10[:BUSCAS_DIARIAS]
     
@@ -491,27 +536,6 @@ def gerar_sugestoes_diarias():
         resultados.append(item)
     
     return resultados
-
-# ============================================================
-# PALAVRAS-CHAVE DE CAUDA LONGA
-# ============================================================
-PALAVRAS_CHAVE_CAUDA_LONGA = {
-    "casaco": "casaco feminino inverno 2026",
-    "blusa de lã": "blusa de lã feminina elegante",
-    "bota": "bota feminina cano médio",
-    "cachecol": "cachecol de lã para frio extremo",
-    "cobertor": "cobertor de lã para cama king",
-    "meia": "meia de lã para frio extremo",
-    "luva": "luva de lã para frio intenso",
-    "jaqueta": "jaqueta jeans feminina 2026",
-    "smartwatch": "smartwatch feminino elegante",
-    "fone bluetooth": "fone bluetooth JBL original",
-    "perfume": "perfume importado feminino",
-    "vestido": "vestido feminino 2026",
-    "bolsa": "bolsa feminina couro",
-    "mochila": "mochila escolar infantil",
-    "tenis": "tênis esportivo feminino"
-}
 
 # ============================================================
 # GERADOR DE VÍDEO COM SNAPGEN AI
@@ -802,18 +826,19 @@ def render_dashboard():
         
         dados_tabela = []
         for item in produtos:
-            palavra_chave = PALAVRAS_CHAVE_CAUDA_LONGA.get(item["Produto"], f"{item['Produto']} tendência 2026")
+            produto = item.get("Produto", "")
+            dados_palavra = PALAVRAS_CHAVE_CAUDA_LONGA.get(produto, {})
+            palavra_chave = dados_palavra.get("palavra", f"{produto} tendência 2026")
             
             dados_tabela.append({
-                "Produto": item.get("Produto", ""),
+                "Produto": produto,
                 "🔑 Palavra-chave": palavra_chave,
                 "Categoria": item.get("Categoria", "Geral"),
                 "Evento": item.get("Evento", "Tendência"),
                 "Potencial": item.get("Potencial", "🟡 Médio"),
                 "Score": item.get("Score", 0),
-                "Pins Atual": item.get("Pins Atual", "0"),
-                "Pins 2025": item.get("Pins 2025", "0"),
-                "Crescimento Atual": item.get("Crescimento Atual", "+0%"),
+                "Pins": item.get("Pins", "0"),
+                "Crescimento": item.get("Crescimento", "+0%"),
                 "Views TikTok": item.get("Views TikTok", "0M"),
                 "Buscas no Mês": item.get("Buscas no Mês", "0"),
                 "Resultados ML": item.get("Resultados ML", "0")
@@ -825,7 +850,7 @@ def render_dashboard():
             lambda x: f'<a href="https://shopee.com.br/search?keyword={quote(x)}" target="_blank" style="text-decoration: none;"><span style="background-color: #f0f0f0; color: #333; padding: 2px 10px; border-radius: 12px; font-size: 12px; border: 1px solid #ddd;">🔍 Buscar</span></a>'
         )
         
-        colunas = ["Produto", "🔑 Palavra-chave", "Categoria", "Evento", "Potencial", "Score", "Pins Atual", "Pins 2025", "Crescimento Atual", "Views TikTok", "Buscas no Mês", "Resultados ML", "Buscar na Shopee"]
+        colunas = ["Produto", "🔑 Palavra-chave", "Categoria", "Evento", "Potencial", "Score", "Pins", "Crescimento", "Views TikTok", "Buscas no Mês", "Resultados ML", "Buscar na Shopee"]
         df = df[colunas]
         
         st.markdown(
@@ -835,7 +860,7 @@ def render_dashboard():
         
         st.caption(f"{BUSCAS_DIARIAS} de {BUSCAS_DIARIAS} consultas SerpApi usadas hoje")
         
-        # ===== TOP 10 (VISÍVEL) =====
+        # ===== TOP 10 =====
         st.markdown("---")
         st.markdown("## 🏆 Top 10 Produtos")
         st.caption("Ranking completo baseado em score e tendências de mercado")
@@ -844,8 +869,7 @@ def render_dashboard():
         
         df_top10 = pd.DataFrame(top10)
         
-        # Remove a coluna Produtos Serp
-        colunas_top10 = ["Produto", "Categoria", "Evento", "Potencial", "Score", "Pins Atual", "Pins 2025", "Crescimento Atual", "Views TikTok", "Buscas no Mês", "Resultados ML"]
+        colunas_top10 = ["Produto", "Categoria", "Evento", "Potencial", "Score", "Pins", "Crescimento", "Views TikTok", "Buscas no Mês", "Resultados ML"]
         df_top10 = df_top10[colunas_top10]
         
         st.markdown(
@@ -857,47 +881,44 @@ def render_dashboard():
     
     st.markdown("---")
     
-    st.markdown("## 💡 Insights Estratégicos")
+    # ===== INSIGHTS ESTRATÉGICOS (3 MELHORES PRODUTOS) =====
+    st.markdown("## 💡 Insights Estratégicos - Top 3")
     
-    col1, col2 = st.columns(2)
-    with col1:
-        st.markdown("### 🏆 Produto com Maior Potencial")
-        with st.container(border=True):
-            if dados_hoje and dados_hoje.get("produtos"):
-                melhor = max(dados_hoje["produtos"], key=lambda x: x.get("Score", 0))
-                produto = melhor.get("Produto", "")
-                palavra_chave = PALAVRAS_CHAVE_CAUDA_LONGA.get(produto, f"{produto} tendência 2026")
+    if dados_hoje and dados_hoje.get("produtos"):
+        produtos = dados_hoje["produtos"]
+        
+        # Pega os 3 melhores
+        top3 = sorted(produtos, key=lambda x: x.get("Score", 0), reverse=True)[:3]
+        
+        # Mostra em 3 colunas
+        cols = st.columns(3)
+        
+        for i, item in enumerate(top3):
+            with cols[i]:
+                produto = item.get("Produto", "")
+                dados_palavra = PALAVRAS_CHAVE_CAUDA_LONGA.get(produto, {})
+                palavra_chave = dados_palavra.get("palavra", f"{produto} tendência 2026")
+                hashtags = dados_palavra.get("hashtags", ["#tendência", "#moda", "#2026"])
                 
-                st.markdown(f"### {produto}")
-                st.markdown(f"""
-                - **Categoria:** {melhor.get('Categoria', '')}
-                - **Score:** {melhor.get('Score', 0)}/10
-                - **Pins Atual:** {melhor.get('Pins Atual', '')}
-                - **Buscas no Mês:** {melhor.get('Buscas no Mês', '')}
-                """)
-                st.info(f"🔑 **Palavra-chave sugerida:** {palavra_chave}")
-            else:
-                st.markdown("### Carregando...")
-            st.success("🚀 **Ação:** Crie conteúdo sobre este produto!")
-    
-    with col2:
-        st.markdown("### 📈 Tendência Mais Viral")
-        with st.container(border=True):
-            if dados_hoje and dados_hoje.get("produtos"):
-                melhor = max(dados_hoje["produtos"], key=lambda x: x.get("Score", 0))
-                produto = melhor.get("Produto", "")
-                palavra_chave = PALAVRAS_CHAVE_CAUDA_LONGA.get(produto, f"{produto} tendência 2026")
-                
-                st.markdown(f"### {produto}")
-                st.markdown(f"""
-                - **Views TikTok:** {melhor.get('Views TikTok', '')}
-                - **Crescimento Atual:** {melhor.get('Crescimento Atual', '')}
-                - **Pins 2025:** {melhor.get('Pins 2025', '')}
-                """)
-                st.info(f"🔑 **Palavra-chave sugerida:** {palavra_chave}")
-            else:
-                st.markdown("### Carregando...")
-            st.info("💡 **Dica:** Produto com alto potencial de venda!")
+                with st.container(border=True):
+                    st.markdown(f"### 🥇 {produto}")
+                    st.markdown(f"""
+                    - **Categoria:** {item.get('Categoria', 'Geral')}
+                    - **Score:** {item.get('Score', 0)}/10
+                    - **Pins:** {item.get('Pins', '0')}
+                    - **Crescimento:** {item.get('Crescimento', '+0%')}
+                    - **Views TikTok:** {item.get('Views TikTok', '0M')}
+                    """)
+                    st.info(f"🔑 **Palavra-chave:** {palavra_chave}")
+                    
+                    # Hashtags como tags
+                    st.markdown("**🏷️ Hashtags sugeridas:**")
+                    tags_html = " ".join([f'<span style="background-color: #e0e0e0; padding: 2px 8px; border-radius: 12px; margin: 2px; font-size: 12px;">{h}</span>' for h in hashtags])
+                    st.markdown(tags_html, unsafe_allow_html=True)
+                    
+                    st.success("🚀 **Ação:** Crie conteúdo sobre este produto!")
+    else:
+        st.info("📭 Nenhum dado disponível para hoje.")
     
     st.markdown("---")
     
@@ -964,18 +985,19 @@ with tab2:
         
         dados_tabela = []
         for item in produtos:
-            palavra_chave = PALAVRAS_CHAVE_CAUDA_LONGA.get(item["Produto"], f"{item['Produto']} tendência 2026")
+            produto = item.get("Produto", "")
+            dados_palavra = PALAVRAS_CHAVE_CAUDA_LONGA.get(produto, {})
+            palavra_chave = dados_palavra.get("palavra", f"{produto} tendência 2026")
             
             dados_tabela.append({
-                "Produto": item.get("Produto", ""),
+                "Produto": produto,
                 "🔑 Palavra-chave": palavra_chave,
                 "Categoria": item.get("Categoria", "Geral"),
                 "Evento": item.get("Evento", "Tendência"),
                 "Potencial": item.get("Potencial", "🟡 Médio"),
                 "Score": item.get("Score", 0),
-                "Pins Atual": item.get("Pins Atual", "0"),
-                "Pins 2025": item.get("Pins 2025", "0"),
-                "Crescimento Atual": item.get("Crescimento Atual", "+0%"),
+                "Pins": item.get("Pins", "0"),
+                "Crescimento": item.get("Crescimento", "+0%"),
                 "Views TikTok": item.get("Views TikTok", "0M"),
                 "Buscas no Mês": item.get("Buscas no Mês", "0"),
                 "Resultados ML": item.get("Resultados ML", "0")
@@ -987,7 +1009,7 @@ with tab2:
             lambda x: f'<a href="https://shopee.com.br/search?keyword={quote(x)}" target="_blank" style="text-decoration: none;"><span style="background-color: #f0f0f0; color: #333; padding: 2px 10px; border-radius: 12px; font-size: 12px; border: 1px solid #ddd;">🔍 Buscar</span></a>'
         )
         
-        colunas = ["Produto", "🔑 Palavra-chave", "Categoria", "Evento", "Potencial", "Score", "Pins Atual", "Pins 2025", "Crescimento Atual", "Views TikTok", "Buscas no Mês", "Resultados ML", "Buscar na Shopee"]
+        colunas = ["Produto", "🔑 Palavra-chave", "Categoria", "Evento", "Potencial", "Score", "Pins", "Crescimento", "Views TikTok", "Buscas no Mês", "Resultados ML", "Buscar na Shopee"]
         df = df[colunas]
         
         st.markdown(
