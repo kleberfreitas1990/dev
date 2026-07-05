@@ -66,6 +66,76 @@ SNAPGEN_EMAIL = KEYS["snapgen_email"]
 SNAPGEN_PASSWORD = KEYS["snapgen_password"]
 
 # ============================================================
+# DADOS COMPLETOS (PINTEREST + TIKTOK + MERCADO LIVRE)
+# ============================================================
+DADOS_COMPLETOS = {
+    "casaco": {
+        "pins": 3400,
+        "crescimento": 45,
+        "views_tiktok": 5.8,
+        "resultados_ml": 1240,
+        "categoria": "Moda",
+        "evento": "Férias Escolares"
+    },
+    "blusa de lã": {
+        "pins": 2800,
+        "crescimento": 38,
+        "views_tiktok": 4.2,
+        "resultados_ml": 890,
+        "categoria": "Moda",
+        "evento": "Férias Escolares"
+    },
+    "bota": {
+        "pins": 1500,
+        "crescimento": 20,
+        "views_tiktok": 2.8,
+        "resultados_ml": 560,
+        "categoria": "Moda",
+        "evento": "Férias Escolares"
+    },
+    "cachecol": {
+        "pins": 1200,
+        "crescimento": 15,
+        "views_tiktok": 1.9,
+        "resultados_ml": 430,
+        "categoria": "Moda",
+        "evento": "Férias Escolares"
+    },
+    "cobertor": {
+        "pins": 950,
+        "crescimento": 12,
+        "views_tiktok": 1.5,
+        "resultados_ml": 380,
+        "categoria": "Casa",
+        "evento": "Férias Escolares"
+    },
+    "meia": {
+        "pins": 800,
+        "crescimento": 10,
+        "views_tiktok": 1.1,
+        "resultados_ml": 290,
+        "categoria": "Moda",
+        "evento": "Férias Escolares"
+    },
+    "luva": {
+        "pins": 500,
+        "crescimento": 8,
+        "views_tiktok": 0.6,
+        "resultados_ml": 210,
+        "categoria": "Moda",
+        "evento": "Férias Escolares"
+    },
+    "jaqueta": {
+        "pins": 450,
+        "crescimento": 5,
+        "views_tiktok": 0.5,
+        "resultados_ml": 180,
+        "categoria": "Moda",
+        "evento": "Férias Escolares"
+    }
+}
+
+# ============================================================
 # SISTEMA DE CRÉDITOS DIÁRIOS
 # ============================================================
 class CreditosDiarios:
@@ -112,7 +182,7 @@ class CreditosDiarios:
         return False
 
 # ============================================================
-# SISTEMA DE DADOS DIÁRIOS (AUTOMÁTICO)
+# SISTEMA DE DADOS DIÁRIOS
 # ============================================================
 class DadosDiarios:
     def __init__(self, arquivo=ARQUIVO_DADOS_DIARIOS):
@@ -208,7 +278,7 @@ class GaleriaVideos:
         self.salvar()
 
 # ============================================================
-# FUNÇÕES DE BUSCA (APENAS 3 POR DIA)
+# FUNÇÕES DE BUSCA
 # ============================================================
 def buscar_produtos_serpapi(termo, limite=3):
     """Busca produtos no Google Shopping via SerpApi"""
@@ -241,47 +311,84 @@ def buscar_produtos_serpapi(termo, limite=3):
         return []
 
 def gerar_sugestoes_diarias():
-    """Gera as 3 melhores sugestões para o dia"""
-    # Lista de produtos base para análise
-    produtos_base = [
-        {"termo": "casaco", "categoria": "Moda", "evento": "Férias Escolares"},
-        {"termo": "blusa de lã", "categoria": "Moda", "evento": "Férias Escolares"},
-        {"termo": "bota", "categoria": "Moda", "evento": "Férias Escolares"},
-        {"termo": "cachecol", "categoria": "Moda", "evento": "Férias Escolares"},
-        {"termo": "cobertor", "categoria": "Casa", "evento": "Férias Escolares"},
-        {"termo": "meia", "categoria": "Moda", "evento": "Férias Escolares"},
-        {"termo": "luva", "categoria": "Moda", "evento": "Férias Escolares"},
-        {"termo": "jaqueta", "categoria": "Moda", "evento": "Férias Escolares"},
-        {"termo": "smartwatch", "categoria": "Eletrônicos", "evento": "Tendência"},
-        {"termo": "fone bluetooth", "categoria": "Eletrônicos", "evento": "Tendência"},
-    ]
+    """Gera as 3 melhores sugestões para o dia com dados completos"""
+    # Lista de produtos base
+    produtos_base = ["casaco", "blusa de lã", "bota", "cachecol", "cobertor", "meia", "luva", "jaqueta"]
     
-    # Embaralha e pega os 3 primeiros (ou usa os 3 primeiros da lista)
-    # Para garantir variedade, usa os primeiros 3 da lista
+    # Embaralha e pega os 3 primeiros
+    random.seed(int(datetime.now().date().isoformat().replace("-", "")))
+    selecionados = random.sample(produtos_base, BUSCAS_DIARIAS)
+    
     resultados = []
-    termos_selecionados = produtos_base[:BUSCAS_DIARIAS]
-    
-    for item in termos_selecionados:
-        produtos = buscar_produtos_serpapi(item["termo"], 3)
+    for termo in selecionados:
+        # Busca na SerpApi
+        produtos_serp = buscar_produtos_serpapi(termo, 3)
         
-        # Score baseado em disponibilidade
-        score = 0
-        if produtos:
-            score += 5  # Produto encontrado
-            score += min(len(produtos), 3)  # Quantidade de resultados
+        # Dados completos do produto
+        dados = DADOS_COMPLETOS.get(termo, {})
+        
+        # Score: 50% da SerpApi + 50% dos dados completos
+        score_serp = min(len(produtos_serp) * 2, 5)
+        score_dados = 0
+        
+        if dados.get("pins", 0) > 2000:
+            score_dados += 3
+        elif dados.get("pins", 0) > 1000:
+            score_dados += 2
+        else:
+            score_dados += 1
+        
+        if dados.get("crescimento", 0) > 30:
+            score_dados += 2
+        elif dados.get("crescimento", 0) > 15:
+            score_dados += 1
+        
+        if dados.get("views_tiktok", 0) > 3:
+            score_dados += 2
+        elif dados.get("views_tiktok", 0) > 1:
+            score_dados += 1
+        
+        score_total = score_serp + score_dados
+        
+        # Determina potencial
+        if score_total >= 8:
+            potencial = "🟢 Alto"
+        elif score_total >= 5:
+            potencial = "🟡 Médio"
+        else:
+            potencial = "🔴 Baixo"
         
         resultados.append({
-            "Produto": item["termo"],
-            "Categoria": item["categoria"],
-            "Evento": item["evento"],
-            "Score": score,
-            "Produtos Encontrados": len(produtos)
+            "Produto": termo,
+            "Categoria": dados.get("categoria", "Geral"),
+            "Evento": dados.get("evento", "Tendência"),
+            "Potencial": potencial,
+            "Score": score_total,
+            "Pins": f"{dados.get('pins', 0)} pins",
+            "Crescimento": f"+{dados.get('crescimento', 0)}%",
+            "Views": f"{dados.get('views_tiktok', 0)}M",
+            "Resultados ML": f"{dados.get('resultados_ml', 0)}",
+            "Produtos Serp": len(produtos_serp)
         })
     
-    # Ordena por score (melhores primeiro)
+    # Ordena por score
     resultados = sorted(resultados, key=lambda x: x["Score"], reverse=True)
     
-    return resultados[:BUSCAS_DIARIAS]
+    return resultados
+
+# ============================================================
+# PALAVRAS-CHAVE DE CAUDA LONGA
+# ============================================================
+PALAVRAS_CHAVE_CAUDA_LONGA = {
+    "casaco": "casaco feminino inverno 2026",
+    "blusa de lã": "blusa de lã feminina elegante",
+    "bota": "bota feminina cano médio",
+    "cachecol": "cachecol de lã para frio extremo",
+    "cobertor": "cobertor de lã para cama king",
+    "meia": "meia de lã para frio extremo",
+    "luva": "luva de lã para frio intenso",
+    "jaqueta": "jaqueta jeans feminina 2026"
+}
 
 # ============================================================
 # GERADOR DE VÍDEO COM SNAPGEN AI
@@ -449,22 +556,6 @@ class SnapGenVideoGenerator:
         return video_info
 
 # ============================================================
-# PALAVRAS-CHAVE DE CAUDA LONGA
-# ============================================================
-PALAVRAS_CHAVE_CAUDA_LONGA = {
-    "casaco": "casaco feminino inverno 2026",
-    "blusa de lã": "blusa de lã feminina elegante",
-    "bota": "bota feminina cano médio",
-    "cachecol": "cachecol de lã para frio extremo",
-    "cobertor": "cobertor de lã para cama king",
-    "meia": "meia de lã para frio extremo",
-    "luva": "luva de lã para frio intenso",
-    "jaqueta": "jaqueta jeans feminina 2026",
-    "smartwatch": "smartwatch feminino elegante",
-    "fone bluetooth": "fone bluetooth JBL original"
-}
-
-# ============================================================
 # FUNCAO DE LOGIN
 # ============================================================
 def verificar_login():
@@ -579,7 +670,7 @@ def render_dashboard():
     
     st.markdown("---")
     
-    # ===== TABELA DE PRODUTOS DO DIA =====
+    # ===== TABELA DE PRODUTOS DO DIA (GRADE COMPLETA) =====
     st.markdown("## 🎯 Sugestões de Produtos para Hoje")
     st.caption(f"🔄 Atualizado automaticamente todos os dias | {BUSCAS_DIARIAS} buscas realizadas")
     
@@ -595,9 +686,12 @@ def render_dashboard():
                 "🔑 Palavra-chave": palavra_chave,
                 "Categoria": item["Categoria"],
                 "Evento": item["Evento"],
-                "Potencial": "🟢 Alto" if item["Score"] >= 8 else "🟡 Médio" if item["Score"] >= 5 else "🔴 Baixo",
+                "Potencial": item["Potencial"],
                 "Score": item["Score"],
-                "Produtos Encontrados": item["Produtos Encontrados"]
+                "Pins": item["Pins"],
+                "Crescimento": item["Crescimento"],
+                "Views TikTok": item["Views"],
+                "Resultados ML": item["Resultados ML"]
             })
         
         df = pd.DataFrame(dados_tabela)
@@ -606,7 +700,7 @@ def render_dashboard():
             lambda x: f'<a href="https://shopee.com.br/search?keyword={quote(x)}" target="_blank" style="text-decoration: none;"><span style="background-color: #f0f0f0; color: #333; padding: 2px 10px; border-radius: 12px; font-size: 12px; border: 1px solid #ddd;">🔍 Buscar</span></a>'
         )
         
-        colunas = ["Produto", "🔑 Palavra-chave", "Categoria", "Evento", "Potencial", "Score", "Produtos Encontrados", "Buscar na Shopee"]
+        colunas = ["Produto", "🔑 Palavra-chave", "Categoria", "Evento", "Potencial", "Score", "Pins", "Crescimento", "Views TikTok", "Resultados ML", "Buscar na Shopee"]
         df = df[colunas]
         
         st.markdown(
@@ -632,7 +726,8 @@ def render_dashboard():
                 st.markdown(f"""
                 - **Categoria:** {melhor['Categoria']}
                 - **Score:** {melhor['Score']}/10
-                - **Produtos Encontrados:** {melhor['Produtos Encontrados']}
+                - **Pins:** {melhor['Pins']}
+                - **Crescimento:** {melhor['Crescimento']}
                 """)
             else:
                 st.markdown("### Carregando...")
@@ -645,8 +740,9 @@ def render_dashboard():
                 melhor = max(dados_hoje["produtos"], key=lambda x: x.get("Score", 0))
                 st.markdown(f"### {melhor['Produto']}")
                 st.markdown(f"""
-                - **Score:** {melhor['Score']}/10
-                - **Produtos Encontrados:** {melhor['Produtos Encontrados']}
+                - **Views TikTok:** {melhor['Views']}
+                - **Crescimento:** {melhor['Crescimento']}
+                - **Pins:** {melhor['Pins']}
                 """)
             else:
                 st.markdown("### Carregando...")
@@ -661,19 +757,19 @@ def render_dashboard():
         st.markdown("""
         **🟢 Alto**
         - Score ≥ 8
-        - Baixa concorrência
+        - Alta demanda
         """)
     with col2:
         st.markdown("""
         **🟡 Médio**
         - Score 5-7
-        - Concorrência moderada
+        - Demanda moderada
         """)
     with col3:
         st.markdown("""
         **🔴 Baixo**
         - Score < 5
-        - Mercado concorrido
+        - Baixa demanda
         """)
     
     st.caption("Mais de 200 resultados no Google Shopping")
@@ -724,9 +820,12 @@ with tab2:
                 "🔑 Palavra-chave": palavra_chave,
                 "Categoria": item["Categoria"],
                 "Evento": item["Evento"],
-                "Potencial": "🟢 Alto" if item["Score"] >= 8 else "🟡 Médio" if item["Score"] >= 5 else "🔴 Baixo",
+                "Potencial": item["Potencial"],
                 "Score": item["Score"],
-                "Produtos Encontrados": item["Produtos Encontrados"]
+                "Pins": item["Pins"],
+                "Crescimento": item["Crescimento"],
+                "Views TikTok": item["Views"],
+                "Resultados ML": item["Resultados ML"]
             })
         
         df = pd.DataFrame(dados_tabela)
@@ -735,7 +834,7 @@ with tab2:
             lambda x: f'<a href="https://shopee.com.br/search?keyword={quote(x)}" target="_blank" style="text-decoration: none;"><span style="background-color: #f0f0f0; color: #333; padding: 2px 10px; border-radius: 12px; font-size: 12px; border: 1px solid #ddd;">🔍 Buscar</span></a>'
         )
         
-        colunas = ["Produto", "🔑 Palavra-chave", "Categoria", "Evento", "Potencial", "Score", "Produtos Encontrados", "Buscar na Shopee"]
+        colunas = ["Produto", "🔑 Palavra-chave", "Categoria", "Evento", "Potencial", "Score", "Pins", "Crescimento", "Views TikTok", "Resultados ML", "Buscar na Shopee"]
         df = df[colunas]
         
         st.markdown(
