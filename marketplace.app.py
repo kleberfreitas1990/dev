@@ -30,6 +30,7 @@ st.set_page_config(
 LICENCA_PADRAO = "TESTE-AFILIADO-2026"
 ARQUIVO_GALERIA = "galeria_videos.json"
 ARQUIVO_DADOS_DIARIOS = "dados_diarios.json"
+ARQUIVO_DADOS_HISTORICOS = "dados_historicos.json"
 CREDITOS_DIARIOS = 10
 BUSCAS_DIARIAS = 3
 BUSCAS_TOTAIS = 250
@@ -66,9 +67,105 @@ SNAPGEN_EMAIL = KEYS["snapgen_email"]
 SNAPGEN_PASSWORD = KEYS["snapgen_password"]
 
 # ============================================================
-# DADOS COMPLETOS (PINTEREST + TIKTOK + MERCADO LIVRE)
+# DADOS HISTÓRICOS DO ANO PASSADO (2025)
 # ============================================================
-DADOS_COMPLETOS = {
+DADOS_HISTORICOS_2025 = {
+    "casaco": {
+        "pins": 2900,
+        "crescimento": 38,
+        "views_tiktok": 4.8,
+        "resultados_ml": 980,
+        "categoria": "Moda",
+        "evento": "Férias Escolares",
+        "tendencia": "Em alta desde 2025"
+    },
+    "blusa de lã": {
+        "pins": 2200,
+        "crescimento": 32,
+        "views_tiktok": 3.5,
+        "resultados_ml": 720,
+        "categoria": "Moda",
+        "evento": "Férias Escolares",
+        "tendencia": "Crescimento consistente"
+    },
+    "bota": {
+        "pins": 1200,
+        "crescimento": 15,
+        "views_tiktok": 2.2,
+        "resultados_ml": 450,
+        "categoria": "Moda",
+        "evento": "Férias Escolares",
+        "tendencia": "Estável"
+    },
+    "cachecol": {
+        "pins": 950,
+        "crescimento": 10,
+        "views_tiktok": 1.5,
+        "resultados_ml": 350,
+        "categoria": "Moda",
+        "evento": "Férias Escolares",
+        "tendencia": "Leve queda"
+    },
+    "cobertor": {
+        "pins": 780,
+        "crescimento": 8,
+        "views_tiktok": 1.2,
+        "resultados_ml": 300,
+        "categoria": "Casa",
+        "evento": "Férias Escolares",
+        "tendencia": "Estável"
+    },
+    "meia": {
+        "pins": 650,
+        "crescimento": 7,
+        "views_tiktok": 0.9,
+        "resultados_ml": 240,
+        "categoria": "Moda",
+        "evento": "Férias Escolares",
+        "tendencia": "Crescimento lento"
+    },
+    "luva": {
+        "pins": 400,
+        "crescimento": 5,
+        "views_tiktok": 0.5,
+        "resultados_ml": 180,
+        "categoria": "Moda",
+        "evento": "Férias Escolares",
+        "tendencia": "Baixa demanda"
+    },
+    "jaqueta": {
+        "pins": 380,
+        "crescimento": 4,
+        "views_tiktok": 0.4,
+        "resultados_ml": 150,
+        "categoria": "Moda",
+        "evento": "Férias Escolares",
+        "tendencia": "Baixa demanda"
+    },
+    "smartwatch": {
+        "pins": 2500,
+        "crescimento": 30,
+        "views_tiktok": 3.8,
+        "resultados_ml": 1200,
+        "categoria": "Eletrônicos",
+        "evento": "Tendência",
+        "tendencia": "Em alta"
+    },
+    "fone bluetooth": {
+        "pins": 2000,
+        "crescimento": 25,
+        "views_tiktok": 3.2,
+        "resultados_ml": 980,
+        "categoria": "Eletrônicos",
+        "evento": "Tendência",
+        "tendencia": "Estável"
+    }
+}
+
+# ============================================================
+# DADOS ATUAIS (2026)
+# ============================================================
+DADOS_ATUAIS = {
     "casaco": {
         "pins": 3400,
         "crescimento": 45,
@@ -259,7 +356,6 @@ class DadosDiarios:
         return False
     
     def limpar_dados_antigos(self):
-        """Remove dados de dias anteriores para evitar conflitos"""
         hoje = datetime.now().date().isoformat()
         chaves_remover = []
         for chave in self.dados.keys():
@@ -306,6 +402,26 @@ class GaleriaVideos:
         self.salvar()
 
 # ============================================================
+# FUNÇÃO PARA CALCULAR VARIAÇÃO ANO A ANO
+# ============================================================
+def calcular_variacao_yoy(produto):
+    """Calcula a variação percentual entre 2025 e 2026"""
+    dados_2025 = DADOS_HISTORICOS_2025.get(produto, {})
+    dados_2026 = DADOS_ATUAIS.get(produto, {})
+    
+    if not dados_2025 or not dados_2026:
+        return 0
+    
+    pins_2025 = dados_2025.get("pins", 0)
+    pins_2026 = dados_2026.get("pins", 0)
+    
+    if pins_2025 == 0:
+        return 0
+    
+    variacao = ((pins_2026 - pins_2025) / pins_2025) * 100
+    return round(variacao, 1)
+
+# ============================================================
 # FUNÇÕES DE BUSCA
 # ============================================================
 def buscar_produtos_serpapi(termo, limite=3):
@@ -339,11 +455,8 @@ def buscar_produtos_serpapi(termo, limite=3):
         return []
 
 def gerar_sugestoes_diarias():
-    """Gera as 3 melhores sugestões para o dia com dados completos"""
-    # Lista de produtos base
-    produtos_base = list(DADOS_COMPLETOS.keys())
-    
-    # Usa os 3 primeiros da lista
+    """Gera as 3 melhores sugestões com dados históricos do ano passado"""
+    produtos_base = list(DADOS_ATUAIS.keys())
     selecionados = produtos_base[:BUSCAS_DIARIAS]
     
     resultados = []
@@ -351,61 +464,85 @@ def gerar_sugestoes_diarias():
         # Busca na SerpApi
         produtos_serp = buscar_produtos_serpapi(termo, 3)
         
-        # Dados completos do produto
-        dados = DADOS_COMPLETOS.get(termo, {})
+        # Dados atuais
+        dados_atual = DADOS_ATUAIS.get(termo, {})
         
-        # Score
+        # Dados históricos (ano passado)
+        dados_historico = DADOS_HISTORICOS_2025.get(termo, {})
+        
+        # Calcula variação YoY
+        variacao_yoy = calcular_variacao_yoy(termo)
+        
+        # Score combinado (atual + histórico)
         score = 0
         
-        if dados.get("pins", 0) > 2000:
+        # Fatores atuais
+        if dados_atual.get("pins", 0) > 2000:
             score += 3
-        elif dados.get("pins", 0) > 1000:
+        elif dados_atual.get("pins", 0) > 1000:
             score += 2
         else:
             score += 1
         
-        if dados.get("crescimento", 0) > 30:
+        if dados_atual.get("crescimento", 0) > 30:
             score += 2
-        elif dados.get("crescimento", 0) > 15:
+        elif dados_atual.get("crescimento", 0) > 15:
             score += 1
         
-        if dados.get("views_tiktok", 0) > 3:
+        if dados_atual.get("views_tiktok", 0) > 3:
             score += 2
-        elif dados.get("views_tiktok", 0) > 1:
+        elif dados_atual.get("views_tiktok", 0) > 1:
             score += 1
         
-        if dados.get("resultados_ml", 0) > 500:
+        # Bônus por crescimento YoY positivo
+        if variacao_yoy > 20:
+            score += 3
+        elif variacao_yoy > 10:
             score += 2
-        elif dados.get("resultados_ml", 0) > 200:
+        elif variacao_yoy > 5:
             score += 1
+        
+        # Bônus por tendência histórica
+        if dados_historico.get("tendencia") == "Em alta" or dados_historico.get("tendencia") == "Em alta desde 2025":
+            score += 2
         
         if len(produtos_serp) > 0:
             score += len(produtos_serp)
         
         # Determina potencial
-        if score >= 8:
+        if score >= 10:
             potencial = "🟢 Alto"
-        elif score >= 5:
+        elif score >= 6:
             potencial = "🟡 Médio"
         else:
             potencial = "🔴 Baixo"
         
+        # Determina tendência YoY
+        if variacao_yoy > 10:
+            tendencia_yoy = "📈 Em alta"
+        elif variacao_yoy > -5:
+            tendencia_yoy = "➡️ Estável"
+        else:
+            tendencia_yoy = "📉 Em queda"
+        
         resultado = {
             "Produto": termo,
-            "Categoria": dados.get("categoria", "Geral"),
-            "Evento": dados.get("evento", "Tendência"),
+            "Categoria": dados_atual.get("categoria", "Geral"),
+            "Evento": dados_atual.get("evento", "Tendência"),
             "Potencial": potencial,
             "Score": score,
-            "Pins": f"{dados.get('pins', 0)} pins",
-            "Crescimento": f"+{dados.get('crescimento', 0)}%",
-            "Views": f"{dados.get('views_tiktok', 0)}M",
-            "Resultados ML": f"{dados.get('resultados_ml', 0)}",
-            "Produtos Serp": len(produtos_serp)
+            "Pins Atual": f"{dados_atual.get('pins', 0)} pins",
+            "Pins 2025": f"{dados_historico.get('pins', 0)} pins",
+            "Variação YoY": f"{variacao_yoy}%",
+            "Tendência YoY": tendencia_yoy,
+            "Crescimento": f"+{dados_atual.get('crescimento', 0)}%",
+            "Views TikTok": f"{dados_atual.get('views_tiktok', 0)}M",
+            "Resultados ML": f"{dados_atual.get('resultados_ml', 0)}",
+            "Histórico": dados_historico.get("tendencia", "Sem dados")
         }
         
         resultados.append(resultado)
     
-    # Ordena por score
     resultados = sorted(resultados, key=lambda x: x["Score"], reverse=True)
     
     return resultados
@@ -627,13 +764,11 @@ def render_dashboard():
     st.title("📊 Minerador de Produtos")
     st.caption(f"📅 {datetime.now().strftime('%A, %d de %B de %Y - %H:%M')}")
     
-    # ===== LIMPAR DADOS ANTIGOS =====
     dados_diarios = DadosDiarios()
     dados_diarios.limpar_dados_antigos()
     
-    # ===== ATUALIZAÇÃO AUTOMÁTICA DIÁRIA =====
     if dados_diarios.precisa_atualizar():
-        with st.spinner("🔄 Atualizando dados do dia..."):
+        with st.spinner("🔄 Atualizando dados do dia com histórico 2025..."):
             produtos = gerar_sugestoes_diarias()
             dados_diarios.salvar_dados_hoje(produtos)
             st.success("✅ Dados do dia atualizados!")
@@ -708,9 +843,9 @@ def render_dashboard():
     
     st.markdown("---")
     
-    # ===== TABELA DE PRODUTOS DO DIA =====
+    # ===== TABELA DE PRODUTOS DO DIA COM HISTÓRICO =====
     st.markdown("## 🎯 Sugestões de Produtos para Hoje")
-    st.caption(f"🔄 Atualizado automaticamente todos os dias | {BUSCAS_DIARIAS} buscas realizadas")
+    st.caption(f"🔄 Comparação com mesmo período de 2025 | {BUSCAS_DIARIAS} buscas realizadas")
     
     if dados_hoje and dados_hoje.get("produtos"):
         produtos = dados_hoje["produtos"]
@@ -726,10 +861,14 @@ def render_dashboard():
                 "Evento": item.get("Evento", "Tendência"),
                 "Potencial": item.get("Potencial", "🟡 Médio"),
                 "Score": item.get("Score", 0),
-                "Pins": item.get("Pins", "0 pins"),
+                "Pins Atual": item.get("Pins Atual", "0 pins"),
+                "Pins 2025": item.get("Pins 2025", "0 pins"),
+                "Variação YoY": item.get("Variação YoY", "0%"),
+                "Tendência YoY": item.get("Tendência YoY", "➡️ Estável"),
                 "Crescimento": item.get("Crescimento", "+0%"),
-                "Views TikTok": item.get("Views", "0M"),
-                "Resultados ML": item.get("Resultados ML", "0")
+                "Views TikTok": item.get("Views TikTok", "0M"),
+                "Resultados ML": item.get("Resultados ML", "0"),
+                "Histórico": item.get("Histórico", "Sem dados")
             })
         
         df = pd.DataFrame(dados_tabela)
@@ -738,7 +877,7 @@ def render_dashboard():
             lambda x: f'<a href="https://shopee.com.br/search?keyword={quote(x)}" target="_blank" style="text-decoration: none;"><span style="background-color: #f0f0f0; color: #333; padding: 2px 10px; border-radius: 12px; font-size: 12px; border: 1px solid #ddd;">🔍 Buscar</span></a>'
         )
         
-        colunas = ["Produto", "🔑 Palavra-chave", "Categoria", "Evento", "Potencial", "Score", "Pins", "Crescimento", "Views TikTok", "Resultados ML", "Buscar na Shopee"]
+        colunas = ["Produto", "🔑 Palavra-chave", "Categoria", "Evento", "Potencial", "Score", "Pins Atual", "Pins 2025", "Variação YoY", "Tendência YoY", "Crescimento", "Views TikTok", "Resultados ML", "Histórico", "Buscar na Shopee"]
         df = df[colunas]
         
         st.markdown(
@@ -764,8 +903,9 @@ def render_dashboard():
                 st.markdown(f"""
                 - **Categoria:** {melhor.get('Categoria', '')}
                 - **Score:** {melhor.get('Score', 0)}/10
-                - **Pins:** {melhor.get('Pins', '')}
-                - **Crescimento:** {melhor.get('Crescimento', '')}
+                - **Pins Atual:** {melhor.get('Pins Atual', '')}
+                - **Variação YoY:** {melhor.get('Variação YoY', '')}
+                - **Tendência:** {melhor.get('Tendência YoY', '')}
                 """)
             else:
                 st.markdown("### Carregando...")
@@ -778,9 +918,10 @@ def render_dashboard():
                 melhor = max(dados_hoje["produtos"], key=lambda x: x.get("Score", 0))
                 st.markdown(f"### {melhor.get('Produto', '')}")
                 st.markdown(f"""
-                - **Views TikTok:** {melhor.get('Views', '')}
+                - **Views TikTok:** {melhor.get('Views TikTok', '')}
                 - **Crescimento:** {melhor.get('Crescimento', '')}
-                - **Pins:** {melhor.get('Pins', '')}
+                - **Pins 2025:** {melhor.get('Pins 2025', '')}
+                - **Variação YoY:** {melhor.get('Variação YoY', '')}
                 """)
             else:
                 st.markdown("### Carregando...")
@@ -794,20 +935,20 @@ def render_dashboard():
     with col1:
         st.markdown("""
         **🟢 Alto**
-        - Score ≥ 8
-        - Alta demanda
+        - Score ≥ 10
+        - Crescimento YoY > 10%
         """)
     with col2:
         st.markdown("""
         **🟡 Médio**
-        - Score 5-7
-        - Demanda moderada
+        - Score 6-9
+        - Crescimento YoY 5-10%
         """)
     with col3:
         st.markdown("""
         **🔴 Baixo**
-        - Score < 5
-        - Baixa demanda
+        - Score < 6
+        - Crescimento YoY < 5%
         """)
     
     st.caption("Mais de 200 resultados no Google Shopping")
@@ -860,10 +1001,14 @@ with tab2:
                 "Evento": item.get("Evento", "Tendência"),
                 "Potencial": item.get("Potencial", "🟡 Médio"),
                 "Score": item.get("Score", 0),
-                "Pins": item.get("Pins", "0 pins"),
+                "Pins Atual": item.get("Pins Atual", "0 pins"),
+                "Pins 2025": item.get("Pins 2025", "0 pins"),
+                "Variação YoY": item.get("Variação YoY", "0%"),
+                "Tendência YoY": item.get("Tendência YoY", "➡️ Estável"),
                 "Crescimento": item.get("Crescimento", "+0%"),
-                "Views TikTok": item.get("Views", "0M"),
-                "Resultados ML": item.get("Resultados ML", "0")
+                "Views TikTok": item.get("Views TikTok", "0M"),
+                "Resultados ML": item.get("Resultados ML", "0"),
+                "Histórico": item.get("Histórico", "Sem dados")
             })
         
         df = pd.DataFrame(dados_tabela)
@@ -872,7 +1017,7 @@ with tab2:
             lambda x: f'<a href="https://shopee.com.br/search?keyword={quote(x)}" target="_blank" style="text-decoration: none;"><span style="background-color: #f0f0f0; color: #333; padding: 2px 10px; border-radius: 12px; font-size: 12px; border: 1px solid #ddd;">🔍 Buscar</span></a>'
         )
         
-        colunas = ["Produto", "🔑 Palavra-chave", "Categoria", "Evento", "Potencial", "Score", "Pins", "Crescimento", "Views TikTok", "Resultados ML", "Buscar na Shopee"]
+        colunas = ["Produto", "🔑 Palavra-chave", "Categoria", "Evento", "Potencial", "Score", "Pins Atual", "Pins 2025", "Variação YoY", "Tendência YoY", "Crescimento", "Views TikTok", "Resultados ML", "Histórico", "Buscar na Shopee"]
         df = df[colunas]
         
         st.markdown(
