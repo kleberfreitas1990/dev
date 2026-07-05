@@ -134,7 +134,6 @@ class DadosDiarios:
             json.dump(self.dados, f, ensure_ascii=False, indent=2)
     
     def obter_dados_hoje(self):
-        """Retorna os dados de hoje ou None se não existir"""
         hoje = datetime.now().date().isoformat()
         dados = self.dados.get(hoje, {})
         
@@ -144,7 +143,6 @@ class DadosDiarios:
         return None
     
     def salvar_dados_hoje(self, produtos):
-        """Salva os produtos de hoje"""
         hoje = datetime.now().date().isoformat()
         self.dados[hoje] = {
             "data": hoje,
@@ -155,18 +153,18 @@ class DadosDiarios:
         self.salvar()
     
     def precisa_atualizar(self):
-        """Verifica se precisa atualizar os dados de hoje"""
         hoje = datetime.now().date().isoformat()
         dados = self.dados.get(hoje, {})
         
         if not dados or not dados.get("produtos"):
             return True
         
-        # Verifica se já passou do horário de atualização (ex: 6h da manhã)
         hora_atual = datetime.now().hour
-        hora_ultima = datetime.fromisoformat(dados.get("timestamp", datetime.now().isoformat())).hour
+        try:
+            hora_ultima = datetime.fromisoformat(dados.get("timestamp", datetime.now().isoformat())).hour
+        except:
+            hora_ultima = 0
         
-        # Atualiza se mudou de dia ou se é depois das 6h e a última atualização foi antes das 6h
         if dados.get("data") != hoje:
             return True
         if hora_atual >= 6 and hora_ultima < 6:
@@ -234,7 +232,6 @@ def buscar_produtos_serpapi(termo, limite=3):
         for item in data.get("shopping_results", [])[:limite]:
             produtos.append({
                 "nome": item.get("title", ""),
-                "preco": item.get("price", "R$ 0"),
                 "loja": item.get("source", ""),
                 "link": item.get("link", ""),
                 "avaliacao": item.get("rating", None)
@@ -259,43 +256,31 @@ def gerar_sugestoes_diarias():
         {"termo": "fone bluetooth", "categoria": "Eletrônicos", "evento": "Tendência"},
     ]
     
+    # Embaralha e pega os 3 primeiros (ou usa os 3 primeiros da lista)
+    # Para garantir variedade, usa os primeiros 3 da lista
     resultados = []
+    termos_selecionados = produtos_base[:BUSCAS_DIARIAS]
     
-    # Busca apenas 3 produtos (limite diário)
-    for i, item in enumerate(produtos_base[:BUSCAS_DIARIAS]):
+    for item in termos_selecionados:
         produtos = buscar_produtos_serpapi(item["termo"], 3)
         
-        # Score baseado em disponibilidade e relevância
+        # Score baseado em disponibilidade
         score = 0
         if produtos:
             score += 5  # Produto encontrado
             score += min(len(produtos), 3)  # Quantidade de resultados
-            
-            # Análise de preço (quanto mais barato, melhor)
-            precos = [float(p.get("preco", "0").replace("R$", "").replace(",", ".").strip()) for p in produtos if p.get("preco")]
-            if precos:
-                preco_medio = sum(precos) / len(precos)
-                if preco_medio < 100:
-                    score += 3
-                elif preco_medio < 200:
-                    score += 2
-                else:
-                    score += 1
         
         resultados.append({
             "Produto": item["termo"],
             "Categoria": item["categoria"],
             "Evento": item["evento"],
             "Score": score,
-            "Produtos Encontrados": len(produtos),
-            "Total Resultados": len(produtos) * 10,  # Estimativa
-            "detalhes": produtos
+            "Produtos Encontrados": len(produtos)
         })
     
     # Ordena por score (melhores primeiro)
     resultados = sorted(resultados, key=lambda x: x["Score"], reverse=True)
     
-    # Mantém apenas os 3 melhores
     return resultados[:BUSCAS_DIARIAS]
 
 # ============================================================
@@ -464,6 +449,22 @@ class SnapGenVideoGenerator:
         return video_info
 
 # ============================================================
+# PALAVRAS-CHAVE DE CAUDA LONGA
+# ============================================================
+PALAVRAS_CHAVE_CAUDA_LONGA = {
+    "casaco": "casaco feminino inverno 2026",
+    "blusa de lã": "blusa de lã feminina elegante",
+    "bota": "bota feminina cano médio",
+    "cachecol": "cachecol de lã para frio extremo",
+    "cobertor": "cobertor de lã para cama king",
+    "meia": "meia de lã para frio extremo",
+    "luva": "luva de lã para frio intenso",
+    "jaqueta": "jaqueta jeans feminina 2026",
+    "smartwatch": "smartwatch feminino elegante",
+    "fone bluetooth": "fone bluetooth JBL original"
+}
+
+# ============================================================
 # FUNCAO DE LOGIN
 # ============================================================
 def verificar_login():
@@ -493,7 +494,7 @@ def verificar_login():
     return st.session_state.get('licenca_usuario', LICENCA_PADRAO)
 
 # ============================================================
-# FUNCAO RENDER_DASHBOARD (COM DADOS DIÁRIOS)
+# FUNCAO RENDER_DASHBOARD
 # ============================================================
 def render_dashboard():
     st.title("📊 Minerador de Produtos")
@@ -502,7 +503,6 @@ def render_dashboard():
     # ===== ATUALIZAÇÃO AUTOMÁTICA DIÁRIA =====
     dados_diarios = DadosDiarios()
     
-    # Verifica se precisa atualizar (primeira vez do dia ou depois das 6h)
     if dados_diarios.precisa_atualizar():
         with st.spinner("🔄 Atualizando dados do dia..."):
             produtos = gerar_sugestoes_diarias()
@@ -511,7 +511,6 @@ def render_dashboard():
             time.sleep(1)
             st.rerun()
     
-    # ===== CARREGA DADOS DO DIA =====
     dados_hoje = dados_diarios.obter_dados_hoje()
     
     # Status e Créditos
@@ -565,7 +564,7 @@ def render_dashboard():
             st.markdown(f"""
             <div style="background: #e0e0e0; border-radius: 10px; height: 20px; position: relative;">
                 <div style="background: {cor}; width: {potencial}%; height: 20px; border-radius: 10px; transition: width 0.5s;">
-                    <span style="position: absolute; right: 10px; top: 2px; color: black; font-weight: bold;">{potencial}%</span>
+                    <span style="position: absolute: right: 10px; top: 2px; color: black; font-weight: bold;">{potencial}%</span>
                 </div>
             </div>
             """, unsafe_allow_html=True)
@@ -582,17 +581,14 @@ def render_dashboard():
     
     # ===== TABELA DE PRODUTOS DO DIA =====
     st.markdown("## 🎯 Sugestões de Produtos para Hoje")
-    st.caption(f"🔄 Atualizado automaticamente todos os dias às 6h | {BUSCAS_DIARIAS} buscas realizadas")
+    st.caption(f"🔄 Atualizado automaticamente todos os dias | {BUSCAS_DIARIAS} buscas realizadas")
     
     if dados_hoje and dados_hoje.get("produtos"):
         produtos = dados_hoje["produtos"]
         
-        # Prepara os dados para a tabela
         dados_tabela = []
         for item in produtos:
-            # Pega a primeira palavra-chave de cauda longa
-            palavras_chave = PALAVRAS_CHAVE_CAUDA_LONGA.get(item["Produto"], [])
-            palavra_chave = palavras_chave[0] if palavras_chave else f"{item['Produto']} tendência 2026"
+            palavra_chave = PALAVRAS_CHAVE_CAUDA_LONGA.get(item["Produto"], f"{item['Produto']} tendência 2026")
             
             dados_tabela.append({
                 "Produto": item["Produto"],
@@ -606,12 +602,10 @@ def render_dashboard():
         
         df = pd.DataFrame(dados_tabela)
         
-        # Botão discreto em HTML
         df["Buscar na Shopee"] = df["Produto"].apply(
             lambda x: f'<a href="https://shopee.com.br/search?keyword={quote(x)}" target="_blank" style="text-decoration: none;"><span style="background-color: #f0f0f0; color: #333; padding: 2px 10px; border-radius: 12px; font-size: 12px; border: 1px solid #ddd;">🔍 Buscar</span></a>'
         )
         
-        # Reorganiza as colunas
         colunas = ["Produto", "🔑 Palavra-chave", "Categoria", "Evento", "Potencial", "Score", "Produtos Encontrados", "Buscar na Shopee"]
         df = df[colunas]
         
@@ -620,7 +614,7 @@ def render_dashboard():
             unsafe_allow_html=True
         )
         
-        st.caption("3 de 3 consultas SerpApi usadas hoje")
+        st.caption(f"{BUSCAS_DIARIAS} de {BUSCAS_DIARIAS} consultas SerpApi usadas hoje")
     else:
         st.info("📭 Nenhum dado disponível para hoje. Tente recarregar a página.")
     
@@ -687,132 +681,6 @@ def render_dashboard():
     return df if 'df' in locals() else None
 
 # ============================================================
-# PALAVRAS-CHAVE DE CAUDA LONGA
-# ============================================================
-PALAVRAS_CHAVE_CAUDA_LONGA = {
-    "casaco": [
-        "casaco feminino inverno 2026", 
-        "casaco masculino elegante", 
-        "casaco de lã para frio intenso",
-        "casaco oversized com capuz",
-        "casaco longo feminino bege",
-        "casaco de couro ecológico",
-        "casaco de tricô artesanal",
-        "casaco com cinto de cintura",
-        "casaco para viagem de inverno",
-        "casaco plus size com bolsos"
-    ],
-    "blusa de lã": [
-        "blusa de lã feminina elegante",
-        "blusa de lã com gola alta",
-        "blusa de lã para trabalho",
-        "blusa de lã fina e confortável",
-        "blusa de lã com botões de madrepérola",
-        "blusa de lã listrada para inverno",
-        "blusa de lã plus size 2026",
-        "blusa de lã modelo túnicas",
-        "blusa de lã decote redondo",
-        "blusa de lã com bolsos frontais"
-    ],
-    "bota": [
-        "bota feminina cano médio",
-        "bota de couro confortável",
-        "bota para chuva e inverno",
-        "bota salto grosso pretinho",
-        "bota camurça com cadarço",
-        "bota de segurança para trabalho",
-        "bota de rodeio estilo country",
-        "bota com zíper lateral",
-        "bota feminina confortável 2026",
-        "bota plus size com elástico"
-    ],
-    "cachecol": [
-        "cachecol de lã para frio extremo",
-        "cachecol feminino elegante",
-        "cachecol masculino em cashmere",
-        "cachecol xadrez para inverno",
-        "cachecol longo com franjas",
-        "cachecol de tricô artesanal",
-        "cachecol plus size 2026",
-        "cachecol infantil para crianças",
-        "cachecol de seda para meia estação",
-        "cachecol com capuz integrado"
-    ],
-    "cobertor": [
-        "cobertor de lã para cama king",
-        "cobertor super quente 2026",
-        "cobertor com design escandinavo",
-        "cobertor de microfibra antialérgico",
-        "cobertor pesado para ansiedade",
-        "cobertor com mangas para sofá",
-        "cobertor elétrico econômico",
-        "cobertor infantil com estampa",
-        "cobertor de casal com jogo de lençóis",
-        "cobertor em cashmere para presente"
-    ],
-    "meia": [
-        "meia de lã para frio extremo",
-        "meia de compressão para viagem",
-        "meia cano alto feminina",
-        "meia esportiva para corrida",
-        "meia de tração antiderrapante",
-        "meia térmica para neve",
-        "meia infantil 2026",
-        "meia de algodão orgânico",
-        "meia listrada moderna",
-        "meia com bolso lateral para celular"
-    ],
-    "luva": [
-        "luva de lã para frio intenso",
-        "luva de toque para celular",
-        "luva infantil para neve",
-        "luva de couro feminina 2026",
-        "luva térmica esportiva",
-        "luva descanso de punho",
-        "luva de corrida antiderrapante",
-        "luva de base de maquiagem",
-        "luva de segurança para trabalho",
-        "luva de cashmere de presente"
-    ],
-    "jaqueta": [
-        "jaqueta jeans feminina 2026",
-        "jaqueta de couro ecológica",
-        "jaqueta militar com patches",
-        "jaqueta de inverno com capuz",
-        "jaqueta bomber para usar no dia a dia",
-        "jaqueta parka para frio extremo",
-        "jaqueta de lã para trabalho",
-        "jaqueta de chuva impermeável",
-        "jaqueta plus size com cinto",
-        "jaqueta de veludo cotelê"
-    ],
-    "smartwatch": [
-        "smartwatch feminino elegante",
-        "smartwatch esportivo com GPS",
-        "smartwatch para monitoramento de saúde",
-        "smartwatch barato 2026",
-        "smartwatch com chamadas e notificações",
-        "smartwatch infantil para crianças",
-        "smartwatch com pulseira de couro",
-        "smartwatch para corrida e academia",
-        "smartwatch com bateria de longa duração",
-        "smartwatch para mulheres 2026"
-    ],
-    "fone bluetooth": [
-        "fone bluetooth JBL original",
-        "fone bluetooth com cancelamento de ruído",
-        "fone bluetooth esportivo",
-        "fone bluetooth barato 2026",
-        "fone bluetooth Samsung Galaxy Buds",
-        "fone bluetooth para PC e celular",
-        "fone bluetooth infantil para crianças",
-        "fone bluetooth com estojo de carregamento",
-        "fone bluetooth para academia",
-        "fone bluetooth resistente a água"
-    ]
-}
-
-# ============================================================
 # APP PRINCIPAL
 # ============================================================
 licenca = verificar_login()
@@ -849,8 +717,7 @@ with tab2:
         
         dados_tabela = []
         for item in produtos:
-            palavras_chave = PALAVRAS_CHAVE_CAUDA_LONGA.get(item["Produto"], [])
-            palavra_chave = palavras_chave[0] if palavras_chave else f"{item['Produto']} tendência 2026"
+            palavra_chave = PALAVRAS_CHAVE_CAUDA_LONGA.get(item["Produto"], f"{item['Produto']} tendência 2026")
             
             dados_tabela.append({
                 "Produto": item["Produto"],
