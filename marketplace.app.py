@@ -257,6 +257,18 @@ class DadosDiarios:
             return True
         
         return False
+    
+    def limpar_dados_antigos(self):
+        """Remove dados de dias anteriores para evitar conflitos"""
+        hoje = datetime.now().date().isoformat()
+        chaves_remover = []
+        for chave in self.dados.keys():
+            if chave != hoje:
+                chaves_remover.append(chave)
+        for chave in chaves_remover:
+            del self.dados[chave]
+        if chaves_remover:
+            self.salvar()
 
 # ============================================================
 # SISTEMA DE GALERIA DE VÍDEOS
@@ -331,7 +343,7 @@ def gerar_sugestoes_diarias():
     # Lista de produtos base
     produtos_base = list(DADOS_COMPLETOS.keys())
     
-    # Usa os 3 primeiros da lista para garantir dados consistentes
+    # Usa os 3 primeiros da lista
     selecionados = produtos_base[:BUSCAS_DIARIAS]
     
     resultados = []
@@ -342,7 +354,7 @@ def gerar_sugestoes_diarias():
         # Dados completos do produto
         dados = DADOS_COMPLETOS.get(termo, {})
         
-        # Score: baseado nos dados completos
+        # Score
         score = 0
         
         if dados.get("pins", 0) > 2000:
@@ -367,7 +379,6 @@ def gerar_sugestoes_diarias():
         elif dados.get("resultados_ml", 0) > 200:
             score += 1
         
-        # Bônus por produtos encontrados na SerpApi
         if len(produtos_serp) > 0:
             score += len(produtos_serp)
         
@@ -379,7 +390,6 @@ def gerar_sugestoes_diarias():
         else:
             potencial = "🔴 Baixo"
         
-        # Monta o resultado com todos os campos
         resultado = {
             "Produto": termo,
             "Categoria": dados.get("categoria", "Geral"),
@@ -617,9 +627,11 @@ def render_dashboard():
     st.title("📊 Minerador de Produtos")
     st.caption(f"📅 {datetime.now().strftime('%A, %d de %B de %Y - %H:%M')}")
     
-    # ===== ATUALIZAÇÃO AUTOMÁTICA DIÁRIA =====
+    # ===== LIMPAR DADOS ANTIGOS =====
     dados_diarios = DadosDiarios()
+    dados_diarios.limpar_dados_antigos()
     
+    # ===== ATUALIZAÇÃO AUTOMÁTICA DIÁRIA =====
     if dados_diarios.precisa_atualizar():
         with st.spinner("🔄 Atualizando dados do dia..."):
             produtos = gerar_sugestoes_diarias()
@@ -708,16 +720,16 @@ def render_dashboard():
             palavra_chave = PALAVRAS_CHAVE_CAUDA_LONGA.get(item["Produto"], f"{item['Produto']} tendência 2026")
             
             dados_tabela.append({
-                "Produto": item["Produto"],
+                "Produto": item.get("Produto", ""),
                 "🔑 Palavra-chave": palavra_chave,
-                "Categoria": item["Categoria"],
-                "Evento": item["Evento"],
-                "Potencial": item["Potencial"],
-                "Score": item["Score"],
-                "Pins": item["Pins"],
-                "Crescimento": item["Crescimento"],
-                "Views TikTok": item["Views"],
-                "Resultados ML": item["Resultados ML"]
+                "Categoria": item.get("Categoria", "Geral"),
+                "Evento": item.get("Evento", "Tendência"),
+                "Potencial": item.get("Potencial", "🟡 Médio"),
+                "Score": item.get("Score", 0),
+                "Pins": item.get("Pins", "0 pins"),
+                "Crescimento": item.get("Crescimento", "+0%"),
+                "Views TikTok": item.get("Views", "0M"),
+                "Resultados ML": item.get("Resultados ML", "0")
             })
         
         df = pd.DataFrame(dados_tabela)
@@ -748,12 +760,12 @@ def render_dashboard():
         with st.container(border=True):
             if dados_hoje and dados_hoje.get("produtos"):
                 melhor = max(dados_hoje["produtos"], key=lambda x: x.get("Score", 0))
-                st.markdown(f"### {melhor['Produto']}")
+                st.markdown(f"### {melhor.get('Produto', '')}")
                 st.markdown(f"""
-                - **Categoria:** {melhor['Categoria']}
-                - **Score:** {melhor['Score']}/10
-                - **Pins:** {melhor['Pins']}
-                - **Crescimento:** {melhor['Crescimento']}
+                - **Categoria:** {melhor.get('Categoria', '')}
+                - **Score:** {melhor.get('Score', 0)}/10
+                - **Pins:** {melhor.get('Pins', '')}
+                - **Crescimento:** {melhor.get('Crescimento', '')}
                 """)
             else:
                 st.markdown("### Carregando...")
@@ -764,11 +776,11 @@ def render_dashboard():
         with st.container(border=True):
             if dados_hoje and dados_hoje.get("produtos"):
                 melhor = max(dados_hoje["produtos"], key=lambda x: x.get("Score", 0))
-                st.markdown(f"### {melhor['Produto']}")
+                st.markdown(f"### {melhor.get('Produto', '')}")
                 st.markdown(f"""
-                - **Views TikTok:** {melhor['Views']}
-                - **Crescimento:** {melhor['Crescimento']}
-                - **Pins:** {melhor['Pins']}
+                - **Views TikTok:** {melhor.get('Views', '')}
+                - **Crescimento:** {melhor.get('Crescimento', '')}
+                - **Pins:** {melhor.get('Pins', '')}
                 """)
             else:
                 st.markdown("### Carregando...")
@@ -842,16 +854,16 @@ with tab2:
             palavra_chave = PALAVRAS_CHAVE_CAUDA_LONGA.get(item["Produto"], f"{item['Produto']} tendência 2026")
             
             dados_tabela.append({
-                "Produto": item["Produto"],
+                "Produto": item.get("Produto", ""),
                 "🔑 Palavra-chave": palavra_chave,
-                "Categoria": item["Categoria"],
-                "Evento": item["Evento"],
-                "Potencial": item["Potencial"],
-                "Score": item["Score"],
-                "Pins": item["Pins"],
-                "Crescimento": item["Crescimento"],
-                "Views TikTok": item["Views"],
-                "Resultados ML": item["Resultados ML"]
+                "Categoria": item.get("Categoria", "Geral"),
+                "Evento": item.get("Evento", "Tendência"),
+                "Potencial": item.get("Potencial", "🟡 Médio"),
+                "Score": item.get("Score", 0),
+                "Pins": item.get("Pins", "0 pins"),
+                "Crescimento": item.get("Crescimento", "+0%"),
+                "Views TikTok": item.get("Views", "0M"),
+                "Resultados ML": item.get("Resultados ML", "0")
             })
         
         df = pd.DataFrame(dados_tabela)
