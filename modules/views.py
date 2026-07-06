@@ -28,7 +28,7 @@ def render_apoiadores_ovais():
     # Ordena por ordem de entrada
     apoiadores_ordenados = sorted(apoiadores.values(), key=lambda x: x.get("ordem", 999))
     
-    # Cores pré-definidas para os ovais
+    # Cores pré-definidas (as mesmas que você já tem)
     cores = [
         "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", 
         "#FFEAA7", "#DDA0DD", "#FF8A5C", "#A29BFE",
@@ -41,22 +41,12 @@ def render_apoiadores_ovais():
     # Criar uma linha com todos os ovais
     html_ovais = '<div style="display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0;">'
     
-    is_admin = st.session_state.get("is_admin", False)
-    
     for i, apoiador in enumerate(apoiadores_ordenados):
         cor = cores[i % len(cores)]
         nome = apoiador.get("nome", "Apoiador")
         ordem = apoiador.get("ordem", 999)
         coroinha = apoiador.get("coroinha", "👑")
         
-        # Encontra a chave do apoiador para remoção
-        chave_apoiador = None
-        for k, v in carregar_apoiadores().items():
-            if v.get("nome") == nome and v.get("ordem") == ordem:
-                chave_apoiador = k
-                break
-        
-        # Adiciona o oval com cor diferente
         html_ovais += f'''
         <div style="
             background: {cor};
@@ -82,22 +72,26 @@ def render_apoiadores_ovais():
     
     st.markdown(html_ovais, unsafe_allow_html=True)
     
-    # ===== BOTÃO PARA REMOVER (APENAS ADMIN) =====
+    # ===== ÁREA DE REMOÇÃO (APENAS ADMIN) =====
+    is_admin = st.session_state.get("is_admin", False)
+    
     if is_admin and apoiadores_ordenados:
         st.markdown("---")
         st.markdown("#### 🗑️ Gerenciar Apoiadores")
         
-        # Seleciona um apoiador para remover
-        nomes_apoiadores = [a.get("nome") for a in apoiadores_ordenados]
-        apoiador_remover = st.selectbox(
-            "Selecione um apoiador para remover:",
-            options=nomes_apoiadores,
-            key="remover_apoiador_select"
-        )
+        col1, col2 = st.columns([2, 1])
         
-        col1, col2 = st.columns([1, 3])
         with col1:
-            if st.button("🗑️ Remover Apoiador", use_container_width=True, key="remover_apoiador_btn"):
+            # Lista de apoiadores para remover
+            nomes_apoiadores = [a.get("nome") for a in apoiadores_ordenados]
+            apoiador_remover = st.selectbox(
+                "Selecione um apoiador para remover:",
+                options=nomes_apoiadores,
+                key="remover_apoiador_select"
+            )
+        
+        with col2:
+            if st.button("🗑️ Remover", use_container_width=True, key="remover_apoiador_btn"):
                 if apoiador_remover:
                     # Encontra a chave do apoiador
                     chave_remover = None
@@ -118,64 +112,6 @@ def render_apoiadores_ovais():
                             st.success(f"✅ {apoiador_remover} removido com sucesso!")
                             st.info("🔑 Licença revogada")
                             st.rerun()
-        with col2:
-            st.caption("⚠️ Remover um apoiador também revoga sua licença de acesso")
-
-def render_painel_apoiadores_detalhado():
-    """Renderiza o painel de apoiadores detalhado (para a Tab)"""
-    
-    st.markdown("## 👑 Gerenciar Apoiadores")
-    st.caption("Lista completa de apoiadores do projeto")
-    
-    apoiadores = carregar_apoiadores()
-    
-    if not apoiadores:
-        st.info("📭 Nenhum apoiador cadastrado ainda.")
-    else:
-        # Ordena por ordem de entrada
-        apoiadores_ordenados = sorted(apoiadores.values(), key=lambda x: x.get("ordem", 999))
-        
-        # Exibe em cards (4 por linha)
-        cols = st.columns(4)
-        
-        for i, apoiador in enumerate(apoiadores_ordenados):
-            with cols[i % 4]:
-                with st.container(border=True):
-                    cor = apoiador.get("cor", "#FFD700")
-                    
-                    st.markdown(f"""
-                    <div style="text-align: center; padding: 8px 0;">
-                        <span style="font-size: 32px;">{apoiador.get('coroinha', '👑')}</span>
-                        <h4 style="color: {cor}; margin: 2px 0; font-size: 16px;">{apoiador.get('nome')}</h4>
-                        <p style="color: #888; font-size: 11px; margin: 0;">#{apoiador.get('ordem', 999)} • Apoiador</p>
-                        <p style="color: #666; font-size: 10px; margin: 0;">{apoiador.get('plano', 'Apoiador')}</p>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                    st.caption(f"📅 {apoiador.get('data_entrada', '2026-07-01')}")
-    
-    st.markdown("---")
-    
-    # ===== ADICIONAR APOIADOR (APENAS ADMIN) =====
-    if st.session_state.get("is_admin", False):
-        with st.expander("➕ Adicionar Apoiador", expanded=False):
-            st.markdown("### Adicionar Novo Apoiador")
-            
-            col1, col2 = st.columns(2)
-            with col1:
-                nome_apo = st.text_input("Nome do Apoiador", placeholder="Ex: João Silva", key="apo_nome")
-                email_apo = st.text_input("E-mail", placeholder="joao@email.com", key="apo_email")
-            with col2:
-                plano_apo = st.selectbox("Plano", ["Fundador", "Apoiador", "Premium"], key="apo_plano")
-            
-            if st.button("👑 Adicionar Apoiador", use_container_width=True, key="apo_btn"):
-                if not nome_apo or not email_apo:
-                    st.error("❌ Preencha nome e e-mail")
-                else:
-                    novo = adicionar_apoiador(nome_apo, email_apo, plano_apo)
-                    st.success(f"✅ {nome_apo} adicionado como apoiador!")
-                    st.info(f"📋 Ordem: #{novo.get('ordem')}")
-                    st.rerun()
 
 def render_dashboard():
     """Renderiza o dashboard principal"""
@@ -369,3 +305,59 @@ def render_dashboard():
     st.caption("Dados combinados: Shopee Trends + Google Shopping + TikTok")
     
     return df if 'df' in locals() else None
+
+def render_painel_apoiadores_detalhado():
+    """Renderiza o painel de apoiadores detalhado (para a Tab)"""
+    
+    st.markdown("## 👑 Gerenciar Apoiadores")
+    st.caption("Lista completa de apoiadores do projeto")
+    
+    apoiadores = carregar_apoiadores()
+    
+    if not apoiadores:
+        st.info("📭 Nenhum apoiador cadastrado ainda.")
+    else:
+        # Ordena por ordem de entrada
+        apoiadores_ordenados = sorted(apoiadores.values(), key=lambda x: x.get("ordem", 999))
+        
+        # Exibe em cards (4 por linha)
+        cols = st.columns(4)
+        
+        for i, apoiador in enumerate(apoiadores_ordenados):
+            with cols[i % 4]:
+                with st.container(border=True):
+                    cor = apoiador.get("cor", "#FFD700")
+                    
+                    st.markdown(f"""
+                    <div style="text-align: center; padding: 8px 0;">
+                        <span style="font-size: 32px;">{apoiador.get('coroinha', '👑')}</span>
+                        <h4 style="color: {cor}; margin: 2px 0; font-size: 16px;">{apoiador.get('nome')}</h4>
+                        <p style="color: #888; font-size: 11px; margin: 0;">#{apoiador.get('ordem', 999)} • Apoiador</p>
+                        <p style="color: #666; font-size: 10px; margin: 0;">{apoiador.get('plano', 'Apoiador')}</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    st.caption(f"📅 {apoiador.get('data_entrada', '2026-07-01')}")
+    
+    st.markdown("---")
+    
+    # ===== ADICIONAR APOIADOR (APENAS ADMIN) =====
+    if st.session_state.get("is_admin", False):
+        with st.expander("➕ Adicionar Apoiador", expanded=False):
+            st.markdown("### Adicionar Novo Apoiador")
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                nome_apo = st.text_input("Nome do Apoiador", placeholder="Ex: João Silva", key="apo_nome")
+                email_apo = st.text_input("E-mail", placeholder="joao@email.com", key="apo_email")
+            with col2:
+                plano_apo = st.selectbox("Plano", ["Fundador", "Apoiador", "Premium"], key="apo_plano")
+            
+            if st.button("👑 Adicionar Apoiador", use_container_width=True, key="apo_btn"):
+                if not nome_apo or not email_apo:
+                    st.error("❌ Preencha nome e e-mail")
+                else:
+                    novo = adicionar_apoiador(nome_apo, email_apo, plano_apo)
+                    st.success(f"✅ {nome_apo} adicionado como apoiador!")
+                    st.info(f"📋 Ordem: #{novo.get('ordem')}")
+                    st.rerun()
