@@ -31,15 +31,19 @@ def render_status_usuario():
     pass
 
 # ============================================================
-# APOIADORES EM CARDS PEQUENOS
+# APOIADORES EM CARDS PEQUENOS (COM COROA CENTRALIZADA)
 # ============================================================
 def render_apoiadores_compactos():
-    """Renderiza os apoiadores em cards pequenos"""
+    """Renderiza os apoiadores em cards pequenos com coroa centralizada"""
     
     apoiadores = carregar_apoiadores()
     
     if not apoiadores:
         return
+    
+    # Título da seção
+    st.markdown("### 👑 Apoiadores do Projeto")
+    st.caption("Pessoas que acreditam e apoiam este projeto")
     
     # Ordena por ordem de entrada
     apoiadores_ordenados = sorted(apoiadores.values(), key=lambda x: x.get("ordem", 999))
@@ -62,30 +66,53 @@ def render_apoiadores_compactos():
             coroinha = apoiador.get("coroinha", "👑")
             
             with st.container(border=True):
+                # Coroa centralizada no topo
                 st.markdown(f"""
-                <div style="
-                    background: {cor};
-                    color: white;
-                    padding: 4px 8px;
-                    border-radius: 6px 6px 0 0;
-                    margin: -12px -12px 6px -12px;
-                    text-align: center;
-                    font-size: 12px;
-                    font-weight: bold;
-                ">
-                    {coroinha} {nome}
+                <div style="text-align: center; font-size: 28px; margin: -8px 0 2px 0;">
+                    {coroinha}
                 </div>
                 """, unsafe_allow_html=True)
                 
-                st.markdown(f"<p style='text-align: center; font-size: 11px; margin: 0;'>#{ordem}</p>", unsafe_allow_html=True)
+                # Nome centralizado
+                st.markdown(f"""
+                <div style="text-align: center; font-weight: bold; font-size: 13px; margin: 0;">
+                    {nome}
+                </div>
+                """, unsafe_allow_html=True)
                 
-                # Verifica repasse
+                # Número da ordem
+                st.markdown(f"""
+                <div style="text-align: center; font-size: 10px; color: #888; margin: 0;">
+                    #{ordem}
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Barra colorida abaixo
+                st.markdown(f"""
+                <div style="
+                    background: {cor};
+                    height: 3px;
+                    border-radius: 2px;
+                    margin: 4px 0 2px 0;
+                ">
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Repasse (se houver)
                 depois = sum(1 for k, d in apoiadores.items() if d.get("ordem", 999) > ordem)
                 
                 if depois > 0 and apoiador.get("repasse_ativo", True):
-                    st.markdown(f"<p style='text-align: center; font-size: 10px; color: green; margin: 0;'>⬇️ R${depois * 5.00:.0f}</p>", unsafe_allow_html=True)
+                    st.markdown(f"""
+                    <div style="text-align: center; font-size: 10px; color: #4CAF50; margin: 0;">
+                        ⬇️ R${depois * 5.00:.0f}
+                    </div>
+                    """, unsafe_allow_html=True)
                 else:
-                    st.markdown(f"<p style='text-align: center; font-size: 10px; color: #888; margin: 0;'>⏳</p>", unsafe_allow_html=True)
+                    st.markdown(f"""
+                    <div style="text-align: center; font-size: 10px; color: #888; margin: 0;">
+                        ⏳
+                    </div>
+                    """, unsafe_allow_html=True)
 
 # ============================================================
 # DASHBOARD PRINCIPAL
@@ -96,7 +123,7 @@ def render_dashboard():
     st.title("📊 Minerador de Produtos")
     st.caption(f"📅 {datetime.now().strftime('%A, %d de %B de %Y - %H:%M')}")
     
-    # Status compacto (sem os badges de admin/apoiador)
+    # Status compacto
     col_status1, col_status2, col_status3, col_status4 = st.columns(4)
     with col_status1:
         serper_key = st.secrets.get("SERPER_API_KEY", "")
