@@ -80,18 +80,20 @@ def render_painel_apoiadores():
     st.markdown("---")
     
     # ===== ADICIONAR APOIADOR (APENAS ADMIN) =====
+    # Usa uma chave única para evitar conflito de IDs
     if st.session_state.get("is_admin", False):
         with st.expander("➕ Adicionar Apoiador", expanded=False):
             st.markdown("### Adicionar Novo Apoiador")
             
+            # Usa keys diferentes para evitar conflito com a Tab de Licenças
             col1, col2 = st.columns(2)
             with col1:
-                nome_apo = st.text_input("Nome do Apoiador", placeholder="Ex: João Silva")
-                email_apo = st.text_input("E-mail", placeholder="joao@email.com")
+                nome_apo = st.text_input("Nome do Apoiador", placeholder="Ex: João Silva", key="apo_nome")
+                email_apo = st.text_input("E-mail", placeholder="joao@email.com", key="apo_email")
             with col2:
-                plano_apo = st.selectbox("Plano", ["Fundador", "Apoiador", "Premium"])
+                plano_apo = st.selectbox("Plano", ["Fundador", "Apoiador", "Premium"], key="apo_plano")
             
-            if st.button("👑 Adicionar Apoiador", use_container_width=True):
+            if st.button("👑 Adicionar Apoiador", use_container_width=True, key="apo_btn"):
                 if not nome_apo or not email_apo:
                     st.error("❌ Preencha nome e e-mail")
                 else:
@@ -163,11 +165,6 @@ def render_dashboard():
                 st.success("✅ Alta Demanda")
             with col_s2:
                 st.success("✅ Baixa Concorrência")
-    
-    st.markdown("---")
-    
-    # ===== PAINEL DE APOIADORES =====
-    render_painel_apoiadores()
     
     st.markdown("---")
     
