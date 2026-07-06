@@ -28,7 +28,10 @@ APOIADORES = [
 @main_bp.route('/')
 def index():
     """Página inicial"""
-    produtos = Produto.query.filter_by(ativo=True).limit(6).all()
+    try:
+        produtos = Produto.query.filter_by(ativo=True).limit(6).all()
+    except:
+        produtos = []
     return render_template('index.html', produtos=produtos)
 
 
@@ -53,15 +56,21 @@ def contato():
 @main_bp.route('/produtos')
 def listar_produtos():
     """Listar todos os produtos"""
-    produtos = Produto.query.filter_by(ativo=True).all()
+    try:
+        produtos = Produto.query.filter_by(ativo=True).all()
+    except:
+        produtos = []
     return render_template('produtos.html', produtos=produtos)
 
 
 @main_bp.route('/produto/<int:id>')
 def detalhe_produto(id):
     """Detalhe de um produto específico"""
-    produto = Produto.query.get_or_404(id)
-    return render_template('produto_detalhe.html', produto=produto)
+    try:
+        produto = Produto.query.get_or_404(id)
+        return render_template('produto_detalhe.html', produto=produto)
+    except:
+        return render_template('errors/404.html'), 404
 
 
 @main_bp.route('/buscar')
@@ -71,8 +80,11 @@ def buscar():
     resultados = []
     
     if query:
-        serper = SerperAPI()
-        resultados = serper.buscar(query)
+        try:
+            serper = SerperAPI()
+            resultados = serper.buscar(query)
+        except:
+            resultados = []
     
     return render_template('busca.html', query=query, resultados=resultados)
 
@@ -116,8 +128,12 @@ def admin():
 @admin_required
 def admin_apoiadores():
     """Gerenciar apoiadores"""
-    # Aqui você pode buscar do banco de dados
-    return render_template('admin/apoiadores.html', apoiadores=APOIADORES)
+    try:
+        apoiadores_db = Apoiador.query.all()
+        apoiadores_lista = [{'nome': a.nome, 'numero': a.numero} for a in apoiadores_db]
+    except:
+        apoiadores_lista = APOIADORES
+    return render_template('admin/apoiadores.html', apoiadores=apoiadores_lista)
 
 
 @main_bp.route('/admin/apoiadores/adicionar', methods=['POST'])
@@ -128,12 +144,13 @@ def admin_apoiador_adicionar():
     numero = request.form.get('numero')
     
     if nome:
-        # Salvar no banco de dados
-        novo = Apoiador(nome=nome, numero=numero)
-        db.session.add(novo)
-        db.session.commit()
-        
-        return jsonify({'success': True, 'message': 'Apoiador adicionado!'})
+        try:
+            novo = Apoiador(nome=nome, numero=numero)
+            db.session.add(novo)
+            db.session.commit()
+            return jsonify({'success': True, 'message': 'Apoiador adicionado!'})
+        except:
+            return jsonify({'success': False, 'message': 'Erro ao salvar'})
     
     return jsonify({'success': False, 'message': 'Nome é obrigatório'})
 
@@ -142,18 +159,23 @@ def admin_apoiador_adicionar():
 @admin_required
 def admin_apoiador_remover(id):
     """Remover apoiador"""
-    apoiador = Apoiador.query.get_or_404(id)
-    db.session.delete(apoiador)
-    db.session.commit()
-    
-    return jsonify({'success': True, 'message': 'Apoiador removido!'})
+    try:
+        apoiador = Apoiador.query.get_or_404(id)
+        db.session.delete(apoiador)
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Apoiador removido!'})
+    except:
+        return jsonify({'success': False, 'message': 'Erro ao remover'})
 
 
 @main_bp.route('/admin/produtos')
 @admin_required
 def admin_produtos():
     """Gerenciar produtos"""
-    produtos = Produto.query.all()
+    try:
+        produtos = Produto.query.all()
+    except:
+        produtos = []
     return render_template('admin/produtos.html', produtos=produtos)
 
 
@@ -166,16 +188,18 @@ def admin_produto_adicionar():
     descricao = request.form.get('descricao')
     
     if nome and preco:
-        produto = Produto(
-            nome=nome,
-            preco=float(preco),
-            descricao=descricao,
-            ativo=True
-        )
-        db.session.add(produto)
-        db.session.commit()
-        
-        return jsonify({'success': True, 'message': 'Produto adicionado!'})
+        try:
+            produto = Produto(
+                nome=nome,
+                preco=float(preco),
+                descricao=descricao,
+                ativo=True
+            )
+            db.session.add(produto)
+            db.session.commit()
+            return jsonify({'success': True, 'message': 'Produto adicionado!'})
+        except:
+            return jsonify({'success': False, 'message': 'Erro ao salvar'})
     
     return jsonify({'success': False, 'message': 'Dados incompletos'})
 
@@ -185,19 +209,25 @@ def admin_produto_adicionar():
 def admin_configuracoes():
     """Configurações do sistema"""
     if request.method == 'POST':
-        config = Configuracao.query.first()
-        if not config:
-            config = Configuracao()
-        
-        config.nome_site = request.form.get('nome_site')
-        config.email_contato = request.form.get('email_contato')
-        
-        db.session.add(config)
-        db.session.commit()
-        
-        return jsonify({'success': True, 'message': 'Configurações salvas!'})
+        try:
+            config = Configuracao.query.first()
+            if not config:
+                config = Configuracao()
+            
+            config.nome_site = request.form.get('nome_site')
+            config.email_contato = request.form.get('email_contato')
+            
+            db.session.add(config)
+            db.session.commit()
+            
+            return jsonify({'success': True, 'message': 'Configurações salvas!'})
+        except:
+            return jsonify({'success': False, 'message': 'Erro ao salvar'})
     
-    config = Configuracao.query.first()
+    try:
+        config = Configuracao.query.first()
+    except:
+        config = None
     return render_template('admin/configuracoes.html', config=config)
 
 
@@ -216,22 +246,27 @@ def perfil():
 @login_required
 def perfil_editar():
     """Editar perfil do usuário"""
-    usuario = Usuario.query.get(session['usuario_id'])
-    
-    usuario.nome = request.form.get('nome', usuario.nome)
-    usuario.email = request.form.get('email', usuario.email)
-    usuario.telefone = request.form.get('telefone', usuario.telefone)
-    
-    db.session.commit()
-    
-    return jsonify({'success': True, 'message': 'Perfil atualizado!'})
+    try:
+        usuario = Usuario.query.get(session['usuario_id'])
+        
+        usuario.nome = request.form.get('nome', usuario.nome)
+        usuario.email = request.form.get('email', usuario.email)
+        usuario.telefone = request.form.get('telefone', usuario.telefone)
+        
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Perfil atualizado!'})
+    except:
+        return jsonify({'success': False, 'message': 'Erro ao atualizar'})
 
 
 @main_bp.route('/meus-pedidos')
 @login_required
 def meus_pedidos():
     """Listar pedidos do usuário"""
-    pedidos = Pedido.query.filter_by(usuario_id=session['usuario_id']).all()
+    try:
+        pedidos = Pedido.query.filter_by(usuario_id=session['usuario_id']).all()
+    except:
+        pedidos = []
     return render_template('meus_pedidos.html', pedidos=pedidos)
 
 
@@ -261,12 +296,19 @@ def forbidden(e):
 @main_bp.context_processor
 def inject_config():
     """Injetar configurações em todos os templates"""
-    config = Configuracao.query.first()
-    return {
-        'site_nome': config.nome_site if config else 'Meu Site',
-        'site_email': config.email_contato if config else 'contato@site.com',
-        'ano_atual': datetime.now().year
-    }
+    try:
+        config = Configuracao.query.first()
+        return {
+            'site_nome': config.nome_site if config else 'Meu Site',
+            'site_email': config.email_contato if config else 'contato@site.com',
+            'ano_atual': datetime.now().year
+        }
+    except:
+        return {
+            'site_nome': 'Meu Site',
+            'site_email': 'contato@site.com',
+            'ano_atual': datetime.now().year
+        }
 
 
 @main_bp.context_processor
@@ -282,17 +324,19 @@ def inject_carrinho_count():
 
 def get_apoiadores():
     """Retorna lista de apoiadores"""
-    # Se tiver no banco, busca do banco
-    # apoiadores = Apoiador.query.all()
-    # return [{'nome': a.nome, 'numero': a.numero} for a in apoiadores]
-    
-    # Senão, usa a lista estática
-    return APOIADORES
+    try:
+        apoiadores = Apoiador.query.all()
+        return [{'nome': a.nome, 'numero': a.numero} for a in apoiadores]
+    except:
+        return APOIADORES
 
 
 def get_produtos_destaque():
     """Retorna produtos em destaque"""
-    return Produto.query.filter_by(destaque=True, ativo=True).limit(6).all()
+    try:
+        return Produto.query.filter_by(destaque=True, ativo=True).limit(6).all()
+    except:
+        return []
 
 
 def get_categorias():
