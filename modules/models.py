@@ -63,7 +63,7 @@ class SistemaLicencas:
                 "tipo": "admin",
                 "status": "ativo",
                 "data_criacao": datetime.now().strftime("%Y-%m-%d"),
-                "data_expiracao": (datetime.now() + timedelta(days=3650)).strftime("%Y-%m-%d"),  # 10 anos
+                "data_expiracao": (datetime.now() + timedelta(days=3650)).strftime("%Y-%m-%d"),
                 "usuario": "Administrador",
                 "email": "admin@pechinchasblack.com",
                 "plano": "Administrador",
