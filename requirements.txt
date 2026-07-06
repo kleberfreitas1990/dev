@@ -6,3 +6,4 @@ pytrends
 schedule
 google-generativeai
 google-genai
+beautifulsoup4
