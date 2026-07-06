@@ -84,7 +84,7 @@ def buscar_produtos_serper(termo, limite=5, usar_cache=True):
             
             return resultados
         else:
-            st.error(f"❌ Erro Serper.dev: {response.status_code}")
+            st.error(f"❌ Erro Serper.dev: {response.status_code} - {response.text}")
             return []
             
     except Exception as e:
@@ -114,6 +114,13 @@ def salvar_cache_serper(chave, resultados):
     with open(ARQUIVO_SERPER_CACHE, 'w', encoding='utf-8') as f:
         json.dump(cache, f, ensure_ascii=False, indent=2)
 
+def limpar_cache_serper():
+    """Limpa o cache do Serper.dev"""
+    if os.path.exists(ARQUIVO_SERPER_CACHE):
+        os.remove(ARQUIVO_SERPER_CACHE)
+        return True
+    return False
+
 def buscar_total_resultados_serper(termo):
     """Busca o total de resultados para um termo"""
     produtos = buscar_produtos_serper(termo, 10)
@@ -141,10 +148,23 @@ def buscar_trends_serper():
     for termo in termos_tendencia[:2]:
         produtos = buscar_produtos_serper(termo, 3)
         for p in produtos:
-            if p.get("nome") and p not in resultados:
-                resultados.append(p.get("nome"))
+            nome = p.get("nome", "")
+            if nome and len(nome) > 3:
+                # Pega as primeiras palavras como termo de tendência
+                palavras = nome.split()[:3]
+                if palavras:
+                    termo_sugerido = " ".join(palavras)
+                    if termo_sugerido not in resultados:
+                        resultados.append(termo_sugerido)
     
     return resultados[:10]
+
+# ============================================================
+# FUNÇÃO PARA BUSCAR PRODUTOS (ALIAS)
+# ============================================================
+def buscar_produtos(termo, limite=5):
+    """Alias para buscar_produtos_serper - mantém compatibilidade"""
+    return buscar_produtos_serper(termo, limite)
 
 # ============================================================
 # EXPORTAÇÕES
@@ -152,5 +172,7 @@ def buscar_trends_serper():
 __all__ = [
     'buscar_produtos_serper',
     'buscar_total_resultados_serper',
-    'buscar_trends_serper'
+    'buscar_trends_serper',
+    'buscar_produtos',
+    'limpar_cache_serper'
 ]
