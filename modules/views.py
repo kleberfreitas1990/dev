@@ -1,5 +1,8 @@
 import streamlit as st
 import pandas as pd
+from datetime import datetime  # ← ADICIONADO
+from urllib.parse import quote  # ← ADICIONADO
+
 from modules.models import (
     DADOS_COMPLETOS,
     PALAVRAS_CHAVE_CAUDA_LONGA,
