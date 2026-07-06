@@ -1,6 +1,9 @@
 import streamlit as st
 import warnings
 from datetime import datetime
+from urllib.parse import quote  # ← ADICIONADO
+import pandas as pd  # ← ADICIONADO
+import time  # ← ADICIONADO
 
 # ============================================================
 # SUPRIMIR WARNINGS
