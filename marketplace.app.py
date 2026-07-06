@@ -1,3 +1,44 @@
+# marketplace.app.py
+
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager
+from modules.views import main_bp
+from modules.auth import auth_bp
+from modules.models import db, Usuario
+import os
+
+# Inicializar app
+app = Flask(__name__)
+
+# Configurações
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///marketplace.db')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Inicializar banco de dados
+db.init_app(app)
+
+# Inicializar Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'auth.login'
+
+@login_manager.user_loader
+def load_user(user_id):
+    return Usuario.query.get(int(user_id))
+
+# Registrar Blueprints
+app.register_blueprint(main_bp)
+app.register_blueprint(auth_bp, url_prefix='/auth')
+
+# Criar tabelas
+with app.app_context():
+    db.create_all()
+
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=5000)
+
 import streamlit as st
 import warnings
 from datetime import datetime
