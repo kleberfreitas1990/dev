@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apoiadores</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            max-width: 100%;
+            width: 100%;
+        }
+
+        .titulo {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .titulo span {
+            background: #4ECDC4;
+            color: white;
+            font-size: 12px;
+            border-radius: 50px;
+            padding: 2px 12px;
+        }
+
+        /* Container dos badges - TODOS NA MESMA LINHA */
+        .badges-wrapper {
+            display: flex;
+            gap: 6px;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            padding: 4px 0;
+            scrollbar-width: thin;
+            scrollbar-color: #4ECDC4 #e0e0e0;
+        }
+
+        .badges-wrapper::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .badges-wrapper::-webkit-scrollbar-track {
+            background: #e0e0e0;
+            border-radius: 10px;
+        }
+
+        .badges-wrapper::-webkit-scrollbar-thumb {
+            background: #4ECDC4;
+            border-radius: 10px;
+        }
+
+        /* Cada badge - VAI DIMINUIR PARA CABER */
+        .badge {
+            background: #4ECDC4;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 50px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            font-weight: 500;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: 2px solid rgba(255,255,255,0.3);
+            cursor: default;
+            white-space: nowrap;
+            flex-shrink: 1;
+            min-width: 0;
+            transition: all 0.2s ease;
+        }
+
+        .badge:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(78, 205, 196, 0.4);
+        }
+
+        .badge .icone {
+            font-size: 12px;
+        }
+
+        .badge .nome {
+            font-size: 11px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .badge .numero {
+            font-size: 9px;
+            opacity: 0.8;
+        }
+
+        /* Versão ainda mais compacta se precisar */
+        .badge.compact {
+            padding: 3px 8px;
+            font-size: 10px;
+            gap: 3px;
+        }
+
+        .badge.compact .icone {
+            font-size: 10px;
+        }
+
+        .badge.compact .nome {
+            font-size: 10px;
+        }
+
+        .badge.compact .numero {
+            font-size: 8px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 16px;
+            }
+            .badge {
+                padding: 3px 8px;
+                font-size: 10px;
+                gap: 3px;
+            }
+            .badge .icone {
+                font-size: 10px;
+            }
+            .badge .nome {
+                font-size: 10px;
+            }
+            .badge .numero {
+                font-size: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="titulo">
+            👑 Apoiadores
+            <span>4</span>
+        </div>
+
+        <!-- TODOS OS BADGES NA MESMA LINHA -->
+        <div class="badges-wrapper">
+            <!-- Badge 1 -->
+            <div class="badge">
+                <span class="icone">👑</span>
+                <span class="nome">Iago Coelho</span>
+                <span class="numero">#2</span>
+            </div>
+
+            <!-- Badge 2 -->
+            <div class="badge">
+                <span class="icone">👑</span>
+                <span class="nome">Sandra Lopes</span>
+                <span class="numero">#3</span>
+            </div>
+
+            <!-- Badge 3 -->
+            <div class="badge">
+                <span class="icone">👑</span>
+                <span class="nome">Kaiky</span>
+                <span class="numero">#4</span>
+            </div>
+
+            <!-- Badge 4 -->
+            <div class="badge">
+                <span class="icone">👑</span>
+                <span class="nome">Vanessa Profiro</span>
+                <span class="numero">#5</span>
+            </div>
+
+            <!-- Badge 5 - Exemplo extra -->
+            <div class="badge">
+                <span class="icone">👑</span>
+                <span class="nome">Carlos Eduardo</span>
+                <span class="numero">#6</span>
+            </div>
+
+            <!-- Badge 6 -->
+            <div class="badge">
+                <span class="icone">👑</span>
+                <span class="nome">Ana Beatriz</span>
+                <span class="numero">#7</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
