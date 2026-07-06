@@ -1,0 +1,167 @@
+/* static/css/style.css */
+
+/* Estilos para os badges de apoiadores */
+.apoiador-card {
+    text-align: center;
+    padding: 15px 10px;
+    border-radius: 12px;
+    background: white;
+    border: 2px solid #f0f0f0;
+    transition: all 0.3s ease;
+}
+
+.apoiador-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.apoiador-card .coroa {
+    font-size: 48px;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.apoiador-card .nome {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 5px 0;
+}
+
+.apoiador-card .numero {
+    font-size: 14px;
+    color: #888;
+}
+
+.apoiador-card .badge-primeiro {
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    color: white;
+    text-align: center;
+    padding: 4px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 12px;
+    margin-top: 8px;
+}
+
+.apoiador-card .status-repasse {
+    margin-top: 8px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    display: inline-block;
+}
+
+.status-repasse.ativo {
+    background: #4CAF50;
+    color: white;
+}
+
+.status-repasse.aguardando {
+    background: #FFA500;
+    color: white;
+}
+
+/* Badges estilo tags */
+.badge-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #4ECDC4;
+    color: white;
+    padding: 8px 20px;
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 2px 8px rgba(78, 205, 196, 0.3);
+    border: 2px solid rgba(255,255,255,0.3);
+    transition: all 0.3s ease;
+    cursor: default;
+    white-space: nowrap;
+}
+
+.badge-tag:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 16px rgba(78, 205, 196, 0.5);
+}
+
+.badge-tag .icone {
+    font-size: 16px;
+}
+
+.badge-tag .numero {
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+/* Grid de badges */
+.badges-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 10px 0;
+}
+
+/* Container de apoiadores */
+.apoiadores-container {
+    background: white;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    margin: 20px 0;
+}
+
+.apoiadores-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.apoiadores-header h2 {
+    font-size: 24px;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.apoiadores-header .total {
+    background: #4ECDC4;
+    color: white;
+    font-size: 14px;
+    border-radius: 50px;
+    padding: 4px 16px;
+    font-weight: 600;
+}
+
+/* Responsivo */
+@media (max-width: 600px) {
+    .apoiadores-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .badge-tag {
+        padding: 6px 14px;
+        font-size: 13px;
+        gap: 6px;
+    }
+    
+    .badge-tag .icone {
+        font-size: 13px;
+    }
+    
+    .badge-tag .numero {
+        font-size: 10px;
+    }
+    
+    .apoiador-card .coroa {
+        font-size: 36px;
+    }
+    
+    .apoiador-card .nome {
+        font-size: 16px;
+    }
+}
