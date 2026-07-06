@@ -28,28 +28,21 @@ def render_apoiadores_ovais():
     # Ordena por ordem de entrada
     apoiadores_ordenados = sorted(apoiadores.values(), key=lambda x: x.get("ordem", 999))
     
-    # Cores pré-definidas
-    cores = [
-        "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", 
-        "#FFEAA7", "#DDA0DD", "#FF8A5C", "#A29BFE",
-        "#FD79A8", "#00B894", "#E17055", "#6C5CE7",
-        "#FDCB6E", "#E17055", "#00CEC9", "#6C5CE7"
-    ]
+    # COR ÚNICA PARA TESTE - Depois você pode mudar para cores variadas
+    cor_unica = "#4ECDC4"
     
     st.markdown("### 👑 Apoiadores do Projeto")
     
-    # Criar uma linha com todos os ovais
     html_ovais = '<div style="display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0;">'
     
-    for i, apoiador in enumerate(apoiadores_ordenados):
-        cor = cores[i % len(cores)]
+    for apoiador in apoiadores_ordenados:
         nome = apoiador.get("nome", "Apoiador")
         ordem = apoiador.get("ordem", 999)
         coroinha = apoiador.get("coroinha", "👑")
         
         html_ovais += f'''
         <div style="
-            background: {cor};
+            background: {cor_unica};
             color: white;
             padding: 6px 16px;
             border-radius: 50px;
@@ -320,7 +313,7 @@ def render_painel_apoiadores_detalhado():
         for i, apoiador in enumerate(apoiadores_ordenados):
             with cols[i % 4]:
                 with st.container(border=True):
-                    cor = apoiador.get("cor", "#FFD700")
+                    cor = apoiador.get("cor", "#4ECDC4")
                     
                     st.markdown(f"""
                     <div style="text-align: center; padding: 8px 0;">
