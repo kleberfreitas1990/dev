@@ -230,7 +230,7 @@ def render_dashboard():
     return df if 'df' in locals() else None
 
 # ============================================================
-# PAINEL DE APOIADORES DETALHADO
+# PAINEL DE APOIADORES DETALHADO (COM CARDS)
 # ============================================================
 def render_painel_apoiadores_detalhado():
     """Renderiza o painel de apoiadores detalhado (para a Tab)"""
@@ -244,64 +244,76 @@ def render_painel_apoiadores_detalhado():
         st.info("📭 Nenhum apoiador cadastrado ainda.")
         return
     
+    # Ordena por ordem de entrada
     apoiadores_ordenados = sorted(apoiadores.values(), key=lambda x: x.get("ordem", 999))
     
-    # Cores para os ovais
+    # Cores para os cards
     cores = [
         "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", 
         "#FFEAA7", "#DDA0DD", "#FF8A5C", "#A29BFE",
         "#FD79A8", "#00B894", "#E17055", "#6C5CE7"
     ]
     
-    st.markdown("### 👑 Apoiadores")
-    
-    # Exibe os apoiadores como badges usando st.markdown com HTML
-    html_ovais = '<div style="display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0;">'
+    # Exibe os apoiadores em cards
+    cols = st.columns(4)
     
     for i, apoiador in enumerate(apoiadores_ordenados):
-        cor = cores[i % len(cores)]
-        nome = apoiador.get("nome", "Apoiador")
-        ordem = apoiador.get("ordem", 999)
-        coroinha = apoiador.get("coroinha", "👑")
-        
-        # Usa st.markdown com unsafe_allow_html=True
-        html_ovais += f'''
-        <span style="
-            background: {cor};
-            color: white;
-            padding: 6px 16px;
-            border-radius: 50px;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 13px;
-            font-weight: 500;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            border: 2px solid rgba(255,255,255,0.3);
-        ">
-            {coroinha} {nome} <span style="font-size: 10px; opacity: 0.8;">#{ordem}</span>
-        </span>
-        '''
-    
-    html_ovais += '</div>'
-    
-    # Usa st.markdown com unsafe_allow_html=True
-    st.markdown(html_ovais, unsafe_allow_html=True)
-    
-    st.markdown("---")
-    
-    # ===== INFORMAÇÕES DE REPASSE =====
-    st.markdown("### 📊 Status de Repasse")
-    
-    for apoiador in apoiadores_ordenados:
-        ordem = apoiador.get("ordem", 999)
-        depois = sum(1 for k, d in apoiadores.items() if d.get("ordem", 999) > ordem)
-        nome = apoiador.get("nome", "Apoiador")
-        
-        if depois > 0 and apoiador.get("repasse_ativo", True):
-            st.success(f"👑 {nome} - Recebendo repasse de {depois} apoiador(es) - R${depois * 5.00:.2f}/mês")
-        else:
-            st.info(f"👑 {nome} - Aguardando novos apoiadores")
+        with cols[i % 4]:
+            cor = cores[i % len(cores)]
+            nome = apoiador.get("nome", "Apoiador")
+            ordem = apoiador.get("ordem", 999)
+            coroinha = apoiador.get("coroinha", "👑")
+            data_entrada = apoiador.get("data_entrada", "2026-07-01")
+            plano = apoiador.get("plano", "Apoiador")
+            
+            # Chave para remoção
+            chave_apoiador = None
+            for k, v in carregar_apoiadores().items():
+                if v.get("nome") == nome and v.get("ordem") == ordem:
+                    chave_apoiador = k
+                    break
+            
+            with st.container(border=True):
+                # Cabeçalho com cor
+                st.markdown(f"""
+                <div style="
+                    background: {cor};
+                    color: white;
+                    padding: 8px 12px;
+                    border-radius: 8px 8px 0 0;
+                    margin: -12px -12px 10px -12px;
+                    text-align: center;
+                    font-weight: bold;
+                ">
+                    {coroinha} {nome}
+                </div>
+                """, unsafe_allow_html=True)
+                
+                st.markdown(f"**📋 Ordem:** #{ordem}")
+                st.markdown(f"**📅 Entrada:** {data_entrada}")
+                st.markdown(f"**📌 Plano:** {plano}")
+                
+                # Verifica repasse
+                depois = sum(1 for k, d in apoiadores.items() if d.get("ordem", 999) > ordem)
+                
+                if depois > 0 and apoiador.get("repasse_ativo", True):
+                    st.success(f"⬇️ {depois} apoiador(es) - R${depois * 5.00:.2f}/mês")
+                else:
+                    st.info("⏳ Aguardando novos apoiadores")
+                
+                # Botão Remover (apenas admin)
+                if st.session_state.get("is_admin", False) and chave_apoiador:
+                    if st.button(f"🗑️ Remover", key=f"remove_card_{chave_apoiador}"):
+                        from modules.auth import SistemaLicencas
+                        if remover_apoiador(chave_apoiador):
+                            sistema = SistemaLicencas()
+                            for codigo, dados in sistema.dados["licencas"].items():
+                                if dados.get("usuario") == nome:
+                                    sistema.revogar_licenca(codigo)
+                                    break
+                            st.success(f"✅ {nome} removido com sucesso!")
+                            st.info("🔑 Licença revogada")
+                            st.rerun()
     
     st.markdown("---")
     
@@ -330,7 +342,7 @@ def render_painel_apoiadores_detalhado():
     
     # ===== REMOVER APOIADOR (APENAS ADMIN) =====
     if st.session_state.get("is_admin", False) and apoiadores_ordenados:
-        st.markdown("### 🗑️ Remover Apoiador")
+        st.markdown("### 🗑️ Remover Apoiador (Alternativo)")
         
         col1, col2 = st.columns([2, 1])
         
