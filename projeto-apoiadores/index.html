@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Apoiadores</title>
+    <title>Apoiadores do Projeto</title>
     <style>
         * {
             margin: 0;
@@ -24,38 +24,33 @@
         .container {
             background: white;
             border-radius: 16px;
-            padding: 24px;
+            padding: 30px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            max-width: 100%;
+            max-width: 800px;
             width: 100%;
         }
 
-        .titulo {
-            font-size: 18px;
-            font-weight: 600;
+        h1 {
+            font-size: 22px;
             color: #333;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        td {
-            padding: 6px 8px;
-            vertical-align: middle;
+        .badges-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .badge {
             background: #4ECDC4;
             color: white;
-            padding: 6px 16px;
+            padding: 8px 20px;
             border-radius: 50px;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            font-size: 13px;
+            gap: 8px;
+            font-size: 14px;
             font-weight: 500;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             border: 2px solid rgba(255,255,255,0.3);
@@ -64,49 +59,40 @@
         }
 
         .badge .numero {
-            font-size: 10px;
+            font-size: 11px;
             opacity: 0.8;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="titulo">👑 Apoiadores</div>
+        <h1>👑 Apoiadores do Projeto</h1>
+        
+        <div class="badges-wrapper">
+            <div class="badge">
+                <span>👑</span>
+                <span>Iago Coelho</span>
+                <span class="numero">#2</span>
+            </div>
 
-        <table>
-            <tr>
-                <td>
-                    <div class="badge">
-                        <span>👑</span>
-                        <span>Iago Coelho</span>
-                        <span class="numero">#2</span>
-                    </div>
-                </td>
-                <td>
-                    <div class="badge">
-                        <span>👑</span>
-                        <span>Sandra Lopes</span>
-                        <span class="numero">#3</span>
-                    </div>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <div class="badge">
-                        <span>👑</span>
-                        <span>Kaiky</span>
-                        <span class="numero">#4</span>
-                    </div>
-                </td>
-                <td>
-                    <div class="badge">
-                        <span>👑</span>
-                        <span>Vanessa Profiro</span>
-                        <span class="numero">#5</span>
-                    </div>
-                </td>
-            </tr>
-        </table>
+            <div class="badge">
+                <span>👑</span>
+                <span>Sandra Lopes</span>
+                <span class="numero">#3</span>
+            </div>
+
+            <div class="badge">
+                <span>👑</span>
+                <span>Kaiky</span>
+                <span class="numero">#4</span>
+            </div>
+
+            <div class="badge">
+                <span>👑</span>
+                <span>Vanessa Profiro</span>
+                <span class="numero">#5</span>
+            </div>
+        </div>
     </div>
 </body>
 </html>
