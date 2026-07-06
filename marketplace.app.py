@@ -1,44 +1,3 @@
-# marketplace.app.py
-
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager
-from modules.views import main_bp
-from modules.auth import auth_bp
-from modules.models import db, Usuario
-import os
-
-# Inicializar app
-app = Flask(__name__)
-
-# Configurações
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///marketplace.db')
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-# Inicializar banco de dados
-db.init_app(app)
-
-# Inicializar Login
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'auth.login'
-
-@login_manager.user_loader
-def load_user(user_id):
-    return Usuario.query.get(int(user_id))
-
-# Registrar Blueprints
-app.register_blueprint(main_bp)
-app.register_blueprint(auth_bp, url_prefix='/auth')
-
-# Criar tabelas
-with app.app_context():
-    db.create_all()
-
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
-
 import streamlit as st
 import warnings
 from datetime import datetime
@@ -65,16 +24,26 @@ st.set_page_config(
 # IMPORTAR MÓDULOS
 # ============================================================
 from modules.auth import verificar_login
-from modules.views import (
-    render_dashboard, 
-    render_painel_apoiadores_detalhado
-)
-from modules.models import gerar_top10_produtos, PALAVRAS_CHAVE_CAUDA_LONGA, SistemaLicencas
+from modules.views import render_dashboard, render_status_usuario, render_painel_apoiadores
+from modules.models import gerar_top10_produtos, PALAVRAS_CHAVE_CAUDA_LONGA
+from modules.serper import buscar_produtos_serper
 
 # ============================================================
 # VERIFICAR LOGIN
 # ============================================================
 licenca = verificar_login()
+
+# ============================================================
+# TITULO
+# ============================================================
+st.title("📊 Minerador de Produtos")
+st.caption(f"📅 {datetime.now().strftime('%A, %d de %B de %Y - %H:%M')}")
+
+# ============================================================
+# STATUS DO USUÁRIO
+# ============================================================
+render_status_usuario()
+st.markdown("---")
 
 # ============================================================
 # TABS
@@ -89,10 +58,10 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
 ])
 
 # ============================================================
-# TAB 1: DASHBOARD
+# TAB 1: DASHBOARD (NÃO CHAMA render_painel_apoiadores)
 # ============================================================
 with tab1:
-    render_dashboard()
+    render_dashboard()  # ← Removeu a chamada duplicada de render_painel_apoiadores
 
 # ============================================================
 # TAB 2: SUGESTÕES DE PRODUTOS
@@ -222,10 +191,10 @@ with tab4:
                     st.video("https://placehold.co/600x400/000000/FFFFFF?text=Video+Gerado+por+IA")
 
 # ============================================================
-# TAB 5: APOIADORES
+# TAB 5: APOIADORES (ÚNICA CHAMADA)
 # ============================================================
 with tab5:
-    render_painel_apoiadores_detalhado()
+    render_painel_apoiadores()
 
 # ============================================================
 # TAB 6: LICENÇAS (APENAS ADMIN)
@@ -251,6 +220,7 @@ with tab6:
         st.markdown("---")
         
         with st.expander("🆕 Criar Nova Licença", expanded=True):
+            # Usa keys diferentes para evitar conflito com a Tab de Apoiadores
             col1, col2 = st.columns(2)
             with col1:
                 novo_usuario = st.text_input("Nome do Usuário", placeholder="Ex: João Silva", key="lic_nome")
@@ -263,6 +233,7 @@ with tab6:
                 if not novo_usuario or not novo_email:
                     st.error("❌ Preencha nome e e-mail")
                 else:
+                    from modules.models import SistemaLicencas
                     sistema = SistemaLicencas()
                     codigo = sistema.gerar_licenca(novo_usuario, novo_email, plano, is_apoiador)
                     st.success("✅ Licença gerada com sucesso!")
@@ -274,6 +245,7 @@ with tab6:
         st.markdown("---")
         st.markdown("### 📋 Licenças Ativas")
         
+        from modules.models import SistemaLicencas
         sistema = SistemaLicencas()
         licencas = sistema.dados["licencas"]
         
