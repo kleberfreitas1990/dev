@@ -1,307 +1,208 @@
 import streamlit as st
 import pandas as pd
-from modules.models import SistemaLicencas, carregar_apoiadores, ADMIN_LICENCA
+from modules.models import (
+    DADOS_COMPLETOS,
+    PALAVRAS_CHAVE_CAUDA_LONGA,
+    gerar_top10_produtos,
+    gerar_sugestoes_diarias,
+    BUSCAS_DIARIAS
+)
+from modules.serper import buscar_produtos_serper
 
-# ============================================================
-# PAINEL DE APOIADORES
-# ============================================================
-def render_painel_apoiadores():
-    """Renderiza o painel de apoiadores"""
-    
-    st.markdown("## 👑 Nossos Apoiadores")
-    st.caption("Quem acreditou no projeto desde o início")
-    
-    apoiadores = carregar_apoiadores()
-    
-    if apoiadores:
-        apoiadores_ordenados = sorted(apoiadores.values(), key=lambda x: x.get("ordem", 999))
-        
-        cols = st.columns(min(len(apoiadores_ordenados), 3))
-        
-        for i, apoiador in enumerate(apoiadores_ordenados):
-            with cols[i % 3]:
-                with st.container(border=True):
-                    cor = apoiador.get("cor", "#FFD700")
-                    st.markdown(f"""
-                    <div style="text-align: center; padding: 10px 0;">
-                        <span style="font-size: 48px;">{apoiador.get('coroinha', '👑')}</span>
-                        <h3 style="color: {cor}; margin: 5px 0;">{apoiador.get('nome')}</h3>
-                        <p style="color: #888; font-size: 14px;">#{apoiador.get('ordem', 999)} • Apoiador</p>
-                        <p style="color: #666; font-size: 12px;">{apoiador.get('plano', 'Apoiador')}</p>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                    st.markdown(f"**📅 Entrada:** {apoiador.get('data_entrada', '2026-07-01')}")
-                    
-                    ordem = apoiador.get("ordem", 999)
-                    depois = sum(1 for k, d in apoiadores.items() if d.get("ordem", 999) > ordem)
-                    
-                    if depois > 0 and apoiador.get("repasse_ativo", True):
-                        st.success(f"✅ Recebendo repasse de {depois} apoiador(es)")
-                        st.caption(f"💰 R${depois * 5.00:.2f} estimado/mês")
-                    else:
-                        st.info("⏳ Aguardando novos apoiadores")
-                    
-                    if apoiador.get("ordem") == 1:
-                        st.markdown("""
-                        <div style="background: linear-gradient(135deg, #FFD700, #FFA500); 
-                                    color: white; text-align: center; padding: 4px; 
-                                    border-radius: 4px; font-weight: bold; font-size: 12px;">
-                            🏆 PRIMEIRA(O) APOIADORA
-                        </div>
-                        """, unsafe_allow_html=True)
-    else:
-        st.info("📭 Nenhum apoiador cadastrado ainda. Seja o primeiro!")
-    
-    st.markdown("---")
-
-
-# ============================================================
-# PAINEL DE LICENÇAS (APENAS ADMIN)
-# ============================================================
-def render_painel_licencas():
-    """Renderiza o painel de administração de licenças (apenas admin)"""
-    
-    # Verifica se o usuário é admin
-    is_admin = st.session_state.get("is_admin", False)
-    licenca_atual = st.session_state.get("licenca_usuario", "")
-    
-    if not is_admin and licenca_atual != ADMIN_LICENCA:
-        st.warning("🔒 **Acesso restrito a administradores.**")
-        st.info("Entre em contato com o suporte para gerenciar licenças.")
-        return
-    
-    st.markdown("## 🔑 Gerenciamento de Licenças")
-    st.caption("Crie, gerencie e monitore licenças do sistema")
-    
-    sistema = SistemaLicencas()
-    stats = sistema.obter_estatisticas()
-    
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.metric("📊 Total", stats["total"])
-    with col2:
-        st.metric("✅ Ativas", stats["ativas"])
-    with col3:
-        st.metric("⏰ Expiradas", stats["expiradas"])
-    with col4:
-        st.metric("💰 Receita Mensal", f"R$ {stats['receita_mensal']:.2f}")
-    
-    st.markdown("---")
-    
-    # ===== CRIAR NOVA LICENÇA =====
-    with st.expander("🆕 Criar Nova Licença", expanded=False):
-        st.markdown("### Criar Licença")
-        
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            novo_usuario = st.text_input("Nome do Usuário", placeholder="Ex: João Silva")
-            novo_email = st.text_input("E-mail", placeholder="joao@email.com")
-            novo_cpf = st.text_input("CPF (opcional)", placeholder="000.000.000-00")
-        
-        with col2:
-            planos = sistema.dados["config"]["planos"]
-            plano_opcoes = {
-                k: f"{v['nome']} - R$ {v['preco']:.2f} ({v['dias']} dias) - {v['descricao']}" 
-                for k, v in planos.items()
-            }
-            plano_selecionado = st.selectbox(
-                "Plano",
-                options=list(plano_opcoes.keys()),
-                format_func=lambda x: plano_opcoes[x]
-            )
-        
-        # Checkbox para tornar apoiador
-        plano_dados = planos.get(plano_selecionado, {})
-        is_apoiador = st.checkbox(
-            "👑 Tornar este usuário um APOIADOR (royalties)",
-            value=plano_dados.get("royalties", False),
-            help="Apoiadores recebem royalties e aparecem no painel de apoiadores"
-        )
-        
-        if st.button("🚀 Gerar Licença", use_container_width=True):
-            if not novo_usuario or not novo_email:
-                st.error("❌ Preencha nome e e-mail")
-            else:
-                # Verifica se já existe licença para este email
-                licencas = sistema.listar_licencas(apenas_ativas=True)
-                for l in licencas:
-                    if l["email"] == novo_email:
-                        st.error(f"❌ Já existe uma licença ativa para {novo_email}")
-                        break
-                else:
-                    resultado = sistema.gerar_licenca(
-                        novo_usuario, 
-                        novo_email, 
-                        plano_selecionado, 
-                        novo_cpf,
-                        is_apoiador,
-                        st.session_state.get("usuario_nome", "Admin")
-                    )
-                    
-                    if "erro" in resultado:
-                        st.error(f"❌ {resultado['erro']}")
-                    else:
-                        st.success("✅ Licença gerada com sucesso!")
-                        
-                        st.markdown("#### 📋 Dados da Licença")
-                        st.code(f"Código: {resultado['codigo']}", language="text")
-                        st.code(f"Plano: {resultado['plano']}", language="text")
-                        st.code(f"Validade: {resultado['validade']} dias", language="text")
-                        st.code(f"Expira em: {resultado['data_expiracao']}", language="text")
-                        st.code(f"Preço: R$ {resultado['preco']:.2f}", language="text")
-                        
-                        if resultado.get('royalties') or is_apoiador:
-                            st.success("👑 **ESTA LICENÇA TEM DIREITO A ROYALTIES!**")
-                            st.info("O usuário aparecerá no painel de apoiadores.")
-                        
-                        st.warning("⚠️ Guarde este código! Ele não será exibido novamente.")
-                        st.code(f"📋 Código para copiar: {resultado['codigo']}", language="text")
-                        
-                        if st.button("🔄 Atualizar Apoiadores"):
-                            st.rerun()
-    
-    st.markdown("---")
-    
-    # ===== LISTA DE LICENÇAS =====
-    st.markdown("### 📋 Licenças Ativas")
-    
-    licencas = sistema.listar_licencas(apenas_ativas=False)
-    
-    if licencas:
-        df_licencas = pd.DataFrame(licencas)
-        
-        df_licencas["status"] = df_licencas["status"].apply(
-            lambda x: "🟢 Ativo" if x == "ativo" else "🔴 Expirado" if x == "expirado" else "⚫ Revogado"
-        )
-        df_licencas["royalties"] = df_licencas["royalties"].apply(
-            lambda x: "👑" if x else "❌"
-        )
-        df_licencas["is_admin"] = df_licencas["is_admin"].apply(
-            lambda x: "🔑" if x else "❌"
-        )
-        
-        st.dataframe(
-            df_licencas,
-            use_container_width=True,
-            hide_index=True,
-            column_config={
-                "codigo": "Código",
-                "usuario": "Usuário",
-                "email": "E-mail",
-                "plano": "Plano",
-                "status": "Status",
-                "criacao": "Criação",
-                "expiracao": "Expiração",
-                "acessos": "Acessos",
-                "royalties": "Royalties",
-                "is_admin": "Admin",
-                "preco": "Preço (R$)"
-            }
-        )
-        
-        # ===== AÇÕES POR LICENÇA =====
-        st.markdown("### 🔧 Ações por Licença")
-        
-        col1, col2, col3 = st.columns(3)
-        
-        with col1:
-            opcoes = [l["codigo"] for l in licencas if l["status"] == "🟢 Ativo" and l["codigo"] != ADMIN_LICENCA]
-            if opcoes:
-                codigo_acao = st.selectbox(
-                    "Selecione uma licença",
-                    options=opcoes
-                )
-            else:
-                st.info("Nenhuma licença ativa disponível para ações")
-                codigo_acao = None
-        
-        with col2:
-            if codigo_acao:
-                acao = st.selectbox(
-                    "Ação",
-                    options=["Renovar por 30 dias", "Renovar por 90 dias", "Revogar"]
-                )
-            else:
-                acao = "Renovar por 30 dias"
-        
-        with col3:
-            if codigo_acao and st.button("Executar Ação", use_container_width=True):
-                if "Renovar" in acao:
-                    dias = 30 if "30" in acao else 90
-                    resultado = sistema.renovar_licenca(codigo_acao, dias)
-                    if "erro" in resultado:
-                        st.error(f"❌ {resultado['erro']}")
-                    else:
-                        st.success(f"✅ Licença renovada! Nova expiração: {resultado['nova_expiracao']}")
-                        st.rerun()
-                elif "Revogar" in acao:
-                    if st.button("Confirmar Revogação", use_container_width=True):
-                        resultado = sistema.revogar_licenca(codigo_acao)
-                        if "erro" in resultado:
-                            st.error(f"❌ {resultado['erro']}")
-                        else:
-                            st.success(f"✅ Licença {codigo_acao} revogada!")
-                            st.rerun()
-    else:
-        st.info("📭 Nenhuma licença cadastrada ainda.")
-    
-    st.markdown("---")
-    
-    # ===== ESTATÍSTICAS AVANÇADAS =====
-    with st.expander("📊 Estatísticas Avançadas"):
-        st.markdown("### 📊 Análise de Licenças")
-        
-        planos = {}
-        for l in licencas:
-            plano = l.get("plano", "Desconhecido")
-            planos[plano] = planos.get(plano, 0) + 1
-        
-        if planos:
-            df_planos = pd.DataFrame({
-                "Plano": list(planos.keys()),
-                "Quantidade": list(planos.values())
-            })
-            st.bar_chart(df_planos.set_index("Plano"))
-        
-        # Receita total
-        receita_total = sum(
-            sistema.dados["config"]["planos"].get(l.get("tipo", ""), {}).get("preco", 0)
-            for l in sistema.dados["licencas"].values()
-            if l.get("status") == "ativo"
-        )
-        
-        st.metric("💰 Receita Total (mensal)", f"R$ {receita_total:.2f}")
-
-
-# ============================================================
-# RENDERIZAR STATUS DO USUÁRIO
-# ============================================================
 def render_status_usuario():
-    """Renderiza o status do usuário no dashboard"""
-    
+    """Renderiza o status do usuário"""
     st.markdown("### 👤 Seu Status")
     
     col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("📋 Plano", st.session_state.get("plano", "Trial 7 dias"))
+    with col2:
+        st.metric("👑 Apoiador", "✅" if st.session_state.get("is_apoiador", False) else "❌")
+    with col3:
+        st.metric("🔑 Admin", "✅" if st.session_state.get("is_admin", False) else "❌")
+
+def render_dashboard():
+    """Renderiza o dashboard principal"""
+    
+    st.title("📊 Minerador de Produtos")
+    st.caption(f"📅 {datetime.now().strftime('%A, %d de %B de %Y - %H:%M')}")
+    
+    # Status
+    col_status1, col_status2, col_status3, col_status4 = st.columns(4)
+    with col_status1:
+        serper_key = st.secrets.get("SERPER_API_KEY", "")
+        status_api = "✅ Conectado" if serper_key else "❌ Desconectado"
+        st.metric("🔌 Google Shopping", status_api)
+    with col_status2:
+        st.metric("🎫 Créditos", f"10 / 10")
+    with col_status3:
+        st.metric("👤 Licença", f"{st.session_state.get('licenca_usuario', '')[:10]}...")
+    with col_status4:
+        st.metric("📊 Produtos", len(DADOS_COMPLETOS))
+    
+    st.markdown("---")
+    
+    st.markdown("## 📊 Visão Geral do Mês")
+    
+    col1, col2 = st.columns([2, 1])
     
     with col1:
-        st.metric(
-            "📋 Plano",
-            st.session_state.get("plano", "Trial 7 dias")
-        )
+        with st.container(border=True):
+            st.markdown("""
+            **❄️ Inverno no auge!** Casacos e blusas de lã são os mais procurados. 
+            Aproveite as férias para conteúdo de viagens e looks de inverno.
+            """)
+            
+            m1, m2, m3 = st.columns(3)
+            with m1:
+                st.metric("🔥 Produto em Alta", "casaco", delta="Moda")
+            with m2:
+                st.metric("📈 Crescimento Médio", "19.1%", delta="+2.3%")
+            with m3:
+                st.metric("🎯 Foco Principal", "Férias Escolares", delta="Alta demanda")
     
     with col2:
-        st.metric(
-            "👑 Apoiador",
-            "✅" if st.session_state.get("is_apoiador", False) else "❌"
+        with st.container(border=True):
+            st.markdown("### 🎯 Melhor Oportunidade")
+            
+            st.markdown("**Potencial de Mercado**")
+            potencial = 85
+            cor = "green" if potencial >= 70 else "orange" if potencial >= 40 else "red"
+            
+            st.markdown(f"""
+            <div style="background: #e0e0e0; border-radius: 10px; height: 20px; position: relative;">
+                <div style="background: {cor}; width: {potencial}%; height: 20px; border-radius: 10px; transition: width 0.5s;">
+                    <span style="position: absolute: right: 10px; top: 2px; color: black; font-weight: bold;">{potencial}%</span>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            st.caption("🟢 Produtos com status Alto potencial")
+            
+            col_s1, col_s2 = st.columns(2)
+            with col_s1:
+                st.success("✅ Alta Demanda")
+            with col_s2:
+                st.success("✅ Baixa Concorrência")
+    
+    st.markdown("---")
+    
+    # ===== TABELA DE PRODUTOS DO DIA =====
+    st.markdown("## 🎯 Sugestões de Produtos para Hoje")
+    st.caption(f"📊 Top 3 do dia | {BUSCAS_DIARIAS} buscas realizadas")
+    
+    produtos = gerar_sugestoes_diarias()
+    
+    if produtos:
+        dados_tabela = []
+        for item in produtos:
+            produto = item.get("Produto", "").lower()
+            dados_palavra = PALAVRAS_CHAVE_CAUDA_LONGA.get(produto, {})
+            palavra_chave = dados_palavra.get("palavra", f"{produto} tendência 2026")
+            
+            dados_tabela.append({
+                "Produto": item.get("Produto", ""),
+                "🔑 Palavra-chave": palavra_chave,
+                "Categoria": item.get("Categoria", "Geral"),
+                "Evento": item.get("Evento", "Tendência"),
+                "Potencial": item.get("Potencial", "🟡 Médio"),
+                "Score": item.get("Score", 0),
+                "Pins": item.get("Pins", "0"),
+                "Crescimento": item.get("Crescimento", "+0%"),
+                "Views TikTok": item.get("Views TikTok", "0M"),
+                "Buscas no Mês": item.get("Buscas no Mês", "0"),
+                "Resultados ML": item.get("Resultados ML", "0"),
+                "Tendência": item.get("Tendência", "➡️ Estável")
+            })
+        
+        df = pd.DataFrame(dados_tabela)
+        
+        df["Buscar na Shopee"] = df["Produto"].apply(
+            lambda x: f'<a href="https://shopee.com.br/search?keyword={quote(x)}" target="_blank" style="text-decoration: none;"><span style="background-color: #f0f0f0; color: #333; padding: 2px 10px; border-radius: 12px; font-size: 12px; border: 1px solid #ddd;">🔍 Buscar</span></a>'
+        )
+        
+        colunas = ["Produto", "🔑 Palavra-chave", "Categoria", "Evento", "Potencial", "Score", "Pins", "Crescimento", "Views TikTok", "Buscas no Mês", "Resultados ML", "Tendência", "Buscar na Shopee"]
+        df = df[colunas]
+        
+        st.markdown(
+            df.to_html(escape=False, index=False),
+            unsafe_allow_html=True
+        )
+        
+        st.caption(f"{BUSCAS_DIARIAS} de {BUSCAS_DIARIAS} consultas realizadas hoje")
+        
+        # ===== TOP 10 =====
+        st.markdown("---")
+        st.markdown("## 🏆 Top 10 Produtos em Tendência")
+        st.caption("Ranking completo baseado em score e dados de mercado")
+        
+        top10 = gerar_top10_produtos()
+        df_top10 = pd.DataFrame(top10)
+        colunas_top10 = ["Produto", "Categoria", "Evento", "Potencial", "Score", "Pins", "Crescimento", "Views TikTok", "Buscas no Mês", "Resultados ML", "Variação", "Tendência"]
+        df_top10 = df_top10[colunas_top10]
+        
+        st.markdown(
+            df_top10.to_html(escape=False, index=False),
+            unsafe_allow_html=True
         )
     
+    st.markdown("---")
+    
+    # ===== INSIGHTS ESTRATÉGICOS =====
+    st.markdown("## 💡 Insights Estratégicos - Top 3")
+    
+    if produtos:
+        top3 = sorted(produtos, key=lambda x: x.get("Score", 0), reverse=True)[:3]
+        cols = st.columns(3)
+        
+        for i, item in enumerate(top3):
+            with cols[i]:
+                produto = item.get("Produto", "").lower()
+                dados_palavra = PALAVRAS_CHAVE_CAUDA_LONGA.get(produto, {})
+                palavra_chave = dados_palavra.get("palavra", f"{produto} tendência 2026")
+                hashtags = dados_palavra.get("hashtags", ["#tendência", "#moda", "#2026"])
+                
+                with st.container(border=True):
+                    st.markdown(f"### 🥇 {item.get('Produto', '')}")
+                    st.markdown(f"""
+                    - **Categoria:** {item.get('Categoria', 'Geral')}
+                    - **Score:** {item.get('Score', 0)}/10
+                    - **Pins:** {item.get('Pins', '0')}
+                    - **Crescimento:** {item.get('Crescimento', '+0%')}
+                    - **Views TikTok:** {item.get('Views TikTok', '0M')}
+                    - **Tendência:** {item.get('Tendência', '➡️ Estável')}
+                    """)
+                    st.info(f"🔑 **Palavra-chave:** {palavra_chave}")
+                    
+                    st.markdown("**🏷️ Hashtags sugeridas:**")
+                    tags_html = " ".join([f'<span style="background-color: #e0e0e0; padding: 2px 8px; border-radius: 12px; margin: 2px; font-size: 12px;">{h}</span>' for h in hashtags])
+                    st.markdown(tags_html, unsafe_allow_html=True)
+                    
+                    st.success("🚀 **Ação:** Crie conteúdo sobre este produto!")
+    
+    st.markdown("---")
+    
+    st.markdown("## 📌 Legenda de Tendências")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.markdown("""
+        **🚀 Em alta**
+        - Crescimento acelerado
+        - Alta demanda
+        """)
+    with col2:
+        st.markdown("""
+        **📈 Crescendo**
+        - Demanda moderada
+        - Potencial de crescimento
+        """)
     with col3:
-        st.metric(
-            "🔑 Admin",
-            "✅" if st.session_state.get("is_admin", False) else "❌"
-        )
+        st.markdown("""
+        **➡️ Estável**
+        - Demanda consistente
+        - Mercado maduro
+        """)
     
-    if st.session_state.get("is_admin", False):
-        st.info("🔑 **Você tem acesso administrativo.** Use a aba 'Licenças' para gerenciar usuários.")
+    st.caption("Dados combinados: Shopee Trends + Google Shopping + TikTok")
+    
+    return df if 'df' in locals() else None
