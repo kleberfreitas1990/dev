@@ -313,7 +313,57 @@ class SistemaLicencas:
             adicionar_apoiador(usuario, email, plano)
         
         return codigo
+# Adicione no final do arquivo, antes dos exports
 
+def remover_apoiador(id_apoiador):
+    """Remove um apoiador pelo ID"""
+    apoiadores = carregar_apoiadores()
+    
+    if id_apoiador in apoiadores:
+        del apoiadores[id_apoiador]
+        
+        # Reorganiza as ordens
+        ordem = 1
+        for key in sorted(apoiadores.keys(), key=lambda x: apoiadores[x].get("ordem", 999)):
+            apoiadores[key]["ordem"] = ordem
+            ordem += 1
+        
+        with open(ARQUIVO_APOIADORES, 'w', encoding='utf-8') as f:
+            json.dump(apoiadores, f, ensure_ascii=False, indent=2)
+        
+        return True
+    
+    return False
+
+# No SistemaLicencas, adicione o método revogar_licenca se não existir:
+def revogar_licenca(self, codigo):
+    """Revoga uma licença"""
+    licenca = self.dados["licencas"].get(codigo)
+    if not licenca:
+        return {"erro": "Licença não encontrada"}
+    
+    if codigo == ADMIN_LICENCA:
+        return {"erro": "Não é possível revogar a licença de administrador"}
+    
+    licenca["status"] = "revogado"
+    self.salvar()
+    return {"sucesso": True, "codigo": codigo}
+
+# Atualize os exports
+__all__ = [
+    'DADOS_COMPLETOS',
+    'PALAVRAS_CHAVE_CAUDA_LONGA',
+    'calcular_score',
+    'gerar_top10_produtos',
+    'gerar_sugestoes_diarias',
+    'SistemaLicencas',
+    'carregar_apoiadores',
+    'adicionar_apoiador',
+    'remover_apoiador',
+    'BUSCAS_DIARIAS',
+    'LICENCA_TRIAL',
+    'ADMIN_LICENCA'
+]
 # ============================================================
 # EXPORTAÇÕES
 # ============================================================
