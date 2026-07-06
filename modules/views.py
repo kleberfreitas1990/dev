@@ -13,7 +13,15 @@ from modules.models import (
     adicionar_apoiador,
     remover_apoiador
 )
-from modules.serper import buscar_produtos_serper
+
+# Tenta importar serper, se falhar usa fallback
+try:
+    from modules.serper import buscar_produtos_serper
+    SERPER_DISPONIVEL = True
+except ImportError:
+    SERPER_DISPONIVEL = False
+    def buscar_produtos_serper(termo, limite=5):
+        return []
 
 # ============================================================
 # STATUS DO USUÁRIO
@@ -29,12 +37,6 @@ def render_status_usuario():
         st.metric("👑 Apoiador", "✅" if st.session_state.get("is_apoiador", False) else "❌")
     with col3:
         st.metric("🔑 Admin", "✅" if st.session_state.get("is_admin", False) else "❌")
-
-# ============================================================
-# APOIADORES EM OVAIS (REMOVIDO - SÓ NA TAB)
-# ============================================================
-# A função render_apoiadores_ovais foi removida do Dashboard
-# Agora só aparece na Tab "👑 Apoiadores"
 
 # ============================================================
 # DASHBOARD PRINCIPAL
@@ -228,7 +230,7 @@ def render_dashboard():
     return df if 'df' in locals() else None
 
 # ============================================================
-# PAINEL DE APOIADORES DETALHADO (COM OVAIS)
+# PAINEL DE APOIADORES DETALHADO
 # ============================================================
 def render_painel_apoiadores_detalhado():
     """Renderiza o painel de apoiadores detalhado (para a Tab)"""
