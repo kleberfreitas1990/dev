@@ -1,9 +1,9 @@
 import streamlit as st
 import warnings
 from datetime import datetime
-from urllib.parse import quote  # ← ADICIONADO
-import pandas as pd  # ← ADICIONADO
-import time  # ← ADICIONADO
+from urllib.parse import quote
+import pandas as pd
+import time
 
 # ============================================================
 # SUPRIMIR WARNINGS
@@ -24,7 +24,7 @@ st.set_page_config(
 # IMPORTAR MÓDULOS
 # ============================================================
 from modules.auth import verificar_login
-from modules.views import render_dashboard, render_status_usuario
+from modules.views import render_dashboard, render_status_usuario, render_painel_apoiadores
 from modules.models import gerar_top10_produtos, PALAVRAS_CHAVE_CAUDA_LONGA
 from modules.serper import buscar_produtos_serper
 
@@ -48,11 +48,12 @@ st.markdown("---")
 # ============================================================
 # TABS
 # ============================================================
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "📊 Dashboard",
     "📌 Sugestões de Produtos",
     "📅 Calendário de Conteúdo",
     "🎬 Criar Vídeo IA",
+    "👑 Apoiadores",
     "🔑 Licenças"
 ])
 
@@ -190,9 +191,15 @@ with tab4:
                     st.video("https://placehold.co/600x400/000000/FFFFFF?text=Video+Gerado+por+IA")
 
 # ============================================================
-# TAB 5: LICENÇAS (APENAS ADMIN)
+# TAB 5: APOIADORES
 # ============================================================
 with tab5:
+    render_painel_apoiadores()
+
+# ============================================================
+# TAB 6: LICENÇAS (APENAS ADMIN)
+# ============================================================
+with tab6:
     is_admin = st.session_state.get("is_admin", False)
     
     if not is_admin:
@@ -225,16 +232,24 @@ with tab5:
                 if not novo_usuario or not novo_email:
                     st.error("❌ Preencha nome e e-mail")
                 else:
+                    from modules.models import SistemaLicencas
+                    sistema = SistemaLicencas()
+                    codigo = sistema.gerar_licenca(novo_usuario, novo_email, plano, is_apoiador)
                     st.success("✅ Licença gerada com sucesso!")
-                    st.code(f"LIC-1001-2026", language="text")
+                    st.code(f"Código: {codigo}", language="text")
+                    if is_apoiador:
+                        st.success("👑 Usuário adicionado como apoiador!")
                     st.warning("⚠️ Guarde este código! Ele não será exibido novamente.")
         
         st.markdown("---")
         st.markdown("### 📋 Licenças Ativas")
         
+        sistema = SistemaLicencas()
+        licencas = sistema.dados["licencas"]
+        
         df_licencas = pd.DataFrame([
-            {"Código": "ADMIN-2026-KLEBER", "Usuário": "Administrador", "Plano": "Admin", "Status": "🟢 Ativo"},
-            {"Código": "TESTE-AFILIADO-2026", "Usuário": "Usuário Trial", "Plano": "Trial 7 dias", "Status": "🟢 Ativo"}
+            {"Código": codigo, "Usuário": dados.get("usuario"), "Plano": dados.get("plano"), "Status": "🟢 Ativo" if dados.get("status") == "ativo" else "🔴 Inativo"}
+            for codigo, dados in licencas.items()
         ])
         
         st.dataframe(df_licencas, use_container_width=True, hide_index=True)
