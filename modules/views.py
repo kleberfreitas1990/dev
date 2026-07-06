@@ -1,349 +1,300 @@
-import streamlit as st
-import pandas as pd
+# modules/views.py
+
+from flask import Blueprint, render_template, request, jsonify, session, redirect, url_for
+from .models import db, Usuario, Apoiador, Produto, Pedido, Configuracao
+from .auth import login_required, admin_required
+from .serper import SerperAPI
 from datetime import datetime
-from urllib.parse import quote
+import json
+import logging
 
-from modules.models import (
-    DADOS_COMPLETOS,
-    PALAVRAS_CHAVE_CAUDA_LONGA,
-    gerar_top10_produtos,
-    gerar_sugestoes_diarias,
-    BUSCAS_DIARIAS,
-    carregar_apoiadores,
-    adicionar_apoiador,
-    remover_apoiador,
-    SistemaLicencas
-)
-from modules.serper import buscar_produtos_serper
+# Criação do Blueprint
+main_bp = Blueprint('main', __name__)
 
-def render_apoiadores_ovais():
-    """Renderiza os apoiadores em formato de ovais coloridos"""
-    
-    apoiadores = carregar_apoiadores()
-    
-    if not apoiadores:
-        st.caption("📭 Nenhum apoiador ainda. Seja o primeiro!")
-        return
-    
-    # Ordena por ordem de entrada
-    apoiadores_ordenados = sorted(apoiadores.values(), key=lambda x: x.get("ordem", 999))
-    
-    # COR ÚNICA PARA TESTE - Depois você pode mudar para cores variadas
-    cor_unica = "#4ECDC4"
-    
-    st.markdown("### 👑 Apoiadores do Projeto")
-    
-    html_ovais = '<div style="display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0;">'
-    
-    for apoiador in apoiadores_ordenados:
-        nome = apoiador.get("nome", "Apoiador")
-        ordem = apoiador.get("ordem", 999)
-        coroinha = apoiador.get("coroinha", "👑")
-        
-        html_ovais += f'''
-        <div style="
-            background: {cor_unica};
-            color: white;
-            padding: 6px 16px;
-            border-radius: 50px;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 13px;
-            font-weight: 500;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            border: 2px solid rgba(255,255,255,0.3);
-            cursor: default;
-        ">
-            <span>{coroinha}</span>
-            <span>{nome}</span>
-            <span style="font-size: 10px; opacity: 0.8;">#{ordem}</span>
-        </div>
-        '''
-    
-    html_ovais += '</div>'
-    
-    st.markdown(html_ovais, unsafe_allow_html=True)
-    
-    # ===== ÁREA DE REMOÇÃO (APENAS ADMIN) =====
-    is_admin = st.session_state.get("is_admin", False)
-    
-    if is_admin and apoiadores_ordenados:
-        st.markdown("---")
-        st.markdown("#### 🗑️ Gerenciar Apoiadores")
-        
-        col1, col2 = st.columns([2, 1])
-        
-        with col1:
-            nomes_apoiadores = [a.get("nome") for a in apoiadores_ordenados]
-            apoiador_remover = st.selectbox(
-                "Selecione um apoiador para remover:",
-                options=nomes_apoiadores,
-                key="remover_apoiador_select"
-            )
-        
-        with col2:
-            if st.button("🗑️ Remover", use_container_width=True, key="remover_apoiador_btn"):
-                if apoiador_remover:
-                    chave_remover = None
-                    for k, v in carregar_apoiadores().items():
-                        if v.get("nome") == apoiador_remover:
-                            chave_remover = k
-                            break
-                    
-                    if chave_remover:
-                        if remover_apoiador(chave_remover):
-                            sistema = SistemaLicencas()
-                            for codigo, dados in sistema.dados["licencas"].items():
-                                if dados.get("usuario") == apoiador_remover:
-                                    sistema.revogar_licenca(codigo)
-                                    break
-                            st.success(f"✅ {apoiador_remover} removido com sucesso!")
-                            st.info("🔑 Licença revogada")
-                            st.rerun()
+# ============================================
+# LISTA DE APOIADORES (DADOS ESTÁTICOS)
+# ============================================
+APOIADORES = [
+    {'nome': 'Iago Coelho', 'numero': '#2'},
+    {'nome': 'Sandra Lopes', 'numero': '#3'},
+    {'nome': 'Kaiky', 'numero': '#4'},
+    {'nome': 'Vanessa Profiro', 'numero': '#5'},
+]
 
-def render_dashboard():
-    """Renderiza o dashboard principal"""
+# ============================================
+# ROTAS PRINCIPAIS
+# ============================================
+
+@main_bp.route('/')
+def index():
+    """Página inicial"""
+    produtos = Produto.query.filter_by(ativo=True).limit(6).all()
+    return render_template('index.html', produtos=produtos)
+
+
+@main_bp.route('/apoiadores')
+def apoiadores():
+    """Página de apoiadores"""
+    return render_template('apoiadores.html', apoiadores=APOIADORES)
+
+
+@main_bp.route('/sobre')
+def sobre():
+    """Página sobre"""
+    return render_template('sobre.html')
+
+
+@main_bp.route('/contato')
+def contato():
+    """Página de contato"""
+    return render_template('contato.html')
+
+
+@main_bp.route('/produtos')
+def listar_produtos():
+    """Listar todos os produtos"""
+    produtos = Produto.query.filter_by(ativo=True).all()
+    return render_template('produtos.html', produtos=produtos)
+
+
+@main_bp.route('/produto/<int:id>')
+def detalhe_produto(id):
+    """Detalhe de um produto específico"""
+    produto = Produto.query.get_or_404(id)
+    return render_template('produto_detalhe.html', produto=produto)
+
+
+@main_bp.route('/buscar')
+def buscar():
+    """Busca de produtos usando Serper API"""
+    query = request.args.get('q', '')
+    resultados = []
     
-    st.title("📊 Minerador de Produtos")
-    st.caption(f"📅 {datetime.now().strftime('%A, %d de %B de %Y - %H:%M')}")
+    if query:
+        serper = SerperAPI()
+        resultados = serper.buscar(query)
     
-    # Status compacto
-    col_status1, col_status2, col_status3, col_status4 = st.columns(4)
-    with col_status1:
-        serper_key = st.secrets.get("SERPER_API_KEY", "")
-        st.markdown("🔌 " + ("✅" if serper_key else "❌"))
-    with col_status2:
-        st.markdown("🎫 10/10")
-    with col_status3:
-        st.markdown(f"👤 {st.session_state.get('licenca_usuario', '')[:8]}...")
-    with col_status4:
-        if st.button("🚪 Sair", use_container_width=True):
-            for key in list(st.session_state.keys()):
-                del st.session_state[key]
-            st.rerun()
+    return render_template('busca.html', query=query, resultados=resultados)
+
+
+@main_bp.route('/carrinho')
+def carrinho():
+    """Página do carrinho de compras"""
+    return render_template('carrinho.html')
+
+
+@main_bp.route('/finalizar-pedido', methods=['GET', 'POST'])
+@login_required
+def finalizar_pedido():
+    """Finalizar compra"""
+    if request.method == 'POST':
+        # Lógica para finalizar pedido
+        return redirect(url_for('main.pedido_confirmado'))
     
-    st.markdown("---")
+    return render_template('finalizar_pedido.html')
+
+
+@main_bp.route('/pedido-confirmado')
+@login_required
+def pedido_confirmado():
+    """Página de confirmação de pedido"""
+    return render_template('pedido_confirmado.html')
+
+
+# ============================================
+# ROTAS ADMINISTRATIVAS
+# ============================================
+
+@main_bp.route('/admin')
+@admin_required
+def admin():
+    """Painel administrativo"""
+    return render_template('admin/dashboard.html')
+
+
+@main_bp.route('/admin/apoiadores')
+@admin_required
+def admin_apoiadores():
+    """Gerenciar apoiadores"""
+    # Aqui você pode buscar do banco de dados
+    return render_template('admin/apoiadores.html', apoiadores=APOIADORES)
+
+
+@main_bp.route('/admin/apoiadores/adicionar', methods=['POST'])
+@admin_required
+def admin_apoiador_adicionar():
+    """Adicionar novo apoiador"""
+    nome = request.form.get('nome')
+    numero = request.form.get('numero')
     
-    st.markdown("## 📊 Visão Geral do Mês")
-    
-    col1, col2 = st.columns([2, 1])
-    
-    with col1:
-        with st.container(border=True):
-            st.markdown("""
-            **❄️ Inverno no auge!** Casacos e blusas de lã são os mais procurados. 
-            Aproveite as férias para conteúdo de viagens e looks de inverno.
-            """)
-            
-            m1, m2, m3 = st.columns(3)
-            with m1:
-                st.metric("🔥 Produto em Alta", "casaco", delta="Moda")
-            with m2:
-                st.metric("📈 Crescimento Médio", "19.1%", delta="+2.3%")
-            with m3:
-                st.metric("🎯 Foco Principal", "Férias Escolares", delta="Alta demanda")
-    
-    with col2:
-        with st.container(border=True):
-            st.markdown("### 🎯 Melhor Oportunidade")
-            
-            st.markdown("**Potencial de Mercado**")
-            potencial = 85
-            cor = "green" if potencial >= 70 else "orange" if potencial >= 40 else "red"
-            
-            st.markdown(f"""
-            <div style="background: #e0e0e0; border-radius: 10px; height: 20px; position: relative;">
-                <div style="background: {cor}; width: {potencial}%; height: 20px; border-radius: 10px; transition: width 0.5s;">
-                    <span style="position: absolute: right: 10px; top: 2px; color: black; font-weight: bold;">{potencial}%</span>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            st.caption("🟢 Produtos com status Alto potencial")
-            
-            col_s1, col_s2 = st.columns(2)
-            with col_s1:
-                st.success("✅ Alta Demanda")
-            with col_s2:
-                st.success("✅ Baixa Concorrência")
-    
-    st.markdown("---")
-    
-    # ===== TABELA DE PRODUTOS DO DIA =====
-    st.markdown("## 🎯 Sugestões de Produtos para Hoje")
-    st.caption(f"📊 Top 3 do dia | {BUSCAS_DIARIAS} buscas realizadas")
-    
-    produtos = gerar_sugestoes_diarias()
-    
-    if produtos:
-        dados_tabela = []
-        for item in produtos:
-            produto = item.get("Produto", "").lower()
-            dados_palavra = PALAVRAS_CHAVE_CAUDA_LONGA.get(produto, {})
-            palavra_chave = dados_palavra.get("palavra", f"{produto} tendência 2026")
-            
-            dados_tabela.append({
-                "Produto": item.get("Produto", ""),
-                "🔑 Palavra-chave": palavra_chave,
-                "Categoria": item.get("Categoria", "Geral"),
-                "Evento": item.get("Evento", "Tendência"),
-                "Potencial": item.get("Potencial", "🟡 Médio"),
-                "Score": item.get("Score", 0),
-                "Pins": item.get("Pins", "0"),
-                "Crescimento": item.get("Crescimento", "+0%"),
-                "Views TikTok": item.get("Views TikTok", "0M"),
-                "Buscas no Mês": item.get("Buscas no Mês", "0"),
-                "Resultados ML": item.get("Resultados ML", "0"),
-                "Tendência": item.get("Tendência", "➡️ Estável")
-            })
+    if nome:
+        # Salvar no banco de dados
+        novo = Apoiador(nome=nome, numero=numero)
+        db.session.add(novo)
+        db.session.commit()
         
-        df = pd.DataFrame(dados_tabela)
-        
-        df["Buscar na Shopee"] = df["Produto"].apply(
-            lambda x: f'<a href="https://shopee.com.br/search?keyword={quote(x)}" target="_blank" style="text-decoration: none;"><span style="background-color: #f0f0f0; color: #333; padding: 2px 10px; border-radius: 12px; font-size: 12px; border: 1px solid #ddd;">🔍 Buscar</span></a>'
+        return jsonify({'success': True, 'message': 'Apoiador adicionado!'})
+    
+    return jsonify({'success': False, 'message': 'Nome é obrigatório'})
+
+
+@main_bp.route('/admin/apoiadores/remover/<int:id>', methods=['DELETE'])
+@admin_required
+def admin_apoiador_remover(id):
+    """Remover apoiador"""
+    apoiador = Apoiador.query.get_or_404(id)
+    db.session.delete(apoiador)
+    db.session.commit()
+    
+    return jsonify({'success': True, 'message': 'Apoiador removido!'})
+
+
+@main_bp.route('/admin/produtos')
+@admin_required
+def admin_produtos():
+    """Gerenciar produtos"""
+    produtos = Produto.query.all()
+    return render_template('admin/produtos.html', produtos=produtos)
+
+
+@main_bp.route('/admin/produtos/adicionar', methods=['POST'])
+@admin_required
+def admin_produto_adicionar():
+    """Adicionar novo produto"""
+    nome = request.form.get('nome')
+    preco = request.form.get('preco')
+    descricao = request.form.get('descricao')
+    
+    if nome and preco:
+        produto = Produto(
+            nome=nome,
+            preco=float(preco),
+            descricao=descricao,
+            ativo=True
         )
+        db.session.add(produto)
+        db.session.commit()
         
-        colunas = ["Produto", "🔑 Palavra-chave", "Categoria", "Evento", "Potencial", "Score", "Pins", "Crescimento", "Views TikTok", "Buscas no Mês", "Resultados ML", "Tendência", "Buscar na Shopee"]
-        df = df[colunas]
-        
-        st.markdown(
-            df.to_html(escape=False, index=False),
-            unsafe_allow_html=True
-        )
-        
-        st.caption(f"{BUSCAS_DIARIAS} de {BUSCAS_DIARIAS} consultas realizadas hoje")
-        
-        # ===== TOP 10 =====
-        st.markdown("---")
-        st.markdown("## 🏆 Top 10 Produtos em Tendência")
-        st.caption("Ranking completo baseado em score e dados de mercado")
-        
-        top10 = gerar_top10_produtos()
-        df_top10 = pd.DataFrame(top10)
-        colunas_top10 = ["Produto", "Categoria", "Evento", "Potencial", "Score", "Pins", "Crescimento", "Views TikTok", "Buscas no Mês", "Resultados ML", "Variação", "Tendência"]
-        df_top10 = df_top10[colunas_top10]
-        
-        st.markdown(
-            df_top10.to_html(escape=False, index=False),
-            unsafe_allow_html=True
-        )
+        return jsonify({'success': True, 'message': 'Produto adicionado!'})
     
-    st.markdown("---")
-    
-    # ===== INSIGHTS ESTRATÉGICOS =====
-    st.markdown("## 💡 Insights Estratégicos - Top 3")
-    
-    if produtos:
-        top3 = sorted(produtos, key=lambda x: x.get("Score", 0), reverse=True)[:3]
-        cols = st.columns(3)
-        
-        for i, item in enumerate(top3):
-            with cols[i]:
-                produto = item.get("Produto", "").lower()
-                dados_palavra = PALAVRAS_CHAVE_CAUDA_LONGA.get(produto, {})
-                palavra_chave = dados_palavra.get("palavra", f"{produto} tendência 2026")
-                hashtags = dados_palavra.get("hashtags", ["#tendência", "#moda", "#2026"])
-                
-                with st.container(border=True):
-                    st.markdown(f"### 🥇 {item.get('Produto', '')}")
-                    st.markdown(f"""
-                    - **Categoria:** {item.get('Categoria', 'Geral')}
-                    - **Score:** {item.get('Score', 0)}/10
-                    - **Pins:** {item.get('Pins', '0')}
-                    - **Crescimento:** {item.get('Crescimento', '+0%')}
-                    - **Views TikTok:** {item.get('Views TikTok', '0M')}
-                    - **Tendência:** {item.get('Tendência', '➡️ Estável')}
-                    """)
-                    st.info(f"🔑 **Palavra-chave:** {palavra_chave}")
-                    
-                    st.markdown("**🏷️ Hashtags sugeridas:**")
-                    tags_html = " ".join([f'<span style="background-color: #e0e0e0; padding: 2px 8px; border-radius: 12px; margin: 2px; font-size: 12px;">{h}</span>' for h in hashtags])
-                    st.markdown(tags_html, unsafe_allow_html=True)
-                    
-                    st.success("🚀 **Ação:** Crie conteúdo sobre este produto!")
-    
-    st.markdown("---")
-    
-    # ===== APOIADORES EM OVAIS COLORIDOS =====
-    render_apoiadores_ovais()
-    
-    st.markdown("---")
-    
-    st.markdown("## 📌 Legenda de Tendências")
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.markdown("""
-        **🚀 Em alta**
-        - Crescimento acelerado
-        - Alta demanda
-        """)
-    with col2:
-        st.markdown("""
-        **📈 Crescendo**
-        - Demanda moderada
-        - Potencial de crescimento
-        """)
-    with col3:
-        st.markdown("""
-        **➡️ Estável**
-        - Demanda consistente
-        - Mercado maduro
-        """)
-    
-    st.caption("Dados combinados: Shopee Trends + Google Shopping + TikTok")
-    
-    return df if 'df' in locals() else None
+    return jsonify({'success': False, 'message': 'Dados incompletos'})
 
-def render_painel_apoiadores_detalhado():
-    """Renderiza o painel de apoiadores detalhado (para a Tab)"""
-    
-    st.markdown("## 👑 Gerenciar Apoiadores")
-    st.caption("Lista completa de apoiadores do projeto")
-    
-    apoiadores = carregar_apoiadores()
-    
-    if not apoiadores:
-        st.info("📭 Nenhum apoiador cadastrado ainda.")
-    else:
-        apoiadores_ordenados = sorted(apoiadores.values(), key=lambda x: x.get("ordem", 999))
+
+@main_bp.route('/admin/configuracoes', methods=['GET', 'POST'])
+@admin_required
+def admin_configuracoes():
+    """Configurações do sistema"""
+    if request.method == 'POST':
+        config = Configuracao.query.first()
+        if not config:
+            config = Configuracao()
         
-        cols = st.columns(4)
+        config.nome_site = request.form.get('nome_site')
+        config.email_contato = request.form.get('email_contato')
         
-        for i, apoiador in enumerate(apoiadores_ordenados):
-            with cols[i % 4]:
-                with st.container(border=True):
-                    cor = apoiador.get("cor", "#4ECDC4")
-                    
-                    st.markdown(f"""
-                    <div style="text-align: center; padding: 8px 0;">
-                        <span style="font-size: 32px;">{apoiador.get('coroinha', '👑')}</span>
-                        <h4 style="color: {cor}; margin: 2px 0; font-size: 16px;">{apoiador.get('nome')}</h4>
-                        <p style="color: #888; font-size: 11px; margin: 0;">#{apoiador.get('ordem', 999)} • Apoiador</p>
-                        <p style="color: #666; font-size: 10px; margin: 0;">{apoiador.get('plano', 'Apoiador')}</p>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                    st.caption(f"📅 {apoiador.get('data_entrada', '2026-07-01')}")
+        db.session.add(config)
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'Configurações salvas!'})
     
-    st.markdown("---")
+    config = Configuracao.query.first()
+    return render_template('admin/configuracoes.html', config=config)
+
+
+# ============================================
+# ROTAS DE USUÁRIO
+# ============================================
+
+@main_bp.route('/perfil')
+@login_required
+def perfil():
+    """Perfil do usuário"""
+    return render_template('perfil.html')
+
+
+@main_bp.route('/perfil/editar', methods=['POST'])
+@login_required
+def perfil_editar():
+    """Editar perfil do usuário"""
+    usuario = Usuario.query.get(session['usuario_id'])
     
-    if st.session_state.get("is_admin", False):
-        with st.expander("➕ Adicionar Apoiador", expanded=False):
-            st.markdown("### Adicionar Novo Apoiador")
-            
-            col1, col2 = st.columns(2)
-            with col1:
-                nome_apo = st.text_input("Nome do Apoiador", placeholder="Ex: João Silva", key="apo_nome")
-                email_apo = st.text_input("E-mail", placeholder="joao@email.com", key="apo_email")
-            with col2:
-                plano_apo = st.selectbox("Plano", ["Fundador", "Apoiador", "Premium"], key="apo_plano")
-            
-            if st.button("👑 Adicionar Apoiador", use_container_width=True, key="apo_btn"):
-                if not nome_apo or not email_apo:
-                    st.error("❌ Preencha nome e e-mail")
-                else:
-                    novo = adicionar_apoiador(nome_apo, email_apo, plano_apo)
-                    st.success(f"✅ {nome_apo} adicionado como apoiador!")
-                    st.info(f"📋 Ordem: #{novo.get('ordem')}")
-                    st.rerun()
+    usuario.nome = request.form.get('nome', usuario.nome)
+    usuario.email = request.form.get('email', usuario.email)
+    usuario.telefone = request.form.get('telefone', usuario.telefone)
+    
+    db.session.commit()
+    
+    return jsonify({'success': True, 'message': 'Perfil atualizado!'})
+
+
+@main_bp.route('/meus-pedidos')
+@login_required
+def meus_pedidos():
+    """Listar pedidos do usuário"""
+    pedidos = Pedido.query.filter_by(usuario_id=session['usuario_id']).all()
+    return render_template('meus_pedidos.html', pedidos=pedidos)
+
+
+# ============================================
+# ERROR HANDLERS
+# ============================================
+
+@main_bp.app_errorhandler(404)
+def page_not_found(e):
+    return render_template('errors/404.html'), 404
+
+
+@main_bp.app_errorhandler(500)
+def internal_server_error(e):
+    return render_template('errors/500.html'), 500
+
+
+@main_bp.app_errorhandler(403)
+def forbidden(e):
+    return render_template('errors/403.html'), 403
+
+
+# ============================================
+# CONTEXT PROCESSORS
+# ============================================
+
+@main_bp.context_processor
+def inject_config():
+    """Injetar configurações em todos os templates"""
+    config = Configuracao.query.first()
+    return {
+        'site_nome': config.nome_site if config else 'Meu Site',
+        'site_email': config.email_contato if config else 'contato@site.com',
+        'ano_atual': datetime.now().year
+    }
+
+
+@main_bp.context_processor
+def inject_carrinho_count():
+    """Injetar contagem do carrinho"""
+    carrinho = session.get('carrinho', [])
+    return {'carrinho_count': len(carrinho)}
+
+
+# ============================================
+# FUNÇÕES AUXILIARES
+# ============================================
+
+def get_apoiadores():
+    """Retorna lista de apoiadores"""
+    # Se tiver no banco, busca do banco
+    # apoiadores = Apoiador.query.all()
+    # return [{'nome': a.nome, 'numero': a.numero} for a in apoiadores]
+    
+    # Senão, usa a lista estática
+    return APOIADORES
+
+
+def get_produtos_destaque():
+    """Retorna produtos em destaque"""
+    return Produto.query.filter_by(destaque=True, ativo=True).limit(6).all()
+
+
+def get_categorias():
+    """Retorna lista de categorias"""
+    return ['Eletrônicos', 'Roupas', 'Livros', 'Casa', 'Esportes']
