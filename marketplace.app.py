@@ -21,16 +21,29 @@ st.set_page_config(
 )
 
 # ============================================================
-# IMPORTAR MÓDULOS (IMPORTAÇÕES DIRETAS)
+# IMPORTAR MÓDULOS
 # ============================================================
 from modules.auth import verificar_login
-from modules.views import render_dashboard, render_painel_apoiadores_detalhado
-from modules.models import gerar_top10_produtos, PALAVRAS_CHAVE_CAUDA_LONGA, SistemaLicencas
+from modules.views import render_dashboard, render_status_usuario, render_painel_apoiadores_detalhado
+from modules.models import gerar_top10_produtos, PALAVRAS_CHAVE_CAUDA_LONGA
+from modules.serper import buscar_produtos_serper
 
 # ============================================================
 # VERIFICAR LOGIN
 # ============================================================
 licenca = verificar_login()
+
+# ============================================================
+# TITULO
+# ============================================================
+st.title("📊 Minerador de Produtos")
+st.caption(f"📅 {datetime.now().strftime('%A, %d de %B de %Y - %H:%M')}")
+
+# ============================================================
+# STATUS DO USUÁRIO
+# ============================================================
+render_status_usuario()
+st.markdown("---")
 
 # ============================================================
 # TABS
@@ -219,6 +232,7 @@ with tab6:
                 if not novo_usuario or not novo_email:
                     st.error("❌ Preencha nome e e-mail")
                 else:
+                    from modules.models import SistemaLicencas
                     sistema = SistemaLicencas()
                     codigo = sistema.gerar_licenca(novo_usuario, novo_email, plano, is_apoiador)
                     st.success("✅ Licença gerada com sucesso!")
@@ -230,6 +244,7 @@ with tab6:
         st.markdown("---")
         st.markdown("### 📋 Licenças Ativas")
         
+        from modules.models import SistemaLicencas
         sistema = SistemaLicencas()
         licencas = sistema.dados["licencas"]
         
