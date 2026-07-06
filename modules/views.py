@@ -28,7 +28,7 @@ def render_apoiadores_ovais():
     # Ordena por ordem de entrada
     apoiadores_ordenados = sorted(apoiadores.values(), key=lambda x: x.get("ordem", 999))
     
-    # Cores pré-definidas (as mesmas que você já tem)
+    # Cores pré-definidas
     cores = [
         "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", 
         "#FFEAA7", "#DDA0DD", "#FF8A5C", "#A29BFE",
@@ -82,7 +82,6 @@ def render_apoiadores_ovais():
         col1, col2 = st.columns([2, 1])
         
         with col1:
-            # Lista de apoiadores para remover
             nomes_apoiadores = [a.get("nome") for a in apoiadores_ordenados]
             apoiador_remover = st.selectbox(
                 "Selecione um apoiador para remover:",
@@ -93,7 +92,6 @@ def render_apoiadores_ovais():
         with col2:
             if st.button("🗑️ Remover", use_container_width=True, key="remover_apoiador_btn"):
                 if apoiador_remover:
-                    # Encontra a chave do apoiador
                     chave_remover = None
                     for k, v in carregar_apoiadores().items():
                         if v.get("nome") == apoiador_remover:
@@ -101,9 +99,7 @@ def render_apoiadores_ovais():
                             break
                     
                     if chave_remover:
-                        # Remove o apoiador
                         if remover_apoiador(chave_remover):
-                            # Revoga a licença associada
                             sistema = SistemaLicencas()
                             for codigo, dados in sistema.dados["licencas"].items():
                                 if dados.get("usuario") == apoiador_remover:
@@ -317,10 +313,8 @@ def render_painel_apoiadores_detalhado():
     if not apoiadores:
         st.info("📭 Nenhum apoiador cadastrado ainda.")
     else:
-        # Ordena por ordem de entrada
         apoiadores_ordenados = sorted(apoiadores.values(), key=lambda x: x.get("ordem", 999))
         
-        # Exibe em cards (4 por linha)
         cols = st.columns(4)
         
         for i, apoiador in enumerate(apoiadores_ordenados):
@@ -341,7 +335,6 @@ def render_painel_apoiadores_detalhado():
     
     st.markdown("---")
     
-    # ===== ADICIONAR APOIADOR (APENAS ADMIN) =====
     if st.session_state.get("is_admin", False):
         with st.expander("➕ Adicionar Apoiador", expanded=False):
             st.markdown("### Adicionar Novo Apoiador")
