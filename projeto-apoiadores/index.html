@@ -30,11 +30,21 @@
             width: 100%;
         }
 
-        .badges-wrapper {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            align-items: center;
+        .titulo {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 16px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        td {
+            padding: 6px 8px;
+            vertical-align: middle;
         }
 
         .badge {
@@ -61,37 +71,42 @@
 </head>
 <body>
     <div class="container">
-        <div class="badges-wrapper">
-            
-            <!-- BADGE 1 - IAGO -->
-            <div class="badge">
-                <span>👑</span>
-                <span>Iago Coelho</span>
-                <span class="numero">#2</span>
-            </div>
+        <div class="titulo">👑 Apoiadores</div>
 
-            <!-- BADGE 2 - SANDRA -->
-            <div class="badge">
-                <span>👑</span>
-                <span>Sandra Lopes</span>
-                <span class="numero">#3</span>
-            </div>
-
-            <!-- BADGE 3 - KAIKY -->
-            <div class="badge">
-                <span>👑</span>
-                <span>Kaiky</span>
-                <span class="numero">#4</span>
-            </div>
-
-            <!-- BADGE 4 - VANESSA -->
-            <div class="badge">
-                <span>👑</span>
-                <span>Vanessa Profiro</span>
-                <span class="numero">#5</span>
-            </div>
-
-        </div>
+        <table>
+            <tr>
+                <td>
+                    <div class="badge">
+                        <span>👑</span>
+                        <span>Iago Coelho</span>
+                        <span class="numero">#2</span>
+                    </div>
+                </td>
+                <td>
+                    <div class="badge">
+                        <span>👑</span>
+                        <span>Sandra Lopes</span>
+                        <span class="numero">#3</span>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="badge">
+                        <span>👑</span>
+                        <span>Kaiky</span>
+                        <span class="numero">#4</span>
+                    </div>
+                </td>
+                <td>
+                    <div class="badge">
+                        <span>👑</span>
+                        <span>Vanessa Profiro</span>
+                        <span class="numero">#5</span>
+                    </div>
+                </td>
+            </tr>
+        </table>
     </div>
 </body>
 </html>
