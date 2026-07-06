@@ -24,19 +24,68 @@ except ImportError:
         return []
 
 # ============================================================
-# STATUS DO USUÁRIO
+# STATUS DO USUÁRIO (REMOVIDO)
 # ============================================================
 def render_status_usuario():
-    """Renderiza o status do usuário"""
-    st.markdown("### 👤 Seu Status")
+    """Renderiza o status do usuário - REMOVIDO"""
+    pass
+
+# ============================================================
+# APOIADORES EM CARDS PEQUENOS
+# ============================================================
+def render_apoiadores_compactos():
+    """Renderiza os apoiadores em cards pequenos"""
     
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric("📋 Plano", st.session_state.get("plano", "Trial 7 dias"))
-    with col2:
-        st.metric("👑 Apoiador", "✅" if st.session_state.get("is_apoiador", False) else "❌")
-    with col3:
-        st.metric("🔑 Admin", "✅" if st.session_state.get("is_admin", False) else "❌")
+    apoiadores = carregar_apoiadores()
+    
+    if not apoiadores:
+        return
+    
+    # Ordena por ordem de entrada
+    apoiadores_ordenados = sorted(apoiadores.values(), key=lambda x: x.get("ordem", 999))
+    
+    # Cores para os cards
+    cores = [
+        "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", 
+        "#FFEAA7", "#DDA0DD", "#FF8A5C", "#A29BFE",
+        "#FD79A8", "#00B894", "#E17055", "#6C5CE7"
+    ]
+    
+    # Exibe em cards pequenos (6 por linha)
+    cols = st.columns(6)
+    
+    for i, apoiador in enumerate(apoiadores_ordenados):
+        with cols[i % 6]:
+            cor = cores[i % len(cores)]
+            nome = apoiador.get("nome", "Apoiador")
+            ordem = apoiador.get("ordem", 999)
+            coroinha = apoiador.get("coroinha", "👑")
+            
+            with st.container(border=True):
+                st.markdown(f"""
+                <div style="
+                    background: {cor};
+                    color: white;
+                    padding: 4px 8px;
+                    border-radius: 6px 6px 0 0;
+                    margin: -12px -12px 6px -12px;
+                    text-align: center;
+                    font-size: 12px;
+                    font-weight: bold;
+                ">
+                    {coroinha} {nome}
+                </div>
+                """, unsafe_allow_html=True)
+                
+                st.markdown(f"<p style='text-align: center; font-size: 11px; margin: 0;'>#{ordem}</p>", unsafe_allow_html=True)
+                
+                # Verifica repasse
+                depois = sum(1 for k, d in apoiadores.items() if d.get("ordem", 999) > ordem)
+                
+                if depois > 0 and apoiador.get("repasse_ativo", True):
+                    st.markdown(f"<p style='text-align: center; font-size: 10px; color: green; margin: 0;'>⬇️ R${depois * 5.00:.0f}</p>", unsafe_allow_html=True)
+                else:
+                    st.markdown(f"<p style='text-align: center; font-size: 10px; color: #888; margin: 0;'>⏳</p>", unsafe_allow_html=True)
 
 # ============================================================
 # DASHBOARD PRINCIPAL
@@ -47,7 +96,7 @@ def render_dashboard():
     st.title("📊 Minerador de Produtos")
     st.caption(f"📅 {datetime.now().strftime('%A, %d de %B de %Y - %H:%M')}")
     
-    # Status compacto
+    # Status compacto (sem os badges de admin/apoiador)
     col_status1, col_status2, col_status3, col_status4 = st.columns(4)
     with col_status1:
         serper_key = st.secrets.get("SERPER_API_KEY", "")
@@ -204,6 +253,11 @@ def render_dashboard():
     
     st.markdown("---")
     
+    # ===== APOIADORES COMPACTOS (ABAIXO DOS INSIGHTS) =====
+    render_apoiadores_compactos()
+    
+    st.markdown("---")
+    
     st.markdown("## 📌 Legenda de Tendências")
     col1, col2, col3 = st.columns(3)
     with col1:
@@ -230,13 +284,13 @@ def render_dashboard():
     return df if 'df' in locals() else None
 
 # ============================================================
-# PAINEL DE APOIADORES DETALHADO (COM CARDS)
+# PAINEL DE APOIADORES DETALHADO (TAB)
 # ============================================================
 def render_painel_apoiadores_detalhado():
     """Renderiza o painel de apoiadores detalhado (para a Tab)"""
     
-    st.markdown("## 👑 Apoiadores do Projeto")
-    st.caption("Quem acreditou no projeto desde o início")
+    st.markdown("## 👑 Gerenciar Apoiadores")
+    st.caption("Lista completa de apoiadores do projeto")
     
     apoiadores = carregar_apoiadores()
     
@@ -254,7 +308,7 @@ def render_painel_apoiadores_detalhado():
         "#FD79A8", "#00B894", "#E17055", "#6C5CE7"
     ]
     
-    # Exibe os apoiadores em cards
+    # Exibe os apoiadores em cards (4 por linha)
     cols = st.columns(4)
     
     for i, apoiador in enumerate(apoiadores_ordenados):
@@ -342,7 +396,7 @@ def render_painel_apoiadores_detalhado():
     
     # ===== REMOVER APOIADOR (APENAS ADMIN) =====
     if st.session_state.get("is_admin", False) and apoiadores_ordenados:
-        st.markdown("### 🗑️ Remover Apoiador (Alternativo)")
+        st.markdown("### 🗑️ Remover Apoiador")
         
         col1, col2 = st.columns([2, 1])
         
