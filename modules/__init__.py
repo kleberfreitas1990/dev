@@ -1,7 +1,5 @@
-# modules/__init__.py
+# Torna a pasta 'modules' um pacote Python
+# Este arquivo está vazio para evitar imports circulares
+# Os módulos são importados diretamente nos arquivos que precisam deles
 
-from .auth import *
-from .models import *
-from .serper import *
-
-__all__ = ['auth', 'models', 'serper']
+__all__ = []
