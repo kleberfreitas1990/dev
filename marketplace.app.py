@@ -8,6 +8,8 @@ import random
 import json
 import os
 import warnings
+import base64
+from io import BytesIO
 
 # ============================================================
 # SUPRIMIR WARNINGS
@@ -42,7 +44,8 @@ def carregar_secrets():
         return {
             "licenca_acesso": st.secrets.get("LICENCA_ACESSO", "TESTE-AFILIADO-2026"),
             "serpapi_key": st.secrets.get("SERPAPI_KEY", ""),
-            "apify_token": st.secrets.get("APIFY_TOKEN", ""),
+            "pinterest_token": st.secrets.get("PINTEREST_ACCESS_TOKEN", ""),
+            "google_trends_proxy": st.secrets.get("GOOGLE_TRENDS_PROXY", ""),
             "snapgen_api_key": st.secrets.get("SNAPGEN_API_KEY", ""),
             "snapgen_email": st.secrets.get("SNAPGEN_EMAIL", ""),
             "snapgen_password": st.secrets.get("SNAPGEN_PASSWORD", "")
@@ -51,7 +54,8 @@ def carregar_secrets():
         return {
             "licenca_acesso": "TESTE-AFILIADO-2026",
             "serpapi_key": "",
-            "apify_token": "",
+            "pinterest_token": "",
+            "google_trends_proxy": "",
             "snapgen_api_key": "",
             "snapgen_email": "",
             "snapgen_password": ""
@@ -60,13 +64,14 @@ def carregar_secrets():
 KEYS = carregar_secrets()
 LICENCA_ACESSO = KEYS["licenca_acesso"]
 SERPAPI_KEY = KEYS["serpapi_key"]
-APIFY_TOKEN = KEYS["apify_token"]
+PINTEREST_TOKEN = KEYS["pinterest_token"]
+GOOGLE_TRENDS_PROXY = KEYS["google_trends_proxy"]
 SNAPGEN_API_KEY = KEYS["snapgen_api_key"]
 SNAPGEN_EMAIL = KEYS["snapgen_email"]
 SNAPGEN_PASSWORD = KEYS["snapgen_password"]
 
 # ============================================================
-# DADOS COMPLETOS
+# DADOS COMPLETOS (ATUAIS + HISTÓRICOS)
 # ============================================================
 DADOS_COMPLETOS = {
     "casaco": {
@@ -348,6 +353,105 @@ PALAVRAS_CHAVE_CAUDA_LONGA = {
 }
 
 # ============================================================
+# INTEGRAÇÃO COM APIs REAIS
+# ============================================================
+
+# CLASSE PINTEREST API
+class PinterestAPI:
+    def __init__(self):
+        self.token = PINTEREST_TOKEN
+        self.base_url = "https://api.pinterest.com/v5"
+        self.headers = {"Authorization": f"Bearer {self.token}"}
+    
+    def buscar_pins(self, termo, limite=10):
+        if not self.token:
+            return []
+        
+        try:
+            url = f"{self.base_url}/pins/search"
+            params = {"query": termo, "limit": limite}
+            response = requests.get(url, headers=self.headers, params=params, timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                return data.get("items", [])
+            return []
+        except Exception as e:
+            return []
+    
+    def contar_pins(self, termo):
+        pins = self.buscar_pins(termo, 1)
+        # Estima total baseado nos resultados
+        return len(pins) * 100 if pins else 0
+
+# CLASSE GOOGLE TRENDS
+class GoogleTrendsAPI:
+    def __init__(self):
+        self.pytrends = None
+        try:
+            from pytrends.request import TrendReq
+            self.pytrends = TrendReq(hl='pt-BR', tz=-180)
+        except ImportError:
+            pass
+        except Exception as e:
+            pass
+    
+    def buscar_interesse(self, termo, timeframe='now 7-d'):
+        if not self.pytrends:
+            return {"media": 0, "pico": 0, "tendencia": "Sem dados"}
+        
+        try:
+            self.pytrends.build_payload(
+                kw_list=[termo],
+                cat=0,
+                timeframe=timeframe,
+                geo='BR'
+            )
+            dados = self.pytrends.interest_over_time()
+            
+            if dados.empty:
+                return {"media": 0, "pico": 0, "tendencia": "Sem dados"}
+            
+            if 'isPartial' in dados.columns:
+                dados = dados.drop('isPartial', axis=1)
+            
+            return {
+                "media": round(dados[termo].mean(), 1),
+                "pico": int(dados[termo].max()),
+                "tendencia": "📈 Em alta" if dados[termo].iloc[-1] > dados[termo].iloc[0] else "➡️ Estável"
+            }
+        except Exception as e:
+            return {"media": 0, "pico": 0, "tendencia": "Sem dados"}
+
+# CLASSE GOOGLE SHOPPING (SERPAPI)
+class GoogleShoppingAPI:
+    def __init__(self):
+        self.api_key = SERPAPI_KEY
+        self.base_url = "https://serpapi.com/search.json"
+    
+    def buscar_produtos(self, termo, limite=3):
+        if not self.api_key:
+            return []
+        
+        try:
+            params = {
+                "q": termo,
+                "tbm": "shop",
+                "api_key": self.api_key,
+                "gl": "br",
+                "hl": "pt",
+                "num": limite
+            }
+            response = requests.get(self.base_url, params=params, timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                return data.get("shopping_results", [])
+            return []
+        except Exception as e:
+            return []
+
+# ============================================================
 # SISTEMA DE CRÉDITOS DIÁRIOS
 # ============================================================
 class CreditosDiarios:
@@ -499,124 +603,6 @@ class GaleriaVideos:
     def remover(self, video_id):
         self.videos = [v for v in self.videos if v.get('id') != video_id]
         self.salvar()
-
-# ============================================================
-# FUNÇÕES DE BUSCA E SCORE
-# ============================================================
-def buscar_produtos_serpapi(termo, limite=3):
-    """Busca produtos no Google Shopping via SerpApi"""
-    if not SERPAPI_KEY:
-        return []
-    
-    try:
-        url = "https://serpapi.com/search.json"
-        params = {
-            "q": termo,
-            "tbm": "shop",
-            "api_key": SERPAPI_KEY,
-            "gl": "br",
-            "hl": "pt",
-            "num": limite
-        }
-        resp = requests.get(url, params=params, timeout=15)
-        data = resp.json()
-        
-        produtos = []
-        for item in data.get("shopping_results", [])[:limite]:
-            produtos.append({
-                "nome": item.get("title", ""),
-                "loja": item.get("source", ""),
-                "link": item.get("link", ""),
-                "avaliacao": item.get("rating", None)
-            })
-        return produtos
-    except Exception as e:
-        return []
-
-def calcular_score(produto, dados):
-    score = 0
-    
-    if dados.get("pins", 0) > 2000:
-        score += 3
-    elif dados.get("pins", 0) > 1000:
-        score += 2
-    else:
-        score += 1
-    
-    if dados.get("crescimento", 0) > 30:
-        score += 2
-    elif dados.get("crescimento", 0) > 15:
-        score += 1
-    
-    if dados.get("views_tiktok", 0) > 3:
-        score += 2
-    elif dados.get("views_tiktok", 0) > 1:
-        score += 1
-    
-    if dados.get("buscas_mes", 0) > 10000:
-        score += 2
-    elif dados.get("buscas_mes", 0) > 5000:
-        score += 1
-    
-    if dados.get("variacao_yoy", 0) > 15:
-        score += 1
-    
-    return min(score, 10)
-
-def gerar_top10_produtos():
-    resultados = []
-    
-    for produto, dados in DADOS_COMPLETOS.items():
-        produtos_serp = buscar_produtos_serpapi(produto, 2)
-        
-        score = calcular_score(produto, dados)
-        
-        if score >= 8:
-            potencial = "🟢 Alto"
-        elif score >= 5:
-            potencial = "🟡 Médio"
-        else:
-            potencial = "🔴 Baixo"
-        
-        resultado = {
-            "Produto": produto,
-            "Categoria": dados.get("categoria", "Geral"),
-            "Evento": dados.get("evento", "Tendência"),
-            "Potencial": potencial,
-            "Score": score,
-            "Pins": f"{dados.get('pins', 0):,}",
-            "Crescimento": f"+{dados.get('crescimento', 0)}%",
-            "Views TikTok": f"{dados.get('views_tiktok', 0)}M",
-            "Buscas no Mês": f"{dados.get('buscas_mes', 0):,}",
-            "Resultados ML": f"{dados.get('resultados_ml', 0):,}",
-            "Pins (YoY)": f"{dados.get('pins_2025', 0):,}",
-            "Variação YoY": f"{dados.get('variacao_yoy', 0):.1f}%",
-            "Tendência YoY": dados.get('tendencia_yoy', '➡️ Estável'),
-            "Produtos Serp": len(produtos_serp)
-        }
-        
-        resultados.append(resultado)
-    
-    resultados = sorted(resultados, key=lambda x: x["Score"], reverse=True)
-    return resultados[:10]
-
-def gerar_sugestoes_diarias():
-    top10 = gerar_top10_produtos()
-    selecionados = top10[:BUSCAS_DIARIAS]
-    
-    resultados = []
-    for item in selecionados:
-        termo = item["Produto"]
-        produtos_serp = buscar_produtos_serpapi(termo, 3)
-        
-        item["Produtos Serp"] = len(produtos_serp)
-        
-        if len(produtos_serp) > 0:
-            item["Score"] = min(item["Score"] + len(produtos_serp), 10)
-        
-        resultados.append(item)
-    
-    return resultados
 
 # ============================================================
 # GERADOR DE VÍDEO COM SNAPGEN AI
@@ -784,6 +770,124 @@ class SnapGenVideoGenerator:
         return video_info
 
 # ============================================================
+# FUNÇÕES DE BUSCA E SCORE
+# ============================================================
+def buscar_produtos_serpapi(termo, limite=3):
+    """Busca produtos no Google Shopping via SerpApi"""
+    if not SERPAPI_KEY:
+        return []
+    
+    try:
+        url = "https://serpapi.com/search.json"
+        params = {
+            "q": termo,
+            "tbm": "shop",
+            "api_key": SERPAPI_KEY,
+            "gl": "br",
+            "hl": "pt",
+            "num": limite
+        }
+        resp = requests.get(url, params=params, timeout=15)
+        data = resp.json()
+        
+        produtos = []
+        for item in data.get("shopping_results", [])[:limite]:
+            produtos.append({
+                "nome": item.get("title", ""),
+                "loja": item.get("source", ""),
+                "link": item.get("link", ""),
+                "avaliacao": item.get("rating", None)
+            })
+        return produtos
+    except Exception as e:
+        return []
+
+def calcular_score(produto, dados):
+    score = 0
+    
+    if dados.get("pins", 0) > 2000:
+        score += 3
+    elif dados.get("pins", 0) > 1000:
+        score += 2
+    else:
+        score += 1
+    
+    if dados.get("crescimento", 0) > 30:
+        score += 2
+    elif dados.get("crescimento", 0) > 15:
+        score += 1
+    
+    if dados.get("views_tiktok", 0) > 3:
+        score += 2
+    elif dados.get("views_tiktok", 0) > 1:
+        score += 1
+    
+    if dados.get("buscas_mes", 0) > 10000:
+        score += 2
+    elif dados.get("buscas_mes", 0) > 5000:
+        score += 1
+    
+    if dados.get("variacao_yoy", 0) > 15:
+        score += 1
+    
+    return min(score, 10)
+
+def gerar_top10_produtos():
+    resultados = []
+    
+    for produto, dados in DADOS_COMPLETOS.items():
+        produtos_serp = buscar_produtos_serpapi(produto, 2)
+        
+        score = calcular_score(produto, dados)
+        
+        if score >= 8:
+            potencial = "🟢 Alto"
+        elif score >= 5:
+            potencial = "🟡 Médio"
+        else:
+            potencial = "🔴 Baixo"
+        
+        resultado = {
+            "Produto": produto,
+            "Categoria": dados.get("categoria", "Geral"),
+            "Evento": dados.get("evento", "Tendência"),
+            "Potencial": potencial,
+            "Score": score,
+            "Pins": f"{dados.get('pins', 0):,}",
+            "Crescimento": f"+{dados.get('crescimento', 0)}%",
+            "Views TikTok": f"{dados.get('views_tiktok', 0)}M",
+            "Buscas no Mês": f"{dados.get('buscas_mes', 0):,}",
+            "Resultados ML": f"{dados.get('resultados_ml', 0):,}",
+            "Pins (YoY)": f"{dados.get('pins_2025', 0):,}",
+            "Variação YoY": f"{dados.get('variacao_yoy', 0):.1f}%",
+            "Tendência YoY": dados.get('tendencia_yoy', '➡️ Estável'),
+            "Produtos Serp": len(produtos_serp)
+        }
+        
+        resultados.append(resultado)
+    
+    resultados = sorted(resultados, key=lambda x: x["Score"], reverse=True)
+    return resultados[:10]
+
+def gerar_sugestoes_diarias():
+    top10 = gerar_top10_produtos()
+    selecionados = top10[:BUSCAS_DIARIAS]
+    
+    resultados = []
+    for item in selecionados:
+        termo = item["Produto"]
+        produtos_serp = buscar_produtos_serpapi(termo, 3)
+        
+        item["Produtos Serp"] = len(produtos_serp)
+        
+        if len(produtos_serp) > 0:
+            item["Score"] = min(item["Score"] + len(produtos_serp), 10)
+        
+        resultados.append(item)
+    
+    return resultados
+
+# ============================================================
 # FUNCAO DE LOGIN
 # ============================================================
 def verificar_login():
@@ -941,7 +1045,7 @@ def render_dashboard():
         
         st.caption(f"{BUSCAS_DIARIAS} de {BUSCAS_DIARIAS} consultas SerpApi usadas hoje")
         
-        # ===== TOP 10 (LAYOUT DO PRINT) =====
+        # ===== TOP 10 =====
         st.markdown("---")
         st.markdown("## 🏆 Top 10 Produtos")
         st.caption("Ranking completo baseado em score, tendências e dados históricos")
@@ -950,7 +1054,6 @@ def render_dashboard():
         
         df_top10 = pd.DataFrame(top10)
         
-        # Renomeia as colunas para remover "2025" dos nomes
         colunas_top10 = ["Produto", "Categoria", "Evento", "Potencial", "Score", "Pins", "Crescimento", "Views TikTok", "Buscas no Mês", "Resultados ML", "Pins (YoY)", "Variação YoY", "Tendência YoY"]
         df_top10 = df_top10[colunas_top10]
         
@@ -1274,4 +1377,4 @@ with tab4:
 # RODAPE
 # ============================================================
 st.markdown("---")
-st.caption(f"🛒 Minerador de Produtos v3.0 | {datetime.now().year} | {BUSCAS_DIARIAS} buscas diárias | {BUSCAS_TOTAIS} buscas/mês")
+st.caption(f"🛒 Minerador de Produtos v4.0 | {datetime.now().year} | {BUSCAS_DIARIAS} buscas diárias | {BUSCAS_TOTAIS} buscas/mês")
