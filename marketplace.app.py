@@ -26,11 +26,9 @@ st.set_page_config(
 from modules.auth import verificar_login
 from modules.views import (
     render_dashboard, 
-    render_status_usuario, 
     render_painel_apoiadores_detalhado
 )
-from modules.models import gerar_top10_produtos, PALAVRAS_CHAVE_CAUDA_LONGA
-from modules.serper import buscar_produtos_serper
+from modules.models import gerar_top10_produtos, PALAVRAS_CHAVE_CAUDA_LONGA, SistemaLicencas
 
 # ============================================================
 # VERIFICAR LOGIN
@@ -183,7 +181,7 @@ with tab4:
                     st.video("https://placehold.co/600x400/000000/FFFFFF?text=Video+Gerado+por+IA")
 
 # ============================================================
-# TAB 5: APOIADORES (DETALHADO)
+# TAB 5: APOIADORES
 # ============================================================
 with tab5:
     render_painel_apoiadores_detalhado()
@@ -224,7 +222,6 @@ with tab6:
                 if not novo_usuario or not novo_email:
                     st.error("❌ Preencha nome e e-mail")
                 else:
-                    from modules.models import SistemaLicencas
                     sistema = SistemaLicencas()
                     codigo = sistema.gerar_licenca(novo_usuario, novo_email, plano, is_apoiador)
                     st.success("✅ Licença gerada com sucesso!")
@@ -236,7 +233,6 @@ with tab6:
         st.markdown("---")
         st.markdown("### 📋 Licenças Ativas")
         
-        from modules.models import SistemaLicencas
         sistema = SistemaLicencas()
         licencas = sistema.dados["licencas"]
         
