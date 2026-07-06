@@ -153,7 +153,83 @@ def gerar_sugestoes_diarias():
     return gerar_top10_produtos()[:BUSCAS_DIARIAS]
 
 # ============================================================
-# SISTEMA DE LICENÇAS (SIMPLIFICADO)
+# SISTEMA DE APOIADORES
+# ============================================================
+def carregar_apoiadores():
+    """Carrega a lista de apoiadores do arquivo"""
+    if os.path.exists(ARQUIVO_APOIADORES):
+        try:
+            with open(ARQUIVO_APOIADORES, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except:
+            pass
+    
+    # Se não existir, cria com dados padrão
+    apoiadores_padrao = {
+        "mayara": {
+            "nome": "Mayara Veloso",
+            "ordem": 1,
+            "email": "mayara@email.com",
+            "coroinha": "👑",
+            "cor": "#FFD700",
+            "data_entrada": "2026-07-01",
+            "royalties_recebidos": 0.0,
+            "repasse_ativo": True,
+            "plano": "Fundadora"
+        },
+        "iago": {
+            "nome": "Iago",
+            "ordem": 2,
+            "email": "iago@email.com",
+            "coroinha": "👑",
+            "cor": "#C0C0C0",
+            "data_entrada": "2026-07-05",
+            "royalties_recebidos": 0.0,
+            "repasse_ativo": True,
+            "plano": "Apoiador"
+        }
+    }
+    
+    with open(ARQUIVO_APOIADORES, 'w', encoding='utf-8') as f:
+        json.dump(apoiadores_padrao, f, ensure_ascii=False, indent=2)
+    
+    return apoiadores_padrao
+
+def adicionar_apoiador(nome, email, plano="Apoiador"):
+    """Adiciona um novo apoiador"""
+    apoiadores = carregar_apoiadores()
+    
+    # Calcula próxima ordem
+    ordem = max([a.get("ordem", 0) for a in apoiadores.values()]) + 1 if apoiadores else 1
+    
+    # Define cor baseado na ordem
+    cores = ["#FFD700", "#C0C0C0", "#CD7F32", "#FF6B6B", "#4ECDC4", "#45B7D1"]
+    cor = cores[(ordem - 1) % len(cores)]
+    
+    novo_apoiador = {
+        "nome": nome,
+        "ordem": ordem,
+        "email": email,
+        "coroinha": "👑",
+        "cor": cor,
+        "data_entrada": datetime.now().strftime("%Y-%m-%d"),
+        "royalties_recebidos": 0.0,
+        "repasse_ativo": True,
+        "plano": plano
+    }
+    
+    # Gera um ID único
+    import uuid
+    id_apoiador = str(uuid.uuid4())[:8]
+    apoiadores[id_apoiador] = novo_apoiador
+    
+    with open(ARQUIVO_APOIADORES, 'w', encoding='utf-8') as f:
+        json.dump(apoiadores, f, ensure_ascii=False, indent=2)
+    
+    return novo_apoiador
+
+# ============================================================
+# SISTEMA DE LICENÇAS
 # ============================================================
 class SistemaLicencas:
     def __init__(self):
@@ -213,6 +289,30 @@ class SistemaLicencas:
     def is_admin(self, codigo):
         licenca = self.dados["licencas"].get(codigo)
         return licenca.get("is_admin", False) if licenca else False
+    
+    def gerar_licenca(self, usuario, email, plano, is_apoiador=False):
+        """Gera uma nova licença"""
+        import uuid
+        codigo = f"LIC-{uuid.uuid4().hex[:8].upper()}"
+        
+        self.dados["licencas"][codigo] = {
+            "tipo": "apoiador" if is_apoiador else "basico",
+            "status": "ativo",
+            "usuario": usuario,
+            "email": email,
+            "plano": plano,
+            "is_admin": False,
+            "is_apoiador": is_apoiador,
+            "data_criacao": datetime.now().strftime("%Y-%m-%d")
+        }
+        
+        self.salvar()
+        
+        # Se for apoiador, adiciona à lista de apoiadores
+        if is_apoiador:
+            adicionar_apoiador(usuario, email, plano)
+        
+        return codigo
 
 # ============================================================
 # EXPORTAÇÕES
@@ -224,6 +324,8 @@ __all__ = [
     'gerar_top10_produtos',
     'gerar_sugestoes_diarias',
     'SistemaLicencas',
+    'carregar_apoiadores',
+    'adicionar_apoiador',
     'BUSCAS_DIARIAS',
     'LICENCA_TRIAL',
     'ADMIN_LICENCA'
