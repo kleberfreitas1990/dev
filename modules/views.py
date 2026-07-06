@@ -10,10 +10,14 @@ from modules.models import (
     gerar_sugestoes_diarias,
     BUSCAS_DIARIAS,
     carregar_apoiadores,
-    adicionar_apoiador
+    adicionar_apoiador,
+    remover_apoiador
 )
 from modules.serper import buscar_produtos_serper
 
+# ============================================================
+# STATUS DO USUÁRIO
+# ============================================================
 def render_status_usuario():
     """Renderiza o status do usuário"""
     st.markdown("### 👤 Seu Status")
@@ -26,100 +30,118 @@ def render_status_usuario():
     with col3:
         st.metric("🔑 Admin", "✅" if st.session_state.get("is_admin", False) else "❌")
 
-def render_painel_apoiadores():
-    """Renderiza o painel de apoiadores"""
-    
-    st.markdown("## 👑 Nossos Apoiadores")
-    st.caption("Quem acreditou no projeto desde o início")
+# ============================================================
+# APOIADORES EM OVAIS
+# ============================================================
+def render_apoiadores_ovais():
+    """Renderiza os apoiadores em formato de ovais coloridos"""
     
     apoiadores = carregar_apoiadores()
     
-    if apoiadores:
-        # Ordena por ordem de entrada
-        apoiadores_ordenados = sorted(apoiadores.values(), key=lambda x: x.get("ordem", 999))
-        
-        # Exibe em cards
-        cols = st.columns(min(len(apoiadores_ordenados), 3))
-        
-        for i, apoiador in enumerate(apoiadores_ordenados):
-            with cols[i % 3]:
-                with st.container(border=True):
-                    cor = apoiador.get("cor", "#FFD700")
-                    st.markdown(f"""
-                    <div style="text-align: center; padding: 10px 0;">
-                        <span style="font-size: 48px;">{apoiador.get('coroinha', '👑')}</span>
-                        <h3 style="color: {cor}; margin: 5px 0;">{apoiador.get('nome')}</h3>
-                        <p style="color: #888; font-size: 14px;">#{apoiador.get('ordem', 999)} • Apoiador</p>
-                        <p style="color: #666; font-size: 12px;">{apoiador.get('plano', 'Fundador')}</p>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                    st.markdown(f"**📅 Entrada:** {apoiador.get('data_entrada', '2026-07-01')}")
-                    
-                    # Verifica repasse
-                    ordem = apoiador.get("ordem", 999)
-                    depois = sum(1 for k, d in apoiadores.items() if d.get("ordem", 999) > ordem)
-                    
-                    if depois > 0 and apoiador.get("repasse_ativo", True):
-                        st.success(f"✅ Recebendo repasse de {depois} apoiador(es)")
-                        st.caption(f"💰 R${depois * 5.00:.2f} estimado/mês")
-                    else:
-                        st.info("⏳ Aguardando novos apoiadores")
-                    
-                    if apoiador.get("ordem") == 1:
-                        st.markdown("""
-                        <div style="background: linear-gradient(135deg, #FFD700, #FFA500); 
-                                    color: white; text-align: center; padding: 4px; 
-                                    border-radius: 4px; font-weight: bold; font-size: 12px;">
-                            🏆 PRIMEIRA(O) APOIADORA
-                        </div>
-                        """, unsafe_allow_html=True)
-    else:
-        st.info("📭 Nenhum apoiador cadastrado ainda. Seja o primeiro!")
+    if not apoiadores:
+        st.caption("📭 Nenhum apoiador ainda. Seja o primeiro!")
+        return
     
-    st.markdown("---")
+    apoiadores_ordenados = sorted(apoiadores.values(), key=lambda x: x.get("ordem", 999))
     
-    # ===== ADICIONAR APOIADOR (APENAS ADMIN) =====
-    # Usa uma chave única para evitar conflito de IDs
-    if st.session_state.get("is_admin", False):
-        with st.expander("➕ Adicionar Apoiador", expanded=False):
-            st.markdown("### Adicionar Novo Apoiador")
-            
-            # Usa keys diferentes para evitar conflito com a Tab de Licenças
-            col1, col2 = st.columns(2)
-            with col1:
-                nome_apo = st.text_input("Nome do Apoiador", placeholder="Ex: João Silva", key="apo_nome")
-                email_apo = st.text_input("E-mail", placeholder="joao@email.com", key="apo_email")
-            with col2:
-                plano_apo = st.selectbox("Plano", ["Fundador", "Apoiador", "Premium"], key="apo_plano")
-            
-            if st.button("👑 Adicionar Apoiador", use_container_width=True, key="apo_btn"):
-                if not nome_apo or not email_apo:
-                    st.error("❌ Preencha nome e e-mail")
-                else:
-                    novo = adicionar_apoiador(nome_apo, email_apo, plano_apo)
-                    st.success(f"✅ {nome_apo} adicionado como apoiador!")
-                    st.info(f"📋 Ordem: #{novo.get('ordem')}")
-                    st.rerun()
+    # COR ÚNICA PARA TESTE
+    cor_unica = "#4ECDC4"
+    
+    st.markdown("### 👑 Apoiadores do Projeto")
+    
+    html_ovais = '<div style="display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0;">'
+    
+    for apoiador in apoiadores_ordenados:
+        nome = apoiador.get("nome", "Apoiador")
+        ordem = apoiador.get("ordem", 999)
+        coroinha = apoiador.get("coroinha", "👑")
+        
+        html_ovais += f'''
+        <div style="
+            background: {cor_unica};
+            color: white;
+            padding: 6px 16px;
+            border-radius: 50px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: 2px solid rgba(255,255,255,0.3);
+            cursor: default;
+        ">
+            <span>{coroinha}</span>
+            <span>{nome}</span>
+            <span style="font-size: 10px; opacity: 0.8;">#{ordem}</span>
+        </div>
+        '''
+    
+    html_ovais += '</div>'
+    
+    st.markdown(html_ovais, unsafe_allow_html=True)
+    
+    # ===== ÁREA DE REMOÇÃO (APENAS ADMIN) =====
+    is_admin = st.session_state.get("is_admin", False)
+    
+    if is_admin and apoiadores_ordenados:
+        st.markdown("---")
+        st.markdown("#### 🗑️ Gerenciar Apoiadores")
+        
+        col1, col2 = st.columns([2, 1])
+        
+        with col1:
+            nomes_apoiadores = [a.get("nome") for a in apoiadores_ordenados]
+            apoiador_remover = st.selectbox(
+                "Selecione um apoiador para remover:",
+                options=nomes_apoiadores,
+                key="remover_apoiador_select"
+            )
+        
+        with col2:
+            if st.button("🗑️ Remover", use_container_width=True, key="remover_apoiador_btn"):
+                if apoiador_remover:
+                    chave_remover = None
+                    for k, v in carregar_apoiadores().items():
+                        if v.get("nome") == apoiador_remover:
+                            chave_remover = k
+                            break
+                    
+                    if chave_remover:
+                        from modules.auth import SistemaLicencas
+                        if remover_apoiador(chave_remover):
+                            sistema = SistemaLicencas()
+                            for codigo, dados in sistema.dados["licencas"].items():
+                                if dados.get("usuario") == apoiador_remover:
+                                    sistema.revogar_licenca(codigo)
+                                    break
+                            st.success(f"✅ {apoiador_remover} removido com sucesso!")
+                            st.info("🔑 Licença revogada")
+                            st.rerun()
 
+# ============================================================
+# DASHBOARD PRINCIPAL
+# ============================================================
 def render_dashboard():
     """Renderiza o dashboard principal"""
     
     st.title("📊 Minerador de Produtos")
     st.caption(f"📅 {datetime.now().strftime('%A, %d de %B de %Y - %H:%M')}")
     
-    # Status
+    # Status compacto
     col_status1, col_status2, col_status3, col_status4 = st.columns(4)
     with col_status1:
         serper_key = st.secrets.get("SERPER_API_KEY", "")
-        status_api = "✅ Conectado" if serper_key else "❌ Desconectado"
-        st.metric("🔌 Google Shopping", status_api)
+        st.markdown("🔌 " + ("✅" if serper_key else "❌"))
     with col_status2:
-        st.metric("🎫 Créditos", f"10 / 10")
+        st.markdown("🎫 10/10")
     with col_status3:
-        st.metric("👤 Licença", f"{st.session_state.get('licenca_usuario', '')[:10]}...")
+        st.markdown(f"👤 {st.session_state.get('licenca_usuario', '')[:8]}...")
     with col_status4:
-        st.metric("📊 Produtos", len(DADOS_COMPLETOS))
+        if st.button("🚪 Sair", use_container_width=True):
+            for key in list(st.session_state.keys()):
+                del st.session_state[key]
+            st.rerun()
     
     st.markdown("---")
     
@@ -263,6 +285,11 @@ def render_dashboard():
     
     st.markdown("---")
     
+    # ===== APOIADORES EM OVAIS =====
+    render_apoiadores_ovais()
+    
+    st.markdown("---")
+    
     st.markdown("## 📌 Legenda de Tendências")
     col1, col2, col3 = st.columns(3)
     with col1:
@@ -287,3 +314,59 @@ def render_dashboard():
     st.caption("Dados combinados: Shopee Trends + Google Shopping + TikTok")
     
     return df if 'df' in locals() else None
+
+# ============================================================
+# PAINEL DE APOIADORES DETALHADO
+# ============================================================
+def render_painel_apoiadores_detalhado():
+    """Renderiza o painel de apoiadores detalhado (para a Tab)"""
+    
+    st.markdown("## 👑 Gerenciar Apoiadores")
+    st.caption("Lista completa de apoiadores do projeto")
+    
+    apoiadores = carregar_apoiadores()
+    
+    if not apoiadores:
+        st.info("📭 Nenhum apoiador cadastrado ainda.")
+    else:
+        apoiadores_ordenados = sorted(apoiadores.values(), key=lambda x: x.get("ordem", 999))
+        
+        cols = st.columns(4)
+        
+        for i, apoiador in enumerate(apoiadores_ordenados):
+            with cols[i % 4]:
+                with st.container(border=True):
+                    cor = apoiador.get("cor", "#4ECDC4")
+                    
+                    st.markdown(f"""
+                    <div style="text-align: center; padding: 8px 0;">
+                        <span style="font-size: 32px;">{apoiador.get('coroinha', '👑')}</span>
+                        <h4 style="color: {cor}; margin: 2px 0; font-size: 16px;">{apoiador.get('nome')}</h4>
+                        <p style="color: #888; font-size: 11px; margin: 0;">#{apoiador.get('ordem', 999)} • Apoiador</p>
+                        <p style="color: #666; font-size: 10px; margin: 0;">{apoiador.get('plano', 'Apoiador')}</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    st.caption(f"📅 {apoiador.get('data_entrada', '2026-07-01')}")
+    
+    st.markdown("---")
+    
+    if st.session_state.get("is_admin", False):
+        with st.expander("➕ Adicionar Apoiador", expanded=False):
+            st.markdown("### Adicionar Novo Apoiador")
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                nome_apo = st.text_input("Nome do Apoiador", placeholder="Ex: João Silva", key="apo_nome")
+                email_apo = st.text_input("E-mail", placeholder="joao@email.com", key="apo_email")
+            with col2:
+                plano_apo = st.selectbox("Plano", ["Fundador", "Apoiador", "Premium"], key="apo_plano")
+            
+            if st.button("👑 Adicionar Apoiador", use_container_width=True, key="apo_btn"):
+                if not nome_apo or not email_apo:
+                    st.error("❌ Preencha nome e e-mail")
+                else:
+                    novo = adicionar_apoiador(nome_apo, email_apo, plano_apo)
+                    st.success(f"✅ {nome_apo} adicionado como apoiador!")
+                    st.info(f"📋 Ordem: #{novo.get('ordem')}")
+                    st.rerun()
