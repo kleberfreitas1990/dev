@@ -27,7 +27,7 @@ def render_painel_apoiadores():
                         <span style="font-size: 48px;">{apoiador.get('coroinha', '👑')}</span>
                         <h3 style="color: {cor}; margin: 5px 0;">{apoiador.get('nome')}</h3>
                         <p style="color: #888; font-size: 14px;">#{apoiador.get('ordem', 999)} • Apoiador</p>
-                        <p style="color: #666; font-size: 12px;">{apoiador.get('plano', 'Fundador')}</p>
+                        <p style="color: #666; font-size: 12px;">{apoiador.get('plano', 'Apoiador')}</p>
                     </div>
                     """, unsafe_allow_html=True)
                     
@@ -103,7 +103,7 @@ def render_painel_licencas():
         with col2:
             planos = sistema.dados["config"]["planos"]
             plano_opcoes = {
-                k: f"{v['nome']} - R$ {v['preco']:.2f} ({v['dias']} dias)" 
+                k: f"{v['nome']} - R$ {v['preco']:.2f} ({v['dias']} dias) - {v['descricao']}" 
                 for k, v in planos.items()
             }
             plano_selecionado = st.selectbox(
@@ -150,6 +150,7 @@ def render_painel_licencas():
                         st.code(f"Plano: {resultado['plano']}", language="text")
                         st.code(f"Validade: {resultado['validade']} dias", language="text")
                         st.code(f"Expira em: {resultado['data_expiracao']}", language="text")
+                        st.code(f"Preço: R$ {resultado['preco']:.2f}", language="text")
                         
                         if resultado.get('royalties') or is_apoiador:
                             st.success("👑 **ESTA LICENÇA TEM DIREITO A ROYALTIES!**")
@@ -195,7 +196,8 @@ def render_painel_licencas():
                 "expiracao": "Expiração",
                 "acessos": "Acessos",
                 "royalties": "Royalties",
-                "is_admin": "Admin"
+                "is_admin": "Admin",
+                "preco": "Preço (R$)"
             }
         )
         
@@ -286,7 +288,7 @@ def render_status_usuario():
     with col1:
         st.metric(
             "📋 Plano",
-            st.session_state.get("plano", "Trial")
+            st.session_state.get("plano", "Trial 7 dias")
         )
     
     with col2:
