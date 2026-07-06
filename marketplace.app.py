@@ -8,8 +8,6 @@ import random
 import json
 import os
 import warnings
-import base64
-from io import BytesIO
 import re
 from bs4 import BeautifulSoup
 
@@ -34,9 +32,25 @@ st.set_page_config(
 LICENCA_PADRAO = "TESTE-AFILIADO-2026"
 ARQUIVO_GALERIA = "galeria_videos.json"
 ARQUIVO_DADOS_DIARIOS = "dados_diarios.json"
+ARQUIVO_SHOPEE_CACHE = "shopee_trends_cache.json"
 CREDITOS_DIARIOS = 10
 BUSCAS_DIARIAS = 3
 BUSCAS_TOTAIS = 250
+
+# ============================================================
+# TERMOS REAIS DA SHOPEE (FALLBACK)
+# ============================================================
+TERMOS_REAIS_SHOPEE = [
+    "controle pc", "sapateira", "lixeira cozinha", 
+    "ar condicionado portátil", "garrafa térmica", 
+    "sacola personalizada", "caixa organizadora", 
+    "camisa brasil", "tênis", "chopeira", 
+    "relógio", "tablet", "organizador", "lingerie", 
+    "espelho", "vestido", "roupas feminina", 
+    "figurinha legend", "joia cobre", 
+    "kenner feminina", "moto infantil", "kit cadeira",
+    "ar condicionado elgin", "kit loreal"
+]
 
 # ============================================================
 # CARREGAR SECRETS
@@ -73,59 +87,188 @@ SNAPGEN_EMAIL = KEYS["snapgen_email"]
 SNAPGEN_PASSWORD = KEYS["snapgen_password"]
 
 # ============================================================
-# FUNÇÃO PARA CAPTURAR BUSCAS EM ALTA DA SHOPEE
+# FUNÇÕES PARA CAPTURAR BUSCAS SHOPEE (3 NÍVEIS)
 # ============================================================
-def capturar_buscas_shopee():
-    """Captura os termos de busca em alta do rodapé da Shopee"""
+
+def capturar_buscas_nivel1():
+    """Nível 1: Scraping direto com requests + BeautifulSoup"""
     try:
         url = "https://shopee.com.br"
         headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+            "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.8"
         }
         
         response = requests.get(url, headers=headers, timeout=10)
         soup = BeautifulSoup(response.text, 'html.parser')
         
         termos = []
-        
-        # Procura por links de busca
         links = soup.find_all('a', href=True)
         for link in links:
             href = link.get('href', '')
             if '/search?keyword=' in href:
                 match = re.search(r'keyword=([^&]+)', href)
                 if match:
-                    termo = match.group(1).replace('+', ' ')
+                    termo = requests.utils.unquote(match.group(1))
                     if termo and len(termo) > 2 and termo not in termos:
                         termos.append(termo)
         
-        # Se não encontrou, usa lista de tendências conhecidas
-        if not termos:
-            termos = [
-                "smartwatch", "fone bluetooth", "caixa de som", "carregador portátil",
-                "camisa", "vestido", "tênis", "bolsa", "mochila",
-                "cadeira gamer", "luminária", "perfume", "brinquedo",
-                "controle PC", "sapateira", "lixeira cozinha", "ar condicionado portátil",
-                "garrafa térmica", "sacola personalizada", "caixa organizadora"
-            ]
+        return termos[:20] if termos else []
+    except Exception as e:
+        return []
+
+def capturar_buscas_nivel2():
+    """Nível 2: Tenta capturar via API não oficial da Shopee"""
+    try:
+        url = "https://shopee.com.br/api/v4/search/search_suggestions"
+        params = {"search": ""}
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+            "Referer": "https://shopee.com.br/",
+            "Accept": "application/json"
+        }
         
-        return termos[:20]
+        response = requests.get(url, params=params, headers=headers, timeout=10)
+        
+        if response.status_code == 200:
+            data = response.json()
+            termos = []
+            
+            if "items" in data:
+                for item in data["items"]:
+                    termo = item.get("keyword", "")
+                    if termo and termo not in termos:
+                        termos.append(termo)
+            elif "suggestions" in data:
+                for item in data["suggestions"]:
+                    termo = item.get("query", "")
+                    if termo and termo not in termos:
+                        termos.append(termo)
+            
+            if termos:
+                return termos[:20]
+        
+        return []
+    except Exception as e:
+        return []
+
+def capturar_buscas_nivel3():
+    """Nível 3: Usa Selenium para capturar conteúdo JavaScript"""
+    try:
+        from selenium import webdriver
+        from selenium.webdriver.common.by import By
+        from selenium.webdriver.chrome.options import Options
+        from selenium.webdriver.support.ui import WebDriverWait
+        from selenium.webdriver.support import expected_conditions as EC
+        from selenium.common.exceptions import TimeoutException
+    except ImportError:
+        return []
+    
+    driver = None
+    try:
+        options = Options()
+        options.add_argument('--headless')
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
+        options.add_argument('--disable-gpu')
+        options.add_argument('--window-size=1920,1080')
+        options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36')
+        
+        try:
+            from webdriver_manager.chrome import ChromeDriverManager
+            from selenium.webdriver.chrome.service import Service
+            service = Service(ChromeDriverManager().install())
+            driver = webdriver.Chrome(service=service, options=options)
+        except ImportError:
+            driver = webdriver.Chrome(options=options)
+        
+        driver.get('https://shopee.com.br')
+        
+        wait = WebDriverWait(driver, 10)
+        termos = []
+        
+        try:
+            elementos = wait.until(
+                EC.presence_of_all_elements_located((By.CSS_SELECTOR, 'a[href*="/search?keyword="]'))
+            )
+            
+            for el in elementos[:30]:
+                href = el.get_attribute('href')
+                if href and 'keyword=' in href:
+                    match = re.search(r'keyword=([^&]+)', href)
+                    if match:
+                        termo = requests.utils.unquote(match.group(1))
+                        if termo and len(termo) > 2 and termo not in termos:
+                            termos.append(termo)
+        except TimeoutException:
+            pass
+        
+        driver.quit()
+        return termos[:20] if termos else []
         
     except Exception as e:
-        return [
-            "smartwatch", "fone bluetooth", "caixa de som", "carregador portátil",
-            "camisa", "vestido", "tênis", "bolsa", "mochila",
-            "cadeira gamer", "luminária", "perfume", "brinquedo"
-        ]
+        if driver:
+            driver.quit()
+        return []
+
+def capturar_buscas_shopee():
+    """Tenta capturar buscas em alta da Shopee em 3 níveis"""
+    
+    # NÍVEL 1: Scraping direto
+    termos = capturar_buscas_nivel1()
+    if termos:
+        return termos
+    
+    # NÍVEL 2: API não oficial
+    termos = capturar_buscas_nivel2()
+    if termos:
+        return termos
+    
+    # NÍVEL 3: Selenium
+    termos = capturar_buscas_nivel3()
+    if termos:
+        return termos
+    
+    # FALLBACK: Lista real de termos
+    return TERMOS_REAIS_SHOPEE
+
+def capturar_buscas_shopee_com_cache():
+    """Captura buscas com cache diário"""
+    
+    hoje = datetime.now().date().isoformat()
+    
+    if os.path.exists(ARQUIVO_SHOPEE_CACHE):
+        try:
+            with open(ARQUIVO_SHOPEE_CACHE, 'r', encoding='utf-8') as f:
+                dados = json.load(f)
+                if dados.get("data") == hoje:
+                    return dados.get("termos", [])
+        except:
+            pass
+    
+    termos = capturar_buscas_shopee()
+    
+    try:
+        with open(ARQUIVO_SHOPEE_CACHE, 'w', encoding='utf-8') as f:
+            json.dump({
+                "data": hoje,
+                "termos": termos,
+                "timestamp": datetime.now().isoformat()
+            }, f, ensure_ascii=False, indent=2)
+    except:
+        pass
+    
+    return termos
 
 # ============================================================
-# DADOS COMPLETOS (ATUAIS + HISTÓRICOS + SHOPEE TRENDS)
+# DADOS COMPLETOS (BASE + SHOPEE TRENDS)
 # ============================================================
 def get_dados_completos():
-    """Retorna dados combinados: base fixa + sugestões do Pinterest + Shopee Trends"""
+    """Retorna dados combinados: base fixa + Shopee Trends"""
     
     # Busca tendências da Shopee
-    buscas_shopee = capturar_buscas_shopee()
+    buscas_shopee = capturar_buscas_shopee_com_cache()
     
     # Base fixa de produtos
     dados_base = {
@@ -329,7 +472,6 @@ def get_dados_completos():
     # Adiciona produtos das tendências da Shopee
     for termo in buscas_shopee[:10]:
         if termo not in dados_base:
-            # Calcula score baseado na posição
             posicao = buscas_shopee.index(termo) + 1
             score_base = max(500, 3000 - (posicao - 1) * 200)
             
@@ -412,183 +554,8 @@ PALAVRAS_CHAVE_CAUDA_LONGA = {
     "tenis": {
         "palavra": "tênis esportivo feminino",
         "hashtags": ["#tênisesportivo", "#modaesportiva", "#lookcasual"]
-    },
-    "controle pc": {
-        "palavra": "controle pc gamer",
-        "hashtags": ["#controlepc", "#gamer", "#pcgamer"]
-    },
-    "sapateira": {
-        "palavra": "sapateira organizadora",
-        "hashtags": ["#sapateira", "#organização", "#casa"]
-    },
-    "lixeira cozinha": {
-        "palavra": "lixeira cozinha grande",
-        "hashtags": ["#lixeiracozinha", "#cozinha", "#organização"]
-    },
-    "ar condicionado portátil": {
-        "palavra": "ar condicionado portátil 8500 btus",
-        "hashtags": ["#arcondicionadoportatil", "#climatização", "#casa"]
-    },
-    "garrafa térmica": {
-        "palavra": "garrafa térmica inox 1l",
-        "hashtags": ["#garrafatermica", "#hidratação", "#academia"]
-    },
-    "sacola personalizada": {
-        "palavra": "sacola personalizada feminina",
-        "hashtags": ["#sacolapersonalizada", "#moda", "#acessórios"]
-    },
-    "caixa organizadora": {
-        "palavra": "caixa organizadora plástica",
-        "hashtags": ["#caixaorganizadora", "#organização", "#casa"]
     }
 }
-
-# ============================================================
-# FUNÇÃO DE LOGIN
-# ============================================================
-def verificar_login():
-    if "logado" not in st.session_state:
-        st.session_state.logado = False
-
-    if not st.session_state.logado:
-        st.title("🛒 Minerador de Produtos")
-        st.markdown("### 🔐 Acesso ao Sistema")
-        
-        licenca = st.text_input("Digite sua Licença de Acesso:", type="password")
-        
-        if st.button("🔓 Entrar", type="primary", use_container_width=True):
-            if licenca == LICENCA_ACESSO:
-                st.session_state.logado = True
-                st.session_state.licenca_usuario = licenca
-                st.success("✅ Licença válida! Acesso liberado.")
-                time.sleep(1)
-                st.rerun()
-            else:
-                st.error("❌ Licença inválida.")
-        
-        st.markdown("---")
-        st.caption("🔒 Sistema protegido por licença.")
-        st.stop()
-    
-    return st.session_state.get('licenca_usuario', LICENCA_PADRAO)
-
-# ============================================================
-# FUNÇÕES DE SCORE E TOP 10
-# ============================================================
-def calcular_score(produto, dados):
-    score = 0
-    
-    if dados.get("pins", 0) > 2000:
-        score += 3
-    elif dados.get("pins", 0) > 1000:
-        score += 2
-    else:
-        score += 1
-    
-    if dados.get("crescimento", 0) > 30:
-        score += 2
-    elif dados.get("crescimento", 0) > 15:
-        score += 1
-    
-    if dados.get("views_tiktok", 0) > 3:
-        score += 2
-    elif dados.get("views_tiktok", 0) > 1:
-        score += 1
-    
-    if dados.get("buscas_mes", 0) > 10000:
-        score += 2
-    elif dados.get("buscas_mes", 0) > 5000:
-        score += 1
-    
-    if dados.get("variacao", 0) > 15:
-        score += 1
-    
-    return min(score, 10)
-
-def buscar_produtos_serpapi(termo, limite=3):
-    """Busca produtos no Google Shopping via SerpApi"""
-    if not SERPAPI_KEY:
-        return []
-    
-    try:
-        url = "https://serpapi.com/search.json"
-        params = {
-            "q": termo,
-            "tbm": "shop",
-            "api_key": SERPAPI_KEY,
-            "gl": "br",
-            "hl": "pt",
-            "num": limite
-        }
-        resp = requests.get(url, params=params, timeout=15)
-        data = resp.json()
-        
-        produtos = []
-        for item in data.get("shopping_results", [])[:limite]:
-            produtos.append({
-                "nome": item.get("title", ""),
-                "loja": item.get("source", ""),
-                "link": item.get("link", ""),
-                "avaliacao": item.get("rating", None)
-            })
-        return produtos
-    except Exception as e:
-        return []
-
-def gerar_top10_produtos():
-    dados_completos = get_dados_completos()
-    resultados = []
-    
-    for produto, dados in dados_completos.items():
-        produtos_serp = buscar_produtos_serpapi(produto, 2)
-        
-        score = calcular_score(produto, dados)
-        
-        if score >= 8:
-            potencial = "🟢 Alto"
-        elif score >= 5:
-            potencial = "🟡 Médio"
-        else:
-            potencial = "🔴 Baixo"
-        
-        resultado = {
-            "Produto": produto.capitalize(),
-            "Categoria": dados.get("categoria", "Geral"),
-            "Evento": dados.get("evento", "Tendência"),
-            "Potencial": potencial,
-            "Score": score,
-            "Pins": f"{dados.get('pins', 0):,}",
-            "Crescimento": f"+{dados.get('crescimento', 0)}%",
-            "Views TikTok": f"{dados.get('views_tiktok', 0)}M",
-            "Buscas no Mês": f"{dados.get('buscas_mes', 0):,}",
-            "Resultados ML": f"{dados.get('resultados_ml', 0):,}",
-            "Variação": f"+{dados.get('variacao', 0):.1f}%",
-            "Tendência": dados.get('tendencia', '➡️ Estável'),
-            "Produtos Serp": len(produtos_serp)
-        }
-        
-        resultados.append(resultado)
-    
-    resultados = sorted(resultados, key=lambda x: x["Score"], reverse=True)
-    return resultados[:10]
-
-def gerar_sugestoes_diarias():
-    top10 = gerar_top10_produtos()
-    selecionados = top10[:BUSCAS_DIARIAS]
-    
-    resultados = []
-    for item in selecionados:
-        termo = item["Produto"].lower()
-        produtos_serp = buscar_produtos_serpapi(termo, 3)
-        
-        item["Produtos Serp"] = len(produtos_serp)
-        
-        if len(produtos_serp) > 0:
-            item["Score"] = min(item["Score"] + len(produtos_serp), 10)
-        
-        resultados.append(item)
-    
-    return resultados
 
 # ============================================================
 # SISTEMA DE CRÉDITOS DIÁRIOS
@@ -909,6 +876,153 @@ class SnapGenVideoGenerator:
         return video_info
 
 # ============================================================
+# FUNÇÕES DE SCORE E TOP 10
+# ============================================================
+def calcular_score(produto, dados):
+    score = 0
+    
+    if dados.get("pins", 0) > 2000:
+        score += 3
+    elif dados.get("pins", 0) > 1000:
+        score += 2
+    else:
+        score += 1
+    
+    if dados.get("crescimento", 0) > 30:
+        score += 2
+    elif dados.get("crescimento", 0) > 15:
+        score += 1
+    
+    if dados.get("views_tiktok", 0) > 3:
+        score += 2
+    elif dados.get("views_tiktok", 0) > 1:
+        score += 1
+    
+    if dados.get("buscas_mes", 0) > 10000:
+        score += 2
+    elif dados.get("buscas_mes", 0) > 5000:
+        score += 1
+    
+    if dados.get("variacao", 0) > 15:
+        score += 1
+    
+    return min(score, 10)
+
+def buscar_produtos_serpapi(termo, limite=3):
+    """Busca produtos no Google Shopping via SerpApi"""
+    if not SERPAPI_KEY:
+        return []
+    
+    try:
+        url = "https://serpapi.com/search.json"
+        params = {
+            "q": termo,
+            "tbm": "shop",
+            "api_key": SERPAPI_KEY,
+            "gl": "br",
+            "hl": "pt",
+            "num": limite
+        }
+        resp = requests.get(url, params=params, timeout=15)
+        data = resp.json()
+        
+        produtos = []
+        for item in data.get("shopping_results", [])[:limite]:
+            produtos.append({
+                "nome": item.get("title", ""),
+                "loja": item.get("source", ""),
+                "link": item.get("link", ""),
+                "avaliacao": item.get("rating", None)
+            })
+        return produtos
+    except Exception as e:
+        return []
+
+def gerar_top10_produtos():
+    dados_completos = get_dados_completos()
+    resultados = []
+    
+    for produto, dados in dados_completos.items():
+        produtos_serp = buscar_produtos_serpapi(produto, 2)
+        
+        score = calcular_score(produto, dados)
+        
+        if score >= 8:
+            potencial = "🟢 Alto"
+        elif score >= 5:
+            potencial = "🟡 Médio"
+        else:
+            potencial = "🔴 Baixo"
+        
+        resultado = {
+            "Produto": produto.capitalize(),
+            "Categoria": dados.get("categoria", "Geral"),
+            "Evento": dados.get("evento", "Tendência"),
+            "Potencial": potencial,
+            "Score": score,
+            "Pins": f"{dados.get('pins', 0):,}",
+            "Crescimento": f"+{dados.get('crescimento', 0)}%",
+            "Views TikTok": f"{dados.get('views_tiktok', 0)}M",
+            "Buscas no Mês": f"{dados.get('buscas_mes', 0):,}",
+            "Resultados ML": f"{dados.get('resultados_ml', 0):,}",
+            "Variação": f"+{dados.get('variacao', 0):.1f}%",
+            "Tendência": dados.get('tendencia', '➡️ Estável'),
+            "Produtos Serp": len(produtos_serp)
+        }
+        
+        resultados.append(resultado)
+    
+    resultados = sorted(resultados, key=lambda x: x["Score"], reverse=True)
+    return resultados[:10]
+
+def gerar_sugestoes_diarias():
+    top10 = gerar_top10_produtos()
+    selecionados = top10[:BUSCAS_DIARIAS]
+    
+    resultados = []
+    for item in selecionados:
+        termo = item["Produto"].lower()
+        produtos_serp = buscar_produtos_serpapi(termo, 3)
+        
+        item["Produtos Serp"] = len(produtos_serp)
+        
+        if len(produtos_serp) > 0:
+            item["Score"] = min(item["Score"] + len(produtos_serp), 10)
+        
+        resultados.append(item)
+    
+    return resultados
+
+# ============================================================
+# FUNCAO DE LOGIN
+# ============================================================
+def verificar_login():
+    if "logado" not in st.session_state:
+        st.session_state.logado = False
+
+    if not st.session_state.logado:
+        st.title("🛒 Minerador de Produtos")
+        st.markdown("### 🔐 Acesso ao Sistema")
+        
+        licenca = st.text_input("Digite sua Licença de Acesso:", type="password")
+        
+        if st.button("🔓 Entrar", type="primary", use_container_width=True):
+            if licenca == LICENCA_ACESSO:
+                st.session_state.logado = True
+                st.session_state.licenca_usuario = licenca
+                st.success("✅ Licença válida! Acesso liberado.")
+                time.sleep(1)
+                st.rerun()
+            else:
+                st.error("❌ Licença inválida.")
+        
+        st.markdown("---")
+        st.caption("🔒 Sistema protegido por licença.")
+        st.stop()
+    
+    return st.session_state.get('licenca_usuario', LICENCA_PADRAO)
+
+# ============================================================
 # FUNCAO RENDER_DASHBOARD
 # ============================================================
 def render_dashboard():
@@ -996,12 +1110,12 @@ def render_dashboard():
     
     # ===== TABELA DE PRODUTOS DO DIA (COM SHOPEE TRENDS) =====
     st.markdown("## 🎯 Sugestões de Produtos para Hoje")
-    st.caption(f"📊 Top 3 do dia | Combinando dados históricos, Pinterest e Shopee Trends | {BUSCAS_DIARIAS} buscas realizadas")
+    st.caption(f"📊 Top 3 do dia | Combinando dados históricos e Shopee Trends | {BUSCAS_DIARIAS} buscas realizadas")
     
     # Mostra tendências da Shopee em destaque
     with st.expander("🛍️ Ver Tendências da Shopee", expanded=True):
         st.markdown("### Termos mais buscados no momento")
-        buscas_shopee = capturar_buscas_shopee()
+        buscas_shopee = capturar_buscas_shopee_com_cache()
         
         if buscas_shopee:
             cols = st.columns(5)
@@ -1139,7 +1253,7 @@ def render_dashboard():
         - Mercado maduro
         """)
     
-    st.caption("Dados combinados: Shopee Trends + Pinterest + Google Shopping + TikTok")
+    st.caption("Dados combinados: Shopee Trends + Google Shopping + TikTok")
     
     return df if 'df' in locals() else None
 
