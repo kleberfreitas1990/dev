@@ -1,6 +1,8 @@
 import streamlit as st
 import time
-from modules.models import SistemaLicencas, LICENCA_TRIAL
+
+# Importa apenas o necessário
+from modules.models import SistemaLicencas, LICENCA_TRIAL, ADMIN_LICENCA
 
 def verificar_login():
     if "logado" not in st.session_state:
