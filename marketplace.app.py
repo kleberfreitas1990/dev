@@ -1,3 +1,10 @@
+# Substitua a importação da SerpApi
+from modules.serper import buscar_produtos_serper, buscar_total_resultados_serper
+
+# E nas funções que usavam SerpApi, substitua por:
+produtos = buscar_produtos_serper(termo, 3)  # Em vez de buscar_produtos_serpapi
+total = buscar_total_resultados_serper(termo)  # Em vez de buscar_total_resultados_ml
+
 import streamlit as st
 import pandas as pd
 import requests
