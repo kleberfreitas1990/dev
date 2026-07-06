@@ -1,3 +1,50 @@
+# Adicione no topo do arquivo
+from modules.serper import buscar_produtos_serper, buscar_total_resultados_serper
+
+# Substitua a função buscar_produtos_serpapi por:
+def buscar_produtos_api(termo, limite=3):
+    """Busca produtos via Serper.dev (substitui SerpApi)"""
+    return buscar_produtos_serper(termo, limite)
+
+# E atualize a função gerar_top10_produtos para usar Serper
+def gerar_top10_produtos():
+    dados_completos = get_dados_completos()
+    resultados = []
+    
+    for produto, dados in dados_completos.items():
+        # Usa Serper.dev em vez de SerpApi
+        produtos_encontrados = buscar_produtos_serper(produto, 2)
+        
+        score = calcular_score(produto, dados)
+        
+        if score >= 8:
+            potencial = "🟢 Alto"
+        elif score >= 5:
+            potencial = "🟡 Médio"
+        else:
+            potencial = "🔴 Baixo"
+        
+        resultado = {
+            "Produto": produto.capitalize(),
+            "Categoria": dados.get("categoria", "Geral"),
+            "Evento": dados.get("evento", "Tendência"),
+            "Potencial": potencial,
+            "Score": score,
+            "Pins": f"{dados.get('pins', 0):,}",
+            "Crescimento": f"+{dados.get('crescimento', 0)}%",
+            "Views TikTok": f"{dados.get('views_tiktok', 0)}M",
+            "Buscas no Mês": f"{dados.get('buscas_mes', 0):,}",
+            "Resultados ML": f"{dados.get('resultados_ml', 0):,}",
+            "Variação": f"+{dados.get('variacao', 0):.1f}%",
+            "Tendência": dados.get('tendencia', '➡️ Estável'),
+            "Produtos Encontrados": len(produtos_encontrados)
+        }
+        
+        resultados.append(resultado)
+    
+    resultados = sorted(resultados, key=lambda x: x["Score"], reverse=True)
+    return resultados[:10]
+
 import json
 import os
 from datetime import datetime, timedelta
