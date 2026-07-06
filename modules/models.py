@@ -44,21 +44,21 @@ class SistemaLicencas:
                 "tipo": "trial",
                 "status": "ativo",
                 "data_criacao": datetime.now().strftime("%Y-%m-%d"),
-                "data_expiracao": (datetime.now() + timedelta(days=180)).strftime("%Y-%m-%d"),
+                "data_expiracao": (datetime.now() + timedelta(days=7)).strftime("%Y-%m-%d"),  # 7 DIAS
                 "usuario": "Usuário Trial",
                 "email": "trial@email.com",
-                "plano": "Trial",
+                "plano": "Trial 7 dias",
                 "acessos": 0,
                 "ultimo_acesso": None,
                 "royalties": False,
                 "repasse": False,
                 "is_admin": False,
-                "is_apoiador": False
+                "is_apoiador": False,
+                "preco": 0
             }
         }
         
         # Licença Admin (apenas se não existir)
-        # Verifica se a licença admin já existe no arquivo
         admin_existe = False
         if os.path.exists(self.arquivo):
             try:
@@ -83,7 +83,8 @@ class SistemaLicencas:
                 "royalties": False,
                 "repasse": False,
                 "is_admin": True,
-                "is_apoiador": False
+                "is_apoiador": False,
+                "preco": 0
             }
         
         return {
@@ -97,31 +98,17 @@ class SistemaLicencas:
                         "royalties": False,
                         "repasse": False,
                         "nome": "Trial 7 dias",
-                        "admin_only": False
+                        "admin_only": False,
+                        "descricao": "Teste grátis por 7 dias"
                     },
-                    "basico": {
+                    "apoiador": {
                         "dias": 30,
                         "preco": 59.90,
-                        "royalties": False,
-                        "repasse": False,
-                        "nome": "Básico",
-                        "admin_only": False
-                    },
-                    "pro": {
-                        "dias": 90,
-                        "preco": 149.70,
-                        "royalties": False,
-                        "repasse": False,
-                        "nome": "Pro",
-                        "admin_only": False
-                    },
-                    "fundador": {
-                        "dias": 365,
-                        "preco": 599.00,
                         "royalties": True,
                         "repasse": True,
-                        "nome": "Fundador",
-                        "admin_only": False
+                        "nome": "Apoiador",
+                        "admin_only": False,
+                        "descricao": "Acesso completo + royalties sobre novos membros"
                     }
                 },
                 "royalties": {
@@ -193,7 +180,8 @@ class SistemaLicencas:
             "is_admin": False,
             "is_apoiador": is_apoiador or plano_dados["royalties"],
             "criado_por": criado_por,
-            "criado_em": datetime.now().isoformat()
+            "criado_em": datetime.now().isoformat(),
+            "preco": plano_dados["preco"]
         }
         
         self.dados["licencas"][codigo] = nova_licenca
@@ -210,7 +198,8 @@ class SistemaLicencas:
             "data_expiracao": data_exp.strftime("%d/%m/%Y"),
             "royalties": plano_dados["royalties"],
             "repasse": plano_dados["repasse"],
-            "is_apoiador": is_apoiador or plano_dados["royalties"]
+            "is_apoiador": is_apoiador or plano_dados["royalties"],
+            "preco": plano_dados["preco"]
         }
     
     def _atualizar_apoiadores(self):
@@ -230,7 +219,7 @@ class SistemaLicencas:
                     "royalties_recebidos": 0.0,
                     "repasse_ativo": True,
                     "licenca": codigo,
-                    "plano": licenca.get("plano", "Fundador")
+                    "plano": licenca.get("plano", "Apoiador")
                 }
                 ordem += 1
         
@@ -270,7 +259,8 @@ class SistemaLicencas:
             "repasse": licenca.get("repasse", False),
             "acessos": licenca.get("acessos", 0),
             "is_apoiador": licenca.get("is_apoiador", False),
-            "is_admin": licenca.get("is_admin", False)
+            "is_admin": licenca.get("is_admin", False),
+            "preco": licenca.get("preco", 0)
         }
     
     def listar_licencas(self, apenas_ativas=False):
@@ -290,7 +280,8 @@ class SistemaLicencas:
                 "acessos": dados.get("acessos", 0),
                 "royalties": dados.get("royalties", False),
                 "is_apoiador": dados.get("is_apoiador", False),
-                "is_admin": dados.get("is_admin", False)
+                "is_admin": dados.get("is_admin", False),
+                "preco": dados.get("preco", 0)
             })
         return sorted(licencas, key=lambda x: x["criacao"], reverse=True)
     
@@ -340,10 +331,7 @@ class SistemaLicencas:
         receita = 0
         for l in licencas.values():
             if l.get("status") == "ativo":
-                plano = l.get("tipo", "")
-                preco = self.dados["config"]["planos"].get(plano, {}).get("preco", 0)
-                if preco > 0:
-                    receita += preco
+                receita += l.get("preco", 0)
         
         return {
             "total": total,
