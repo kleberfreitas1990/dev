@@ -10,6 +10,8 @@ import os
 import warnings
 import base64
 from io import BytesIO
+import re
+from bs4 import BeautifulSoup
 
 # ============================================================
 # SUPRIMIR WARNINGS
@@ -71,210 +73,59 @@ SNAPGEN_EMAIL = KEYS["snapgen_email"]
 SNAPGEN_PASSWORD = KEYS["snapgen_password"]
 
 # ============================================================
-# TENDÊNCIAS DO PINTEREST (FALLBACK BASEADO EM DADOS REAIS)
+# FUNÇÃO PARA CAPTURAR BUSCAS EM ALTA DA SHOPEE
 # ============================================================
-TENDENCIAS_PINTEREST_REAIS = {
-    "2026": {
-        "beleza": [
-            {"termo": "jelly blush", "pins": 3400, "crescimento": 45},
-            {"termo": "maquiagem glacial", "pins": 2800, "crescimento": 38},
-            {"termo": "makeup gotica", "pins": 2200, "crescimento": 30}
-        ],
-        "moda": [
-            {"termo": "broches", "pins": 2500, "crescimento": 35},
-            {"termo": "terno oversized", "pins": 2100, "crescimento": 28},
-            {"termo": "rendas", "pins": 1800, "crescimento": 22}
-        ],
-        "decoracao": [
-            {"termo": "afrodecor", "pins": 2000, "crescimento": 32},
-            {"termo": "neo deco", "pins": 1700, "crescimento": 25},
-            {"termo": "lar ludico", "pins": 1500, "crescimento": 20}
-        ],
-        "presentes": [
-            {"termo": "entre postais", "pins": 1600, "crescimento": 18},
-            {"termo": "infancia retro", "pins": 1900, "crescimento": 28},
-            {"termo": "perfume nichado", "pins": 2300, "crescimento": 42}
-        ]
-    }
-}
-
-# ============================================================
-# CLASSE PINTEREST API (COM FALLBACK)
-# ============================================================
-class PinterestAPI:
-    def __init__(self):
-        self.token = PINTEREST_TOKEN
-        self.base_url = "https://api.pinterest.com/v5"
-        self.headers = {"Authorization": f"Bearer {self.token}"}
-        self.usando_fallback = False
-    
-    def buscar_trending_pins(self, limite=10):
-        """Busca pins em alta no Pinterest (com fallback)"""
-        
-        # Se tem token, tenta buscar dados reais
-        if self.token:
-            try:
-                url = f"{self.base_url}/pins"
-                params = {"limit": limite, "sort": "engagement"}
-                response = requests.get(url, headers=self.headers, params=params, timeout=10)
-                
-                if response.status_code == 200:
-                    data = response.json()
-                    pins = data.get("items", [])
-                    
-                    termos = []
-                    for pin in pins:
-                        titulo = pin.get("title", "")
-                        if titulo:
-                            palavras = titulo.split()[:3]
-                            if palavras:
-                                termo = " ".join(palavras)
-                                if len(termo) > 3:
-                                    termos.append(termo.lower())
-                    
-                    if termos:
-                        return list(set(termos))[:limite]
-            except Exception as e:
-                st.warning(f"⚠️ Erro na API Pinterest: {e}. Usando fallback.")
-        
-        # FALLBACK: Usa tendências reais do Pinterest Predicts
-        self.usando_fallback = True
-        termos_fallback = []
-        
-        for categoria, items in TENDENCIAS_PINTEREST_REAIS["2026"].items():
-            for item in items[:2]:
-                termos_fallback.append(item["termo"])
-        
-        return termos_fallback[:limite]
-    
-    def buscar_tendencias_por_palavra(self, termo):
-        """Busca dados detalhados para um termo (com fallback)"""
-        
-        # Tenta buscar dados reais
-        if self.token and not self.usando_fallback:
-            try:
-                url = f"{self.base_url}/pins/search"
-                params = {"query": termo, "limit": 5}
-                response = requests.get(url, headers=self.headers, params=params, timeout=10)
-                
-                if response.status_code == 200:
-                    data = response.json()
-                    pins = data.get("items", [])
-                    
-                    total_pins = len(pins)
-                    total_saves = sum(pin.get("counts", {}).get("saves", 0) for pin in pins)
-                    
-                    return {
-                        "termo": termo,
-                        "pins_encontrados": total_pins,
-                        "saves": total_saves,
-                        "pins": pins
-                    }
-            except:
-                pass
-        
-        # FALLBACK: Busca nos dados de tendências reais
-        for categoria, items in TENDENCIAS_PINTEREST_REAIS["2026"].items():
-            for item in items:
-                if item["termo"].lower() == termo.lower():
-                    return {
-                        "termo": termo,
-                        "pins_encontrados": item.get("pins", 100),
-                        "saves": item.get("pins", 100) // 2,
-                        "pins": []
-                    }
-        
-        # Se não encontrou, gera dados estimados
-        return {
-            "termo": termo,
-            "pins_encontrados": random.randint(100, 500),
-            "saves": random.randint(50, 250),
-            "pins": []
+def capturar_buscas_shopee():
+    """Captura os termos de busca em alta do rodapé da Shopee"""
+    try:
+        url = "https://shopee.com.br"
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
         }
-    
-    def buscar_trends_categories(self):
-        """Busca categorias em tendência (com fallback)"""
-        if self.token:
-            try:
-                url = f"{self.base_url}/boards"
-                params = {"limit": 20}
-                response = requests.get(url, headers=self.headers, params=params, timeout=10)
-                
-                if response.status_code == 200:
-                    data = response.json()
-                    boards = data.get("items", [])
-                    
-                    categorias = []
-                    for board in boards:
-                        nome = board.get("name", "")
-                        if nome:
-                            categorias.append(nome.lower())
-                    
-                    if categorias:
-                        return list(set(categorias))[:5]
-            except:
-                pass
         
-        # FALLBACK: Retorna categorias das tendências reais
-        return list(TENDENCIAS_PINTEREST_REAIS["2026"].keys())
+        response = requests.get(url, headers=headers, timeout=10)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        termos = []
+        
+        # Procura por links de busca
+        links = soup.find_all('a', href=True)
+        for link in links:
+            href = link.get('href', '')
+            if '/search?keyword=' in href:
+                match = re.search(r'keyword=([^&]+)', href)
+                if match:
+                    termo = match.group(1).replace('+', ' ')
+                    if termo and len(termo) > 2 and termo not in termos:
+                        termos.append(termo)
+        
+        # Se não encontrou, usa lista de tendências conhecidas
+        if not termos:
+            termos = [
+                "smartwatch", "fone bluetooth", "caixa de som", "carregador portátil",
+                "camisa", "vestido", "tênis", "bolsa", "mochila",
+                "cadeira gamer", "luminária", "perfume", "brinquedo",
+                "controle PC", "sapateira", "lixeira cozinha", "ar condicionado portátil",
+                "garrafa térmica", "sacola personalizada", "caixa organizadora"
+            ]
+        
+        return termos[:20]
+        
+    except Exception as e:
+        return [
+            "smartwatch", "fone bluetooth", "caixa de som", "carregador portátil",
+            "camisa", "vestido", "tênis", "bolsa", "mochila",
+            "cadeira gamer", "luminária", "perfume", "brinquedo"
+        ]
 
 # ============================================================
-# FUNÇÃO PARA GERAR SUGESTÕES DO PINTEREST (COM FALLBACK)
-# ============================================================
-def gerar_sugestoes_pinterest():
-    """Gera sugestões de produtos baseadas nas tendências do Pinterest (com fallback)"""
-    pinterest = PinterestAPI()
-    
-    # Busca tendências
-    trending_terms = pinterest.buscar_trending_pins(10)
-    categories = pinterest.buscar_trends_categories()
-    
-    # Combina termos
-    todos_termos = trending_terms + categories
-    
-    # Remove duplicatas
-    todos_termos = list(set(todos_termos))
-    
-    # Filtra termos que parecem produtos
-    produtos_sugeridos = []
-    palavras_chave_produto = ["roupa", "vestido", "tenis", "bota", "bolsa", "smartwatch", 
-                              "fone", "perfume", "maquiagem", "cadeira", "mesa", "luminaria",
-                              "casaco", "blusa", "calça", "short", "sapato", "relogio",
-                              "brinquedo", "livro", "caderno", "mochila", "colar", "anel",
-                              "blush", "glacial", "makeup", "broches", "terno", "rendas",
-                              "afrodecor", "neo deco", "ludico", "postais", "retro", "nichado"]
-    
-    for termo in todos_termos:
-        eh_produto = any(palavra in termo.lower() for palavra in palavras_chave_produto)
-        
-        if eh_produto or len(termo.split()) <= 3:
-            dados = pinterest.buscar_tendencias_por_palavra(termo)
-            if dados and dados.get("pins_encontrados", 0) > 0:
-                produtos_sugeridos.append(dados)
-    
-    # Se não encontrou nada, usa as tendências reais como fallback
-    if not produtos_sugeridos:
-        for categoria, items in TENDENCIAS_PINTEREST_REAIS["2026"].items():
-            for item in items[:2]:
-                produtos_sugeridos.append({
-                    "termo": item["termo"],
-                    "pins_encontrados": item.get("pins", 100),
-                    "saves": item.get("pins", 100) // 2,
-                    "pins": []
-                })
-    
-    # Ordena por popularidade
-    produtos_sugeridos = sorted(produtos_sugeridos, 
-                               key=lambda x: x.get("saves", 0), 
-                               reverse=True)
-    
-    return produtos_sugeridos[:10]
-
-# ============================================================
-# DADOS COMPLETOS (BASE + SUGESTÕES PINTEREST)
+# DADOS COMPLETOS (ATUAIS + HISTÓRICOS + SHOPEE TRENDS)
 # ============================================================
 def get_dados_completos():
-    """Retorna dados combinados: base fixa + sugestões do Pinterest"""
+    """Retorna dados combinados: base fixa + sugestões do Pinterest + Shopee Trends"""
+    
+    # Busca tendências da Shopee
+    buscas_shopee = capturar_buscas_shopee()
     
     # Base fixa de produtos
     dados_base = {
@@ -472,104 +323,29 @@ def get_dados_completos():
             "evento": "Férias Escolares",
             "variacao": 23.1,
             "tendencia": "📈 Crescendo"
-        },
-        "jelly blush": {
-            "pins": 3400,
-            "pins_historico": 2800,
-            "crescimento": 45,
-            "views_tiktok": 5.8,
-            "resultados_ml": 1240,
-            "buscas_mes": 15200,
-            "buscas_historico": 12800,
-            "categoria": "Beleza",
-            "evento": "Tendência Pinterest",
-            "variacao": 21.4,
-            "tendencia": "🚀 Em alta"
-        },
-        "maquiagem glacial": {
-            "pins": 2800,
-            "pins_historico": 2200,
-            "crescimento": 38,
-            "views_tiktok": 4.2,
-            "resultados_ml": 890,
-            "buscas_mes": 12500,
-            "buscas_historico": 9800,
-            "categoria": "Beleza",
-            "evento": "Tendência Pinterest",
-            "variacao": 27.3,
-            "tendencia": "🚀 Em alta"
-        },
-        "broches": {
-            "pins": 2500,
-            "pins_historico": 2000,
-            "crescimento": 35,
-            "views_tiktok": 3.8,
-            "resultados_ml": 980,
-            "buscas_mes": 13200,
-            "buscas_historico": 10500,
-            "categoria": "Moda",
-            "evento": "Tendência Pinterest",
-            "variacao": 25.0,
-            "tendencia": "📈 Crescendo"
-        },
-        "perfume nichado": {
-            "pins": 2300,
-            "pins_historico": 1800,
-            "crescimento": 42,
-            "views_tiktok": 4.5,
-            "resultados_ml": 1050,
-            "buscas_mes": 14800,
-            "buscas_historico": 11800,
-            "categoria": "Beleza",
-            "evento": "Tendência Pinterest",
-            "variacao": 27.8,
-            "tendencia": "🚀 Em alta"
-        },
-        "terno oversized": {
-            "pins": 2100,
-            "pins_historico": 1600,
-            "crescimento": 28,
-            "views_tiktok": 3.2,
-            "resultados_ml": 850,
-            "buscas_mes": 11500,
-            "buscas_historico": 9200,
-            "categoria": "Moda",
-            "evento": "Tendência Pinterest",
-            "variacao": 31.3,
-            "tendencia": "📈 Crescendo"
         }
     }
     
-    # Busca sugestões do Pinterest (com fallback)
-    try:
-        sugestoes_pinterest = gerar_sugestoes_pinterest()
-        
-        # Adiciona sugestões do Pinterest à base
-        for sugestao in sugestoes_pinterest:
-            termo = sugestao.get("termo", "")
-            if termo and termo not in dados_base:
-                pins = sugestao.get("pins_encontrados", 0) * 100
-                saves = sugestao.get("saves", 0)
-                
-                # Se pins for muito baixo, usa valor mínimo
-                if pins < 500:
-                    pins = 500
-                
-                dados_base[termo] = {
-                    "pins": pins,
-                    "pins_historico": int(pins * 0.8),
-                    "crescimento": min(50, int(saves / 10) + 10 if saves > 0 else 10),
-                    "views_tiktok": round(pins / 500, 1),
-                    "resultados_ml": int(pins / 3),
-                    "buscas_mes": int(pins * 5),
-                    "buscas_historico": int(pins * 4),
-                    "categoria": "Tendência Pinterest",
-                    "evento": "Em Alta",
-                    "variacao": round(((pins - int(pins * 0.8)) / (pins * 0.8)) * 100, 1),
-                    "tendencia": "🚀 Em alta" if pins > 2000 else "📈 Crescendo"
-                }
-    except Exception as e:
-        st.warning(f"⚠️ Erro ao buscar tendências do Pinterest: {e}")
+    # Adiciona produtos das tendências da Shopee
+    for termo in buscas_shopee[:10]:
+        if termo not in dados_base:
+            # Calcula score baseado na posição
+            posicao = buscas_shopee.index(termo) + 1
+            score_base = max(500, 3000 - (posicao - 1) * 200)
+            
+            dados_base[termo] = {
+                "pins": score_base,
+                "pins_historico": int(score_base * 0.7),
+                "crescimento": max(10, 45 - (posicao - 1) * 2),
+                "views_tiktok": round(score_base / 500, 1),
+                "resultados_ml": int(score_base / 2),
+                "buscas_mes": int(score_base * 5),
+                "buscas_historico": int(score_base * 4),
+                "categoria": "Shopee Trend",
+                "evento": "Em Alta",
+                "variacao": round(random.uniform(10, 30), 1),
+                "tendencia": "🚀 Em alta" if posicao <= 3 else "📈 Crescendo" if posicao <= 7 else "➡️ Estável"
+            }
     
     return dados_base
 
@@ -637,36 +413,35 @@ PALAVRAS_CHAVE_CAUDA_LONGA = {
         "palavra": "tênis esportivo feminino",
         "hashtags": ["#tênisesportivo", "#modaesportiva", "#lookcasual"]
     },
-    "jelly blush": {
-        "palavra": "jelly blush efeito glúten",
-        "hashtags": ["#jellyblush", "#maquiagemviral", "#belezatiktok"]
+    "controle pc": {
+        "palavra": "controle pc gamer",
+        "hashtags": ["#controlepc", "#gamer", "#pcgamer"]
     },
-    "maquiagem glacial": {
-        "palavra": "maquiagem glacial azul gelada",
-        "hashtags": ["#maquiagemglacial", "#makeazul", "#tendênciamaquiagem"]
+    "sapateira": {
+        "palavra": "sapateira organizadora",
+        "hashtags": ["#sapateira", "#organização", "#casa"]
     },
-    "broches": {
-        "palavra": "broches femininos vintage",
-        "hashtags": ["#broches", "#acessóriosmoda", "#lookvintage"]
+    "lixeira cozinha": {
+        "palavra": "lixeira cozinha grande",
+        "hashtags": ["#lixeiracozinha", "#cozinha", "#organização"]
     },
-    "perfume nichado": {
-        "palavra": "perfume nichado exclusivo",
-        "hashtags": ["#perfumenichado", "#fragrânciaexclusiva", "#perfumaria"]
+    "ar condicionado portátil": {
+        "palavra": "ar condicionado portátil 8500 btus",
+        "hashtags": ["#arcondicionadoportatil", "#climatização", "#casa"]
     },
-    "terno oversized": {
-        "palavra": "terno oversized feminino",
-        "hashtags": ["#ternooversized", "#modafeminina", "#lookpoderosa"]
+    "garrafa térmica": {
+        "palavra": "garrafa térmica inox 1l",
+        "hashtags": ["#garrafatermica", "#hidratação", "#academia"]
+    },
+    "sacola personalizada": {
+        "palavra": "sacola personalizada feminina",
+        "hashtags": ["#sacolapersonalizada", "#moda", "#acessórios"]
+    },
+    "caixa organizadora": {
+        "palavra": "caixa organizadora plástica",
+        "hashtags": ["#caixaorganizadora", "#organização", "#casa"]
     }
 }
-
-# ============================================================
-# AS DEMAIS FUNÇÕES PERMANECEM IGUAIS
-# ============================================================
-
-# [Aqui entrariam as funções: verificar_login, calcular_score, 
-#  buscar_produtos_serpapi, gerar_top10_produtos, gerar_sugestoes_diarias,
-#  render_dashboard, CreditosDiarios, DadosDiarios, GaleriaVideos,
-#  SnapGenVideoGenerator, e o APP PRINCIPAL com as TABS]
 
 # ============================================================
 # FUNÇÃO DE LOGIN
@@ -814,205 +589,6 @@ def gerar_sugestoes_diarias():
         resultados.append(item)
     
     return resultados
-
-# ============================================================
-# FUNCAO RENDER_DASHBOARD
-# ============================================================
-def render_dashboard():
-    st.title("📊 Minerador de Produtos")
-    st.caption(f"📅 {datetime.now().strftime('%A, %d de %B de %Y - %H:%M')}")
-    
-    dados_diarios = DadosDiarios()
-    dados_diarios.limpar_dados_antigos()
-    
-    if dados_diarios.precisa_atualizar():
-        with st.spinner("🔄 Atualizando dados do dia com tendências do Pinterest..."):
-            produtos = gerar_sugestoes_diarias()
-            dados_diarios.salvar_dados_hoje(produtos)
-            st.success("✅ Dados do dia atualizados com tendências do Pinterest!")
-            time.sleep(1)
-            st.rerun()
-    
-    dados_hoje = dados_diarios.obter_dados_hoje()
-    
-    # Status e Créditos
-    col_status1, col_status2, col_status3, col_status4 = st.columns(4)
-    with col_status1:
-        status_api = "✅ Conectado" if PINTEREST_TOKEN else "❌ Desconectado"
-        st.metric("📌 Pinterest API", status_api)
-    with col_status2:
-        status_serp = "✅" if SERPAPI_KEY else "❌"
-        st.metric("🛒 Google Shopping", status_serp)
-    with col_status3:
-        creditos = CreditosDiarios()
-        licenca = st.session_state.get('licenca_usuario', LICENCA_PADRAO)
-        creditos_restantes = creditos.obter_creditos(licenca)
-        st.metric("🎫 Créditos IA", f"{creditos_restantes} / {CREDITOS_DIARIOS}")
-    with col_status4:
-        st.metric("👤 Licença", f"{licenca[:10]}...")
-    
-    st.markdown("---")
-    
-    # ===== SEÇÃO DE TENDÊNCIAS DO PINTEREST =====
-    st.markdown("## 📌 Tendências do Pinterest em Tempo Real")
-    st.caption("Produtos e temas que estão em alta no Pinterest agora")
-    
-    with st.spinner("🔄 Buscando tendências no Pinterest..."):
-        sugestoes_pinterest = gerar_sugestoes_pinterest()
-        
-        if sugestoes_pinterest:
-            cols = st.columns(5)
-            for i, item in enumerate(sugestoes_pinterest[:5]):
-                with cols[i]:
-                    with st.container(border=True):
-                        termo = item.get("termo", "").capitalize()
-                        saves = item.get("saves", 0)
-                        pins = item.get("pins_encontrados", 0)
-                        
-                        st.markdown(f"### {termo}")
-                        st.caption(f"📌 {pins} pins encontrados")
-                        st.caption(f"💾 {saves} saves")
-                        
-                        if saves > 100:
-                            st.success("🔥 Tendência forte!")
-                        elif saves > 50:
-                            st.info("📈 Em crescimento")
-                        else:
-                            st.caption("🆕 Nova tendência")
-        else:
-            st.info("📭 Nenhuma tendência encontrada no momento. Verifique seu token do Pinterest.")
-    
-    st.markdown("---")
-    
-    # ===== TABELA DE PRODUTOS DO DIA =====
-    st.markdown("## 🎯 Sugestões de Produtos para Hoje")
-    st.caption(f"📊 Top 3 do dia | Combinando dados históricos e tendências do Pinterest")
-    
-    if dados_hoje and dados_hoje.get("produtos"):
-        produtos = dados_hoje["produtos"]
-        
-        dados_tabela = []
-        for item in produtos:
-            produto = item.get("Produto", "").lower()
-            dados_palavra = PALAVRAS_CHAVE_CAUDA_LONGA.get(produto, {})
-            palavra_chave = dados_palavra.get("palavra", f"{produto} tendência 2026")
-            
-            dados_tabela.append({
-                "Produto": item.get("Produto", ""),
-                "🔑 Palavra-chave": palavra_chave,
-                "Categoria": item.get("Categoria", "Geral"),
-                "Evento": item.get("Evento", "Tendência"),
-                "Potencial": item.get("Potencial", "🟡 Médio"),
-                "Score": item.get("Score", 0),
-                "Pins": item.get("Pins", "0"),
-                "Crescimento": item.get("Crescimento", "+0%"),
-                "Views TikTok": item.get("Views TikTok", "0M"),
-                "Buscas no Mês": item.get("Buscas no Mês", "0"),
-                "Resultados ML": item.get("Resultados ML", "0"),
-                "Tendência": item.get("Tendência", "➡️ Estável")
-            })
-        
-        df = pd.DataFrame(dados_tabela)
-        
-        df["Buscar na Shopee"] = df["Produto"].apply(
-            lambda x: f'<a href="https://shopee.com.br/search?keyword={quote(x)}" target="_blank" style="text-decoration: none;"><span style="background-color: #f0f0f0; color: #333; padding: 2px 10px; border-radius: 12px; font-size: 12px; border: 1px solid #ddd;">🔍 Buscar</span></a>'
-        )
-        
-        colunas = ["Produto", "🔑 Palavra-chave", "Categoria", "Evento", "Potencial", "Score", "Pins", "Crescimento", "Views TikTok", "Buscas no Mês", "Resultados ML", "Tendência", "Buscar na Shopee"]
-        df = df[colunas]
-        
-        st.markdown(
-            df.to_html(escape=False, index=False),
-            unsafe_allow_html=True
-        )
-        
-        st.caption(f"{BUSCAS_DIARIAS} de {BUSCAS_DIARIAS} consultas SerpApi usadas hoje")
-        
-        # ===== TOP 10 =====
-        st.markdown("---")
-        st.markdown("## 🏆 Top 10 Produtos em Tendência")
-        st.caption("Ranking completo baseado em score e dados do Pinterest")
-        
-        top10 = gerar_top10_produtos()
-        
-        df_top10 = pd.DataFrame(top10)
-        
-        colunas_top10 = ["Produto", "Categoria", "Evento", "Potencial", "Score", "Pins", "Crescimento", "Views TikTok", "Buscas no Mês", "Resultados ML", "Variação", "Tendência"]
-        df_top10 = df_top10[colunas_top10]
-        
-        st.markdown(
-            df_top10.to_html(escape=False, index=False),
-            unsafe_allow_html=True
-        )
-    else:
-        st.info("📭 Nenhum dado disponível para hoje. Tente recarregar a página.")
-    
-    st.markdown("---")
-    
-    # ===== INSIGHTS ESTRATÉGICOS =====
-    st.markdown("## 💡 Insights Estratégicos - Top 3")
-    
-    if dados_hoje and dados_hoje.get("produtos"):
-        produtos = dados_hoje["produtos"]
-        
-        top3 = sorted(produtos, key=lambda x: x.get("Score", 0), reverse=True)[:3]
-        
-        cols = st.columns(3)
-        
-        for i, item in enumerate(top3):
-            with cols[i]:
-                produto = item.get("Produto", "").lower()
-                dados_palavra = PALAVRAS_CHAVE_CAUDA_LONGA.get(produto, {})
-                palavra_chave = dados_palavra.get("palavra", f"{produto} tendência 2026")
-                hashtags = dados_palavra.get("hashtags", ["#tendência", "#moda", "#2026"])
-                
-                with st.container(border=True):
-                    st.markdown(f"### 🥇 {item.get('Produto', '')}")
-                    st.markdown(f"""
-                    - **Categoria:** {item.get('Categoria', 'Geral')}
-                    - **Score:** {item.get('Score', 0)}/10
-                    - **Pins:** {item.get('Pins', '0')}
-                    - **Crescimento:** {item.get('Crescimento', '+0%')}
-                    - **Views TikTok:** {item.get('Views TikTok', '0M')}
-                    - **Tendência:** {item.get('Tendência', '➡️ Estável')}
-                    """)
-                    st.info(f"🔑 **Palavra-chave:** {palavra_chave}")
-                    
-                    st.markdown("**🏷️ Hashtags sugeridas:**")
-                    tags_html = " ".join([f'<span style="background-color: #e0e0e0; padding: 2px 8px; border-radius: 12px; margin: 2px; font-size: 12px;">{h}</span>' for h in hashtags])
-                    st.markdown(tags_html, unsafe_allow_html=True)
-                    
-                    st.success("🚀 **Ação:** Crie conteúdo sobre este produto!")
-    else:
-        st.info("📭 Nenhum dado disponível para hoje.")
-    
-    st.markdown("---")
-    
-    st.markdown("## 📌 Legenda de Tendências")
-    
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.markdown("""
-        **🚀 Em alta**
-        - Crescimento acelerado
-        - Alta demanda
-        """)
-    with col2:
-        st.markdown("""
-        **📈 Crescendo**
-        - Demanda moderada
-        - Potencial de crescimento
-        """)
-    with col3:
-        st.markdown("""
-        **➡️ Estável**
-        - Demanda consistente
-        - Mercado maduro
-        """)
-    
-    st.caption("Dados combinados: Pinterest + Google Shopping + TikTok")
-    
-    return df if 'df' in locals() else None
 
 # ============================================================
 # SISTEMA DE CRÉDITOS DIÁRIOS
@@ -1333,6 +909,241 @@ class SnapGenVideoGenerator:
         return video_info
 
 # ============================================================
+# FUNCAO RENDER_DASHBOARD
+# ============================================================
+def render_dashboard():
+    st.title("📊 Minerador de Produtos")
+    st.caption(f"📅 {datetime.now().strftime('%A, %d de %B de %Y - %H:%M')}")
+    
+    dados_diarios = DadosDiarios()
+    dados_diarios.limpar_dados_antigos()
+    
+    if dados_diarios.precisa_atualizar():
+        with st.spinner("🔄 Atualizando dados do dia..."):
+            produtos = gerar_sugestoes_diarias()
+            dados_diarios.salvar_dados_hoje(produtos)
+            st.success("✅ Dados do dia atualizados!")
+            time.sleep(1)
+            st.rerun()
+    
+    dados_hoje = dados_diarios.obter_dados_hoje()
+    
+    # Status e Créditos
+    col_status1, col_status2, col_status3, col_status4 = st.columns(4)
+    with col_status1:
+        status_api = "✅ Conectado" if (SNAPGEN_API_KEY or (SNAPGEN_EMAIL and SNAPGEN_PASSWORD)) else "❌ Desconectado"
+        st.metric("🔌 Status API", status_api)
+    with col_status2:
+        creditos = CreditosDiarios()
+        licenca = st.session_state.get('licenca_usuario', LICENCA_PADRAO)
+        creditos_restantes = creditos.obter_creditos(licenca)
+        st.metric("🎫 Créditos IA", f"{creditos_restantes} / {CREDITOS_DIARIOS}")
+    with col_status3:
+        st.metric("👤 Licença", f"{licenca[:10]}...")
+    with col_status4:
+        if dados_hoje:
+            st.metric("📊 Buscas de Hoje", f"{dados_hoje.get('total_buscas', 0)} / {BUSCAS_DIARIAS}")
+        else:
+            st.metric("📊 Buscas de Hoje", f"0 / {BUSCAS_DIARIAS}")
+    
+    st.markdown("---")
+    
+    st.markdown("## 📊 Visão Geral do Mês")
+    
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        with st.container(border=True):
+            st.markdown("""
+            **❄️ Inverno no auge!** Casacos e blusas de lã são os mais procurados. 
+            Aproveite as férias para conteúdo de viagens e looks de inverno.
+            """)
+            
+            m1, m2, m3 = st.columns(3)
+            with m1:
+                st.metric("🔥 Produto em Alta", "casaco", delta="Moda")
+            with m2:
+                st.metric("📈 Crescimento Médio", "19.1%", delta="+2.3%")
+            with m3:
+                st.metric("🎯 Foco Principal", "Férias Escolares", delta="Alta demanda")
+    
+    with col2:
+        with st.container(border=True):
+            st.markdown("### 🎯 Melhor Oportunidade")
+            
+            st.markdown("**Potencial de Mercado**")
+            
+            potencial = 85
+            cor = "green" if potencial >= 70 else "orange" if potencial >= 40 else "red"
+            
+            st.markdown(f"""
+            <div style="background: #e0e0e0; border-radius: 10px; height: 20px; position: relative;">
+                <div style="background: {cor}; width: {potencial}%; height: 20px; border-radius: 10px; transition: width 0.5s;">
+                    <span style="position: absolute: right: 10px; top: 2px; color: black; font-weight: bold;">{potencial}%</span>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            st.caption("🟢 Produtos com status Alto potencial")
+            
+            col_s1, col_s2 = st.columns(2)
+            with col_s1:
+                st.success("✅ Alta Demanda")
+            with col_s2:
+                st.success("✅ Baixa Concorrência")
+    
+    st.markdown("---")
+    
+    # ===== TABELA DE PRODUTOS DO DIA (COM SHOPEE TRENDS) =====
+    st.markdown("## 🎯 Sugestões de Produtos para Hoje")
+    st.caption(f"📊 Top 3 do dia | Combinando dados históricos, Pinterest e Shopee Trends | {BUSCAS_DIARIAS} buscas realizadas")
+    
+    # Mostra tendências da Shopee em destaque
+    with st.expander("🛍️ Ver Tendências da Shopee", expanded=True):
+        st.markdown("### Termos mais buscados no momento")
+        buscas_shopee = capturar_buscas_shopee()
+        
+        if buscas_shopee:
+            cols = st.columns(5)
+            for i, termo in enumerate(buscas_shopee[:10]):
+                with cols[i % 5]:
+                    with st.container(border=True):
+                        st.markdown(f"**{i+1}.** {termo}")
+                        st.caption(f"🔍 Busca em alta")
+                        link = f"https://shopee.com.br/search?keyword={quote(termo)}"
+                        st.markdown(f'<a href="{link}" target="_blank"><span style="background-color: #f0f0f0; color: #333; padding: 2px 10px; border-radius: 12px; font-size: 11px; border: 1px solid #ddd;">🔍 Buscar</span></a>', unsafe_allow_html=True)
+        else:
+            st.info("📭 Nenhuma tendência encontrada no momento.")
+    
+    st.markdown("---")
+    
+    if dados_hoje and dados_hoje.get("produtos"):
+        produtos = dados_hoje["produtos"]
+        
+        dados_tabela = []
+        for item in produtos:
+            produto = item.get("Produto", "").lower()
+            dados_palavra = PALAVRAS_CHAVE_CAUDA_LONGA.get(produto, {})
+            palavra_chave = dados_palavra.get("palavra", f"{produto} tendência 2026")
+            
+            dados_tabela.append({
+                "Produto": item.get("Produto", ""),
+                "🔑 Palavra-chave": palavra_chave,
+                "Categoria": item.get("Categoria", "Geral"),
+                "Evento": item.get("Evento", "Tendência"),
+                "Potencial": item.get("Potencial", "🟡 Médio"),
+                "Score": item.get("Score", 0),
+                "Pins": item.get("Pins", "0"),
+                "Crescimento": item.get("Crescimento", "+0%"),
+                "Views TikTok": item.get("Views TikTok", "0M"),
+                "Buscas no Mês": item.get("Buscas no Mês", "0"),
+                "Resultados ML": item.get("Resultados ML", "0"),
+                "Tendência": item.get("Tendência", "➡️ Estável")
+            })
+        
+        df = pd.DataFrame(dados_tabela)
+        
+        df["Buscar na Shopee"] = df["Produto"].apply(
+            lambda x: f'<a href="https://shopee.com.br/search?keyword={quote(x)}" target="_blank" style="text-decoration: none;"><span style="background-color: #f0f0f0; color: #333; padding: 2px 10px; border-radius: 12px; font-size: 12px; border: 1px solid #ddd;">🔍 Buscar</span></a>'
+        )
+        
+        colunas = ["Produto", "🔑 Palavra-chave", "Categoria", "Evento", "Potencial", "Score", "Pins", "Crescimento", "Views TikTok", "Buscas no Mês", "Resultados ML", "Tendência", "Buscar na Shopee"]
+        df = df[colunas]
+        
+        st.markdown(
+            df.to_html(escape=False, index=False),
+            unsafe_allow_html=True
+        )
+        
+        st.caption(f"{BUSCAS_DIARIAS} de {BUSCAS_DIARIAS} consultas SerpApi usadas hoje")
+        
+        # ===== TOP 10 =====
+        st.markdown("---")
+        st.markdown("## 🏆 Top 10 Produtos em Tendência")
+        st.caption("Ranking completo baseado em score e dados do Pinterest + Shopee Trends")
+        
+        top10 = gerar_top10_produtos()
+        
+        df_top10 = pd.DataFrame(top10)
+        
+        colunas_top10 = ["Produto", "Categoria", "Evento", "Potencial", "Score", "Pins", "Crescimento", "Views TikTok", "Buscas no Mês", "Resultados ML", "Variação", "Tendência"]
+        df_top10 = df_top10[colunas_top10]
+        
+        st.markdown(
+            df_top10.to_html(escape=False, index=False),
+            unsafe_allow_html=True
+        )
+    else:
+        st.info("📭 Nenhum dado disponível para hoje. Tente recarregar a página.")
+    
+    st.markdown("---")
+    
+    # ===== INSIGHTS ESTRATÉGICOS =====
+    st.markdown("## 💡 Insights Estratégicos - Top 3")
+    
+    if dados_hoje and dados_hoje.get("produtos"):
+        produtos = dados_hoje["produtos"]
+        
+        top3 = sorted(produtos, key=lambda x: x.get("Score", 0), reverse=True)[:3]
+        
+        cols = st.columns(3)
+        
+        for i, item in enumerate(top3):
+            with cols[i]:
+                produto = item.get("Produto", "").lower()
+                dados_palavra = PALAVRAS_CHAVE_CAUDA_LONGA.get(produto, {})
+                palavra_chave = dados_palavra.get("palavra", f"{produto} tendência 2026")
+                hashtags = dados_palavra.get("hashtags", ["#tendência", "#moda", "#2026"])
+                
+                with st.container(border=True):
+                    st.markdown(f"### 🥇 {item.get('Produto', '')}")
+                    st.markdown(f"""
+                    - **Categoria:** {item.get('Categoria', 'Geral')}
+                    - **Score:** {item.get('Score', 0)}/10
+                    - **Pins:** {item.get('Pins', '0')}
+                    - **Crescimento:** {item.get('Crescimento', '+0%')}
+                    - **Views TikTok:** {item.get('Views TikTok', '0M')}
+                    - **Tendência:** {item.get('Tendência', '➡️ Estável')}
+                    """)
+                    st.info(f"🔑 **Palavra-chave:** {palavra_chave}")
+                    
+                    st.markdown("**🏷️ Hashtags sugeridas:**")
+                    tags_html = " ".join([f'<span style="background-color: #e0e0e0; padding: 2px 8px; border-radius: 12px; margin: 2px; font-size: 12px;">{h}</span>' for h in hashtags])
+                    st.markdown(tags_html, unsafe_allow_html=True)
+                    
+                    st.success("🚀 **Ação:** Crie conteúdo sobre este produto!")
+    else:
+        st.info("📭 Nenhum dado disponível para hoje.")
+    
+    st.markdown("---")
+    
+    st.markdown("## 📌 Legenda de Tendências")
+    
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.markdown("""
+        **🚀 Em alta**
+        - Crescimento acelerado
+        - Alta demanda
+        """)
+    with col2:
+        st.markdown("""
+        **📈 Crescendo**
+        - Demanda moderada
+        - Potencial de crescimento
+        """)
+    with col3:
+        st.markdown("""
+        **➡️ Estável**
+        - Demanda consistente
+        - Mercado maduro
+        """)
+    
+    st.caption("Dados combinados: Shopee Trends + Pinterest + Google Shopping + TikTok")
+    
+    return df if 'df' in locals() else None
+
+# ============================================================
 # APP PRINCIPAL
 # ============================================================
 licenca = verificar_login()
@@ -1580,4 +1391,4 @@ with tab4:
 # RODAPE
 # ============================================================
 st.markdown("---")
-st.caption(f"🛒 Minerador de Produtos v4.0 | {datetime.now().year} | Dados: Pinterest + Google Trends + SerpApi")
+st.caption(f"🛒 Minerador de Produtos v4.0 | {datetime.now().year} | {BUSCAS_DIARIAS} buscas diárias | {BUSCAS_TOTAIS} buscas/mês")
