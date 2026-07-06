@@ -1,14 +1,16 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime  # ← ADICIONADO
-from urllib.parse import quote  # ← ADICIONADO
+from datetime import datetime
+from urllib.parse import quote
 
 from modules.models import (
     DADOS_COMPLETOS,
     PALAVRAS_CHAVE_CAUDA_LONGA,
     gerar_top10_produtos,
     gerar_sugestoes_diarias,
-    BUSCAS_DIARIAS
+    BUSCAS_DIARIAS,
+    carregar_apoiadores,
+    adicionar_apoiador
 )
 from modules.serper import buscar_produtos_serper
 
@@ -23,6 +25,80 @@ def render_status_usuario():
         st.metric("👑 Apoiador", "✅" if st.session_state.get("is_apoiador", False) else "❌")
     with col3:
         st.metric("🔑 Admin", "✅" if st.session_state.get("is_admin", False) else "❌")
+
+def render_painel_apoiadores():
+    """Renderiza o painel de apoiadores"""
+    
+    st.markdown("## 👑 Nossos Apoiadores")
+    st.caption("Quem acreditou no projeto desde o início")
+    
+    apoiadores = carregar_apoiadores()
+    
+    if apoiadores:
+        # Ordena por ordem de entrada
+        apoiadores_ordenados = sorted(apoiadores.values(), key=lambda x: x.get("ordem", 999))
+        
+        # Exibe em cards
+        cols = st.columns(min(len(apoiadores_ordenados), 3))
+        
+        for i, apoiador in enumerate(apoiadores_ordenados):
+            with cols[i % 3]:
+                with st.container(border=True):
+                    cor = apoiador.get("cor", "#FFD700")
+                    st.markdown(f"""
+                    <div style="text-align: center; padding: 10px 0;">
+                        <span style="font-size: 48px;">{apoiador.get('coroinha', '👑')}</span>
+                        <h3 style="color: {cor}; margin: 5px 0;">{apoiador.get('nome')}</h3>
+                        <p style="color: #888; font-size: 14px;">#{apoiador.get('ordem', 999)} • Apoiador</p>
+                        <p style="color: #666; font-size: 12px;">{apoiador.get('plano', 'Fundador')}</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    st.markdown(f"**📅 Entrada:** {apoiador.get('data_entrada', '2026-07-01')}")
+                    
+                    # Verifica repasse
+                    ordem = apoiador.get("ordem", 999)
+                    depois = sum(1 for k, d in apoiadores.items() if d.get("ordem", 999) > ordem)
+                    
+                    if depois > 0 and apoiador.get("repasse_ativo", True):
+                        st.success(f"✅ Recebendo repasse de {depois} apoiador(es)")
+                        st.caption(f"💰 R${depois * 5.00:.2f} estimado/mês")
+                    else:
+                        st.info("⏳ Aguardando novos apoiadores")
+                    
+                    if apoiador.get("ordem") == 1:
+                        st.markdown("""
+                        <div style="background: linear-gradient(135deg, #FFD700, #FFA500); 
+                                    color: white; text-align: center; padding: 4px; 
+                                    border-radius: 4px; font-weight: bold; font-size: 12px;">
+                            🏆 PRIMEIRA(O) APOIADORA
+                        </div>
+                        """, unsafe_allow_html=True)
+    else:
+        st.info("📭 Nenhum apoiador cadastrado ainda. Seja o primeiro!")
+    
+    st.markdown("---")
+    
+    # ===== ADICIONAR APOIADOR (APENAS ADMIN) =====
+    if st.session_state.get("is_admin", False):
+        with st.expander("➕ Adicionar Apoiador", expanded=False):
+            st.markdown("### Adicionar Novo Apoiador")
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                nome_apo = st.text_input("Nome do Apoiador", placeholder="Ex: João Silva")
+                email_apo = st.text_input("E-mail", placeholder="joao@email.com")
+            with col2:
+                plano_apo = st.selectbox("Plano", ["Fundador", "Apoiador", "Premium"])
+            
+            if st.button("👑 Adicionar Apoiador", use_container_width=True):
+                if not nome_apo or not email_apo:
+                    st.error("❌ Preencha nome e e-mail")
+                else:
+                    novo = adicionar_apoiador(nome_apo, email_apo, plano_apo)
+                    st.success(f"✅ {nome_apo} adicionado como apoiador!")
+                    st.info(f"📋 Ordem: #{novo.get('ordem')}")
+                    st.rerun()
 
 def render_dashboard():
     """Renderiza o dashboard principal"""
@@ -87,6 +163,11 @@ def render_dashboard():
                 st.success("✅ Alta Demanda")
             with col_s2:
                 st.success("✅ Baixa Concorrência")
+    
+    st.markdown("---")
+    
+    # ===== PAINEL DE APOIADORES =====
+    render_painel_apoiadores()
     
     st.markdown("---")
     
