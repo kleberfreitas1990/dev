@@ -24,7 +24,11 @@ st.set_page_config(
 # IMPORTAR MÓDULOS
 # ============================================================
 from modules.auth import verificar_login
-from modules.views import render_dashboard, render_status_usuario, render_painel_apoiadores
+from modules.views import (
+    render_dashboard, 
+    render_status_usuario, 
+    render_painel_apoiadores_detalhado
+)
 from modules.models import gerar_top10_produtos, PALAVRAS_CHAVE_CAUDA_LONGA
 from modules.serper import buscar_produtos_serper
 
@@ -32,18 +36,6 @@ from modules.serper import buscar_produtos_serper
 # VERIFICAR LOGIN
 # ============================================================
 licenca = verificar_login()
-
-# ============================================================
-# TITULO
-# ============================================================
-st.title("📊 Minerador de Produtos")
-st.caption(f"📅 {datetime.now().strftime('%A, %d de %B de %Y - %H:%M')}")
-
-# ============================================================
-# STATUS DO USUÁRIO
-# ============================================================
-render_status_usuario()
-st.markdown("---")
 
 # ============================================================
 # TABS
@@ -58,10 +50,10 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
 ])
 
 # ============================================================
-# TAB 1: DASHBOARD (NÃO CHAMA render_painel_apoiadores)
+# TAB 1: DASHBOARD
 # ============================================================
 with tab1:
-    render_dashboard()  # ← Removeu a chamada duplicada de render_painel_apoiadores
+    render_dashboard()
 
 # ============================================================
 # TAB 2: SUGESTÕES DE PRODUTOS
@@ -191,10 +183,10 @@ with tab4:
                     st.video("https://placehold.co/600x400/000000/FFFFFF?text=Video+Gerado+por+IA")
 
 # ============================================================
-# TAB 5: APOIADORES (ÚNICA CHAMADA)
+# TAB 5: APOIADORES (DETALHADO)
 # ============================================================
 with tab5:
-    render_painel_apoiadores()
+    render_painel_apoiadores_detalhado()
 
 # ============================================================
 # TAB 6: LICENÇAS (APENAS ADMIN)
@@ -220,7 +212,6 @@ with tab6:
         st.markdown("---")
         
         with st.expander("🆕 Criar Nova Licença", expanded=True):
-            # Usa keys diferentes para evitar conflito com a Tab de Apoiadores
             col1, col2 = st.columns(2)
             with col1:
                 novo_usuario = st.text_input("Nome do Usuário", placeholder="Ex: João Silva", key="lic_nome")
