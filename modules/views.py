@@ -42,7 +42,7 @@ def render_status_usuario():
 # DASHBOARD PRINCIPAL
 # ============================================================
 def render_dashboard():
-    """Renderiza o dashboard principal (SEM apoiadores)"""
+    """Renderiza o dashboard principal"""
     
     st.title("📊 Minerador de Produtos")
     st.caption(f"📅 {datetime.now().strftime('%A, %d de %B de %Y - %H:%M')}")
@@ -255,7 +255,7 @@ def render_painel_apoiadores_detalhado():
     
     st.markdown("### 👑 Apoiadores")
     
-    # Exibe os apoiadores como ovais coloridos
+    # Exibe os apoiadores como badges usando st.markdown com HTML
     html_ovais = '<div style="display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0;">'
     
     for i, apoiador in enumerate(apoiadores_ordenados):
@@ -264,8 +264,9 @@ def render_painel_apoiadores_detalhado():
         ordem = apoiador.get("ordem", 999)
         coroinha = apoiador.get("coroinha", "👑")
         
+        # Usa st.markdown com unsafe_allow_html=True
         html_ovais += f'''
-        <div style="
+        <span style="
             background: {cor};
             color: white;
             padding: 6px 16px;
@@ -277,16 +278,14 @@ def render_painel_apoiadores_detalhado():
             font-weight: 500;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             border: 2px solid rgba(255,255,255,0.3);
-            cursor: default;
         ">
-            <span>{coroinha}</span>
-            <span>{nome}</span>
-            <span style="font-size: 10px; opacity: 0.8;">#{ordem}</span>
-        </div>
+            {coroinha} {nome} <span style="font-size: 10px; opacity: 0.8;">#{ordem}</span>
+        </span>
         '''
     
     html_ovais += '</div>'
     
+    # Usa st.markdown com unsafe_allow_html=True
     st.markdown(html_ovais, unsafe_allow_html=True)
     
     st.markdown("---")
