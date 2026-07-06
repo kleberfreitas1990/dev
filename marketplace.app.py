@@ -58,10 +58,10 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
 ])
 
 # ============================================================
-# TAB 1: DASHBOARD
+# TAB 1: DASHBOARD (NÃO CHAMA render_painel_apoiadores)
 # ============================================================
 with tab1:
-    render_dashboard()
+    render_dashboard()  # ← Removeu a chamada duplicada de render_painel_apoiadores
 
 # ============================================================
 # TAB 2: SUGESTÕES DE PRODUTOS
@@ -191,7 +191,7 @@ with tab4:
                     st.video("https://placehold.co/600x400/000000/FFFFFF?text=Video+Gerado+por+IA")
 
 # ============================================================
-# TAB 5: APOIADORES
+# TAB 5: APOIADORES (ÚNICA CHAMADA)
 # ============================================================
 with tab5:
     render_painel_apoiadores()
@@ -220,15 +220,16 @@ with tab6:
         st.markdown("---")
         
         with st.expander("🆕 Criar Nova Licença", expanded=True):
+            # Usa keys diferentes para evitar conflito com a Tab de Apoiadores
             col1, col2 = st.columns(2)
             with col1:
-                novo_usuario = st.text_input("Nome do Usuário", placeholder="Ex: João Silva")
-                novo_email = st.text_input("E-mail", placeholder="joao@email.com")
+                novo_usuario = st.text_input("Nome do Usuário", placeholder="Ex: João Silva", key="lic_nome")
+                novo_email = st.text_input("E-mail", placeholder="joao@email.com", key="lic_email")
             with col2:
-                plano = st.selectbox("Plano", ["Trial 7 dias", "Apoiador R$ 59,90"])
-                is_apoiador = st.checkbox("👑 Tornar APOIADOR (royalties)")
+                plano = st.selectbox("Plano", ["Trial 7 dias", "Apoiador R$ 59,90"], key="lic_plano")
+                is_apoiador = st.checkbox("👑 Tornar APOIADOR (royalties)", key="lic_apoiador")
             
-            if st.button("🚀 Gerar Licença", use_container_width=True):
+            if st.button("🚀 Gerar Licença", use_container_width=True, key="lic_btn"):
                 if not novo_usuario or not novo_email:
                     st.error("❌ Preencha nome e e-mail")
                 else:
@@ -244,6 +245,7 @@ with tab6:
         st.markdown("---")
         st.markdown("### 📋 Licenças Ativas")
         
+        from modules.models import SistemaLicencas
         sistema = SistemaLicencas()
         licencas = sistema.dados["licencas"]
         
