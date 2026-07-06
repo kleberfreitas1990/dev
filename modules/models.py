@@ -58,7 +58,18 @@ class SistemaLicencas:
         }
         
         # Licença Admin (apenas se não existir)
-        if not self._admin_existe():
+        # Verifica se a licença admin já existe no arquivo
+        admin_existe = False
+        if os.path.exists(self.arquivo):
+            try:
+                with open(self.arquivo, 'r', encoding='utf-8') as f:
+                    dados_existentes = json.load(f)
+                    if ADMIN_LICENCA in dados_existentes.get("licencas", {}):
+                        admin_existe = True
+            except:
+                pass
+        
+        if not admin_existe:
             licencas[ADMIN_LICENCA] = {
                 "tipo": "admin",
                 "status": "ativo",
@@ -204,8 +215,6 @@ class SistemaLicencas:
     
     def _atualizar_apoiadores(self):
         """Atualiza a lista de apoiadores baseado nas licenças ativas com royalties"""
-        global APOIADORES
-        
         APOIADORES = {}
         
         ordem = 1
