@@ -1,5 +1,6 @@
 import streamlit as st
 import warnings
+from datetime import datetime  # ← IMPORT CORRETO
 
 # ============================================================
 # SUPRIMIR WARNINGS
@@ -46,15 +47,13 @@ render_status_usuario()
 st.markdown("---")
 
 # ============================================================
-# DASHBOARD PRINCIPAL (AQUI ENTRA SEU DASHBOARD EXISTENTE)
+# DASHBOARD PRINCIPAL
 # ============================================================
 st.markdown("## 📊 Visão Geral do Mês")
 st.markdown("""
 **❄️ Inverno no auge!** Casacos e blusas de lã são os mais procurados. 
 Aproveite as férias para conteúdo de viagens e looks de inverno.
 """)
-
-# ... SEU DASHBOARD EXISTENTE AQUI ...
 
 # ============================================================
 # TABS
@@ -69,23 +68,20 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
 ])
 
 with tab1:
-    # SEU DASHBOARD EXISTENTE
-    pass
+    st.markdown("### 📊 Dashboard Principal")
+    st.info("Seu dashboard completo aqui")
 
 with tab2:
     st.markdown("## 📌 Sugestões de Produtos")
-    # SEU CÓDIGO EXISTENTE
-    pass
+    st.info("Sugestões de produtos aqui")
 
 with tab3:
     st.markdown("## 📅 Calendário de Conteúdo")
-    # SEU CÓDIGO EXISTENTE
-    pass
+    st.info("Calendário aqui")
 
 with tab4:
     st.markdown("## 🎬 Criar Vídeo IA")
-    # SEU CÓDIGO EXISTENTE
-    pass
+    st.info("Gerador de vídeos aqui")
 
 with tab5:
     render_painel_apoiadores()
