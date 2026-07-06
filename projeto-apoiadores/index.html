@@ -26,7 +26,7 @@
             border-radius: 16px;
             padding: 24px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            max-width: 600px;
+            max-width: 100%;
             width: 100%;
         }
 
@@ -48,16 +48,18 @@
             padding: 2px 12px;
         }
 
-        /* Grid de badges - estilo nuvem de tags */
-        .badges-grid {
+        /* Container dos badges - TODOS NA MESMA LINHA */
+        .badges-wrapper {
             display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            min-height: 40px;
+            gap: 6px;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            padding: 4px 0;
         }
 
-        /* Cada badge - estilo oval */
+        /* Cada badge - VAI DIMINUIR PARA CABER */
         .badge {
+            background: #4ECDC4;
             color: white;
             padding: 6px 16px;
             border-radius: 50px;
@@ -69,57 +71,37 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             border: 2px solid rgba(255,255,255,0.3);
             cursor: default;
-            transition: all 0.2s ease;
             white-space: nowrap;
-        }
-
-        .badge:hover {
-            transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            flex-shrink: 1;
+            min-width: 0;
         }
 
         .badge .icone {
             font-size: 14px;
         }
 
+        .badge .nome {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
         .badge .numero {
             font-size: 10px;
             opacity: 0.8;
-        }
-
-        /* Cores diferentes para variar */
-        .cor-1 { background: #4ECDC4; }
-        .cor-2 { background: #45B7D1; }
-        .cor-3 { background: #96CEB4; }
-        .cor-4 { background: #FFEAA7; color: #333; }
-        .cor-5 { background: #DDA0DD; }
-        .cor-6 { background: #FF9FF3; color: #333; }
-        .cor-7 { background: #54A0FF; }
-        .cor-8 { background: #5F27CD; }
-        .cor-9 { background: #FF6B6B; }
-        .cor-10 { background: #FECA57; color: #333; }
-        .cor-11 { background: #48DBFB; }
-        .cor-12 { background: #FF9F43; }
-        .cor-13 { background: #10AC84; }
-        .cor-14 { background: #EE5A24; }
-        .cor-15 { background: #A29BFE; }
-
-        .loading {
-            color: #999;
-            font-size: 14px;
-            padding: 10px 0;
+            flex-shrink: 0;
         }
 
         @media (max-width: 600px) {
-            .container {
-                padding: 16px;
-            }
             .badge {
-                padding: 5px 12px;
-                font-size: 12px;
+                padding: 4px 10px;
+                font-size: 11px;
+                gap: 4px;
             }
             .badge .icone {
                 font-size: 12px;
+            }
+            .badge .numero {
+                font-size: 9px;
             }
         }
     </style>
@@ -128,122 +110,39 @@
     <div class="container">
         <div class="titulo">
             👑 Apoiadores
-            <span id="contador">0</span>
+            <span>4</span>
         </div>
 
-        <!-- Onde os badges vão ser inseridos -->
-        <div id="badgesContainer" class="badges-grid">
-            <div class="loading">Carregando apoiadores...</div>
+        <!-- TODOS OS BADGES NA MESMA LINHA -->
+        <div class="badges-wrapper">
+            <!-- Badge 1 -->
+            <div class="badge">
+                <span class="icone">👑</span>
+                <span class="nome">Iago Coelho</span>
+                <span class="numero">#2</span>
+            </div>
+
+            <!-- Badge 2 -->
+            <div class="badge">
+                <span class="icone">👑</span>
+                <span class="nome">Sandra Lopes</span>
+                <span class="numero">#3</span>
+            </div>
+
+            <!-- Badge 3 -->
+            <div class="badge">
+                <span class="icone">👑</span>
+                <span class="nome">Kaiky</span>
+                <span class="numero">#4</span>
+            </div>
+
+            <!-- Badge 4 -->
+            <div class="badge">
+                <span class="icone">👑</span>
+                <span class="nome">Vanessa Profiro</span>
+                <span class="numero">#5</span>
+            </div>
         </div>
     </div>
-
-    <script>
-        // ============================================
-        // LISTA DE APOIADORES (EDITAR AQUI)
-        // ============================================
-        const apoiadores = [
-            { nome: "Mayara Veloso", coroa: "👑" },
-            { nome: "Iago Coelho", coroa: "👑" },
-            { nome: "Sandra Lopes", coroa: "👑" },
-            { nome: "Kaiky", coroa: "👑" },
-            { nome: "Vanessa Profiro", coroa: "👑" },
-            { nome: "Carlos Eduardo", coroa: "👑" },
-            { nome: "Ana Beatriz", coroa: "👑" },
-            { nome: "Rafael Silva", coroa: "👑" },
-            { nome: "Juliana Santos", coroa: "👑" },
-            { nome: "Marcos Oliveira", coroa: "👑" },
-            { nome: "Patrícia Lima", coroa: "👑" },
-            { nome: "Fernando Souza", coroa: "👑" },
-            { nome: "Camila Rocha", coroa: "👑" },
-            { nome: "Lucas Pereira", coroa: "👑" },
-            { nome: "Mariana Costa", coroa: "👑" },
-        ];
-
-        // ============================================
-        // FUNÇÃO PARA RENDERIZAR OS BADGES
-        // ============================================
-        function renderizarApoiadores() {
-            const container = document.getElementById('badgesContainer');
-            const contador = document.getElementById('contador');
-
-            // Limpa o container
-            container.innerHTML = '';
-
-            // Atualiza o contador
-            contador.textContent = apoiadores.length;
-
-            // Se não tiver apoiadores, mostra mensagem
-            if (apoiadores.length === 0) {
-                container.innerHTML = '<div class="loading">Nenhum apoiador ainda 😢</div>';
-                return;
-            }
-
-            // Percorre a lista e cria os badges
-            apoiadores.forEach((apoiador, index) => {
-                const badge = document.createElement('div');
-                
-                // Define a classe de cor (baseado no índice)
-                const corIndex = (index % 15) + 1;
-                badge.className = `badge cor-${corIndex}`;
-                
-                // Define o conteúdo do badge
-                badge.innerHTML = `
-                    <span class="icone">${apoiador.coroa || '👑'}</span>
-                    ${apoiador.nome}
-                    <span class="numero">#${index + 2}</span>
-                `;
-
-                container.appendChild(badge);
-            });
-        }
-
-        // ============================================
-        // FUNÇÃO PARA ADICIONAR NOVO APOIADOR
-        // ============================================
-        function adicionarApoiador(nome, coroa = '👑') {
-            apoiadores.push({ nome, coroa });
-            renderizarApoiadores();
-        }
-
-        // ============================================
-        // FUNÇÃO PARA REMOVER APOIADOR (por índice)
-        // ============================================
-        function removerApoiador(index) {
-            if (index >= 0 && index < apoiadores.length) {
-                apoiadores.splice(index, 1);
-                renderizarApoiadores();
-            }
-        }
-
-        // ============================================
-        // CARREGA OS APOIADORES AO INICIAR
-        // ============================================
-        document.addEventListener('DOMContentLoaded', renderizarApoiadores);
-
-        // ============================================
-        // EXEMPLOS DE COMO USAR (DESCOMENTE PARA TESTAR)
-        // ============================================
-        // Adicionar um novo apoiador depois de 3 segundos
-        // setTimeout(() => {
-        //     adicionarApoiador('Roberto Carlos', '⭐');
-        // }, 3000);
-
-        // Remover o primeiro apoiador depois de 5 segundos
-        // setTimeout(() => {
-        //     removerApoiador(0);
-        // }, 5000);
-
-        // ============================================
-        // PARA USAR NO CONSOLE DO NAVEGADOR:
-        // ============================================
-        // adicionarApoiador('João Silva', '👑')
-        // removerApoiador(2)
-        // console.log(apoiadores) // Ver a lista completa
-
-        console.log('✅ Apoiadores carregados!');
-        console.log(`📊 Total: ${apoiadores.length} apoiadores`);
-        console.log('💡 Use adicionarApoiador("Nome", "👑") para adicionar mais');
-        console.log('💡 Use removerApoiador(0) para remover pelo índice');
-    </script>
 </body>
 </html>
