@@ -53,6 +53,37 @@ TERMOS_REAIS_SHOPEE = [
 ]
 
 # ============================================================
+# SISTEMA DE APOIADORES E ROYALTIES
+# ============================================================
+APOIADORES = {
+    "mayara": {
+        "nome": "Mayara Veloso",
+        "ordem": 1,
+        "email": "mayara@email.com",
+        "coroinha": "👑",
+        "cor": "#FFD700",
+        "data_entrada": "2026-07-01",
+        "royalties_recebidos": 0.0,
+        "repasse_ativo": True
+    },
+    "iago": {
+        "nome": "Iago",
+        "ordem": 2,
+        "email": "iago@email.com",
+        "coroinha": "👑",
+        "cor": "#C0C0C0",
+        "data_entrada": "2026-07-05",
+        "royalties_recebidos": 0.0,
+        "repasse_ativo": True
+    }
+}
+
+CONFIG_REPASSE = {
+    "porcentagem_repasse": 5,
+    "nivel_maximo_repasse": 3,
+}
+
+# ============================================================
 # CARREGAR SECRETS
 # ============================================================
 def carregar_secrets():
@@ -262,15 +293,182 @@ def capturar_buscas_shopee_com_cache():
     return termos
 
 # ============================================================
+# FUNÇÕES DO SISTEMA DE APOIADORES
+# ============================================================
+
+def get_apoiador_por_email(email):
+    """Retorna os dados do apoiador pelo email"""
+    for key, dados in APOIADORES.items():
+        if dados.get("email") == email:
+            return dados
+    return None
+
+def get_status_apoiador(email):
+    """Retorna o status completo do apoiador"""
+    apoiador = get_apoiador_por_email(email)
+    if not apoiador:
+        return None
+    
+    ordem = apoiador.get("ordem", 999)
+    
+    depois = sum(1 for k, d in APOIADORES.items() if d.get("ordem", 999) > ordem)
+    
+    tem_repasse = depois > 0 and apoiador.get("repasse_ativo", True)
+    
+    valor_repasse = depois * 5.0
+    
+    return {
+        "nome": apoiador.get("nome"),
+        "ordem": ordem,
+        "coroinha": apoiador.get("coroinha", "👑"),
+        "cor": apoiador.get("cor", "#FFD700"),
+        "tem_repasse": tem_repasse,
+        "num_apoiadores_depois": depois,
+        "valor_repasse_estimado": valor_repasse,
+        "royalties_recebidos": apoiador.get("royalties_recebidos", 0.0),
+        "data_entrada": apoiador.get("data_entrada", "2026-07-01")
+    }
+
+def render_painel_apoiadores():
+    """Renderiza o painel de apoiadores no dashboard"""
+    
+    st.markdown("## 👑 Nossos Apoiadores")
+    st.caption("Quem acreditou no projeto desde o início")
+    
+    apoiadores_ordenados = sorted(APOIADORES.values(), key=lambda x: x.get("ordem", 999))
+    
+    cols = st.columns(min(len(apoiadores_ordenados), 3))
+    
+    for i, apoiador in enumerate(apoiadores_ordenados):
+        with cols[i % 3]:
+            with st.container(border=True):
+                cor = apoiador.get("cor", "#FFD700")
+                st.markdown(f"""
+                <div style="text-align: center; padding: 10px 0;">
+                    <span style="font-size: 48px;">{apoiador.get('coroinha', '👑')}</span>
+                    <h3 style="color: {cor}; margin: 5px 0;">{apoiador.get('nome')}</h3>
+                    <p style="color: #888; font-size: 14px;">#{apoiador.get('ordem', 999)} • Apoiador</p>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                st.markdown(f"**📅 Entrada:** {apoiador.get('data_entrada', '2026-07-01')}")
+                
+                ordem = apoiador.get("ordem", 999)
+                depois = sum(1 for k, d in APOIADORES.items() if d.get("ordem", 999) > ordem)
+                
+                if depois > 0 and apoiador.get("repasse_ativo", True):
+                    st.success(f"✅ Recebendo repasse de {depois} apoiador(es)")
+                    st.caption(f"💰 R${depois * 5.00:.2f} estimado/mês")
+                else:
+                    st.info("⏳ Aguardando novos apoiadores")
+                
+                if apoiador.get("ordem") == 1:
+                    st.markdown("""
+                    <div style="background: linear-gradient(135deg, #FFD700, #FFA500); 
+                                color: white; text-align: center; padding: 4px; 
+                                border-radius: 4px; font-weight: bold; font-size: 12px;">
+                        🏆 PRIMEIRA(O) APOIADORA
+                    </div>
+                    """, unsafe_allow_html=True)
+    
+    st.markdown("---")
+
+def render_status_apoiador(email_usuario):
+    """Renderiza o status de repasse para um usuário específico"""
+    
+    status = get_status_apoiador(email_usuario)
+    if not status:
+        return
+    
+    st.markdown("### 📊 Seu Status de Apoiador")
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.metric(
+            "👑 Posição",
+            f"#{status['ordem']}",
+            delta="Apoiador"
+        )
+    
+    with col2:
+        st.metric(
+            "📊 Apoiadores Depois",
+            status['num_apoiadores_depois'],
+            delta="Recebendo repasse" if status['tem_repasse'] else "Aguardando"
+        )
+    
+    with col3:
+        st.metric(
+            "💰 Repasse Estimado",
+            f"R$ {status['valor_repasse_estimado']:.2f}/mês",
+            delta="+5% por novo apoiador"
+        )
+    
+    if status['tem_repasse']:
+        st.markdown("#### 📈 Progresso do Repasse")
+        progresso = min(status['num_apoiadores_depois'] / 10 * 100, 100)
+        cor = "#4CAF50" if progresso > 50 else "#FFA500" if progresso > 25 else "#2196F3"
+        
+        st.markdown(f"""
+        <div style="background: #e0e0e0; border-radius: 10px; height: 20px; position: relative; margin: 10px 0;">
+            <div style="background: {cor}; width: {progresso}%; height: 20px; border-radius: 10px; transition: width 0.5s;">
+                <span style="position: absolute; right: 10px; top: 2px; color: black; font-weight: bold;">{progresso:.0f}%</span>
+            </div>
+        </div>
+        <p style="font-size: 12px; color: #666;">
+            💡 Cada novo apoiador gera +5% de repasse para você
+        </p>
+        """, unsafe_allow_html=True)
+    else:
+        st.info("💡 Você será o próximo a receber repasses quando novos apoiadores entrarem!")
+
+def render_pagina_apoiadores():
+    """Renderiza a página completa de apoiadores"""
+    
+    st.title("👑 Área dos Apoiadores")
+    st.caption("Seu status e benefícios exclusivos")
+    
+    email = st.session_state.get('licenca_usuario', '')
+    status = get_status_apoiador(email)
+    
+    if status:
+        render_status_apoiador(email)
+        st.markdown("---")
+    
+    render_painel_apoiadores()
+    
+    st.markdown("---")
+    
+    with st.expander("📖 Como funciona o sistema de repasse?"):
+        st.markdown("""
+        ### 🎯 Sistema de Repasse para Apoiadores
+        
+        **Como funciona:**
+        
+        1. **Ordem de entrada**: Quanto antes você entrou, maior seu benefício
+        2. **Repasse automático**: Cada novo apoiador gera 5% de repasse para os apoiadores anteriores
+        3. **Cadeia de benefícios**: Os primeiros apoiadores recebem de múltiplos níveis
+        
+        **Exemplo:**
+        - Mayara (#1) recebe de Iago (#2) + novos apoiadores
+        - Iago (#2) recebe de novos apoiadores (a partir do #3)
+        
+        **Benefícios exclusivos:**
+        - 👑 Status de Apoiador
+        - 📊 Relatórios semanais exclusivos
+        - 🎯 Prioridade em novas funcionalidades
+        - 💰 Repasses mensais automáticos
+        """)
+
+# ============================================================
 # DADOS COMPLETOS (BASE + SHOPEE TRENDS)
 # ============================================================
 def get_dados_completos():
     """Retorna dados combinados: base fixa + Shopee Trends"""
     
-    # Busca tendências da Shopee
     buscas_shopee = capturar_buscas_shopee_com_cache()
     
-    # Base fixa de produtos
     dados_base = {
         "casaco": {
             "pins": 3400,
@@ -469,7 +667,6 @@ def get_dados_completos():
         }
     }
     
-    # Adiciona produtos das tendências da Shopee
     for termo in buscas_shopee[:10]:
         if termo not in dados_base:
             posicao = buscas_shopee.index(termo) + 1
@@ -1042,7 +1239,6 @@ def render_dashboard():
     
     dados_hoje = dados_diarios.obter_dados_hoje()
     
-    # Status e Créditos
     col_status1, col_status2, col_status3, col_status4 = st.columns(4)
     with col_status1:
         status_api = "✅ Conectado" if (SNAPGEN_API_KEY or (SNAPGEN_EMAIL and SNAPGEN_PASSWORD)) else "❌ Desconectado"
@@ -1108,11 +1304,9 @@ def render_dashboard():
     
     st.markdown("---")
     
-    # ===== TABELA DE PRODUTOS DO DIA (COM SHOPEE TRENDS) =====
     st.markdown("## 🎯 Sugestões de Produtos para Hoje")
     st.caption(f"📊 Top 3 do dia | Combinando dados históricos e Shopee Trends | {BUSCAS_DIARIAS} buscas realizadas")
     
-    # Mostra tendências da Shopee em destaque
     with st.expander("🛍️ Ver Tendências da Shopee", expanded=True):
         st.markdown("### Termos mais buscados no momento")
         buscas_shopee = capturar_buscas_shopee_com_cache()
@@ -1171,7 +1365,6 @@ def render_dashboard():
         
         st.caption(f"{BUSCAS_DIARIAS} de {BUSCAS_DIARIAS} consultas SerpApi usadas hoje")
         
-        # ===== TOP 10 =====
         st.markdown("---")
         st.markdown("## 🏆 Top 10 Produtos em Tendência")
         st.caption("Ranking completo baseado em score e dados do Pinterest + Shopee Trends")
@@ -1231,6 +1424,11 @@ def render_dashboard():
     
     st.markdown("---")
     
+    # ===== PAINEL DE APOIADORES =====
+    render_painel_apoiadores()
+    
+    st.markdown("---")
+    
     st.markdown("## 📌 Legenda de Tendências")
     
     col1, col2, col3 = st.columns(3)
@@ -1269,11 +1467,12 @@ creditos_restantes = creditos.obter_creditos(licenca)
 # ============================================================
 # TABS
 # ============================================================
-tab1, tab2, tab3, tab4 = st.tabs([
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "📊 Dashboard",
     "📌 Sugestões de Produtos",
     "📅 Calendário de Conteúdo",
-    "🎬 Criar Vídeo IA"
+    "🎬 Criar Vídeo IA",
+    "👑 Apoiadores"
 ])
 
 # ============================================================
@@ -1500,6 +1699,9 @@ with tab4:
                         st.rerun()
     else:
         st.info("📭 Nenhum vídeo gerado ainda. Crie seu primeiro vídeo acima!")
+
+with tab5:
+    render_pagina_apoiadores()
 
 # ============================================================
 # RODAPE
