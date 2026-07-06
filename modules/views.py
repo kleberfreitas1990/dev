@@ -16,16 +16,13 @@ from modules.models import (
 )
 from modules.serper import buscar_produtos_serper
 
-def render_status_usuario():
-    """Renderiza o status do usuário (removido - não será mais usado)"""
-    pass
-
 def render_apoiadores_ovais():
     """Renderiza os apoiadores em formato de ovais coloridos"""
     
     apoiadores = carregar_apoiadores()
     
     if not apoiadores:
+        st.caption("📭 Nenhum apoiador ainda. Seja o primeiro!")
         return
     
     # Ordena por ordem de entrada
@@ -35,20 +32,29 @@ def render_apoiadores_ovais():
     cores = [
         "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", 
         "#FFEAA7", "#DDA0DD", "#FF8A5C", "#A29BFE",
-        "#FD79A8", "#00B894", "#E17055", "#6C5CE7"
+        "#FD79A8", "#00B894", "#E17055", "#6C5CE7",
+        "#FDCB6E", "#E17055", "#00CEC9", "#6C5CE7"
     ]
     
-    # Exibe os apoiadores como ovais
     st.markdown("### 👑 Apoiadores do Projeto")
     
     # Criar uma linha com todos os ovais
     html_ovais = '<div style="display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0;">'
+    
+    is_admin = st.session_state.get("is_admin", False)
     
     for i, apoiador in enumerate(apoiadores_ordenados):
         cor = cores[i % len(cores)]
         nome = apoiador.get("nome", "Apoiador")
         ordem = apoiador.get("ordem", 999)
         coroinha = apoiador.get("coroinha", "👑")
+        
+        # Encontra a chave do apoiador para remoção
+        chave_apoiador = None
+        for k, v in carregar_apoiadores().items():
+            if v.get("nome") == nome and v.get("ordem") == ordem:
+                chave_apoiador = k
+                break
         
         # Adiciona o oval com cor diferente
         html_ovais += f'''
@@ -75,32 +81,45 @@ def render_apoiadores_ovais():
     html_ovais += '</div>'
     
     st.markdown(html_ovais, unsafe_allow_html=True)
-
-def render_painel_apoiadores_compacto():
-    """Renderiza o painel de apoiadores em formato compacto"""
     
-    apoiadores = carregar_apoiadores()
-    
-    if not apoiadores:
-        return
-    
-    # Ordena por ordem de entrada
-    apoiadores_ordenados = sorted(apoiadores.values(), key=lambda x: x.get("ordem", 999))
-    
-    # Exibe em uma única linha com cards pequenos
-    cols = st.columns(min(len(apoiadores_ordenados), 6))
-    
-    for i, apoiador in enumerate(apoiadores_ordenados):
-        with cols[i % 6]:
-            with st.container(border=True):
-                cor = apoiador.get("cor", "#FFD700")
-                st.markdown(f"""
-                <div style="text-align: center; padding: 5px 0;">
-                    <span style="font-size: 20px;">{apoiador.get('coroinha', '👑')}</span>
-                    <span style="font-size: 13px; font-weight: bold; color: {cor};">{apoiador.get('nome')}</span>
-                    <span style="font-size: 10px; color: #888; display: block;">#{apoiador.get('ordem', 999)}</span>
-                </div>
-                """, unsafe_allow_html=True)
+    # ===== BOTÃO PARA REMOVER (APENAS ADMIN) =====
+    if is_admin and apoiadores_ordenados:
+        st.markdown("---")
+        st.markdown("#### 🗑️ Gerenciar Apoiadores")
+        
+        # Seleciona um apoiador para remover
+        nomes_apoiadores = [a.get("nome") for a in apoiadores_ordenados]
+        apoiador_remover = st.selectbox(
+            "Selecione um apoiador para remover:",
+            options=nomes_apoiadores,
+            key="remover_apoiador_select"
+        )
+        
+        col1, col2 = st.columns([1, 3])
+        with col1:
+            if st.button("🗑️ Remover Apoiador", use_container_width=True, key="remover_apoiador_btn"):
+                if apoiador_remover:
+                    # Encontra a chave do apoiador
+                    chave_remover = None
+                    for k, v in carregar_apoiadores().items():
+                        if v.get("nome") == apoiador_remover:
+                            chave_remover = k
+                            break
+                    
+                    if chave_remover:
+                        # Remove o apoiador
+                        if remover_apoiador(chave_remover):
+                            # Revoga a licença associada
+                            sistema = SistemaLicencas()
+                            for codigo, dados in sistema.dados["licencas"].items():
+                                if dados.get("usuario") == apoiador_remover:
+                                    sistema.revogar_licenca(codigo)
+                                    break
+                            st.success(f"✅ {apoiador_remover} removido com sucesso!")
+                            st.info("🔑 Licença revogada")
+                            st.rerun()
+        with col2:
+            st.caption("⚠️ Remover um apoiador também revoga sua licença de acesso")
 
 def render_painel_apoiadores_detalhado():
     """Renderiza o painel de apoiadores detalhado (para a Tab)"""
@@ -123,7 +142,6 @@ def render_painel_apoiadores_detalhado():
             with cols[i % 4]:
                 with st.container(border=True):
                     cor = apoiador.get("cor", "#FFD700")
-                    chave_apoiador = [k for k, v in carregar_apoiadores().items() if v.get("nome") == apoiador.get("nome")][0] if apoiadores else None
                     
                     st.markdown(f"""
                     <div style="text-align: center; padding: 8px 0;">
@@ -135,20 +153,6 @@ def render_painel_apoiadores_detalhado():
                     """, unsafe_allow_html=True)
                     
                     st.caption(f"📅 {apoiador.get('data_entrada', '2026-07-01')}")
-                    
-                    # Botão Remover (apenas admin)
-                    if st.session_state.get("is_admin", False) and chave_apoiador:
-                        if st.button(f"🗑️ Remover", key=f"remove_apo_{chave_apoiador}"):
-                            if remover_apoiador(chave_apoiador):
-                                st.success(f"✅ {apoiador.get('nome')} removido com sucesso!")
-                                # Revoga a licença associada
-                                sistema = SistemaLicencas()
-                                for codigo, dados in sistema.dados["licencas"].items():
-                                    if dados.get("usuario") == apoiador.get("nome"):
-                                        sistema.revogar_licenca(codigo)
-                                        st.info(f"🔑 Licença {codigo} revogada")
-                                        break
-                                st.rerun()
     
     st.markdown("---")
     
