@@ -10,13 +10,71 @@ from modules.models import (
     gerar_sugestoes_diarias,
     BUSCAS_DIARIAS,
     carregar_apoiadores,
-    adicionar_apoiador
+    adicionar_apoiador,
+    remover_apoiador,
+    SistemaLicencas
 )
 from modules.serper import buscar_produtos_serper
 
 def render_status_usuario():
     """Renderiza o status do usuário (removido - não será mais usado)"""
     pass
+
+def render_apoiadores_ovais():
+    """Renderiza os apoiadores em formato de ovais coloridos"""
+    
+    apoiadores = carregar_apoiadores()
+    
+    if not apoiadores:
+        return
+    
+    # Ordena por ordem de entrada
+    apoiadores_ordenados = sorted(apoiadores.values(), key=lambda x: x.get("ordem", 999))
+    
+    # Cores pré-definidas para os ovais
+    cores = [
+        "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", 
+        "#FFEAA7", "#DDA0DD", "#FF8A5C", "#A29BFE",
+        "#FD79A8", "#00B894", "#E17055", "#6C5CE7"
+    ]
+    
+    # Exibe os apoiadores como ovais
+    st.markdown("### 👑 Apoiadores do Projeto")
+    
+    # Criar uma linha com todos os ovais
+    html_ovais = '<div style="display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0;">'
+    
+    for i, apoiador in enumerate(apoiadores_ordenados):
+        cor = cores[i % len(cores)]
+        nome = apoiador.get("nome", "Apoiador")
+        ordem = apoiador.get("ordem", 999)
+        coroinha = apoiador.get("coroinha", "👑")
+        
+        # Adiciona o oval com cor diferente
+        html_ovais += f'''
+        <div style="
+            background: {cor};
+            color: white;
+            padding: 6px 16px;
+            border-radius: 50px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: 2px solid rgba(255,255,255,0.3);
+            cursor: default;
+        ">
+            <span>{coroinha}</span>
+            <span>{nome}</span>
+            <span style="font-size: 10px; opacity: 0.8;">#{ordem}</span>
+        </div>
+        '''
+    
+    html_ovais += '</div>'
+    
+    st.markdown(html_ovais, unsafe_allow_html=True)
 
 def render_painel_apoiadores_compacto():
     """Renderiza o painel de apoiadores em formato compacto"""
@@ -47,22 +105,26 @@ def render_painel_apoiadores_compacto():
 def render_painel_apoiadores_detalhado():
     """Renderiza o painel de apoiadores detalhado (para a Tab)"""
     
-    st.markdown("## 👑 Nossos Apoiadores")
-    st.caption("Quem acreditou no projeto desde o início")
+    st.markdown("## 👑 Gerenciar Apoiadores")
+    st.caption("Lista completa de apoiadores do projeto")
     
     apoiadores = carregar_apoiadores()
     
-    if apoiadores:
+    if not apoiadores:
+        st.info("📭 Nenhum apoiador cadastrado ainda.")
+    else:
         # Ordena por ordem de entrada
         apoiadores_ordenados = sorted(apoiadores.values(), key=lambda x: x.get("ordem", 999))
         
-        # Exibe em cards (4 por linha para ficar mais compacto)
+        # Exibe em cards (4 por linha)
         cols = st.columns(4)
         
         for i, apoiador in enumerate(apoiadores_ordenados):
             with cols[i % 4]:
                 with st.container(border=True):
                     cor = apoiador.get("cor", "#FFD700")
+                    chave_apoiador = [k for k, v in carregar_apoiadores().items() if v.get("nome") == apoiador.get("nome")][0] if apoiadores else None
+                    
                     st.markdown(f"""
                     <div style="text-align: center; padding: 8px 0;">
                         <span style="font-size: 32px;">{apoiador.get('coroinha', '👑')}</span>
@@ -74,25 +136,19 @@ def render_painel_apoiadores_detalhado():
                     
                     st.caption(f"📅 {apoiador.get('data_entrada', '2026-07-01')}")
                     
-                    ordem = apoiador.get("ordem", 999)
-                    depois = sum(1 for k, d in apoiadores.items() if d.get("ordem", 999) > ordem)
-                    
-                    if depois > 0 and apoiador.get("repasse_ativo", True):
-                        st.success(f"⬇️ {depois} apoiadores")
-                        st.caption(f"💰 R${depois * 5.00:.2f}/mês")
-                    else:
-                        st.info("⏳ Aguardando")
-                    
-                    if apoiador.get("ordem") == 1:
-                        st.markdown("""
-                        <div style="background: linear-gradient(135deg, #FFD700, #FFA500); 
-                                    color: white; text-align: center; padding: 2px; 
-                                    border-radius: 4px; font-weight: bold; font-size: 9px;">
-                            🏆 PRIMEIRA(O)
-                        </div>
-                        """, unsafe_allow_html=True)
-    else:
-        st.info("📭 Nenhum apoiador cadastrado ainda. Seja o primeiro!")
+                    # Botão Remover (apenas admin)
+                    if st.session_state.get("is_admin", False) and chave_apoiador:
+                        if st.button(f"🗑️ Remover", key=f"remove_apo_{chave_apoiador}"):
+                            if remover_apoiador(chave_apoiador):
+                                st.success(f"✅ {apoiador.get('nome')} removido com sucesso!")
+                                # Revoga a licença associada
+                                sistema = SistemaLicencas()
+                                for codigo, dados in sistema.dados["licencas"].items():
+                                    if dados.get("usuario") == apoiador.get("nome"):
+                                        sistema.revogar_licenca(codigo)
+                                        st.info(f"🔑 Licença {codigo} revogada")
+                                        break
+                                st.rerun()
     
     st.markdown("---")
     
@@ -123,7 +179,7 @@ def render_dashboard():
     st.title("📊 Minerador de Produtos")
     st.caption(f"📅 {datetime.now().strftime('%A, %d de %B de %Y - %H:%M')}")
     
-    # Status (apenas ícones, sem texto grande)
+    # Status compacto
     col_status1, col_status2, col_status3, col_status4 = st.columns(4)
     with col_status1:
         serper_key = st.secrets.get("SERPER_API_KEY", "")
@@ -137,11 +193,6 @@ def render_dashboard():
             for key in list(st.session_state.keys()):
                 del st.session_state[key]
             st.rerun()
-    
-    st.markdown("---")
-    
-    # ===== PAINEL DE APOIADORES (COMPACTO) =====
-    render_painel_apoiadores_compacto()
     
     st.markdown("---")
     
@@ -282,6 +333,11 @@ def render_dashboard():
                     st.markdown(tags_html, unsafe_allow_html=True)
                     
                     st.success("🚀 **Ação:** Crie conteúdo sobre este produto!")
+    
+    st.markdown("---")
+    
+    # ===== APOIADORES EM OVAIS COLORIDOS =====
+    render_apoiadores_ovais()
     
     st.markdown("---")
     
