@@ -43,7 +43,7 @@ def render_status_usuario():
     pass
 
 # ============================================================
-# GRADE DE DESCOBERTA - VISUALIZAÇÃO EM TABELA COM MOTIVOS
+# GRADE DE DESCOBERTA - VISUALIZAÇÃO EM TABELA
 # ============================================================
 def render_grade_descoberta():
     """
@@ -87,7 +87,7 @@ def render_grade_descoberta():
         return
     
     # ============================================================
-    # EXIBE EM TABELA COM TÍTULOS CENTRALIZADOS
+    # EXIBE EM TABELA COM DATAFRAME
     # ============================================================
     st.markdown(f"### 📦 {len(produtos_descobrir)} produtos descobertos")
     
@@ -119,34 +119,41 @@ def render_grade_descoberta():
             "Status": status,
             "Palavra-chave": palavra_chave,
             "Hashtags": " ".join(hashtags),
-            "Motivo da Busca": motivo,
-            "Buscar na Shopee": f'<a href="https://shopee.com.br/search?keyword={quote(item.get("produto", ""))}" target="_blank" style="text-decoration: none;"><span style="background-color: #f0f0f0; color: #333; padding: 2px 10px; border-radius: 12px; font-size: 12px; border: 1px solid #ddd;">🔍 Buscar</span></a>'
+            "Motivo da Busca": motivo
         })
     
     df = pd.DataFrame(dados_tabela)
     
-    # Estiliza e exibe a tabela com centralização
-    st.markdown(
-        f"""
-        <style>
-        .dataframe th {{
-            text-align: center !important;
-            background-color: #f0f2f6 !important;
-            font-weight: bold !important;
-        }}
-        .dataframe td {{
-            text-align: center !important;
-            vertical-align: middle !important;
-        }}
-        .dataframe td:first-child {{
-            text-align: left !important;
-            font-weight: bold !important;
-        }}
-        </style>
-        {df.to_html(escape=False, index=False)}
-        """,
-        unsafe_allow_html=True
+    # Exibe com st.dataframe para melhor formatação
+    st.dataframe(
+        df,
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            "Produto": st.column_config.TextColumn("Produto", width="medium"),
+            "Categoria": st.column_config.TextColumn("Categoria", width="small"),
+            "Score": st.column_config.TextColumn("Score", width="small"),
+            "Status": st.column_config.TextColumn("Status", width="small"),
+            "Palavra-chave": st.column_config.TextColumn("Palavra-chave", width="large"),
+            "Hashtags": st.column_config.TextColumn("Hashtags", width="medium"),
+            "Motivo da Busca": st.column_config.TextColumn("Motivo da Busca", width="large"),
+        }
     )
+    
+    # ============================================================
+    # BOTÃO PARA BUSCAR NA SHOPEE
+    # ============================================================
+    st.markdown("---")
+    st.markdown("### 🔍 Buscar produtos na Shopee")
+    
+    # Cria botões para cada produto
+    cols = st.columns(min(len(produtos_descobrir), 6))
+    for i, item in enumerate(produtos_descobrir[:6]):
+        with cols[i]:
+            produto = item.get("produto", "")
+            if st.button(f"🔍 {produto.capitalize()}", use_container_width=True):
+                link = f"https://shopee.com.br/search?keyword={quote(produto)}"
+                st.markdown(f"[Abrir na Shopee]({link})")
 
 # ============================================================
 # APOIADORES EM CARDS PEQUENOS (COM COROA CENTRALIZADA)
@@ -505,16 +512,25 @@ def render_dashboard():
         
         df = pd.DataFrame(dados_tabela)
         
-        df["Buscar na Shopee"] = df["Produto"].apply(
-            lambda x: f'<a href="https://shopee.com.br/search?keyword={quote(x)}" target="_blank" style="text-decoration: none;"><span style="background-color: #f0f0f0; color: #333; padding: 2px 10px; border-radius: 12px; font-size: 12px; border: 1px solid #ddd;">🔍 Buscar</span></a>'
-        )
-        
-        colunas = ["Produto", "🔑 Palavra-chave", "Categoria", "Evento", "Potencial", "Score", "Pins", "Crescimento", "Views TikTok", "Buscas no Mês", "Resultados ML", "Tendência", "Buscar na Shopee"]
-        df = df[colunas]
-        
-        st.markdown(
-            df.to_html(escape=False, index=False),
-            unsafe_allow_html=True
+        # Usa st.dataframe para melhor formatação
+        st.dataframe(
+            df,
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "Produto": st.column_config.TextColumn("Produto", width="medium"),
+                "🔑 Palavra-chave": st.column_config.TextColumn("Palavra-chave", width="large"),
+                "Categoria": st.column_config.TextColumn("Categoria", width="small"),
+                "Evento": st.column_config.TextColumn("Evento", width="medium"),
+                "Potencial": st.column_config.TextColumn("Potencial", width="small"),
+                "Score": st.column_config.NumberColumn("Score", width="small"),
+                "Pins": st.column_config.TextColumn("Pins", width="small"),
+                "Crescimento": st.column_config.TextColumn("Crescimento", width="small"),
+                "Views TikTok": st.column_config.TextColumn("Views TikTok", width="small"),
+                "Buscas no Mês": st.column_config.TextColumn("Buscas no Mês", width="small"),
+                "Resultados ML": st.column_config.TextColumn("Resultados ML", width="small"),
+                "Tendência": st.column_config.TextColumn("Tendência", width="medium"),
+            }
         )
         
         st.caption(f"{BUSCAS_DIARIAS} de {BUSCAS_DIARIAS} consultas realizadas hoje")
@@ -530,9 +546,10 @@ def render_dashboard():
             colunas_top10 = ["Produto", "Categoria", "Evento", "Potencial", "Score", "Pins", "Crescimento", "Views TikTok", "Buscas no Mês", "Resultados ML", "Variação", "Tendência"]
             df_top10 = df_top10[colunas_top10]
             
-            st.markdown(
-                df_top10.to_html(escape=False, index=False),
-                unsafe_allow_html=True
+            st.dataframe(
+                df_top10,
+                use_container_width=True,
+                hide_index=True
             )
     
     st.markdown("---")
