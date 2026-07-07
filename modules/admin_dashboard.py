@@ -100,7 +100,6 @@ def verificar_status_buscas() -> Dict:
                 }
         else:
             # Verifica se a chave está configurada
-            import streamlit as st
             serper_key = st.secrets.get("SERPER_API_KEY", "")
             if not serper_key:
                 status["api"] = {
