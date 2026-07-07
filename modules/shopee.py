@@ -1,5 +1,3 @@
-# modules/shopee.py
-
 import streamlit as st
 import requests
 import re
@@ -27,7 +25,7 @@ logger = logging.getLogger(__name__)
 # ============================================================
 # ARQUIVO DE CACHE (NA RAIZ)
 # ============================================================
-ARQUIVO_SHOPEE_CACHE = "shopee_trends_cache.json"  # <-- NA RAIZ
+ARQUIVO_SHOPEE_CACHE = "shopee_trends_cache.json"
 
 # ============================================================
 # USER AGENTS ROTATIVOS
@@ -56,18 +54,10 @@ TERMOS_REAIS_SHOPEE = [
 ]
 
 # ============================================================
-# FUNÇÃO PARA CAPTURAR BUSCAS DA SHOPEE (OTIMIZADA)
+# FUNÇÃO PARA CAPTURAR BUSCAS DA SHOPEE
 # ============================================================
 def capturar_buscas_shopee(max_tentativas: int = 3) -> List[str]:
-    """
-    Captura buscas em alta da Shopee com múltiplas estratégias e validação
-    
-    Args:
-        max_tentativas (int): Número máximo de tentativas
-        
-    Returns:
-        List[str]: Lista de termos válidos
-    """
+    """Captura buscas em alta da Shopee com múltiplas estratégias"""
     termos = []
     
     # ESTRATÉGIA 1: Capturar do rodapé da página
@@ -89,15 +79,12 @@ def capturar_buscas_shopee(max_tentativas: int = 3) -> List[str]:
                 "Cache-Control": "max-age=0"
             }
             
-            # Timeout progressivo
             timeout = 10 + (tentativa * 2)
-            
             response = requests.get(url, headers=headers, timeout=timeout)
             
             if response.status_code == 200:
                 soup = BeautifulSoup(response.text, 'html.parser')
                 
-                # Busca em links com keyword
                 links = soup.find_all('a', href=True)
                 for link in links:
                     href = link.get('href', '')
@@ -110,7 +97,7 @@ def capturar_buscas_shopee(max_tentativas: int = 3) -> List[str]:
                                 termos.append(termo_validado)
                 
                 if len(termos) >= 10:
-                    logger.info(f"Capturados {len(termos)} termos via rodapé (tentativa {tentativa+1})")
+                    logger.info(f"Capturados {len(termos)} termos via rodapé")
                     return termos[:20]
             
         except requests.exceptions.Timeout:
@@ -150,7 +137,7 @@ def capturar_buscas_shopee(max_tentativas: int = 3) -> List[str]:
         except Exception as e:
             logger.error(f"Erro na API: {e}")
     
-    # ESTRATÉGIA 3: FALLBACK - Termos reais do rodapé
+    # ESTRATÉGIA 3: FALLBACK
     if len(termos) < 5:
         logger.info("Usando fallback com termos reais da Shopee")
         termos_fallback = validar_lista_termos(TERMOS_REAIS_SHOPEE)
@@ -161,43 +148,25 @@ def capturar_buscas_shopee(max_tentativas: int = 3) -> List[str]:
     return termos[:20]
 
 def capturar_buscas_shopee_com_cache(ignorar_cache: bool = False) -> List[str]:
-    """
-    Captura buscas com cache diário e validação
-    
-    Args:
-        ignorar_cache (bool): Se True, força nova busca
-        
-    Returns:
-        List[str]: Lista de termos válidos
-    """
-    
+    """Captura buscas com cache diário"""
     hoje = datetime.now().date().isoformat()
     
-    # Tenta carregar do cache (se não for ignorado)
     if not ignorar_cache and os.path.exists(ARQUIVO_SHOPEE_CACHE):
         try:
             with open(ARQUIVO_SHOPEE_CACHE, 'r', encoding='utf-8') as f:
                 dados = json.load(f)
-                
-                # Valida dados do cache
                 if validar_cache_dados(dados, "termos"):
                     data_cache = dados.get("data")
                     if data_cache == hoje:
-                        logger.info(f"Cache da Shopee usado (hoje): {len(dados.get('termos', []))} termos")
+                        logger.info(f"Cache da Shopee usado (hoje)")
                         return dados.get("termos", [])
-                    else:
-                        logger.info(f"Cache da Shopee de {data_cache} (diferente de hoje)")
-        except (json.JSONDecodeError, IOError) as e:
-            logger.warning(f"Erro ao ler cache: {e}")
+        except:
+            pass
     
-    # Se não tem cache válido, busca novos dados
     logger.info("Buscando novos dados da Shopee...")
     termos = capturar_buscas_shopee()
-    
-    # Valida os termos capturados
     termos_validados = validar_lista_termos(termos)
     
-    # Salva no cache (apenas se tiver termos válidos)
     if termos_validados:
         try:
             with open(ARQUIVO_SHOPEE_CACHE, 'w', encoding='utf-8') as f:
@@ -207,39 +176,22 @@ def capturar_buscas_shopee_com_cache(ignorar_cache: bool = False) -> List[str]:
                     "timestamp": datetime.now().isoformat(),
                     "total": len(termos_validados)
                 }, f, ensure_ascii=False, indent=2)
-            logger.info(f"Cache da Shopee atualizado com {len(termos_validados)} termos")
-        except IOError as e:
-            logger.error(f"Erro ao salvar cache: {e}")
+        except:
+            pass
     
     return termos_validados
 
 def limpar_cache_shopee():
-    """Limpa o cache da Shopee"""
     if os.path.exists(ARQUIVO_SHOPEE_CACHE):
         try:
             os.remove(ARQUIVO_SHOPEE_CACHE)
-            logger.info("Cache da Shopee removido")
             return True
-        except IOError as e:
-            logger.error(f"Erro ao remover cache: {e}")
-            return False
-    return True
+        except:
+            pass
+    return False
 
 def obter_stats_cache_shopee() -> dict:
-    """
-    Obtém estatísticas do cache da Shopee
-    
-    Returns:
-        dict: Estatísticas do cache
-    """
-    stats = {
-        "existe": False,
-        "data": None,
-        "total_termos": 0,
-        "tamanho_kb": 0,
-        "valido": False
-    }
-    
+    stats = {"existe": False, "data": None, "total_termos": 0, "tamanho_kb": 0, "valido": False}
     if os.path.exists(ARQUIVO_SHOPEE_CACHE):
         stats["existe"] = True
         try:
@@ -248,17 +200,11 @@ def obter_stats_cache_shopee() -> dict:
                 stats["data"] = dados.get("data")
                 stats["total_termos"] = len(dados.get("termos", []))
                 stats["valido"] = validar_cache_dados(dados, "termos")
-                
-                # Tamanho do arquivo
                 stats["tamanho_kb"] = round(os.path.getsize(ARQUIVO_SHOPEE_CACHE) / 1024, 2)
-        except Exception as e:
-            logger.error(f"Erro ao ler estatísticas: {e}")
-    
+        except:
+            pass
     return stats
 
-# ============================================================
-# EXPORTAÇÕES
-# ============================================================
 __all__ = [
     'capturar_buscas_shopee',
     'capturar_buscas_shopee_com_cache',
