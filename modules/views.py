@@ -393,7 +393,7 @@ def render_dashboard():
     st.markdown("---")
     
     # ============================================================
-    # VISÃO GERAL DO MÊS - DINÂMICA
+    # VISÃO GERAL DO MÊS - DINÂMICA E INTEGRADA
     # ============================================================
     st.markdown("## 📊 Visão Geral do Mês")
     
@@ -414,38 +414,61 @@ def render_dashboard():
         eventos = [p.get("Evento", "Tendência") for p in produtos_top]
         evento_mais_freq = max(set(eventos), key=eventos.count) if eventos else "Tendência"
         
+        # LINHA 1: MENSAGEM DESTAQUE
+        if top1:
+            st.markdown(f"""
+            <div style="
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 16px 20px;
+                border-radius: 10px;
+                margin-bottom: 16px;
+                text-align: center;
+            ">
+                <span style="font-size: 18px; font-weight: bold;">🔥 {top1.get('Produto', 'Produto')} em alta!</span>
+                <span style="font-size: 15px; margin-left: 10px;">
+                    Com score {top1.get('Score', 0)}/10 e {top1.get('Crescimento', '+0%')} de crescimento, 
+                    este é o momento ideal para criar conteúdo sobre este produto.
+                </span>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown("""
+            <div style="
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 16px 20px;
+                border-radius: 10px;
+                margin-bottom: 16px;
+                text-align: center;
+            ">
+                <span style="font-size: 18px; font-weight: bold;">📊 Análise de mercado em tempo real</span>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        # LINHA 2: MÉTRICAS + OPORTUNIDADE
         col1, col2 = st.columns([2, 1])
         
         with col1:
-            with st.container(border=True):
-                if top1:
-                    st.markdown(f"""
-                    **🔥 {top1.get('Produto', 'Produto')} em alta!** 
-                    Com score {top1.get('Score', 0)}/10 e {top1.get('Crescimento', '+0%')} de crescimento, 
-                    este é o momento ideal para criar conteúdo sobre este produto.
-                    """)
-                else:
-                    st.markdown("**📊 Análise de mercado em tempo real**")
-                
-                m1, m2, m3 = st.columns(3)
-                with m1:
-                    st.metric(
-                        "🔥 Produto em Alta", 
-                        top1.get("Produto", "N/A") if top1 else "N/A",
-                        delta=top1.get("Categoria", "Moda") if top1 else "N/A"
-                    )
-                with m2:
-                    st.metric(
-                        "📈 Crescimento Médio", 
-                        f"{crescimento_medio:.1f}%",
-                        delta=f"{crescimento_medio - 5:.1f}%"
-                    )
-                with m3:
-                    st.metric(
-                        "🎯 Categoria em Alta", 
-                        categoria_mais_freq,
-                        delta=evento_mais_freq
-                    )
+            m1, m2, m3 = st.columns(3)
+            with m1:
+                st.metric(
+                    label="🔥 Produto em Alta",
+                    value=top1.get("Produto", "N/A") if top1 else "N/A",
+                    delta=top1.get("Categoria", "Moda") if top1 else "N/A"
+                )
+            with m2:
+                st.metric(
+                    label="📈 Crescimento Médio",
+                    value=f"{crescimento_medio:.1f}%",
+                    delta=f"{crescimento_medio - 5:.1f}%"
+                )
+            with m3:
+                st.metric(
+                    label="🎯 Categoria em Alta",
+                    value=categoria_mais_freq,
+                    delta=evento_mais_freq
+                )
         
         with col2:
             with st.container(border=True):
@@ -455,60 +478,96 @@ def render_dashboard():
                 
                 if melhor_score:
                     produto_nome = melhor_score.get('Produto', 'N/A')
+                    score = melhor_score.get('Score', 0)
                     
                     indicadores = obter_indicadores_horario(produto_nome)
                     
-                    st.markdown(f"**{produto_nome}**")
-                    st.caption(f"Score: {melhor_score.get('Score', 0)}/10")
+                    col_a, col_b = st.columns(2)
+                    with col_a:
+                        st.markdown(f"**{produto_nome}**")
+                    with col_b:
+                        st.markdown(f"⭐ **{score}/10**")
                     
                     if indicadores:
                         st.markdown(f"""
-                        <div style="background: #f0f0f0; padding: 4px 8px; border-radius: 6px; margin: 4px 0; font-size: 11px; color: #333; text-align: center;">
-                            {indicadores.get('emoji', '🕐')} Melhor horário: <strong>{indicadores.get('melhor_horario', '19h-22h')}</strong>
+                        <div style="
+                            background: #f0f0f0; 
+                            padding: 4px 10px; 
+                            border-radius: 6px; 
+                            margin: 6px 0; 
+                            font-size: 12px; 
+                            color: #333; 
+                            text-align: center;
+                        ">
+                            🕐 Melhor horário: <strong>{indicadores.get('melhor_horario', '19h-22h')}</strong>
                         </div>
                         """, unsafe_allow_html=True)
                     
-                    potencial = melhor_score.get("Score", 0) * 10
+                    potencial = score * 10
                     cor = "green" if potencial >= 70 else "orange" if potencial >= 40 else "red"
                     
                     st.markdown(f"""
-                    <div style="margin: 8px 0;">
+                    <div style="margin: 6px 0;">
                         <small>Potencial de Mercado</small>
-                        <div style="background: #e0e0e0; border-radius: 10px; height: 20px; position: relative; overflow: hidden;">
-                            <div style="background: {cor}; width: {potencial}%; height: 20px; border-radius: 10px; transition: width 0.5s;">
-                                <span style="position: absolute; left: 50%; top: 2px; color: {'white' if potencial > 50 else 'black'}; font-weight: bold; font-size: 12px;">{potencial:.0f}%</span>
+                        <div style="
+                            background: #e0e0e0; 
+                            border-radius: 8px; 
+                            height: 18px; 
+                            position: relative; 
+                            overflow: hidden;
+                        ">
+                            <div style="
+                                background: {cor}; 
+                                width: {potencial}%; 
+                                height: 18px; 
+                                border-radius: 8px; 
+                                transition: width 0.5s;
+                            ">
+                                <span style="
+                                    position: absolute; 
+                                    left: 50%; 
+                                    top: 1px; 
+                                    color: {'white' if potencial > 50 else 'black'}; 
+                                    font-weight: bold; 
+                                    font-size: 11px;
+                                ">{potencial:.0f}%</span>
                             </div>
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
                     
-                    st.caption(f"🟢 {melhor_score.get('Potencial', 'Médio')} potencial")
-                    
-                    col_s1, col_s2 = st.columns(2)
-                    with col_s1:
-                        st.success(f"✅ {melhor_score.get('Score', 0)}/10 Score")
-                    with col_s2:
+                    col_a, col_b = st.columns(2)
+                    with col_a:
+                        st.success(f"✅ {score}/10 Score")
+                    with col_b:
                         st.success(f"📈 {melhor_score.get('Crescimento', '+0%')}")
                 else:
                     st.info("📊 Aguardando dados...")
     
     else:
-        col1, col2 = st.columns([2, 1])
+        st.markdown("""
+        <div style="
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px 20px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            text-align: center;
+        ">
+            <span style="font-size: 18px; font-weight: bold;">📊 Análise de mercado em tempo real</span>
+            <span style="font-size: 15px; margin-left: 10px;">Buscando os melhores produtos para você criar conteúdo.</span>
+        </div>
+        """, unsafe_allow_html=True)
         
+        col1, col2 = st.columns([2, 1])
         with col1:
-            with st.container(border=True):
-                st.markdown("""
-                **📊 Análise de mercado em tempo real**
-                Buscando os melhores produtos para você criar conteúdo.
-                """)
-                
-                m1, m2, m3 = st.columns(3)
-                with m1:
-                    st.metric("🔥 Produto em Alta", "Aguardando", delta="...")
-                with m2:
-                    st.metric("📈 Crescimento Médio", "0%", delta="0%")
-                with m3:
-                    st.metric("🎯 Categoria em Alta", "Geral", delta="Tendência")
+            m1, m2, m3 = st.columns(3)
+            with m1:
+                st.metric("🔥 Produto em Alta", "Aguardando", delta="...")
+            with m2:
+                st.metric("📈 Crescimento Médio", "0%", delta="0%")
+            with m3:
+                st.metric("🎯 Categoria em Alta", "Geral", delta="Tendência")
         
         with col2:
             with st.container(border=True):
@@ -534,9 +593,6 @@ def render_dashboard():
     produtos = gerar_sugestoes_diarias(forcar_atualizacao=True)
     
     if produtos:
-        # ============================================================
-        # EXIBE EM CARDS HORIZONTAIS (MAIS VISUAL E LIMPO)
-        # ============================================================
         cols = st.columns(3)
         
         for i, item in enumerate(produtos[:3]):
@@ -549,7 +605,6 @@ def render_dashboard():
                 pins = item.get("Pins", "0")
                 tendencia = item.get("Tendência", "➡️ Estável")
                 
-                # Define cor do card baseado no score
                 if score >= 8:
                     cor_fundo = "#e8f5e9"
                     cor_borda = "#4CAF50"
@@ -563,7 +618,6 @@ def render_dashboard():
                     cor_borda = "#f44336"
                     emoji = "📊"
                 
-                # Ícones por posição
                 icones = ["🥇", "🥈", "🥉"]
                 
                 st.markdown(f"""
@@ -590,14 +644,10 @@ def render_dashboard():
                 </div>
                 """, unsafe_allow_html=True)
         
-        # ============================================================
-        # TABELA RESUMIDA (EXPANDÍVEL E COMPACTA)
-        # ============================================================
         with st.expander("📋 Ver detalhes completos", expanded=False):
             dados_tabela = []
             for item in produtos:
                 produto = item.get("Produto", "").lower()
-                
                 dados_palavra = obter_palavra_chave(produto)
                 palavra_chave = dados_palavra.get("palavra", f"{produto} tendência 2026")
                 
