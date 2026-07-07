@@ -64,10 +64,6 @@ from modules.conteudo_ia import (
 licenca = verificar_login()
 
 # ============================================================
-# TITULO REMOVIDO - JÁ ESTÁ NO DASHBOARD
-# ============================================================
-
-# ============================================================
 # STATUS DO USUÁRIO
 # ============================================================
 render_status_usuario()
@@ -500,7 +496,7 @@ with tab7:
                             if not ja_existe:
                                 # Mapeia plano para tipo de apoiador
                                 plano_apoiador = "Premium" if "Premium" in plano else "Apoiador"
-                                novo_apoiador = adicionar_apoiador(
+                                adicionar_apoiador(
                                     nome=novo_usuario,
                                     email=novo_email,
                                     plano=plano_apoiador
