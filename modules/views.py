@@ -117,55 +117,69 @@ def render_apoiadores_compactos():
                     """, unsafe_allow_html=True)
 
 # ============================================================
-# INSIGHTS INTERATIVOS
+# INSIGHTS ESTRATÉGICOS - VERSÃO DISCRETA
 # ============================================================
-def render_insights_interativos(produtos):
+def render_insights_estrategicos(produtos):
     """
-    Renderiza insights interativos que levam para a tab de conteúdo
+    Renderiza insights estratégicos de forma discreta
     """
     if not produtos:
         return
     
-    st.markdown("## 💡 Insights Estratégicos - Top 3")
+    st.markdown("## 💡 Insights Estratégicos")
+    st.caption("Análise rápida dos produtos com maior potencial")
     
     top3 = sorted(produtos, key=lambda x: x.get("Score", 0), reverse=True)[:3]
+    
+    # Exibe em cards mais discretos
     cols = st.columns(3)
     
     for i, item in enumerate(top3):
         with cols[i]:
             produto_nome = item.get("Produto", "")
+            emojis = ["🥇", "🥈", "🥉"]
             
             with st.container(border=True):
-                # Emoji do ranking
-                emojis = ["🥇", "🥈", "🥉"]
-                st.markdown(f"### {emojis[i]} {produto_nome}")
+                # Cabeçalho discreto
+                st.markdown(f"**{emojis[i]} {produto_nome}**")
                 
-                # Métricas resumidas
+                # Métricas em uma linha discreta
                 col1, col2 = st.columns(2)
                 with col1:
-                    st.metric("Score", f"{item.get('Score', 0)}/10")
-                    st.metric("Crescimento", item.get('Crescimento', '+0%'))
+                    st.caption(f"🎯 Score: {item.get('Score', 0)}/10")
+                    st.caption(f"📈 {item.get('Crescimento', '+0%')}")
                 with col2:
-                    st.metric("Views TikTok", item.get('Views TikTok', '0M'))
-                    st.metric("Pins", item.get('Pins', '0'))
+                    st.caption(f"👁️ {item.get('Views TikTok', '0M')}")
+                    st.caption(f"📌 {item.get('Pins', '0')}")
                 
-                # Palavra-chave
+                # Palavra-chave em destaque discreto
                 produto_lower = produto_nome.lower()
                 dados_palavra = obter_palavra_chave(produto_lower)
                 palavra_chave = dados_palavra.get("palavra", f"{produto_lower} tendência 2026")
-                st.info(f"🔑 **Palavra-chave:** {palavra_chave}")
                 
-                # Hashtags resumidas
-                hashtags = dados_palavra.get("hashtags", ["#tendência", "#moda", "#2026"])[:3]
-                tags_html = " ".join([f'<span style="background-color: #e0e0e0; padding: 2px 8px; border-radius: 12px; margin: 2px; font-size: 11px;">{h}</span>' for h in hashtags])
-                st.markdown(tags_html, unsafe_allow_html=True)
+                # Hashtags em linha discreta
+                hashtags = dados_palavra.get("hashtags", ["#tendência", "#moda", "#2026"])[:2]
+                tags_html = " ".join([f'<span style="background-color: #f0f0f0; padding: 1px 6px; border-radius: 8px; margin: 1px; font-size: 10px; color: #666;">{h}</span>' for h in hashtags])
                 
-                st.markdown("---")
+                st.markdown(f"""
+                <div style="background: #f8f9fa; padding: 4px 8px; border-radius: 6px; margin: 4px 0; font-size: 12px; color: #333;">
+                    🔑 {palavra_chave}
+                </div>
+                <div style="margin: 2px 0;">
+                    {tags_html}
+                </div>
+                """, unsafe_allow_html=True)
                 
-                # Botão "Criar Conteúdo" - vai para a tab de conteúdo
-                if st.button(f"🎬 Criar Conteúdo para {produto_nome}", key=f"insight_{produto_nome}", use_container_width=True):
+                # Botão "Criar Conteúdo" - FUNCIONANDO
+                if st.button(
+                    f"🎬 Criar Conteúdo", 
+                    key=f"insight_{produto_nome}_{i}", 
+                    use_container_width=True,
+                    type="secondary"
+                ):
                     # Salva no session_state para a tab de conteúdo
                     st.session_state.produto_conteudo = produto_nome
+                    st.session_state.aba_conteudo = True
                     st.success(f"✅ Redirecionando para criar conteúdo sobre {produto_nome}...")
                     st.rerun()
 
@@ -305,9 +319,9 @@ def render_dashboard():
     
     st.markdown("---")
     
-    # ===== INSIGHTS ESTRATÉGICOS INTERATIVOS =====
+    # ===== INSIGHTS ESTRATÉGICOS DISCRETOS =====
     if produtos:
-        render_insights_interativos(produtos)
+        render_insights_estrategicos(produtos)
     
     st.markdown("---")
     
@@ -406,7 +420,7 @@ def render_painel_apoiadores_detalhado():
                 st.markdown(f"**📌 Plano:** {plano}")
                 
                 # Verifica repasse
-                depois = sum(1 for k, d in apoiadores.items() if d.get("ordem", 999) > ordem)
+                depois = sum(1 for k, d in apoiadores.items() if d.get("ordem", 999) > ordeme)
                 
                 if depois > 0 and apoiador.get("repasse_ativo", True):
                     st.success(f"⬇️ {depois} apoiador(es) - R${depois * 5.00:.2f}/mês")
