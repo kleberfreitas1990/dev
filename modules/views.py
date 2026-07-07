@@ -525,75 +525,118 @@ def render_dashboard():
     
     st.markdown("---")
     
-    # ===== TABELA DE PRODUTOS DO DIA =====
+    # ============================================================
+    # SUGESTÕES DE PRODUTOS PARA HOJE - VISUAL LIMPO
+    # ============================================================
     st.markdown("## 🎯 Sugestões de Produtos para Hoje")
-    st.caption(f"📊 Top 3 do dia | {BUSCAS_DIARIAS} buscas realizadas")
+    st.caption(f"📊 Top {BUSCAS_DIARIAS} do dia | Buscas realizadas com base em tendências atuais")
     
     produtos = gerar_sugestoes_diarias(forcar_atualizacao=True)
     
     if produtos:
-        dados_tabela = []
-        for item in produtos:
-            produto = item.get("Produto", "").lower()
-            
-            dados_palavra = obter_palavra_chave(produto)
-            palavra_chave = dados_palavra.get("palavra", f"{produto} tendência 2026")
-            
-            dados_tabela.append({
-                "Produto": item.get("Produto", ""),
-                "🔑 Palavra-chave": palavra_chave,
-                "Categoria": item.get("Categoria", "Geral"),
-                "Evento": item.get("Evento", "Tendência"),
-                "Potencial": item.get("Potencial", "🟡 Médio"),
-                "Score": item.get("Score", 0),
-                "Pins": item.get("Pins", "0"),
-                "Crescimento": item.get("Crescimento", "+0%"),
-                "Views TikTok": item.get("Views TikTok", "0M"),
-                "Buscas no Mês": item.get("Buscas no Mês", "0"),
-                "Resultados ML": item.get("Resultados ML", "0"),
-                "Tendência": item.get("Tendência", "➡️ Estável")
-            })
+        # ============================================================
+        # EXIBE EM CARDS HORIZONTAIS (MAIS VISUAL E LIMPO)
+        # ============================================================
+        cols = st.columns(3)
         
-        df = pd.DataFrame(dados_tabela)
+        for i, item in enumerate(produtos[:3]):
+            with cols[i]:
+                produto_nome = item.get("Produto", "")
+                score = item.get("Score", 0)
+                categoria = item.get("Categoria", "Geral")
+                crescimento = item.get("Crescimento", "+0%")
+                views = item.get("Views TikTok", "0M")
+                pins = item.get("Pins", "0")
+                tendencia = item.get("Tendência", "➡️ Estável")
+                
+                # Define cor do card baseado no score
+                if score >= 8:
+                    cor_fundo = "#e8f5e9"
+                    cor_borda = "#4CAF50"
+                    emoji = "🔥"
+                elif score >= 6:
+                    cor_fundo = "#fff3e0"
+                    cor_borda = "#FF9800"
+                    emoji = "📈"
+                else:
+                    cor_fundo = "#fce4ec"
+                    cor_borda = "#f44336"
+                    emoji = "📊"
+                
+                # Ícones por posição
+                icones = ["🥇", "🥈", "🥉"]
+                
+                st.markdown(f"""
+                <div style="
+                    background: {cor_fundo};
+                    border-left: 4px solid {cor_borda};
+                    border-radius: 8px;
+                    padding: 12px 14px;
+                    margin: 4px 0;
+                    height: 100%;
+                ">
+                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                        <span style="font-size: 20px;">{icones[i]}</span>
+                        <span style="font-weight: bold; font-size: 15px; color: #333;">{produto_nome}</span>
+                        <span style="font-size: 13px; margin-left: auto; background: {cor_borda}; color: white; padding: 1px 10px; border-radius: 12px;">{emoji} {score}/10</span>
+                    </div>
+                    <div style="display: flex; gap: 10px; font-size: 12px; color: #555; flex-wrap: wrap; margin-top: 4px;">
+                        <span>📂 {categoria}</span>
+                        <span>📈 {crescimento}</span>
+                        <span>👁️ {views}</span>
+                        <span>📌 {pins}</span>
+                        <span>{tendencia}</span>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+        
+        # ============================================================
+        # TABELA RESUMIDA (EXPANDÍVEL E COMPACTA)
+        # ============================================================
+        with st.expander("📋 Ver detalhes completos", expanded=False):
+            dados_tabela = []
+            for item in produtos:
+                produto = item.get("Produto", "").lower()
+                
+                dados_palavra = obter_palavra_chave(produto)
+                palavra_chave = dados_palavra.get("palavra", f"{produto} tendência 2026")
+                
+                dados_tabela.append({
+                    "Produto": item.get("Produto", ""),
+                    "Palavra-chave": palavra_chave,
+                    "Categoria": item.get("Categoria", "Geral"),
+                    "Score": item.get("Score", 0),
+                    "Crescimento": item.get("Crescimento", "+0%"),
+                    "Views TikTok": item.get("Views TikTok", "0M"),
+                    "Pins": item.get("Pins", "0"),
+                    "Tendência": item.get("Tendência", "➡️ Estável")
+                })
+            
+            df = pd.DataFrame(dados_tabela)
+            st.dataframe(df, use_container_width=True, hide_index=True)
+        
+        st.caption(f"💡 {BUSCAS_DIARIAS} sugestões geradas com base em tendências atuais de mercado")
+    
+    else:
+        st.info("📭 Nenhuma sugestão disponível no momento. Tente atualizar a página.")
+    
+    st.markdown("---")
+    
+    # ===== TOP 10 =====
+    st.markdown("## 🏆 Top 10 Produtos em Tendência")
+    st.caption("Ranking completo baseado em score e dados de mercado")
+    
+    top10 = gerar_top10_produtos(forcar_atualizacao=True)
+    if top10:
+        df_top10 = pd.DataFrame(top10)
+        colunas_top10 = ["Produto", "Categoria", "Evento", "Potencial", "Score", "Pins", "Crescimento", "Views TikTok", "Buscas no Mês", "Resultados ML", "Variação", "Tendência"]
+        df_top10 = df_top10[colunas_top10]
         
         st.dataframe(
-            df,
+            df_top10,
             use_container_width=True,
-            hide_index=True,
-            column_config={
-                "Produto": st.column_config.TextColumn("Produto", width="medium"),
-                "🔑 Palavra-chave": st.column_config.TextColumn("Palavra-chave", width="large"),
-                "Categoria": st.column_config.TextColumn("Categoria", width="small"),
-                "Evento": st.column_config.TextColumn("Evento", width="medium"),
-                "Potencial": st.column_config.TextColumn("Potencial", width="small"),
-                "Score": st.column_config.NumberColumn("Score", width="small"),
-                "Pins": st.column_config.TextColumn("Pins", width="small"),
-                "Crescimento": st.column_config.TextColumn("Crescimento", width="small"),
-                "Views TikTok": st.column_config.TextColumn("Views TikTok", width="small"),
-                "Buscas no Mês": st.column_config.TextColumn("Buscas no Mês", width="small"),
-                "Resultados ML": st.column_config.TextColumn("Resultados ML", width="small"),
-                "Tendência": st.column_config.TextColumn("Tendência", width="medium"),
-            }
+            hide_index=True
         )
-        
-        st.caption(f"{BUSCAS_DIARIAS} de {BUSCAS_DIARIAS} consultas realizadas hoje")
-        
-        # ===== TOP 10 =====
-        st.markdown("---")
-        st.markdown("## 🏆 Top 10 Produtos em Tendência")
-        st.caption("Ranking completo baseado em score e dados de mercado")
-        
-        top10 = gerar_top10_produtos(forcar_atualizacao=True)
-        if top10:
-            df_top10 = pd.DataFrame(top10)
-            colunas_top10 = ["Produto", "Categoria", "Evento", "Potencial", "Score", "Pins", "Crescimento", "Views TikTok", "Buscas no Mês", "Resultados ML", "Variação", "Tendência"]
-            df_top10 = df_top10[colunas_top10]
-            
-            st.dataframe(
-                df_top10,
-                use_container_width=True,
-                hide_index=True
-            )
     
     st.markdown("---")
     
