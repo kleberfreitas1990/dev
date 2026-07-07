@@ -3,8 +3,6 @@ import pandas as pd
 import random
 from datetime import datetime
 from urllib.parse import quote
-import plotly.graph_objects as go
-import plotly.express as px
 
 # Importa do auth.py (SistemaLicencas está aqui)
 from modules.auth import SistemaLicencas
@@ -226,11 +224,11 @@ def render_apoiadores_compactos():
                     """, unsafe_allow_html=True)
 
 # ============================================================
-# INSIGHTS ESTRATÉGICOS - COM GRÁFICOS
+# INSIGHTS ESTRATÉGICOS - SEM PLOTLY
 # ============================================================
 def render_insights_estrategicos(produtos):
     """
-    Renderiza insights estratégicos com gráficos
+    Renderiza insights estratégicos sem Plotly (usando apenas Streamlit)
     """
     
     st.markdown("## 💡 Insights Estratégicos")
@@ -271,7 +269,7 @@ def render_insights_estrategicos(produtos):
         st.dataframe(df_sazonais, use_container_width=True, hide_index=True)
     
     # ============================================================
-    # TOP 3 PRODUTOS COM GRÁFICOS
+    # TOP 3 PRODUTOS - TABELA E MÉTRICAS
     # ============================================================
     st.markdown("---")
     st.markdown("### 🏆 Top 3 Produtos do Mês")
@@ -281,37 +279,27 @@ def render_insights_estrategicos(produtos):
         top3 = sorted(produtos, key=lambda x: x.get("Score", 0), reverse=True)[:3]
         
         # ============================================================
-        # GRÁFICO DE BARRAS - SCORE DOS TOP 3
+        # EXIBE SCORES COMO MÉTRICAS
         # ============================================================
-        fig = go.Figure()
-        
-        nomes = [p.get("Produto", "") for p in top3]
-        scores = [p.get("Score", 0) for p in top3]
-        cores = ["#FF6B6B", "#4ECDC4", "#FFD93D"]
-        
-        fig.add_trace(go.Bar(
-            x=nomes,
-            y=scores,
-            marker_color=cores,
-            text=scores,
-            textposition="outside",
-            name="Score",
-            hovertemplate="<b>%{x}</b><br>Score: %{y}/10<extra></extra>"
-        ))
-        
-        fig.update_layout(
-            title="📊 Score dos Top 3 Produtos",
-            xaxis_title="Produto",
-            yaxis_title="Score",
-            yaxis=dict(range=[0, 11]),
-            height=300,
-            margin=dict(l=0, r=0, t=40, b=0),
-            plot_bgcolor="white",
-            paper_bgcolor="white",
-            font=dict(family="Arial", size=12)
-        )
-        
-        st.plotly_chart(fig, use_container_width=True)
+        cols = st.columns(3)
+        for i, item in enumerate(top3):
+            with cols[i]:
+                produto_nome = item.get("Produto", "")
+                score = item.get("Score", 0)
+                
+                # Define cor baseada no score
+                if score >= 8:
+                    cor = "🟢"
+                elif score >= 6:
+                    cor = "🟡"
+                else:
+                    cor = "🔴"
+                
+                st.metric(
+                    label=f"{['🥇', '🥈', '🥉'][i]} {produto_nome}",
+                    value=f"{score}/10",
+                    delta=f"{cor} {item.get('Crescimento', '+0%')}"
+                )
         
         # ============================================================
         # TABELA DOS TOP 3
@@ -342,7 +330,7 @@ def render_insights_estrategicos(produtos):
         st.dataframe(df_top3, use_container_width=True, hide_index=True)
     
     # ============================================================
-    # TENDÊNCIAS DE MERCADO - GRÁFICOS
+    # TENDÊNCIAS DE MERCADO
     # ============================================================
     st.markdown("---")
     st.markdown("### 📊 Tendências de Mercado")
