@@ -6,37 +6,11 @@ from datetime import datetime, timedelta
 from typing import List, Dict, Any
 
 from modules.shopee import capturar_buscas_shopee_com_cache
-from modules.serper import buscar_produtos_serper
+from modules.serper import buscar_produtos_serper, obter_requisicoes_restantes, LIMITE_DIARIO_SERPER
 from modules.validation import validar_termo_busca, validar_produtos_serper
+from modules.grade_descoberta import descobrir_produtos_grade, enriquecer_produto
 
 logger = logging.getLogger(__name__)
-
-# modules/produtos_dinamicos.py - ADICIONAR NO TOPO
-
-# Se os níveis 1 e 2 falharem, tenta Selenium
-def buscar_produtos_com_selenium(termos: List[str]) -> Dict:
-    """
-    Tenta buscar produtos usando Selenium
-    """
-    try:
-        from modules.selenium_scraper import capturar_com_selenium
-        
-        produtos = {}
-        
-        for termo in termos[:5]:
-            url = f"https://shopee.com.br/search?keyword={termo.replace(' ', '%20')}"
-            html = capturar_com_selenium(url, timeout=10)
-            
-            if html:
-                # Extrai informações do HTML
-                # ... (lógica de extração)
-                pass
-        
-        return produtos
-        
-    except Exception as e:
-        logger.error(f"Erro no Selenium: {e}")
-        return {}
 
 # ============================================================
 # ARQUIVO DE CACHE DE PRODUTOS
@@ -44,7 +18,7 @@ def buscar_produtos_com_selenium(termos: List[str]) -> Dict:
 ARQUIVO_PRODUTOS_CACHE = "produtos_cache.json"
 
 # ============================================================
-# DADOS DE FALLBACK (COM NÚMEROS ARREDONDADOS)
+# DADOS DE FALLBACK
 # ============================================================
 PRODUTOS_FALLBACK = {
     "casaco": {
@@ -80,11 +54,14 @@ PRODUTOS_FALLBACK = {
 }
 
 # ============================================================
-# FUNÇÃO PRINCIPAL: OBTER PRODUTOS DINÂMICOS
+# FUNÇÃO PRINCIPAL - COM GRADE DE DESCOBERTA
 # ============================================================
 def obter_produtos_dinamicos(forcar_atualizacao: bool = False) -> Dict[str, Any]:
     """
-    Obtém produtos com dados atualizados da Shopee e Serper
+    Obtém produtos com dados atualizados usando:
+    1. Cache
+    2. Shopee + Serper
+    3. Grade de Descoberta (fallback)
     """
     hoje = datetime.now().date().isoformat()
     
@@ -99,50 +76,59 @@ def obter_produtos_dinamicos(forcar_atualizacao: bool = False) -> Dict[str, Any]
     
     # Busca dados atualizados
     logger.info("Buscando dados atualizados de produtos...")
-    produtos = buscar_produtos_dos_termos()
-    
-    # Se não encontrou nada, usa fallback
-    if not produtos or len(produtos) < 3:
-        logger.warning("Nenhum produto encontrado, usando fallback")
-        produtos = PRODUTOS_FALLBACK
+    produtos = buscar_produtos_com_grade()
     
     # Salva no cache
-    salvar_cache_produtos(produtos)
+    if produtos:
+        salvar_cache_produtos(produtos)
     
-    return produtos
+    return produtos if produtos else PRODUTOS_FALLBACK
 
-def buscar_produtos_dos_termos(limite: int = 10) -> Dict[str, Any]:
+def buscar_produtos_com_grade(limite: int = 10) -> Dict[str, Any]:
     """
-    Busca produtos a partir dos termos da Shopee
+    Busca produtos usando: Shopee → Serper → Grade de Descoberta
     """
     produtos = {}
     
-    # 1. Busca termos da Shopee
-    logger.info("Buscando termos da Shopee...")
+    # ============================================================
+    # 1. BUSCA TERMOS DA SHOPEE
+    # ============================================================
+    logger.info("📡 Buscando termos da Shopee...")
     termos = capturar_buscas_shopee_com_cache()
     
     if not termos:
         logger.warning("Nenhum termo da Shopee encontrado")
-        return PRODUTOS_FALLBACK
+        return usar_grade_descoberta(limite)
     
     logger.info(f"Encontrados {len(termos)} termos da Shopee")
     
-    # 2. Para cada termo, busca no Serper
-    termos_usados = termos[:limite]
-    serper_funcionando = False
+    # ============================================================
+    # 2. BUSCA NO SERPER (COM LIMITE DE 20 REQUISIÇÕES)
+    # ============================================================
+    restantes = obter_requisicoes_restantes()
+    logger.info(f"📊 Requisições Serper restantes: {restantes}/{LIMITE_DIARIO_SERPER}")
     
-    for i, termo in enumerate(termos_usados):
+    # Usa apenas os termos que cabem no limite
+    termos_para_buscar = termos[:min(len(termos), restantes)]
+    
+    if not termos_para_buscar and restantes == 0:
+        logger.warning("⚠️ Limite diário do Serper atingido. Usando Grade de Descoberta.")
+        return usar_grade_descoberta(limite)
+    
+    # ============================================================
+    # 3. PROCESSA CADA TERMO
+    # ============================================================
+    for i, termo in enumerate(termos_para_buscar[:limite]):
         try:
             termo_validado = validar_termo_busca(termo)
             if not termo_validado:
                 continue
             
             # Tenta buscar no Serper
-            logger.info(f"Buscando no Serper: '{termo_validado}'...")
+            logger.info(f"🔍 Buscando no Serper: '{termo_validado}'...")
             produtos_serper = buscar_produtos_serper(termo_validado, limite=3)
             
             if produtos_serper and len(produtos_serper) > 0:
-                serper_funcionando = True
                 total_resultados = len(produtos_serper) * 10
                 
                 produtos[termo_validado] = {
@@ -157,7 +143,8 @@ def buscar_produtos_dos_termos(limite: int = 10) -> Dict[str, Any]:
                     "evento": definir_evento(termo_validado),
                     "variacao": round(random.uniform(5.0, 30.0), 1),
                     "tendencia": definir_tendencia(i),
-                    "score": calcular_score_simulado(i)
+                    "score": calcular_score_simulado(i),
+                    "fonte": "serper"
                 }
                 logger.info(f"  ✅ Produto processado: '{termo_validado}'")
             else:
@@ -167,46 +154,54 @@ def buscar_produtos_dos_termos(limite: int = 10) -> Dict[str, Any]:
             logger.error(f"Erro ao buscar produtos para '{termo}': {e}")
             continue
     
-    # Se Serper não funcionou, usa fallback com dados reais da Shopee
-    if not serper_funcionando or len(produtos) < 3:
-        logger.warning("Serper não retornou dados suficientes, usando fallback enriquecido")
-        produtos = enriquecer_com_fallback(termos_usados)
-    
-    # Se ainda não tem produtos, usa fallback padrão
-    if not produtos:
-        return PRODUTOS_FALLBACK
+    # ============================================================
+    # 4. SE TIVER POUCOS PRODUTOS, USA GRADE DE DESCOBERTA
+    # ============================================================
+    if len(produtos) < 5:
+        logger.info("🔄 Poucos produtos encontrados. Usando Grade de Descoberta...")
+        produtos_grade = usar_grade_descoberta(limite - len(produtos))
+        
+        # Mescla com os produtos existentes
+        for chave, valor in produtos_grade.items():
+            if chave not in produtos:
+                produtos[chave] = valor
+                produtos[chave]["fonte"] = "grade_descoberta"
     
     return produtos
 
-def enriquecer_com_fallback(termos: List[str]) -> Dict[str, Any]:
+def usar_grade_descoberta(quantidade: int = 10) -> Dict[str, Any]:
     """
-    Cria dados a partir dos termos da Shopee (fallback quando Serper falha)
+    Usa a grade de descoberta para encontrar produtos
     """
+    from modules.grade_descoberta import descobrir_produtos_grade, enriquecer_produto
+    
     produtos = {}
     
-    for i, termo in enumerate(termos[:10]):
-        termo_validado = validar_termo_busca(termo)
-        if not termo_validado:
-            continue
-        
-        base_pins = 1000 + (i * 200)
-        base_buscas = 5000 + (i * 800)
-        
-        produtos[termo_validado] = {
-            "pins": base_pins + random.randint(-200, 400),
-            "pins_historico": base_pins - random.randint(100, 300),
-            "crescimento": random.randint(10, 45),
-            "views_tiktok": round(random.uniform(1.5, 5.5), 1),
-            "resultados_ml": random.randint(300, 1500),
-            "buscas_mes": base_buscas + random.randint(-1000, 3000),
-            "buscas_historico": base_buscas - random.randint(500, 2000),
-            "categoria": definir_categoria(termo_validado),
-            "evento": definir_evento(termo_validado),
-            "variacao": round(random.uniform(5.0, 25.0), 1),
-            "tendencia": definir_tendencia(i),
-            "score": calcular_score_simulado(i)
-        }
+    # Descobre produtos da grade
+    produtos_descobrir = descobrir_produtos_grade(quantidade=quantidade)
     
+    for item in produtos_descobrir:
+        produto = item.get("produto", "")
+        if produto:
+            # Enriquece com dados simulados
+            dados = enriquecer_produto(produto)
+            produtos[produto] = {
+                "pins": dados.get("pins", random.randint(500, 3000)),
+                "pins_historico": random.randint(400, 2500),
+                "crescimento": random.randint(5, 45),
+                "views_tiktok": round(random.uniform(1.0, 5.0), 1),
+                "resultados_ml": random.randint(300, 1500),
+                "buscas_mes": random.randint(3000, 15000),
+                "buscas_historico": random.randint(2000, 12000),
+                "categoria": definir_categoria(produto),
+                "evento": "Tendência",
+                "variacao": round(random.uniform(5.0, 25.0), 1),
+                "tendencia": random.choice(["🚀 Em alta", "📈 Crescendo", "➡️ Estável"]),
+                "score": random.randint(4, 8),
+                "fonte": "grade_descoberta"
+            }
+    
+    logger.info(f"✅ Grade de Descoberta gerou {len(produtos)} produtos")
     return produtos
 
 # ============================================================
@@ -297,5 +292,6 @@ def limpar_cache_produtos() -> bool:
 __all__ = [
     'obter_produtos_dinamicos',
     'limpar_cache_produtos',
-    'PRODUTOS_FALLBACK'
+    'PRODUTOS_FALLBACK',
+    'buscar_produtos_com_grade'
 ]
