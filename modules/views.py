@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import random
 from datetime import datetime
 from urllib.parse import quote
 
@@ -55,9 +56,9 @@ def render_grade_descoberta():
     st.caption("Produtos em tendência descobertos automaticamente - Análise baseada em dados do Pinterest e Google Trends")
     
     # ============================================================
-    # FILTROS
+    # FILTROS (SEM BOTÃO ATUALIZAR)
     # ============================================================
-    col1, col2, col3 = st.columns([2, 1, 1])
+    col1, col2 = st.columns([2, 1])
     
     with col1:
         categoria_filtro = st.selectbox(
@@ -72,10 +73,6 @@ def render_grade_descoberta():
             [5, 10, 15, 20],
             index=1
         )
-    
-    with col3:
-        if st.button("🔄 Atualizar Grade", use_container_width=True):
-            st.rerun()
     
     # ============================================================
     # BUSCA PRODUTOS
@@ -173,7 +170,8 @@ def render_grade_descoberta():
                     f"🎬 Crie um review completo do {produto}",
                     f"📱 Faça um unboxing do {produto}",
                     f"🔄 Compare o {produto} com outros",
-                    f"💡 Mostre 3 formas de usar {produto}"
+                    f"💡 Mostre 3 formas de usar {produto}",
+                    f"📊 Faça um antes e depois usando {produto}"
                 ]
                 st.info(f"💡 {random.choice(dicas)}")
                 
