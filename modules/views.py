@@ -87,7 +87,7 @@ def render_grade_descoberta():
         return
     
     # ============================================================
-    # EXIBE EM TABELA
+    # EXIBE EM TABELA COM TÍTULOS CENTRALIZADOS
     # ============================================================
     st.markdown(f"### 📦 {len(produtos_descobrir)} produtos descobertos")
     
@@ -107,20 +107,44 @@ def render_grade_descoberta():
         else:
             status = "📊 Baixa"
         
+        # Palavra-chave e hashtags para cada produto
+        dados_palavra = obter_palavra_chave(produto.lower())
+        palavra_chave = dados_palavra.get("palavra", f"{produto} tendência 2026")
+        hashtags = dados_palavra.get("hashtags", ["#tendência", "#moda", "#2026"])[:3]
+        
         dados_tabela.append({
             "Produto": produto,
             "Categoria": categoria,
             "Score": f"{score}/10",
             "Status": status,
+            "Palavra-chave": palavra_chave,
+            "Hashtags": " ".join(hashtags),
             "Motivo da Busca": motivo,
             "Buscar na Shopee": f'<a href="https://shopee.com.br/search?keyword={quote(item.get("produto", ""))}" target="_blank" style="text-decoration: none;"><span style="background-color: #f0f0f0; color: #333; padding: 2px 10px; border-radius: 12px; font-size: 12px; border: 1px solid #ddd;">🔍 Buscar</span></a>'
         })
     
     df = pd.DataFrame(dados_tabela)
     
-    # Estiliza e exibe a tabela
+    # Estiliza e exibe a tabela com centralização
     st.markdown(
-        df.to_html(escape=False, index=False),
+        f"""
+        <style>
+        .dataframe th {{
+            text-align: center !important;
+            background-color: #f0f2f6 !important;
+            font-weight: bold !important;
+        }}
+        .dataframe td {{
+            text-align: center !important;
+            vertical-align: middle !important;
+        }}
+        .dataframe td:first-child {{
+            text-align: left !important;
+            font-weight: bold !important;
+        }}
+        </style>
+        {df.to_html(escape=False, index=False)}
+        """,
         unsafe_allow_html=True
     )
 
@@ -209,11 +233,11 @@ def render_apoiadores_compactos():
                     """, unsafe_allow_html=True)
 
 # ============================================================
-# INSIGHTS ESTRATÉGICOS - COM PRODUTOS SAZONAIS
+# INSIGHTS ESTRATÉGICOS - COM CONTEÚDO PARA CRIADOR
 # ============================================================
 def render_insights_estrategicos(produtos):
     """
-    Renderiza insights estratégicos com produtos sazonais
+    Renderiza insights estratégicos com dicas para criação de conteúdo
     """
     
     st.markdown("## 💡 Insights Estratégicos")
@@ -227,9 +251,9 @@ def render_insights_estrategicos(produtos):
     if sazonais:
         with st.container(border=True):
             st.markdown("### 📅 Produtos Sazonais do Mês")
-            st.caption("Produtos em alta devido à temporada atual")
+            st.caption("Produtos em alta devido à temporada atual - Use esses temas nos seus vídeos")
             
-            # Exibe em cards pequenos
+            # Exibe em cards menores
             cols = st.columns(min(len(sazonais), 4))
             for i, item in enumerate(sazonais[:4]):
                 with cols[i % 4]:
@@ -239,16 +263,30 @@ def render_insights_estrategicos(produtos):
                     with st.container(border=True):
                         st.markdown(f"**{produto}**")
                         st.caption(f"💡 {motivo[:80]}...")
-                        if st.button(f"🎬 Criar", key=f"sazonal_{produto}_{i}", use_container_width=True):
-                            st.session_state.produto_conteudo = produto
-                            st.session_state.aba_conteudo = True
-                            st.success(f"✅ Produto selecionado! Vá para a tab '🤖 Criar Conteúdo'.")
+                        
+                        # Gera hashtags e palavras-chave
+                        dados_palavra = obter_palavra_chave(produto)
+                        palavra_chave = dados_palavra.get("palavra", f"{produto} tendência 2026")
+                        hashtags = dados_palavra.get("hashtags", ["#tendência", "#moda", "#2026"])[:3]
+                        
+                        st.markdown(f"""
+                        <div style="background: #f8f9fa; padding: 4px 8px; border-radius: 6px; margin: 4px 0; font-size: 11px; color: #333;">
+                            🔑 {palavra_chave}
+                        </div>
+                        <div style="margin: 2px 0; font-size: 11px;">
+                            {' '.join([f'<span style="background: #e0e0e0; padding: 2px 8px; border-radius: 12px; margin: 2px;">{h}</span>' for h in hashtags])}
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
+                        # Dica de conteúdo
+                        st.caption(f"💡 Dica: Crie um vídeo sobre '{produto}' para aproveitar a tendência!")
     
     # ============================================================
-    # TOP 3 PRODUTOS DO MÊS
+    # TOP 3 PRODUTOS DO MÊS - COM CONTEÚDO PARA CRIADOR
     # ============================================================
     st.markdown("---")
     st.markdown("### 🏆 Top 3 Produtos do Mês")
+    st.caption("Produtos com maior potencial - Use essas informações para criar conteúdo")
     
     if produtos:
         top3 = sorted(produtos, key=lambda x: x.get("Score", 0), reverse=True)[:3]
@@ -271,27 +309,58 @@ def render_insights_estrategicos(produtos):
                         st.caption(f"👁️ {item.get('Views TikTok', '0M')}")
                         st.caption(f"📌 {item.get('Pins', '0')}")
                     
-                    # Palavra-chave
+                    # Palavra-chave principal
                     produto_lower = produto_nome.lower()
                     dados_palavra = obter_palavra_chave(produto_lower)
                     palavra_chave = dados_palavra.get("palavra", f"{produto_lower} tendência 2026")
+                    hashtags = dados_palavra.get("hashtags", ["#tendência", "#moda", "#2026"])
                     
                     st.markdown(f"""
-                    <div style="background: #f8f9fa; padding: 4px 8px; border-radius: 6px; margin: 4px 0; font-size: 12px; color: #333;">
-                        🔑 {palavra_chave}
+                    <div style="background: #f8f9fa; padding: 6px 10px; border-radius: 6px; margin: 6px 0;">
+                        <div style="font-size: 12px; color: #333;">
+                            🔑 <strong>Palavra-chave:</strong> {palavra_chave}
+                        </div>
+                        <div style="margin-top: 4px; font-size: 11px;">
+                            {' '.join([f'<span style="background: #e0e0e0; padding: 2px 10px; border-radius: 12px; margin: 2px;">{h}</span>' for h in hashtags[:4]])}
+                        </div>
                     </div>
                     """, unsafe_allow_html=True)
                     
-                    if st.button(f"🎬 Criar Conteúdo", key=f"insight_{produto_nome}_{i}", use_container_width=True, type="secondary"):
-                        st.session_state.produto_conteudo = produto_nome
-                        st.session_state.aba_conteudo = True
-                        st.success(f"✅ Produto selecionado! Vá para a tab '🤖 Criar Conteúdo'.")
+                    # Dica de conteúdo
+                    dicas_conteudo = [
+                        f"🎬 Crie um review completo do {produto_nome} mostrando prós e contras",
+                        f"📱 Faça um unboxing do {produto_nome} para engajar seus seguidores",
+                        f"🔄 Compare o {produto_nome} com outros produtos do mercado",
+                        f"💡 Mostre 3 formas diferentes de usar o {produto_nome}",
+                        f"📊 Faça um antes e depois usando o {produto_nome}"
+                    ]
+                    
+                    st.markdown(f"""
+                    <div style="background: #e8f5e9; padding: 6px 10px; border-radius: 6px; margin: 6px 0; font-size: 12px; color: #2e7d32;">
+                        💡 <strong>Dica de conteúdo:</strong> {dicas_conteudo[i % len(dicas_conteudo)]}
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    # Ângulo de gravação
+                    angulos = [
+                        "📷 Grave com luz natural em um ambiente clean",
+                        "🎥 Use um microfone de lapela para melhor áudio",
+                        "📱 Grave na vertical para TikTok e Reels",
+                        "🎬 Comece com um gancho forte nos primeiros 3 segundos"
+                    ]
+                    
+                    st.markdown(f"""
+                    <div style="background: #e3f2fd; padding: 6px 10px; border-radius: 6px; margin: 6px 0; font-size: 12px; color: #0d47a1;">
+                        🎯 <strong>Ângulo de gravação:</strong> {angulos[i % len(angulos)]}
+                    </div>
+                    """, unsafe_allow_html=True)
     
     # ============================================================
     # TENDÊNCIAS DE MERCADO
     # ============================================================
     st.markdown("---")
     st.markdown("### 📊 Tendências de Mercado")
+    st.caption("O que está em alta no Pinterest e Google Trends")
     
     col1, col2 = st.columns(2)
     
@@ -305,6 +374,10 @@ def render_insights_estrategicos(produtos):
             - ✅ Decoração de Natal
             - ✅ Receitas fitness
             """)
+            
+            # Palavras-chave Pinterest
+            st.markdown("**🔑 Palavras-chave:**")
+            st.markdown("`look inverno`, `organização casa`, `decoração natal`, `receitas saudáveis`")
     
     with col2:
         with st.container(border=True):
@@ -316,6 +389,10 @@ def render_insights_estrategicos(produtos):
             - ✅ "Presentes para mães"
             - ✅ "Brinquedos educativos 2 anos"
             """)
+            
+            # Hashtags Google
+            st.markdown("**🏷️ Hashtags em alta:**")
+            st.markdown("#smartwatch2026 #modainverno #presentes #brinquedoseducativos")
 
 # ============================================================
 # DASHBOARD PRINCIPAL
