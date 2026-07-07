@@ -10,7 +10,7 @@ from typing import Dict, List
 
 from modules.logger import carregar_logs, obter_estatisticas_logs
 from modules.shopee import obter_stats_cache_shopee
-from modules.serper import obter_stats_cache_serper
+from modules.serper import obter_stats_cache_serper, obter_stats_serper
 from modules.produtos_dinamicos import carregar_cache_produtos
 
 
@@ -304,9 +304,76 @@ def render_admin_resumo():
     st.markdown("---")
     
     # ============================================================
-    # BOTÃO PARA FORÇAR ATUALIZAÇÃO
+    # STATUS DA API SERPER - LIMITE DIÁRIO
     # ============================================================
-    col1, col2 = st.columns(2)
+    st.markdown("### 📊 Status da API Serper")
+    st.caption("Monitoramento do limite diário de requisições")
+    
+    from modules.serper import obter_stats_serper
+    stats_serper = obter_stats_serper()
+    
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric("📊 Limite Diário", stats_serper["limite_diario"])
+    with col2:
+        st.metric("✅ Usadas Hoje", stats_serper["usadas_hoje"])
+    with col3:
+        restantes = stats_serper["restantes"]
+        if restantes > 5:
+            st.metric("🔄 Restantes", restantes, delta="Disponível", delta_color="normal")
+        elif restantes > 0:
+            st.metric("🔄 Restantes", restantes, delta="Poucas", delta_color="inverse")
+        else:
+            st.metric("🔄 Restantes", restantes, delta="Esgotado!", delta_color="inverse")
+    with col4:
+        # Barra de progresso do limite
+        progresso = stats_serper["usadas_hoje"] / stats_serper["limite_diario"] * 100
+        cor = "green" if progresso < 70 else "orange" if progresso < 90 else "red"
+        st.markdown(f"""
+        <div style="margin-top: 10px;">
+            <small>Uso do limite diário</small>
+            <div style="background: #e0e0e0; border-radius: 10px; height: 20px; position: relative; overflow: hidden;">
+                <div style="background: {cor}; width: {min(progresso, 100)}%; height: 20px; border-radius: 10px; transition: width 0.5s;">
+                    <span style="position: absolute; left: 50%; top: 2px; color: {'white' if progresso > 50 else 'black'}; font-weight: bold; font-size: 12px;">{progresso:.0f}%</span>
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Mostra termos buscados
+    if stats_serper["termos_buscados"]:
+        with st.expander(f"📋 Termos buscados hoje ({len(stats_serper['termos_buscados'])} termos)"):
+            for termo in stats_serper["termos_buscados"]:
+                st.caption(f"- {termo}")
+    else:
+        st.info("📭 Nenhum termo buscado hoje")
+    
+    st.markdown("---")
+    
+    # ============================================================
+    # ESTATÍSTICAS DE LOGS
+    # ============================================================
+    st.markdown("### 📈 Estatísticas de Buscas")
+    
+    stats_logs = obter_estatisticas_logs()
+    
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric("📊 Total", stats_logs["total_tentativas"])
+    with col2:
+        st.metric("✅ Sucessos", stats_logs["sucessos"])
+    with col3:
+        st.metric("❌ Falhas", stats_logs["falhas"])
+    with col4:
+        st.metric("📈 Taxa", stats_logs["taxa_sucesso"])
+    
+    # ============================================================
+    # BOTÕES DE AÇÃO
+    # ============================================================
+    st.markdown("---")
+    st.markdown("### ⚙️ Ações Rápidas")
+    
+    col1, col2, col3, col4 = st.columns(4)
     
     with col1:
         if st.button("🔄 Forçar Atualização", use_container_width=True):
@@ -334,6 +401,30 @@ def render_admin_resumo():
                 st.rerun()
             except Exception as e:
                 st.error(f"❌ Erro ao limpar cache: {str(e)}")
+    
+    with col3:
+        if st.button("🔄 Resetar Contador Serper", use_container_width=True):
+            try:
+                from modules.serper import resetar_contador_serper
+                if resetar_contador_serper():
+                    st.success("✅ Contador Serper resetado!")
+                    st.rerun()
+                else:
+                    st.error("❌ Erro ao resetar contador")
+            except Exception as e:
+                st.error(f"❌ Erro: {str(e)}")
+    
+    with col4:
+        if st.button("🧹 Limpar Logs", use_container_width=True):
+            try:
+                from modules.logger import limpar_logs
+                if limpar_logs():
+                    st.success("✅ Logs limpos com sucesso!")
+                    st.rerun()
+                else:
+                    st.error("❌ Erro ao limpar logs")
+            except Exception as e:
+                st.error(f"❌ Erro: {str(e)}")
     
     st.markdown("---")
     
