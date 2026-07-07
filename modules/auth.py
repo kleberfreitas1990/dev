@@ -142,3 +142,36 @@ def verificar_login():
         st.stop()
     
     return st.session_state.get('licenca_usuario', LICENCA_TRIAL)
+
+# ============================================================
+# FUNÇÃO PARA LISTAR APOIADORES POR LICENÇAS
+# ============================================================
+def listar_apoiadores_por_licencas():
+    """
+    Retorna lista de apoiadores baseada nas licenças
+    """
+    sistema = SistemaLicencas()
+    apoiadores = []
+    
+    for codigo, dados in sistema.dados["licencas"].items():
+        if dados.get("is_apoiador", False) and dados.get("status") == "ativo":
+            apoiadores.append({
+                "codigo": codigo,
+                "nome": dados.get("usuario", "Apoiador"),
+                "email": dados.get("email", ""),
+                "plano": dados.get("plano", "Apoiador"),
+                "is_apoiador": True
+            })
+    
+    return apoiadores
+
+# ============================================================
+# EXPORTAÇÕES
+# ============================================================
+__all__ = [
+    'SistemaLicencas',
+    'verificar_login',
+    'LICENCA_TRIAL',
+    'ADMIN_LICENCA',
+    'listar_apoiadores_por_licencas'
+]
