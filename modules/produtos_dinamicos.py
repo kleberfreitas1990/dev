@@ -1,5 +1,3 @@
-# modules/produtos_dinamicos.py (VERSÃO CORRIGIDA)
-
 import json
 import os
 import logging
@@ -120,12 +118,11 @@ def buscar_produtos_dos_termos(limite: int = 10) -> Dict[str, Any]:
                 serper_funcionando = True
                 total_resultados = len(produtos_serper) * 10
                 
-                # Usa dados REAIS do Serper + simula complementos
                 produtos[termo_validado] = {
                     "pins": random.randint(1500, 3500),
                     "pins_historico": random.randint(1200, 3000),
                     "crescimento": random.randint(15, 50),
-                    "views_tiktok": round(random.uniform(2.0, 6.0), 1),  # ARREDONDADO
+                    "views_tiktok": round(random.uniform(2.0, 6.0), 1),
                     "resultados_ml": total_resultados,
                     "buscas_mes": random.randint(8000, 20000),
                     "buscas_historico": random.randint(6000, 16000),
@@ -165,7 +162,6 @@ def enriquecer_com_fallback(termos: List[str]) -> Dict[str, Any]:
         if not termo_validado:
             continue
         
-        # Dados realistas baseados no termo
         base_pins = 1000 + (i * 200)
         base_buscas = 5000 + (i * 800)
         
@@ -173,7 +169,7 @@ def enriquecer_com_fallback(termos: List[str]) -> Dict[str, Any]:
             "pins": base_pins + random.randint(-200, 400),
             "pins_historico": base_pins - random.randint(100, 300),
             "crescimento": random.randint(10, 45),
-            "views_tiktok": round(random.uniform(1.5, 5.5), 1),  # ARREDONDADO
+            "views_tiktok": round(random.uniform(1.5, 5.5), 1),
             "resultados_ml": random.randint(300, 1500),
             "buscas_mes": base_buscas + random.randint(-1000, 3000),
             "buscas_historico": base_buscas - random.randint(500, 2000),
@@ -187,7 +183,7 @@ def enriquecer_com_fallback(termos: List[str]) -> Dict[str, Any]:
     return produtos
 
 # ============================================================
-# FUNÇÕES AUXILIARES (MANTIDAS)
+# FUNÇÕES AUXILIARES
 # ============================================================
 def definir_categoria(termo: str) -> str:
     categorias = {
