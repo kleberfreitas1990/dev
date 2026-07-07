@@ -1,6 +1,4 @@
-"""
-Módulo para produtos dinâmicos com dados reais
-"""
+# modules/produtos_dinamicos.py
 
 import json
 import os
@@ -15,9 +13,9 @@ from modules.validation import validar_termo_busca, validar_produtos_serper
 logger = logging.getLogger(__name__)
 
 # ============================================================
-# ARQUIVO DE CACHE DE PRODUTOS
+# ARQUIVO DE CACHE DE PRODUTOS (NA RAIZ)
 # ============================================================
-ARQUIVO_PRODUTOS_CACHE = "produtos_cache.json"
+ARQUIVO_PRODUTOS_CACHE = "produtos_cache.json"  # <-- NA RAIZ
 
 # ============================================================
 # DADOS DE FALLBACK (usados se não houver dados reais)
@@ -256,10 +254,10 @@ def gerar_dados_fallback(termo: str, indice: int) -> Dict:
     }
 
 # ============================================================
-# FUNÇÕES DE CACHE
+# FUNÇÕES DE CACHE (NA RAIZ)
 # ============================================================
 def carregar_cache_produtos() -> Dict:
-    """Carrega cache de produtos"""
+    """Carrega cache de produtos da raiz"""
     if os.path.exists(ARQUIVO_PRODUTOS_CACHE):
         try:
             with open(ARQUIVO_PRODUTOS_CACHE, 'r', encoding='utf-8') as f:
@@ -269,7 +267,7 @@ def carregar_cache_produtos() -> Dict:
     return {}
 
 def salvar_cache_produtos(produtos: Dict) -> bool:
-    """Salva produtos no cache"""
+    """Salva produtos no cache (na raiz)"""
     try:
         with open(ARQUIVO_PRODUTOS_CACHE, 'w', encoding='utf-8') as f:
             json.dump({
@@ -289,6 +287,7 @@ def limpar_cache_produtos() -> bool:
     if os.path.exists(ARQUIVO_PRODUTOS_CACHE):
         try:
             os.remove(ARQUIVO_PRODUTOS_CACHE)
+            logger.info("Cache de produtos removido")
             return True
         except:
             pass
