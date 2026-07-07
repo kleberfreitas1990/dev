@@ -212,3 +212,27 @@ __all__ = [
     'obter_stats_cache_shopee',
     'TERMOS_REAIS_SHOPEE'
 ]
+# modules/shopee.py - ADICIONAR NO FINAL DO ARQUIVO
+
+def capturar_buscas_shopee_com_selenium_fallback() -> List[str]:
+    """
+    Tenta capturar buscas usando Selenium (fallback)
+    """
+    try:
+        from modules.selenium_scraper import capturar_buscas_shopee_selenium
+        
+        logger.info("Tentando capturar com Selenium...")
+        termos = capturar_buscas_shopee_selenium()
+        
+        if termos:
+            logger.info(f"Selenium capturou {len(termos)} termos")
+            return termos
+        
+        return []
+        
+    except ImportError:
+        logger.warning("Selenium não instalado. Usando fallback padrão.")
+        return []
+    except Exception as e:
+        logger.error(f"Erro no Selenium: {e}")
+        return []
