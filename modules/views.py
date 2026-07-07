@@ -117,7 +117,7 @@ def render_apoiadores_compactos():
                     """, unsafe_allow_html=True)
 
 # ============================================================
-# INSIGHTS ESTRATÉGICOS - VERSÃO DISCRETA
+# INSIGHTS ESTRATÉGICOS - VERSÃO DISCRETA COM NAVEGAÇÃO CORRETA
 # ============================================================
 def render_insights_estrategicos(produtos):
     """
@@ -170,7 +170,7 @@ def render_insights_estrategicos(produtos):
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # Botão "Criar Conteúdo" - FUNCIONANDO
+                # Botão "Criar Conteúdo" - NÃO USA RERUN, USA session_state
                 if st.button(
                     f"🎬 Criar Conteúdo", 
                     key=f"insight_{produto_nome}_{i}", 
@@ -180,8 +180,9 @@ def render_insights_estrategicos(produtos):
                     # Salva no session_state para a tab de conteúdo
                     st.session_state.produto_conteudo = produto_nome
                     st.session_state.aba_conteudo = True
-                    st.success(f"✅ Redirecionando para criar conteúdo sobre {produto_nome}...")
-                    st.rerun()
+                    st.session_state.go_to_tab = "🤖 Criar Conteúdo"
+                    st.success(f"✅ Produto '{produto_nome}' selecionado! Vá para a tab '🤖 Criar Conteúdo'.")
+                    # NÃO USA st.rerun() - o usuário clica na tab manualmente
 
 # ============================================================
 # DASHBOARD PRINCIPAL
@@ -419,7 +420,7 @@ def render_painel_apoiadores_detalhado():
                 st.markdown(f"**📅 Entrada:** {data_entrada}")
                 st.markdown(f"**📌 Plano:** {plano}")
                 
-                # Verifica repasse - CORRIGIDO: variável é 'ordem' não 'ordeme'
+                # Verifica repasse
                 depois = sum(1 for k, d in apoiadores.items() if d.get("ordem", 999) > ordem)
                 
                 if depois > 0 and apoiador.get("repasse_ativo", True):
