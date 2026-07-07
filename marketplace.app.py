@@ -1,23 +1,20 @@
-# marketplace.app.py - NO INÍCIO
-
-import logging
-import sys
-
-# Configura logging para ver o que está acontecendo
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[logging.StreamHandler(sys.stdout)]
-)
-
-# Isso vai mostrar no console/log do Streamlit o que está acontecendo
-
 import streamlit as st
 import warnings
 from datetime import datetime
 from urllib.parse import quote
 import pandas as pd
 import time
+import logging
+import sys
+
+# ============================================================
+# CONFIGURAÇÃO DE LOGGING
+# ============================================================
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[logging.StreamHandler(sys.stdout)]
+)
 
 # ============================================================
 # SUPRIMIR WARNINGS
@@ -37,9 +34,9 @@ st.set_page_config(
 # ============================================================
 # IMPORTAR MÓDULOS
 # ============================================================
-from modules.auth import verificar_login
+from modules.auth import verificar_login, SistemaLicencas
 from modules.views import render_dashboard, render_status_usuario, render_painel_apoiadores_detalhado
-from modules.models import gerar_top10_produtos, PALAVRAS_CHAVE_CAUDA_LONGA
+from modules.models import gerar_top10_produtos, PALAVRAS_CHAVE_CAUDA_LONGA, obter_palavra_chave
 from modules.serper import buscar_produtos_serper
 
 # ============================================================
@@ -48,10 +45,8 @@ from modules.serper import buscar_produtos_serper
 licenca = verificar_login()
 
 # ============================================================
-# TITULO
+# TITULO REMOVIDO - JÁ ESTÁ NO DASHBOARD
 # ============================================================
-st.title("📊 Minerador de Produtos")
-st.caption(f"📅 {datetime.now().strftime('%A, %d de %B de %Y - %H:%M')}")
 
 # ============================================================
 # STATUS DO USUÁRIO
@@ -84,13 +79,15 @@ with tab2:
     st.markdown("## 🎯 Sugestões de Produtos Estratégicos")
     st.caption("Top produtos baseados em tendências de mercado")
     
-    produtos = gerar_top10_produtos()
+    produtos = gerar_top10_produtos(forcar_atualizacao=True)
     
     if produtos:
         dados_tabela = []
         for item in produtos:
             produto = item.get("Produto", "").lower()
-            dados_palavra = PALAVRAS_CHAVE_CAUDA_LONGA.get(produto, {})
+            
+            # USA A FUNÇÃO MELHORADA PARA PALAVRA-CHAVE
+            dados_palavra = obter_palavra_chave(produto)
             palavra_chave = dados_palavra.get("palavra", f"{produto} tendência 2026")
             
             dados_tabela.append({
@@ -193,7 +190,7 @@ with tab4:
         estilo = st.selectbox("Estilo Visual", ["Realista", "Cinematográfico", "Animado", "Minimalista"])
         st.metric("🎫 Créditos restantes", "10 / 10")
         
-        if st.button("🚀 Gerar Vídeo", type="primary", width='stretch'):
+        if st.button("🚀 Gerar Vídeo", type="primary", use_container_width=True):
             if not prompt:
                 st.error("❌ Por favor, descreva o vídeo no campo 'Comando'.")
             elif not snapgen_key:
@@ -246,7 +243,6 @@ with tab6:
                 if not novo_usuario or not novo_email:
                     st.error("❌ Preencha nome e e-mail")
                 else:
-                    from modules.auth import SistemaLicencas
                     sistema = SistemaLicencas()
                     codigo = sistema.gerar_licenca(novo_usuario, novo_email, plano, is_apoiador)
                     st.success("✅ Licença gerada com sucesso!")
@@ -258,7 +254,6 @@ with tab6:
         st.markdown("---")
         st.markdown("### 📋 Licenças Ativas")
         
-        from modules.auth import SistemaLicencas
         sistema = SistemaLicencas()
         licencas = sistema.dados["licencas"]
         
