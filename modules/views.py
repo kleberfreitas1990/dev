@@ -16,6 +16,14 @@ from modules.models import (
     remover_apoiador
 )
 
+# Importa grade de descoberta
+from modules.grade_descoberta import (
+    descobrir_produtos_grade,
+    enriquecer_produto,
+    get_produtos_sazonais,
+    GRADE_PRODUTOS
+)
+
 # Tenta importar serper, se falhar usa fallback
 try:
     from modules.serper import buscar_produtos_serper
@@ -31,6 +39,152 @@ except ImportError:
 def render_status_usuario():
     """Renderiza o status do usuário - REMOVIDO"""
     pass
+
+# ============================================================
+# GRADE DE DESCOBERTA - VISUALIZAÇÃO
+# ============================================================
+def render_grade_descoberta():
+    """
+    Renderiza a grade de descoberta de produtos
+    """
+    st.markdown("## 🎯 Grade de Descoberta de Produtos")
+    st.caption("Produtos em tendência descobertos automaticamente")
+    
+    # ============================================================
+    # FILTROS
+    # ============================================================
+    col1, col2, col3 = st.columns([2, 1, 1])
+    
+    with col1:
+        categoria_filtro = st.selectbox(
+            "Filtrar por categoria:",
+            ["Todas", "moda", "eletrônico", "beleza", "casa", "infantil", "esporte"],
+            index=0
+        )
+    
+    with col2:
+        quantidade = st.selectbox(
+            "Quantidade:",
+            [5, 10, 15, 20],
+            index=1
+        )
+    
+    with col3:
+        if st.button("🔄 Atualizar Grade", use_container_width=True):
+            st.rerun()
+    
+    # ============================================================
+    # BUSCA PRODUTOS
+    # ============================================================
+    with st.spinner("🔍 Descobrindo produtos..."):
+        categoria = None if categoria_filtro == "Todas" else categoria_filtro
+        produtos_descobrir = descobrir_produtos_grade(categoria=categoria, quantidade=quantidade)
+    
+    if not produtos_descobrir:
+        st.info("📭 Nenhum produto encontrado na grade de descoberta.")
+        return
+    
+    # ============================================================
+    # EXIBE PRODUTOS EM GRADE (CARDS)
+    # ============================================================
+    st.markdown(f"### 📦 {len(produtos_descobrir)} produtos descobertos")
+    
+    # Cores para os cards
+    cores = ["#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7", "#DDA0DD", "#FF8A5C", "#A29BFE"]
+    
+    # Exibe em grid de 4
+    cols = st.columns(4)
+    
+    for i, item in enumerate(produtos_descobrir):
+        with cols[i % 4]:
+            produto = item.get("produto", "")
+            fonte = item.get("fonte", "grade")
+            score = item.get("score", 5)
+            categoria = item.get("categoria", "Geral")
+            
+            cor = cores[i % len(cores)]
+            
+            with st.container(border=True):
+                # Cabeçalho com cor
+                st.markdown(f"""
+                <div style="
+                    background: {cor};
+                    color: white;
+                    padding: 6px 10px;
+                    border-radius: 8px 8px 0 0;
+                    margin: -12px -12px 8px -12px;
+                    text-align: center;
+                    font-weight: bold;
+                    font-size: 14px;
+                ">
+                    {produto.capitalize()}
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Métricas
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.caption(f"🏷️ {categoria}")
+                with col2:
+                    st.caption(f"⭐ Score: {score}/10")
+                
+                # Fonte
+                if fonte == "sazonal":
+                    st.info("📅 Produto Sazonal")
+                elif fonte == "grade":
+                    st.success("📊 Grade de Produtos")
+                else:
+                    st.caption(f"📌 Fonte: {fonte}")
+                
+                # Botão Criar Conteúdo
+                if st.button(f"🎬 Criar Conteúdo", key=f"grade_{produto}_{i}", use_container_width=True):
+                    st.session_state.produto_conteudo = produto
+                    st.session_state.aba_conteudo = True
+                    st.success(f"✅ Produto '{produto}' selecionado! Vá para a tab '🤖 Criar Conteúdo'.")
+    
+    st.markdown("---")
+    
+    # ============================================================
+    # TABELA DETALHADA
+    # ============================================================
+    with st.expander("📋 Ver tabela completa"):
+        # Cria DataFrame
+        dados_tabela = []
+        for item in produtos_descobrir:
+            dados_tabela.append({
+                "Produto": item.get("produto", "").capitalize(),
+                "Categoria": item.get("categoria", "Geral"),
+                "Fonte": item.get("fonte", "grade"),
+                "Score": item.get("score", 0),
+                "Ação": f'<a href="https://shopee.com.br/search?keyword={quote(item.get("produto", ""))}" target="_blank" style="text-decoration: none;"><span style="background-color: #f0f0f0; color: #333; padding: 2px 10px; border-radius: 12px; font-size: 12px; border: 1px solid #ddd;">🔍 Buscar</span></a>'
+            })
+        
+        df = pd.DataFrame(dados_tabela)
+        st.markdown(
+            df.to_html(escape=False, index=False),
+            unsafe_allow_html=True
+        )
+    
+    # ============================================================
+    # PRODUTOS SAZONAIS
+    # ============================================================
+    st.markdown("---")
+    st.markdown("### 📅 Produtos Sazonais do Mês")
+    
+    sazonais = get_produtos_sazonais()
+    if sazonais:
+        cols = st.columns(5)
+        for i, produto in enumerate(sazonais):
+            with cols[i % 5]:
+                with st.container(border=True):
+                    st.markdown(f"**{produto.capitalize()}**")
+                    st.caption("📅 Em alta")
+                    if st.button(f"🎬 Criar", key=f"sazonal_{produto}_{i}"):
+                        st.session_state.produto_conteudo = produto
+                        st.session_state.aba_conteudo = True
+                        st.success(f"✅ Produto selecionado!")
+    else:
+        st.info("📭 Nenhum produto sazonal para este mês.")
 
 # ============================================================
 # APOIADORES EM CARDS PEQUENOS (COM COROA CENTRALIZADA)
@@ -180,9 +334,7 @@ def render_insights_estrategicos(produtos):
                     # Salva no session_state para a tab de conteúdo
                     st.session_state.produto_conteudo = produto_nome
                     st.session_state.aba_conteudo = True
-                    st.session_state.go_to_tab = "🤖 Criar Conteúdo"
                     st.success(f"✅ Produto '{produto_nome}' selecionado! Vá para a tab '🤖 Criar Conteúdo'.")
-                    # NÃO USA st.rerun() - o usuário clica na tab manualmente
 
 # ============================================================
 # DASHBOARD PRINCIPAL
@@ -252,6 +404,13 @@ def render_dashboard():
                 st.success("✅ Alta Demanda")
             with col_s2:
                 st.success("✅ Baixa Concorrência")
+    
+    st.markdown("---")
+    
+    # ============================================================
+    # GRADE DE DESCOBERTA
+    # ============================================================
+    render_grade_descoberta()
     
     st.markdown("---")
     
