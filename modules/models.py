@@ -119,33 +119,149 @@ def obter_dados_completos(forcar_atualizacao: bool = False) -> Dict:
     return obter_produtos_dinamicos(forcar_atualizacao)
 
 # ============================================================
-# PALAVRAS CHAVE
+# PALAVRAS CHAVE - MELHORADAS E ESPECÍFICAS
 # ============================================================
 PALAVRAS_CHAVE_CAUDA_LONGA = {
-    "casaco": {"palavra": "casaco feminino inverno 2026", "hashtags": ["#casacofeminino", "#inverno2026", "#lookinverno"]},
-    "blusa": {"palavra": "blusa de lã feminina elegante", "hashtags": ["#blusadelã", "#modainverno", "#lookelegante"]},
-    "blusa de lã": {"palavra": "blusa de lã feminina elegante", "hashtags": ["#blusadelã", "#modainverno", "#lookelegante"]},
-    "smartwatch": {"palavra": "smartwatch feminino elegante", "hashtags": ["#smartwatch", "#tecnologia", "#eletrônicos"]},
-    "fone": {"palavra": "fone bluetooth JBL original", "hashtags": ["#fonebluetooth", "#áudio", "#tecnologia"]},
-    "fone bluetooth": {"palavra": "fone bluetooth JBL original", "hashtags": ["#fonebluetooth", "#áudio", "#tecnologia"]},
-    "perfume": {"palavra": "perfume importado feminino", "hashtags": ["#perfumeimportado", "#belezafeminina", "#presentes"]},
-    "celular": {"palavra": "celular smartphone 5G", "hashtags": ["#smartphone", "#tecnologia", "#5g"]},
-    "tablet": {"palavra": "tablet para estudos", "hashtags": ["#tablet", "#estudos", "#tecnologia"]},
-    "vestido": {"palavra": "vestido feminino verão", "hashtags": ["#vestidofeminino", "#moda", "#verao"]},
-    "sapato": {"palavra": "sapato feminino confortável", "hashtags": ["#sapatofeminino", "#moda", "#conforto"]},
-    "tênis": {"palavra": "tênis esportivo masculino", "hashtags": ["#tenis", "#esporte", "#moda"]},
-    "perfume importado": {"palavra": "perfume importado feminino", "hashtags": ["#perfumeimportado", "#belezafeminina", "#presentes"]},
+    # MODA
+    "casaco": {
+        "palavra": "casaco feminino inverno 2026",
+        "hashtags": ["#casacofeminino", "#inverno2026", "#lookinverno", "#modainverno"]
+    },
+    "blusa": {
+        "palavra": "blusa de lã elegante feminina",
+        "hashtags": ["#blusadelã", "#modainverno", "#lookelegante", "#feminino"]
+    },
+    "blusa de lã": {
+        "palavra": "blusa de lã elegante feminina",
+        "hashtags": ["#blusadelã", "#modainverno", "#lookelegante", "#feminino"]
+    },
+    "vestido": {
+        "palavra": "vestido longo festa verão 2026",
+        "hashtags": ["#vestidofeminino", "#modaverao", "#lookfestival", "#verao2026"]
+    },
+    "sapato": {
+        "palavra": "sapato salto alto feminino conforto",
+        "hashtags": ["#sapatofeminino", "#moda", "#sapatoespecial", "#look"]
+    },
+    "tênis": {
+        "palavra": "tênis esportivo masculino conforto",
+        "hashtags": ["#tenis", "#esporte", "#moda", "#conforto", "#corrida"]
+    },
+    "calça": {
+        "palavra": "calça jeans feminina cintura alta",
+        "hashtags": ["#calçajeans", "#modafeminina", "#jeans", "#look"]
+    },
+    
+    # ELETRÔNICOS
+    "smartwatch": {
+        "palavra": "smartwatch feminino elegante 2026",
+        "hashtags": ["#smartwatch", "#tecnologia", "#eletrônicos", "#mulherdigital"]
+    },
+    "fone": {
+        "palavra": "fone bluetooth JBL original",
+        "hashtags": ["#fonebluetooth", "#áudio", "#tecnologia", "#jbl"]
+    },
+    "fone bluetooth": {
+        "palavra": "fone bluetooth JBL original",
+        "hashtags": ["#fonebluetooth", "#áudio", "#tecnologia", "#jbl"]
+    },
+    "celular": {
+        "palavra": "celular smartphone 5G camera 108MP",
+        "hashtags": ["#smartphone", "#tecnologia", "#5g", "#fotografia"]
+    },
+    "tablet": {
+        "palavra": "tablet para estudos e trabalho 2026",
+        "hashtags": ["#tablet", "#estudos", "#tecnologia", "#produtividade"]
+    },
+    
+    # BELEZA
+    "perfume": {
+        "palavra": "perfume importado floral feminino",
+        "hashtags": ["#perfumeimportado", "#belezafeminina", "#presentes", "#floral"]
+    },
+    "perfume importado": {
+        "palavra": "perfume importado floral feminino",
+        "hashtags": ["#perfumeimportado", "#belezafeminina", "#presentes", "#floral"]
+    },
+    "maquiagem": {
+        "palavra": "kit maquiagem profissional completo",
+        "hashtags": ["#maquiagem", "#belezafeminina", "#makeup", "#profissional"]
+    },
+    "creme": {
+        "palavra": "creme hidratante facial antissinais",
+        "hashtags": ["#cremehidratante", "#skincare", "#belezafeminina", "#antiidade"]
+    },
+    
+    # CASA
+    "organizador": {
+        "palavra": "organizador de gavetas e armários",
+        "hashtags": ["#organizador", "#casa", "#organização", "#decoração"]
+    },
+    "caixa": {
+        "palavra": "caixa organizadora plástica empilhável",
+        "hashtags": ["#caixaorganizadora", "#casa", "#organização", "#armazenamento"]
+    },
+    "lixeira": {
+        "palavra": "lixeira cozinha inox pedal",
+        "hashtags": ["#lixeira", "#cozinha", "#inox", "#organização"]
+    },
+    "garrafa": {
+        "palavra": "garrafa térmica inox 1L",
+        "hashtags": ["#garrafatermica", "#casa", "#inox", "#hidratação"]
+    },
+    
+    # INFANTIL
+    "brinquedo": {
+        "palavra": "brinquedo educativo infantil 2 anos",
+        "hashtags": ["#brinquedo", "#infantil", "#educativo", "#crianças"]
+    },
+    "boneca": {
+        "palavra": "boneca interativa falante",
+        "hashtags": ["#boneca", "#infantil", "#brinquedo", "#presente"]
+    },
+    "carrinho": {
+        "palavra": "carrinho de controle remoto",
+        "hashtags": ["#carrinho", "#infantil", "#controle", "#brinquedo"]
+    },
+    
+    # ESPORTE
+    "chopeira": {
+        "palavra": "chopeira elétrica 5L chopp",
+        "hashtags": ["#chopeira", "#cerveja", "#chope", "#festa"]
+    },
+    
+    # PADRÃO (FALLBACK)
+    "padrao": {
+        "palavra": "produto tendência mercado 2026",
+        "hashtags": ["#tendência", "#produto", "#2026", "#mercado"]
+    }
 }
 
 def obter_palavra_chave(produto: str) -> Dict:
-    """Obtém palavra-chave para um produto"""
+    """Obtém palavra-chave para um produto com busca mais inteligente"""
     produto_lower = produto.lower()
+    
+    # Busca exata primeiro
     for chave, dados in PALAVRAS_CHAVE_CAUDA_LONGA.items():
         if chave in produto_lower:
             return dados
+    
+    # Busca por palavras-chave parciais
+    for chave, dados in PALAVRAS_CHAVE_CAUDA_LONGA.items():
+        if chave in produto_lower or produto_lower in chave:
+            return dados
+    
+    # Fallback: tenta extrair palavra principal
+    palavras = produto_lower.split()
+    for palavra in palavras:
+        for chave, dados in PALAVRAS_CHAVE_CAUDA_LONGA.items():
+            if palavra in chave or chave in palavra:
+                return dados
+    
+    # Fallback final
     return {
-        "palavra": f"{produto} tendência 2026",
-        "hashtags": ["#tendência", "#moda", "#2026"]
+        "palavra": f"{produto} - lançamento 2026",
+        "hashtags": [f"#{produto.lower().replace(' ', '')}", "#tendência", "#2026", "#lançamento"]
     }
 
 # ============================================================
@@ -206,7 +322,7 @@ def gerar_top10_produtos(forcar_atualizacao: bool = False) -> List[Dict]:
         # ARREDONDA OS VALORES PARA EVITAR NÚMEROS QUEBRADOS
         views_tiktok = dados.get('views_tiktok', 0)
         if isinstance(views_tiktok, float):
-            views_tiktok = round(views_tiktok, 1)  # Arredonda para 1 casa decimal
+            views_tiktok = round(views_tiktok, 1)
         
         variacao = dados.get('variacao', 0)
         if isinstance(variacao, float):
