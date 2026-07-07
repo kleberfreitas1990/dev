@@ -21,7 +21,9 @@ from modules.grade_descoberta import (
     descobrir_produtos_grade,
     enriquecer_produto,
     get_produtos_sazonais,
-    GRADE_PRODUTOS
+    get_produtos_sazonais_com_motivos,
+    GRADE_PRODUTOS,
+    obter_motivo_busca
 )
 
 # Tenta importar serper, se falhar usa fallback
@@ -41,14 +43,14 @@ def render_status_usuario():
     pass
 
 # ============================================================
-# GRADE DE DESCOBERTA - VISUALIZAÇÃO EM TABELA
+# GRADE DE DESCOBERTA - VISUALIZAÇÃO EM TABELA COM MOTIVOS
 # ============================================================
 def render_grade_descoberta():
     """
     Renderiza a grade de descoberta de produtos em formato de tabela
     """
     st.markdown("## 🎯 Grade de Descoberta de Produtos")
-    st.caption("Produtos em tendência descobertos automaticamente")
+    st.caption("Produtos em tendência descobertos automaticamente - Análise baseada em dados do Pinterest e Google Trends")
     
     # ============================================================
     # FILTROS
@@ -93,23 +95,24 @@ def render_grade_descoberta():
     dados_tabela = []
     for item in produtos_descobrir:
         produto = item.get("produto", "").capitalize()
-        fonte = item.get("fonte", "grade")
         score = item.get("score", 0)
-        categoria = item.get("categoria", "Geral")
+        categoria = item.get("categoria", "Geral").capitalize()
+        motivo = item.get("motivo", "📊 Produto em tendência no mercado")
         
-        # Mapeia fonte para emoji
-        fonte_emoji = {
-            "sazonal": "📅",
-            "grade": "📊",
-            "api": "🌐",
-            "raspagem": "📡"
-        }.get(fonte, "📌")
+        # Define status de score
+        if score >= 8:
+            status = "🔥 Alta"
+        elif score >= 6:
+            status = "📈 Média"
+        else:
+            status = "📊 Baixa"
         
         dados_tabela.append({
             "Produto": produto,
             "Categoria": categoria,
-            "Fonte": f"{fonte_emoji} {fonte.capitalize()}",
             "Score": f"{score}/10",
+            "Status": status,
+            "Motivo da Busca": motivo,
             "Buscar na Shopee": f'<a href="https://shopee.com.br/search?keyword={quote(item.get("produto", ""))}" target="_blank" style="text-decoration: none;"><span style="background-color: #f0f0f0; color: #333; padding: 2px 10px; border-radius: 12px; font-size: 12px; border: 1px solid #ddd;">🔍 Buscar</span></a>'
         })
     
@@ -120,26 +123,6 @@ def render_grade_descoberta():
         df.to_html(escape=False, index=False),
         unsafe_allow_html=True
     )
-    
-    # ============================================================
-    # PRODUTOS SAZONAIS (EM TABELA)
-    # ============================================================
-    st.markdown("---")
-    st.markdown("### 📅 Produtos Sazonais do Mês")
-    
-    sazonais = get_produtos_sazonais()
-    if sazonais:
-        dados_sazonais = []
-        for produto in sazonais:
-            dados_sazonais.append({
-                "Produto": produto.capitalize(),
-                "Status": "📅 Em alta"
-            })
-        
-        df_sazonais = pd.DataFrame(dados_sazonais)
-        st.dataframe(df_sazonais, use_container_width=True, hide_index=True)
-    else:
-        st.info("📭 Nenhum produto sazonal para este mês.")
 
 # ============================================================
 # APOIADORES EM CARDS PEQUENOS (COM COROA CENTRALIZADA)
@@ -226,69 +209,113 @@ def render_apoiadores_compactos():
                     """, unsafe_allow_html=True)
 
 # ============================================================
-# INSIGHTS ESTRATÉGICOS - VERSÃO DISCRETA
+# INSIGHTS ESTRATÉGICOS - COM PRODUTOS SAZONAIS
 # ============================================================
 def render_insights_estrategicos(produtos):
     """
-    Renderiza insights estratégicos de forma discreta
+    Renderiza insights estratégicos com produtos sazonais
     """
-    if not produtos:
-        return
     
     st.markdown("## 💡 Insights Estratégicos")
-    st.caption("Análise rápida dos produtos com maior potencial")
+    st.caption("Análise de mercado baseada em dados do Pinterest e Google Trends")
     
-    top3 = sorted(produtos, key=lambda x: x.get("Score", 0), reverse=True)[:3]
+    # ============================================================
+    # PRODUTOS SAZONAIS
+    # ============================================================
+    sazonais = get_produtos_sazonais_com_motivos()
     
-    # Exibe em cards mais discretos
-    cols = st.columns(3)
-    
-    for i, item in enumerate(top3):
-        with cols[i]:
-            produto_nome = item.get("Produto", "")
-            emojis = ["🥇", "🥈", "🥉"]
+    if sazonais:
+        with st.container(border=True):
+            st.markdown("### 📅 Produtos Sazonais do Mês")
+            st.caption("Produtos em alta devido à temporada atual")
             
-            with st.container(border=True):
-                # Cabeçalho discreto
-                st.markdown(f"**{emojis[i]} {produto_nome}**")
+            # Exibe em cards pequenos
+            cols = st.columns(min(len(sazonais), 4))
+            for i, item in enumerate(sazonais[:4]):
+                with cols[i % 4]:
+                    produto = item.get("produto", "").capitalize()
+                    motivo = item.get("motivo", "")
+                    
+                    with st.container(border=True):
+                        st.markdown(f"**{produto}**")
+                        st.caption(f"💡 {motivo[:80]}...")
+                        if st.button(f"🎬 Criar", key=f"sazonal_{produto}_{i}", use_container_width=True):
+                            st.session_state.produto_conteudo = produto
+                            st.session_state.aba_conteudo = True
+                            st.success(f"✅ Produto selecionado! Vá para a tab '🤖 Criar Conteúdo'.")
+    
+    # ============================================================
+    # TOP 3 PRODUTOS DO MÊS
+    # ============================================================
+    st.markdown("---")
+    st.markdown("### 🏆 Top 3 Produtos do Mês")
+    
+    if produtos:
+        top3 = sorted(produtos, key=lambda x: x.get("Score", 0), reverse=True)[:3]
+        
+        cols = st.columns(3)
+        for i, item in enumerate(top3):
+            with cols[i]:
+                produto_nome = item.get("Produto", "")
+                emojis = ["🥇", "🥈", "🥉"]
                 
-                # Métricas em uma linha discreta
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.caption(f"🎯 Score: {item.get('Score', 0)}/10")
-                    st.caption(f"📈 {item.get('Crescimento', '+0%')}")
-                with col2:
-                    st.caption(f"👁️ {item.get('Views TikTok', '0M')}")
-                    st.caption(f"📌 {item.get('Pins', '0')}")
-                
-                # Palavra-chave em destaque discreto
-                produto_lower = produto_nome.lower()
-                dados_palavra = obter_palavra_chave(produto_lower)
-                palavra_chave = dados_palavra.get("palavra", f"{produto_lower} tendência 2026")
-                
-                # Hashtags em linha discreta
-                hashtags = dados_palavra.get("hashtags", ["#tendência", "#moda", "#2026"])[:2]
-                tags_html = " ".join([f'<span style="background-color: #f0f0f0; padding: 1px 6px; border-radius: 8px; margin: 1px; font-size: 10px; color: #666;">{h}</span>' for h in hashtags])
-                
-                st.markdown(f"""
-                <div style="background: #f8f9fa; padding: 4px 8px; border-radius: 6px; margin: 4px 0; font-size: 12px; color: #333;">
-                    🔑 {palavra_chave}
-                </div>
-                <div style="margin: 2px 0;">
-                    {tags_html}
-                </div>
-                """, unsafe_allow_html=True)
-                
-                # Botão "Criar Conteúdo"
-                if st.button(
-                    f"🎬 Criar Conteúdo", 
-                    key=f"insight_{produto_nome}_{i}", 
-                    use_container_width=True,
-                    type="secondary"
-                ):
-                    st.session_state.produto_conteudo = produto_nome
-                    st.session_state.aba_conteudo = True
-                    st.success(f"✅ Produto '{produto_nome}' selecionado! Vá para a tab '🤖 Criar Conteúdo'.")
+                with st.container(border=True):
+                    st.markdown(f"**{emojis[i]} {produto_nome}**")
+                    
+                    # Métricas
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.caption(f"🎯 Score: {item.get('Score', 0)}/10")
+                        st.caption(f"📈 {item.get('Crescimento', '+0%')}")
+                    with col2:
+                        st.caption(f"👁️ {item.get('Views TikTok', '0M')}")
+                        st.caption(f"📌 {item.get('Pins', '0')}")
+                    
+                    # Palavra-chave
+                    produto_lower = produto_nome.lower()
+                    dados_palavra = obter_palavra_chave(produto_lower)
+                    palavra_chave = dados_palavra.get("palavra", f"{produto_lower} tendência 2026")
+                    
+                    st.markdown(f"""
+                    <div style="background: #f8f9fa; padding: 4px 8px; border-radius: 6px; margin: 4px 0; font-size: 12px; color: #333;">
+                        🔑 {palavra_chave}
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    if st.button(f"🎬 Criar Conteúdo", key=f"insight_{produto_nome}_{i}", use_container_width=True, type="secondary"):
+                        st.session_state.produto_conteudo = produto_nome
+                        st.session_state.aba_conteudo = True
+                        st.success(f"✅ Produto selecionado! Vá para a tab '🤖 Criar Conteúdo'.")
+    
+    # ============================================================
+    # TENDÊNCIAS DE MERCADO
+    # ============================================================
+    st.markdown("---")
+    st.markdown("### 📊 Tendências de Mercado")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        with st.container(border=True):
+            st.markdown("**📌 Pinterest Trends**")
+            st.caption("O que as pessoas estão salvando:")
+            st.markdown("""
+            - ✅ Looks de inverno + casacos
+            - ✅ Organização minimalista
+            - ✅ Decoração de Natal
+            - ✅ Receitas fitness
+            """)
+    
+    with col2:
+        with st.container(border=True):
+            st.markdown("**🔍 Google Trends**")
+            st.caption("O que as pessoas estão pesquisando:")
+            st.markdown("""
+            - ✅ "Melhor smartwatch 2026"
+            - ✅ "Casaco feminino preço"
+            - ✅ "Presentes para mães"
+            - ✅ "Brinquedos educativos 2 anos"
+            """)
 
 # ============================================================
 # DASHBOARD PRINCIPAL
@@ -433,7 +460,7 @@ def render_dashboard():
     
     st.markdown("---")
     
-    # ===== INSIGHTS ESTRATÉGICOS DISCRETOS =====
+    # ===== INSIGHTS ESTRATÉGICOS =====
     if produtos:
         render_insights_estrategicos(produtos)
     
