@@ -238,6 +238,16 @@ def get_produtos_sazonais_com_motivos() -> List[Dict]:
     return sazonais_data.get(mes, [])
 
 # ============================================================
+# GET PRODUTOS SAZONAIS (SIMPLES - SEM MOTIVOS)
+# ============================================================
+def get_produtos_sazonais() -> List[str]:
+    """
+    Retorna apenas a lista de produtos sazonais (sem motivos)
+    """
+    sazonais_com_motivos = get_produtos_sazonais_com_motivos()
+    return [item["produto"] for item in sazonais_com_motivos]
+
+# ============================================================
 # GRADE DE DESCOBERTA - FUNÇÃO PRINCIPAL
 # ============================================================
 def descobrir_produtos_grade(categoria: str = None, quantidade: int = 10) -> List[Dict]:
@@ -355,6 +365,9 @@ def mesclar_produtos(produtos_existentes: List[str], quantidade: int = 5) -> Lis
     random.shuffle(todos_produtos)
     return todos_produtos[:quantidade]
 
+# ============================================================
+# EXPORTAÇÕES
+# ============================================================
 __all__ = [
     'descobrir_produtos_grade',
     'enriquecer_produto',
