@@ -39,6 +39,17 @@ from modules.views import render_dashboard, render_status_usuario, render_painel
 from modules.models import gerar_top10_produtos, PALAVRAS_CHAVE_CAUDA_LONGA, obter_palavra_chave
 from modules.serper import buscar_produtos_serper
 
+# Importa módulo de conteúdo IA
+from modules.conteudo_ia import (
+    gerar_conteudo_completo,
+    gerar_script_completo,
+    gerar_titulos,
+    gerar_dicas_gravacao,
+    analisar_concorrencia,
+    carregar_conteudo_cache,
+    salvar_conteudo_cache
+)
+
 # ============================================================
 # VERIFICAR LOGIN
 # ============================================================
@@ -57,11 +68,12 @@ st.markdown("---")
 # ============================================================
 # TABS
 # ============================================================
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
     "📊 Dashboard",
     "📌 Sugestões de Produtos",
     "📅 Calendário de Conteúdo",
     "🎬 Criar Vídeo IA",
+    "🤖 Criar Conteúdo",
     "👑 Apoiadores",
     "🔑 Licenças"
 ])
@@ -111,7 +123,12 @@ with tab2:
             lambda x: f'<a href="https://shopee.com.br/search?keyword={quote(x)}" target="_blank" style="text-decoration: none;"><span style="background-color: #f0f0f0; color: #333; padding: 2px 10px; border-radius: 12px; font-size: 12px; border: 1px solid #ddd;">🔍 Buscar</span></a>'
         )
         
-        colunas = ["Produto", "🔑 Palavra-chave", "Categoria", "Evento", "Potencial", "Score", "Pins", "Crescimento", "Views TikTok", "Buscas no Mês", "Resultados ML", "Tendência", "Buscar na Shopee"]
+        # Adiciona botão "Criar Conteúdo" na tabela
+        df["🎬 Criar Conteúdo"] = df["Produto"].apply(
+            lambda x: f'<a href="#" onclick="document.getElementById(\'ir_para_conteudo_{x.lower()}\').click(); return false;" style="text-decoration: none;"><span style="background-color: #FF6B6B; color: white; padding: 2px 10px; border-radius: 12px; font-size: 12px; border: none;">🎬 Criar</span></a>'
+        )
+        
+        colunas = ["Produto", "🔑 Palavra-chave", "Categoria", "Evento", "Potencial", "Score", "Pins", "Crescimento", "Views TikTok", "Buscas no Mês", "Resultados ML", "Tendência", "Buscar na Shopee", "🎬 Criar Conteúdo"]
         df = df[colunas]
         
         st.markdown(
@@ -202,15 +219,212 @@ with tab4:
                     st.video("https://placehold.co/600x400/000000/FFFFFF?text=Video+Gerado+por+IA")
 
 # ============================================================
-# TAB 5: APOIADORES
+# TAB 5: CRIAR CONTEÚDO IA
 # ============================================================
 with tab5:
+    st.markdown("## 🤖 Assistente de Conteúdo para Criadores")
+    st.caption("Gerador inteligente de roteiros, títulos e estratégias para seus vídeos")
+    
+    # Verifica se veio de um clique do dashboard
+    produto_pre_selecionado = st.session_state.get("produto_conteudo", "")
+    
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        produto_conteudo = st.text_input(
+            "📦 Qual produto você quer criar conteúdo?",
+            placeholder="Ex: sapateira, smartwatch, casaco feminino...",
+            value=produto_pre_selecionado,
+            key="produto_conteudo_input"
+        )
+    
+    with col2:
+        categoria_conteudo = st.selectbox(
+            "🏷️ Categoria",
+            ["moda", "eletrônico", "beleza", "casa", "infantil", "esporte"],
+            index=0,
+            key="categoria_conteudo"
+        )
+        
+        duracao_conteudo = st.selectbox(
+            "⏱️ Duração do vídeo",
+            ["curto (15-30s)", "medio (30-60s)", "longo (60-90s)"],
+            index=1,
+            key="duracao_conteudo"
+        )
+    
+    # Limpa o estado após usar
+    if produto_pre_selecionado:
+        st.session_state.produto_conteudo = ""
+    
+    if st.button("🚀 Gerar Conteúdo", type="primary", use_container_width=True, key="gerar_conteudo_btn"):
+        if not produto_conteudo:
+            st.error("❌ Digite o nome do produto!")
+        else:
+            with st.spinner("🤖 Gerando conteúdo inteligente..."):
+                try:
+                    # Mapeia duração
+                    duracao_map = {
+                        "curto (15-30s)": "curto",
+                        "medio (30-60s)": "medio",
+                        "longo (60-90s)": "longo"
+                    }
+                    
+                    # Gera conteúdo completo
+                    conteudo = gerar_conteudo_completo(
+                        produto=produto_conteudo,
+                        categoria=categoria_conteudo,
+                        duracao=duracao_map[duracao_conteudo]
+                    )
+                    
+                    # Salva no cache
+                    salvar_conteudo_cache(conteudo)
+                    
+                    # ============================================================
+                    # TÍTULOS
+                    # ============================================================
+                    st.markdown("---")
+                    st.markdown("## 📝 Títulos Sugeridos")
+                    st.caption("Escolha um título para seu vídeo")
+                    
+                    titulos = conteudo["titulos"]
+                    
+                    # Exibe em grid de 3
+                    cols = st.columns(3)
+                    for i, titulo in enumerate(titulos[:6]):
+                        with cols[i % 3]:
+                            with st.container(border=True):
+                                st.markdown(f"**Título {i+1}**")
+                                st.markdown(f"🎯 {titulo}")
+                                if st.button(f"📋 Copiar", key=f"copy_titulo_{i}"):
+                                    st.code(titulo, language="text")
+                                if st.button(f"📌 Usar", key=f"use_titulo_{i}"):
+                                    st.session_state.titulo_selecionado = titulo
+                                    st.success(f"✅ Título selecionado: {titulo}")
+                    
+                    # ============================================================
+                    # SCRIPT
+                    # ============================================================
+                    st.markdown("---")
+                    st.markdown("## 🎬 Roteiro Completo")
+                    st.caption(f"⏱️ Duração total: {conteudo['script']['duracao_total']} segundos")
+                    
+                    # Exibe cada cena
+                    for cena in conteudo["script"]["cenas"]:
+                        with st.container(border=True):
+                            col1, col2, col3 = st.columns([1, 2, 2])
+                            with col1:
+                                st.markdown(f"**🎬 Cena {cena['cena']}**")
+                                st.caption(f"⏱️ {cena['duracao']}")
+                            with col2:
+                                st.markdown(f"📷 {cena['enquadramento']}")
+                            with col3:
+                                st.info(f"🎤 {cena['fala']}")
+                    
+                    # Botão copiar script
+                    script_completo = "\n\n".join([f"CENA {c['cena']} ({c['duracao']}): {c['enquadramento']}\nFALA: {c['fala']}" for c in conteudo["script"]["cenas"]])
+                    if st.button("📋 Copiar Script Completo"):
+                        st.code(script_completo, language="text")
+                    
+                    # ============================================================
+                    # DICAS DE GRAVAÇÃO
+                    # ============================================================
+                    st.markdown("---")
+                    st.markdown("## 🎥 Dicas de Gravação")
+                    
+                    dicas = conteudo["dicas_gravacao"]
+                    
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        with st.container(border=True):
+                            st.markdown("**🎬 Cenários sugeridos**")
+                            for cenario in dicas["cenarios_sugeridos"]:
+                                st.markdown(f"✅ {cenario}")
+                    
+                    with col2:
+                        with st.container(border=True):
+                            st.markdown("**🎧 Áudio**")
+                            for audio in dicas["dicas_audio"]:
+                                st.markdown(f"✅ {audio}")
+                    
+                    # Melhores horários
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        with st.container(border=True):
+                            st.markdown("**⏰ Melhores Horários para Postar**")
+                            for horario in dicas["melhores_horarios"][:2]:
+                                st.markdown(f"🕐 {horario}")
+                    with col2:
+                        with st.container(border=True):
+                            st.markdown("**📝 Legendas Sugeridas**")
+                            for legenda in dicas["legendas_sugeridas"]:
+                                st.markdown(f"💬 {legenda}")
+                    
+                    # ============================================================
+                    # HASHTAGS
+                    # ============================================================
+                    st.markdown("---")
+                    st.markdown("## 🏷️ Hashtags Sugeridas")
+                    
+                    hashtags = conteudo["hashtags_sugeridas"]
+                    tags_html = " ".join([f'<span style="background-color: #e0e0e0; padding: 4px 12px; border-radius: 16px; margin: 4px; font-size: 14px; display: inline-block;">{h}</span>' for h in hashtags])
+                    st.markdown(tags_html, unsafe_allow_html=True)
+                    
+                    if st.button("📋 Copiar Hashtags"):
+                        st.code(" ".join(hashtags), language="text")
+                    
+                    # ============================================================
+                    # ANÁLISE DE CONCORRÊNCIA
+                    # ============================================================
+                    st.markdown("---")
+                    st.markdown("## 📊 Análise de Concorrência")
+                    
+                    analise = conteudo["analise_concorrencia"]
+                    
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        with st.container(border=True):
+                            st.markdown("**🏆 Diferenciais do Produto**")
+                            for diff in analise["diferenciais_sugeridos"]:
+                                st.markdown(f"✅ {diff}")
+                    
+                    with col2:
+                        with st.container(border=True):
+                            st.markdown("**🎯 Posicionamento Sugerido**")
+                            st.info(analise["posicionamento_sugerido"])
+                            st.success(f"💪 {analise['ponto_forte']}")
+                    
+                    # Concorrentes
+                    with st.expander("👀 Ver concorrentes"):
+                        df_concorrentes = pd.DataFrame(analise["concorrentes"])
+                        df_concorrentes["avaliacao"] = df_concorrentes["avaliacao"].apply(lambda x: f"⭐ {x:.1f}")
+                        st.dataframe(df_concorrentes, use_container_width=True, hide_index=True)
+                    
+                    # ============================================================
+                    # LINK SHOPEE
+                    # ============================================================
+                    st.markdown("---")
+                    st.markdown("## 🔗 Link para Shopee")
+                    
+                    link_shopee = conteudo["script"]["link_shopee"]
+                    st.markdown(f"🔍 [Buscar {produto_conteudo} na Shopee]({link_shopee})")
+                    
+                    if st.button("📋 Copiar Link"):
+                        st.code(link_shopee, language="text")
+                    
+                except Exception as e:
+                    st.error(f"❌ Erro ao gerar conteúdo: {str(e)}")
+
+# ============================================================
+# TAB 6: APOIADORES
+# ============================================================
+with tab6:
     render_painel_apoiadores_detalhado()
 
 # ============================================================
-# TAB 6: LICENÇAS (APENAS ADMIN)
+# TAB 7: LICENÇAS (APENAS ADMIN)
 # ============================================================
-with tab6:
+with tab7:
     is_admin = st.session_state.get("is_admin", False)
     
     if not is_admin:
