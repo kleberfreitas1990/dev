@@ -11,6 +11,33 @@ from modules.validation import validar_termo_busca, validar_produtos_serper
 
 logger = logging.getLogger(__name__)
 
+# modules/produtos_dinamicos.py - ADICIONAR NO TOPO
+
+# Se os níveis 1 e 2 falharem, tenta Selenium
+def buscar_produtos_com_selenium(termos: List[str]) -> Dict:
+    """
+    Tenta buscar produtos usando Selenium
+    """
+    try:
+        from modules.selenium_scraper import capturar_com_selenium
+        
+        produtos = {}
+        
+        for termo in termos[:5]:
+            url = f"https://shopee.com.br/search?keyword={termo.replace(' ', '%20')}"
+            html = capturar_com_selenium(url, timeout=10)
+            
+            if html:
+                # Extrai informações do HTML
+                # ... (lógica de extração)
+                pass
+        
+        return produtos
+        
+    except Exception as e:
+        logger.error(f"Erro no Selenium: {e}")
+        return {}
+
 # ============================================================
 # ARQUIVO DE CACHE DE PRODUTOS
 # ============================================================
