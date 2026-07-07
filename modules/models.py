@@ -1,6 +1,12 @@
+# modules/models.py (SUBSTITUA O CONTEÚDO)
+
 import json
 import os
 from datetime import datetime
+from typing import List, Dict, Any
+
+# Importa sistema de produtos dinâmicos
+from modules.produtos_dinamicos import obter_produtos_dinamicos, PRODUTOS_FALLBACK
 
 # ============================================================
 # ARQUIVOS DE DADOS
@@ -8,7 +14,7 @@ from datetime import datetime
 ARQUIVO_APOIADORES = "apoiadores.json"
 
 # ============================================================
-# FUNÇÕES DE APOIADORES
+# FUNÇÕES DE APOIADORES (MANTIDAS)
 # ============================================================
 def carregar_apoiadores():
     """Carrega a lista de apoiadores do arquivo"""
@@ -100,36 +106,26 @@ def remover_apoiador(id_apoiador):
     return True
 
 # ============================================================
-# DADOS DE PRODUTOS
+# DADOS DE PRODUTOS (DINÂMICOS)
 # ============================================================
-DADOS_COMPLETOS = {
-    "casaco": {
-        "pins": 3400, "pins_historico": 2900, "crescimento": 45, "views_tiktok": 5.8,
-        "resultados_ml": 1240, "buscas_mes": 15200, "buscas_historico": 12800,
-        "categoria": "Moda", "evento": "Férias Escolares", "variacao": 17.2, "tendencia": "🚀 Em alta"
-    },
-    "blusa de lã": {
-        "pins": 2800, "pins_historico": 2200, "crescimento": 38, "views_tiktok": 4.2,
-        "resultados_ml": 890, "buscas_mes": 12500, "buscas_historico": 9800,
-        "categoria": "Moda", "evento": "Férias Escolares", "variacao": 27.3, "tendencia": "🚀 Em alta"
-    },
-    "smartwatch": {
-        "pins": 2800, "pins_historico": 2500, "crescimento": 35, "views_tiktok": 4.5,
-        "resultados_ml": 1500, "buscas_mes": 18500, "buscas_historico": 15200,
-        "categoria": "Eletrônicos", "evento": "Tendência", "variacao": 12.0, "tendencia": "🚀 Em alta"
-    },
-    "fone bluetooth": {
-        "pins": 2200, "pins_historico": 2000, "crescimento": 30, "views_tiktok": 3.8,
-        "resultados_ml": 1200, "buscas_mes": 16500, "buscas_historico": 13800,
-        "categoria": "Eletrônicos", "evento": "Tendência", "variacao": 10.0, "tendencia": "➡️ Estável"
-    },
-    "perfume": {
-        "pins": 2100, "pins_historico": 1800, "crescimento": 28, "views_tiktok": 3.2,
-        "resultados_ml": 1100, "buscas_mes": 14200, "buscas_historico": 11800,
-        "categoria": "Beleza", "evento": "Dia dos Namorados", "variacao": 16.7, "tendencia": "🚀 Em alta"
-    }
-}
+# OBSOLETO: Substituído por produtos dinâmicos
+# DADOS_COMPLETOS = { ... }  # REMOVIDO
 
+def obter_dados_completos(forcar_atualizacao: bool = False) -> Dict:
+    """
+    Obtém dados completos de produtos (dinâmicos)
+    
+    Args:
+        forcar_atualizacao (bool): Força atualização
+        
+    Returns:
+        Dict: Dados completos dos produtos
+    """
+    return obter_produtos_dinamicos(forcar_atualizacao)
+
+# ============================================================
+# PALAVRAS CHAVE (MANTIDAS COMO BASE)
+# ============================================================
 PALAVRAS_CHAVE_CAUDA_LONGA = {
     "casaco": {"palavra": "casaco feminino inverno 2026", "hashtags": ["#casacofeminino", "#inverno2026", "#lookinverno"]},
     "blusa de lã": {"palavra": "blusa de lã feminina elegante", "hashtags": ["#blusadelã", "#modainverno", "#lookelegante"]},
@@ -138,35 +134,71 @@ PALAVRAS_CHAVE_CAUDA_LONGA = {
     "perfume": {"palavra": "perfume importado feminino", "hashtags": ["#perfumeimportado", "#belezafeminina", "#presentes"]}
 }
 
+def obter_palavra_chave(produto: str) -> Dict:
+    """Obtém palavra-chave para um produto"""
+    produto_lower = produto.lower()
+    for chave, dados in PALAVRAS_CHAVE_CAUDA_LONGA.items():
+        if chave in produto_lower:
+            return dados
+    return {
+        "palavra": f"{produto} tendência 2026",
+        "hashtags": ["#tendência", "#moda", "#2026"]
+    }
+
+# ============================================================
+# CONSTANTES
+# ============================================================
 BUSCAS_DIARIAS = 3
 
-def calcular_score(produto, dados):
+# ============================================================
+# FUNÇÕES DE CÁLCULO
+# ============================================================
+def calcular_score(produto: str, dados: Dict) -> int:
+    """Calcula score para um produto"""
     score = 0
-    if dados.get("pins", 0) > 2000: score += 3
-    elif dados.get("pins", 0) > 1000: score += 2
-    else: score += 1
     
-    if dados.get("crescimento", 0) > 30: score += 2
-    elif dados.get("crescimento", 0) > 15: score += 1
+    if dados.get("pins", 0) > 2000:
+        score += 3
+    elif dados.get("pins", 0) > 1000:
+        score += 2
+    else:
+        score += 1
     
-    if dados.get("views_tiktok", 0) > 3: score += 2
-    elif dados.get("views_tiktok", 0) > 1: score += 1
+    if dados.get("crescimento", 0) > 30:
+        score += 2
+    elif dados.get("crescimento", 0) > 15:
+        score += 1
     
-    if dados.get("buscas_mes", 0) > 10000: score += 2
-    elif dados.get("buscas_mes", 0) > 5000: score += 1
+    if dados.get("views_tiktok", 0) > 3:
+        score += 2
+    elif dados.get("views_tiktok", 0) > 1:
+        score += 1
     
-    if dados.get("variacao", 0) > 15: score += 1
+    if dados.get("buscas_mes", 0) > 10000:
+        score += 2
+    elif dados.get("buscas_mes", 0) > 5000:
+        score += 1
     
-    return min(score, 10)
+    if dados.get("variacao", 0) > 15:
+        score += 1
+    
+    # Score mínimo 1, máximo 10
+    return max(1, min(score, 10))
 
-def gerar_top10_produtos():
+def gerar_top10_produtos(forcar_atualizacao: bool = False) -> List[Dict]:
+    """Gera top 10 produtos com dados dinâmicos"""
+    dados_completos = obter_dados_completos(forcar_atualizacao)
+    
     resultados = []
-    for produto, dados in DADOS_COMPLETOS.items():
-        score = calcular_score(produto, dados)
+    for produto, dados in dados_completos.items():
+        score = dados.get("score", calcular_score(produto, dados))
         
-        if score >= 8: potencial = "🟢 Alto"
-        elif score >= 5: potencial = "🟡 Médio"
-        else: potencial = "🔴 Baixo"
+        if score >= 8:
+            potencial = "🟢 Alto"
+        elif score >= 5:
+            potencial = "🟡 Médio"
+        else:
+            potencial = "🔴 Baixo"
         
         resultados.append({
             "Produto": produto.capitalize(),
@@ -183,7 +215,26 @@ def gerar_top10_produtos():
             "Tendência": dados.get('tendencia', '➡️ Estável')
         })
     
+    # Ordena por score e retorna top 10
     return sorted(resultados, key=lambda x: x["Score"], reverse=True)[:10]
 
-def gerar_sugestoes_diarias():
-    return gerar_top10_produtos()[:BUSCAS_DIARIAS]
+def gerar_sugestoes_diarias(forcar_atualizacao: bool = False) -> List[Dict]:
+    """Gera sugestões diárias (top 3)"""
+    top10 = gerar_top10_produtos(forcar_atualizacao)
+    return top10[:BUSCAS_DIARIAS]
+
+# ============================================================
+# EXPORTAÇÕES
+# ============================================================
+__all__ = [
+    'carregar_apoiadores',
+    'adicionar_apoiador',
+    'remover_apoiador',
+    'obter_dados_completos',
+    'obter_palavra_chave',
+    'PALAVRAS_CHAVE_CAUDA_LONGA',
+    'calcular_score',
+    'gerar_top10_produtos',
+    'gerar_sugestoes_diarias',
+    'BUSCAS_DIARIAS'
+]
