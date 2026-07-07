@@ -25,8 +25,7 @@ from modules.grade_descoberta import (
     get_produtos_sazonais_com_motivos,
     GRADE_PRODUTOS,
     obter_motivo_busca,
-    obter_indicadores_horario,
-    obter_historico_buscas
+    obter_indicadores_horario
 )
 
 # Tenta importar serper, se falhar usa fallback
@@ -392,7 +391,7 @@ def render_dashboard():
     st.markdown("---")
     
     # ============================================================
-    # VISÃO GERAL DO MÊS - COMPLETA (MENSAGEM + MÉTRICAS + OPORTUNIDADE + SUGESTÕES + TOP 3)
+    # VISÃO GERAL DO MÊS - COMPLETA
     # ============================================================
     st.markdown("## 📊 Visão Geral do Mês")
     
@@ -633,13 +632,12 @@ def render_dashboard():
             st.info("📭 Nenhuma sugestão disponível no momento.")
         
         # ============================================================
-        # LINHA 4: TOP 3 PRODUTOS DO MÊS (INTEGRADO NA VISÃO GERAL)
+        # LINHA 4: TOP 3 PRODUTOS DO MÊS
         # ============================================================
         st.markdown("---")
         st.markdown("### 🏆 Top 3 Produtos do Mês")
         st.caption("Produtos com maior potencial - Use essas informações para criar conteúdo")
         
-        # Exibe os Top 3 em cards
         top3 = sorted(produtos_top, key=lambda x: x.get("Score", 0), reverse=True)[:3]
         
         cols = st.columns(3)
