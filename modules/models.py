@@ -1,5 +1,3 @@
-# modules/models.py
-
 import json
 import os
 from datetime import datetime
@@ -11,7 +9,7 @@ from modules.produtos_dinamicos import obter_produtos_dinamicos, PRODUTOS_FALLBA
 # ============================================================
 # ARQUIVOS DE DADOS (NA RAIZ)
 # ============================================================
-ARQUIVO_APOIADORES = "apoiadores.json"  # <-- NA RAIZ
+ARQUIVO_APOIADORES = "apoiadores.json"
 
 # ============================================================
 # FUNÇÕES DE APOIADORES
@@ -125,10 +123,18 @@ def obter_dados_completos(forcar_atualizacao: bool = False) -> Dict:
 # ============================================================
 PALAVRAS_CHAVE_CAUDA_LONGA = {
     "casaco": {"palavra": "casaco feminino inverno 2026", "hashtags": ["#casacofeminino", "#inverno2026", "#lookinverno"]},
+    "blusa": {"palavra": "blusa de lã feminina elegante", "hashtags": ["#blusadelã", "#modainverno", "#lookelegante"]},
     "blusa de lã": {"palavra": "blusa de lã feminina elegante", "hashtags": ["#blusadelã", "#modainverno", "#lookelegante"]},
     "smartwatch": {"palavra": "smartwatch feminino elegante", "hashtags": ["#smartwatch", "#tecnologia", "#eletrônicos"]},
+    "fone": {"palavra": "fone bluetooth JBL original", "hashtags": ["#fonebluetooth", "#áudio", "#tecnologia"]},
     "fone bluetooth": {"palavra": "fone bluetooth JBL original", "hashtags": ["#fonebluetooth", "#áudio", "#tecnologia"]},
-    "perfume": {"palavra": "perfume importado feminino", "hashtags": ["#perfumeimportado", "#belezafeminina", "#presentes"]}
+    "perfume": {"palavra": "perfume importado feminino", "hashtags": ["#perfumeimportado", "#belezafeminina", "#presentes"]},
+    "celular": {"palavra": "celular smartphone 5G", "hashtags": ["#smartphone", "#tecnologia", "#5g"]},
+    "tablet": {"palavra": "tablet para estudos", "hashtags": ["#tablet", "#estudos", "#tecnologia"]},
+    "vestido": {"palavra": "vestido feminino verão", "hashtags": ["#vestidofeminino", "#moda", "#verao"]},
+    "sapato": {"palavra": "sapato feminino confortável", "hashtags": ["#sapatofeminino", "#moda", "#conforto"]},
+    "tênis": {"palavra": "tênis esportivo masculino", "hashtags": ["#tenis", "#esporte", "#moda"]},
+    "perfume importado": {"palavra": "perfume importado feminino", "hashtags": ["#perfumeimportado", "#belezafeminina", "#presentes"]},
 }
 
 def obter_palavra_chave(produto: str) -> Dict:
@@ -197,6 +203,15 @@ def gerar_top10_produtos(forcar_atualizacao: bool = False) -> List[Dict]:
         else:
             potencial = "🔴 Baixo"
         
+        # ARREDONDA OS VALORES PARA EVITAR NÚMEROS QUEBRADOS
+        views_tiktok = dados.get('views_tiktok', 0)
+        if isinstance(views_tiktok, float):
+            views_tiktok = round(views_tiktok, 1)  # Arredonda para 1 casa decimal
+        
+        variacao = dados.get('variacao', 0)
+        if isinstance(variacao, float):
+            variacao = round(variacao, 1)
+        
         resultados.append({
             "Produto": produto.capitalize(),
             "Categoria": dados.get("categoria", "Geral"),
@@ -205,10 +220,10 @@ def gerar_top10_produtos(forcar_atualizacao: bool = False) -> List[Dict]:
             "Score": score,
             "Pins": f"{dados.get('pins', 0):,}",
             "Crescimento": f"+{dados.get('crescimento', 0)}%",
-            "Views TikTok": f"{dados.get('views_tiktok', 0)}M",
+            "Views TikTok": f"{views_tiktok}M",
             "Buscas no Mês": f"{dados.get('buscas_mes', 0):,}",
             "Resultados ML": f"{dados.get('resultados_ml', 0):,}",
-            "Variação": f"+{dados.get('variacao', 0):.1f}%",
+            "Variação": f"+{variacao}%",
             "Tendência": dados.get('tendencia', '➡️ Estável')
         })
     
