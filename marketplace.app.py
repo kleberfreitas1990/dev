@@ -115,14 +115,17 @@ st.markdown("---")
 # ============================================================
 # TABS
 # ============================================================
-tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs([
     "📊 Dashboard",
     "📌 Sugestões de Produtos",
     "📅 Calendário de Conteúdo",
     "🎬 Criar Vídeo IA",
     "🤖 Criar Conteúdo",
     "👑 Apoiadores",
-    "🔑 Licenças"
+    "🔑 Licenças",
+    "🔍 Diagnóstico",
+    "📊 Logs",
+    "⚙️ Admin"
 ])
 
 # ============================================================
@@ -350,33 +353,6 @@ with tab5:
                                     st.session_state.titulo_selecionado = titulo
                                     st.success(f"✅ Título selecionado: {titulo}")
                     
-                    # ============================================================
-# TABS - ADICIONAR NOVA TAB ADMIN
-# ============================================================
-tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs([
-    "📊 Dashboard",
-    "📌 Sugestões de Produtos",
-    "📅 Calendário de Conteúdo",
-    "🎬 Criar Vídeo IA",
-    "🤖 Criar Conteúdo",
-    "👑 Apoiadores",
-    "🔑 Licenças",
-    "🔍 Diagnóstico",
-    "📊 Logs",
-    "⚙️ Admin"  # <-- NOVA TAB ADMIN
-])
-
-# ============================================================
-# TAB 10: ADMIN - RESUMO ADMINISTRATIVO
-# ============================================================
-with tab10:
-    # Só mostra se for admin
-    if st.session_state.get("is_admin", False):
-        from modules.admin_dashboard import render_admin_resumo
-        render_admin_resumo()
-    else:
-        st.warning("🔒 **Acesso restrito a administradores.**")
-        st.info("Esta área é apenas para visualização administrativa.")
                     # ============================================================
                     # SCRIPT
                     # ============================================================
@@ -749,6 +725,32 @@ with tab7:
                         st.info("ℹ️ Nenhum cache encontrado.")
                 except Exception as e:
                     st.error(f"❌ Erro: {str(e)}")
+
+# ============================================================
+# TAB 8: DIAGNÓSTICO
+# ============================================================
+with tab8:
+    from modules.diagnostico import render_painel_diagnostico
+    render_painel_diagnostico()
+
+# ============================================================
+# TAB 9: LOGS
+# ============================================================
+with tab9:
+    from modules.logger import render_painel_logs
+    render_painel_logs()
+
+# ============================================================
+# TAB 10: ADMIN - RESUMO ADMINISTRATIVO
+# ============================================================
+with tab10:
+    # Só mostra se for admin
+    if st.session_state.get("is_admin", False):
+        from modules.admin_dashboard import render_admin_resumo
+        render_admin_resumo()
+    else:
+        st.warning("🔒 **Acesso restrito a administradores.**")
+        st.info("Esta área é apenas para visualização administrativa.")
 
 # ============================================================
 # RODAPE
