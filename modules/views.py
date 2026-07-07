@@ -48,7 +48,7 @@ def render_status_usuario():
     pass
 
 # ============================================================
-# GRADE DE DESCOBERTA - TABELA
+# GRADE DE DESCOBERTA - SOMENTE TABELA
 # ============================================================
 def render_grade_descoberta():
     """
@@ -237,40 +237,38 @@ def render_insights_estrategicos(produtos):
     st.caption("Análise de mercado baseada em dados do Pinterest e Google Trends")
     
     # ============================================================
-    # PRODUTOS SAZONAIS
+    # PRODUTOS SAZONAIS - TABELA
     # ============================================================
     sazonais = get_produtos_sazonais_com_motivos()
     
     if sazonais:
-        with st.container(border=True):
-            st.markdown("### 📅 Produtos Sazonais do Mês")
-            st.caption("Produtos em alta devido à temporada atual")
+        st.markdown("### 📅 Produtos Sazonais do Mês")
+        st.caption("Produtos em alta devido à temporada atual")
+        
+        dados_sazonais = []
+        for item in sazonais[:4]:
+            produto = item.get("produto", "").capitalize()
+            motivo = item.get("motivo", "")
             
-            # Exibe em tabela
-            dados_sazonais = []
-            for item in sazonais[:4]:
-                produto = item.get("produto", "").capitalize()
-                motivo = item.get("motivo", "")
-                
-                indicadores = obter_indicadores_horario(produto)
-                horario = indicadores.get("melhor_horario", "19h-22h") if indicadores else "19h-22h"
-                intensidade = indicadores.get("porcentagem", 70) if indicadores else 70
-                
-                dados_palavra = obter_palavra_chave(produto)
-                palavra_chave = dados_palavra.get("palavra", f"{produto} tendência 2026")
-                hashtags = dados_palavra.get("hashtags", ["#tendência", "#moda", "#2026"])[:2]
-                
-                dados_sazonais.append({
-                    "Produto": produto,
-                    "Motivo": motivo[:60] + "...",
-                    "Melhor Horário": horario,
-                    "Intensidade": f"{intensidade}%",
-                    "Palavra-chave": palavra_chave,
-                    "Hashtags": " ".join(hashtags)
-                })
+            indicadores = obter_indicadores_horario(produto)
+            horario = indicadores.get("melhor_horario", "19h-22h") if indicadores else "19h-22h"
+            intensidade = indicadores.get("porcentagem", 70) if indicadores else 70
             
-            df_sazonais = pd.DataFrame(dados_sazonais)
-            st.dataframe(df_sazonais, use_container_width=True, hide_index=True)
+            dados_palavra = obter_palavra_chave(produto)
+            palavra_chave = dados_palavra.get("palavra", f"{produto} tendência 2026")
+            hashtags = dados_palavra.get("hashtags", ["#tendência", "#moda", "#2026"])[:2]
+            
+            dados_sazonais.append({
+                "Produto": produto,
+                "Motivo": motivo[:60] + "...",
+                "Melhor Horário": horario,
+                "Intensidade": f"{intensidade}%",
+                "Palavra-chave": palavra_chave,
+                "Hashtags": " ".join(hashtags)
+            })
+        
+        df_sazonais = pd.DataFrame(dados_sazonais)
+        st.dataframe(df_sazonais, use_container_width=True, hide_index=True)
     
     # ============================================================
     # TOP 3 PRODUTOS COM GRÁFICOS
@@ -316,52 +314,32 @@ def render_insights_estrategicos(produtos):
         st.plotly_chart(fig, use_container_width=True)
         
         # ============================================================
-        # CARDS DOS TOP 3
+        # TABELA DOS TOP 3
         # ============================================================
-        cols = st.columns(3)
-        emojis = ["🥇", "🥈", "🥉"]
+        dados_top3 = []
+        for item in top3:
+            produto_nome = item.get("Produto", "")
+            
+            indicadores = obter_indicadores_horario(produto_nome)
+            horario = indicadores.get("melhor_horario", "19h-22h") if indicadores else "19h-22h"
+            
+            dados_palavra = obter_palavra_chave(produto_nome)
+            palavra_chave = dados_palavra.get("palavra", f"{produto_nome} tendência 2026")
+            hashtags = dados_palavra.get("hashtags", ["#tendência", "#moda", "#2026"])[:3]
+            
+            dados_top3.append({
+                "Produto": produto_nome,
+                "Score": f"{item.get('Score', 0)}/10",
+                "Crescimento": item.get('Crescimento', '+0%'),
+                "Views TikTok": item.get('Views TikTok', '0M'),
+                "Pins": item.get('Pins', '0'),
+                "Palavra-chave": palavra_chave,
+                "Hashtags": " ".join(hashtags),
+                "Melhor Horário": horario
+            })
         
-        for i, item in enumerate(top3):
-            with cols[i]:
-                produto_nome = item.get("Produto", "")
-                
-                indicadores = obter_indicadores_horario(produto_nome)
-                horario = indicadores.get("melhor_horario", "19h-22h") if indicadores else "19h-22h"
-                label = indicadores.get("label", "Pico noturno") if indicadores else "Pico noturno"
-                
-                with st.container(border=True):
-                    st.markdown(f"**{emojis[i]} {produto_nome}**")
-                    
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        st.caption(f"🎯 Score: {item.get('Score', 0)}/10")
-                        st.caption(f"📈 {item.get('Crescimento', '+0%')}")
-                    with col2:
-                        st.caption(f"👁️ {item.get('Views TikTok', '0M')}")
-                        st.caption(f"📌 {item.get('Pins', '0')}")
-                    
-                    # Indicador de horário
-                    st.markdown(f"""
-                    <div style="background: #f0f0f0; padding: 4px 8px; border-radius: 6px; margin: 4px 0; font-size: 11px; color: #333; text-align: center;">
-                        🕐 Melhor horário: <strong>{horario}</strong>
-                        <br><small>{label}</small>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                    # Palavra-chave
-                    produto_lower = produto_nome.lower()
-                    dados_palavra = obter_palavra_chave(produto_lower)
-                    palavra_chave = dados_palavra.get("palavra", f"{produto_lower} tendência 2026")
-                    hashtags = dados_palavra.get("hashtags", ["#tendência", "#moda", "#2026"])[:3]
-                    
-                    st.markdown(f"""
-                    <div style="background: #f8f9fa; padding: 4px 8px; border-radius: 6px; margin: 4px 0; font-size: 11px; color: #333;">
-                        🔑 {palavra_chave}
-                    </div>
-                    <div style="margin: 2px 0; font-size: 10px;">
-                        {' '.join([f'<span style="background: #e0e0e0; padding: 1px 8px; border-radius: 10px; margin: 1px;">{h}</span>' for h in hashtags])}
-                    </div>
-                    """, unsafe_allow_html=True)
+        df_top3 = pd.DataFrame(dados_top3)
+        st.dataframe(df_top3, use_container_width=True, hide_index=True)
     
     # ============================================================
     # TENDÊNCIAS DE MERCADO - GRÁFICOS
