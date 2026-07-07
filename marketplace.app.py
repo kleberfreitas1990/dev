@@ -64,6 +64,49 @@ from modules.conteudo_ia import (
 licenca = verificar_login()
 
 # ============================================================
+# SINCRONIZAR APOIADORES COM LICENÇAS (AUTOMÁTICO)
+# ============================================================
+def sincronizar_apoiadores_automatico():
+    """
+    Sincroniza automaticamente apoiadores das licenças
+    """
+    try:
+        sistema = SistemaLicencas()
+        apoiadores = carregar_apoiadores()
+        
+        # Pega todos os emails de apoiadores
+        emails_apoiadores = [a.get("email") for a in apoiadores.values()]
+        
+        # Verifica licenças que são apoiadores mas não estão na lista
+        contador = 0
+        for codigo, dados in sistema.dados["licencas"].items():
+            if dados.get("is_apoiador", False) and dados.get("status") == "ativo":
+                email = dados.get("email")
+                usuario = dados.get("usuario")
+                if email and email not in emails_apoiadores:
+                    # Adiciona como apoiador
+                    plano = dados.get("plano", "Apoiador")
+                    plano_apoiador = "Premium" if "Premium" in plano else "Apoiador"
+                    adicionar_apoiador(usuario, email, plano_apoiador)
+                    contador += 1
+        
+        if contador > 0:
+            st.success(f"✅ {contador} apoiadores sincronizados automaticamente!")
+            time.sleep(1)
+            st.rerun()
+            
+    except Exception as e:
+        # Não mostra erro para não atrapalhar a experiência
+        pass
+
+# Sincroniza apoiadores automaticamente (apenas admin)
+if st.session_state.get("is_admin", False):
+    # Verifica se já sincronizou na sessão
+    if "sincronizado_hoje" not in st.session_state:
+        sincronizar_apoiadores_automatico()
+        st.session_state.sincronizado_hoje = True
+
+# ============================================================
 # STATUS DO USUÁRIO
 # ============================================================
 render_status_usuario()
