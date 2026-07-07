@@ -414,7 +414,9 @@ def render_dashboard():
         eventos = [p.get("Evento", "Tendência") for p in produtos_top]
         evento_mais_freq = max(set(eventos), key=eventos.count) if eventos else "Tendência"
         
+        # ============================================================
         # LINHA 1: MENSAGEM DESTAQUE
+        # ============================================================
         if top1:
             st.markdown(f"""
             <div style="
@@ -446,7 +448,9 @@ def render_dashboard():
             </div>
             """, unsafe_allow_html=True)
         
+        # ============================================================
         # LINHA 2: MÉTRICAS + OPORTUNIDADE
+        # ============================================================
         col1, col2 = st.columns([2, 1])
         
         with col1:
@@ -544,7 +548,9 @@ def render_dashboard():
                 else:
                     st.info("📊 Aguardando dados...")
         
+        # ============================================================
         # LINHA 3: SUGESTÕES DE PRODUTOS PARA HOJE
+        # ============================================================
         st.markdown("---")
         st.markdown("### 🎯 Sugestões de Produtos para Hoje")
         st.caption(f"📊 Top {BUSCAS_DIARIAS} do dia | Buscas realizadas com base em tendências atuais")
@@ -626,7 +632,9 @@ def render_dashboard():
         else:
             st.info("📭 Nenhuma sugestão disponível no momento.")
         
-        # LINHA 4: TOP 3 PRODUTOS DO MÊS (INTEGRADO)
+        # ============================================================
+        # LINHA 4: TOP 3 PRODUTOS DO MÊS (INTEGRADO NA VISÃO GERAL)
+        # ============================================================
         st.markdown("---")
         st.markdown("### 🏆 Top 3 Produtos do Mês")
         st.caption("Produtos com maior potencial - Use essas informações para criar conteúdo")
