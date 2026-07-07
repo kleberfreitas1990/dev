@@ -392,7 +392,7 @@ def render_dashboard():
     st.markdown("---")
     
     # ============================================================
-    # VISÃO GERAL DO MÊS - UNIFICADA COM SUGESTÕES E TOP 3
+    # VISÃO GERAL DO MÊS - COMPLETA (MENSAGEM + MÉTRICAS + OPORTUNIDADE + SUGESTÕES + TOP 3)
     # ============================================================
     st.markdown("## 📊 Visão Geral do Mês")
     
