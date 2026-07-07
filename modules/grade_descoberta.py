@@ -22,7 +22,13 @@ GRADE_PRODUTOS = {
             "camisa social", "vestido festa", "short jeans",
             "cropped", "body feminino", "macacão"
         ],
-        "hashtags": ["#moda", "#lookdodia", "#tendenciamoda", "#modafeminina"]
+        "hashtags": ["#moda", "#lookdodia", "#tendenciamoda", "#modafeminina"],
+        "motivos": [
+            "Pessoas buscam looks para o inverno",
+            "Alta demanda por roupas de frio",
+            "Tendência de moda nas redes sociais",
+            "Procura por peças versáteis"
+        ]
     },
     "eletrônico": {
         "termos": [
@@ -32,7 +38,13 @@ GRADE_PRODUTOS = {
             "roteador wifi", "power bank", "adaptador usb",
             "hd externo", "pen drive", "microfone"
         ],
-        "hashtags": ["#tecnologia", "#eletrônicos", "#gadgets", "#review"]
+        "hashtags": ["#tecnologia", "#eletrônicos", "#gadgets", "#review"],
+        "motivos": [
+            "Lançamentos tecnológicos do momento",
+            "Necessidade de equipamentos para home office",
+            "Black Friday e promoções",
+            "Crescimento do mercado de games"
+        ]
     },
     "beleza": {
         "termos": [
@@ -42,7 +54,13 @@ GRADE_PRODUTOS = {
             "sérum facial", "protetor solar", "shampoo sólido",
             "condicionador", "máscara capilar", "óleo corporal"
         ],
-        "hashtags": ["#beleza", "#skincare", "#maquiagem", "#makeup"]
+        "hashtags": ["#beleza", "#skincare", "#maquiagem", "#makeup"],
+        "motivos": [
+            "Influenciadoras digitais promovendo produtos",
+            "Tendências de skincare no TikTok",
+            "Busca por produtos naturais e veganos",
+            "Cuidados com a pele no inverno"
+        ]
     },
     "casa": {
         "termos": [
@@ -52,7 +70,13 @@ GRADE_PRODUTOS = {
             "potes herméticos", "escova de limpeza", "dispenser sabão",
             "porta escovas", "organizador de talheres", "suporte de panela"
         ],
-        "hashtags": ["#casa", "#organização", "#decoração", "#diy"]
+        "hashtags": ["#casa", "#organização", "#decoração", "#diy"],
+        "motivos": [
+            "Movimento de organização minimalista",
+            "Decoração de casas no Pinterest",
+            "DIY e projetos de decoração",
+            "Busca por praticidade no dia a dia"
+        ]
     },
     "infantil": {
         "termos": [
@@ -62,7 +86,13 @@ GRADE_PRODUTOS = {
             "fantasia infantil", "casa de boneca", "playground",
             "blocos de montar", "quebra-cabeça", "jogo da memória"
         ],
-        "hashtags": ["#infantil", "#brinquedos", "#crianças", "#educativo"]
+        "hashtags": ["#infantil", "#brinquedos", "#crianças", "#educativo"],
+        "motivos": [
+            "Pais buscam brinquedos educativos",
+            "Tendência de brincadeiras criativas",
+            "Presentes para crianças em alta",
+            "Desenvolvimento infantil em foco"
+        ]
     },
     "esporte": {
         "termos": [
@@ -72,35 +102,140 @@ GRADE_PRODUTOS = {
             "top esportivo", "luva boxe", "óculos natação",
             "caneleira", "munhequeira", "faixa de suor"
         ],
-        "hashtags": ["#esporte", "#fitness", "#treino", "#saúde"]
+        "hashtags": ["#esporte", "#fitness", "#treino", "#saúde"],
+        "motivos": [
+            "Pessoas buscando saúde e bem-estar",
+            "Tendência de esportes ao ar livre",
+            "Crescimento do mercado fitness",
+            "Treinos em casa em alta"
+        ]
     }
 }
 
 # ============================================================
-# PRODUTOS EM ALTA (BASEADO EM TEMPORADA)
+# MOTIVOS DE BUSCA POR PRODUTO (BASEADO EM PINTEREST + GOOGLE)
 # ============================================================
-def get_produtos_sazonais() -> List[str]:
+MOTIVOS_BUSCA = {
+    "casaco": "📌 Busca por looks de inverno no Pinterest + Alto volume de buscas no Google por 'casaco feminino 2026'",
+    "blusa de lã": "📌 Tendência no TikTok + Pinterest com looks de lã + Buscas por 'blusa de lã elegante' no Google",
+    "vestido": "📌 Destaque no Pinterest com looks de festa + Buscas por 'vestido longo' em alta",
+    "smartwatch": "📌 Lançamentos tech no Google + Alto engajamento no TikTok sobre smartwatches",
+    "fone bluetooth": "📌 Review de influenciadores + Buscas por 'melhor fone bluetooth 2026'",
+    "perfume": "📌 Busca por presentes + Tendência no TikTok de perfumes importados",
+    "organizador": "📌 Movimento 'organização que acalma' no Pinterest + Buscas por 'organizador de gavetas'",
+    "tênis": "📌 Tendência de streetwear + Buscas por 'tênis confortável' no Google",
+    "brinquedo": "📌 Pais buscando presentes educativos + Pinterest com ideias de brincadeiras",
+    "maquiagem": "📌 Makeup trends no TikTok + Buscas por 'maquiagem natural' em alta"
+}
+
+# ============================================================
+# FUNÇÃO PARA OBTER MOTIVO DE BUSCA
+# ============================================================
+def obter_motivo_busca(produto: str) -> str:
     """
-    Retorna produtos sazonais baseados no mês atual
+    Retorna o motivo de busca para um produto específico
+    Baseado em dados do Pinterest e Google Trends (simulado)
+    """
+    produto_lower = produto.lower()
+    
+    # Verifica se tem motivo específico
+    for chave, motivo in MOTIVOS_BUSCA.items():
+        if chave in produto_lower:
+            return motivo
+    
+    # Se não encontrou, retorna um motivo genérico baseado na categoria
+    for categoria, dados in GRADE_PRODUTOS.items():
+        if produto_lower in [p.lower() for p in dados["termos"]]:
+            return random.choice([
+                f"📌 Tendência no Pinterest para {categoria}",
+                f"📈 Alto volume de buscas no Google para este produto",
+                f"🔥 Destaque nas redes sociais como tendência",
+                f"🎯 Procura crescente no mercado de {categoria}"
+            ])
+    
+    # Motivo genérico final
+    return "📊 Produto em tendência no mercado atual"
+
+# ============================================================
+# PRODUTOS SAZONAIS COM MOTIVOS
+# ============================================================
+def get_produtos_sazonais_com_motivos() -> List[Dict]:
+    """
+    Retorna produtos sazonais com seus motivos de busca
     """
     mes = datetime.now().month
     
-    produtos_sazonais = {
-        1: ["roupa de praia", "protetor solar", "óculos de sol", "sandalias", "chapéu"],  # Janeiro
-        2: ["fantasia carnaval", "acessórios", "perfume", "glitter", "maquiagem"],  # Fevereiro
-        3: ["look outono", "blusa manga longa", "jaqueta", "bota", "cachecol"],  # Março
-        4: ["ovo de chocolate", "cesta", "coelho", "brinquedo", "presentes"],  # Abril
-        5: ["perfume", "bolsa", "flores", "vestido", "jantar"],  # Maio - Dia das Mães
-        6: ["casaco", "blusa de lã", "cachecol", "luva", "bota"],  # Junho - Inverno
-        7: ["mala viagem", "acessórios praia", "roupa conforto", "protetor solar", "chapéu"],  # Julho - Férias
-        8: ["relógio", "cinto", "ferramentas", "camisa", "perfume"],  # Agosto - Dia dos Pais
-        9: ["flores", "vestido leve", "sapato aberto", "blusa", "acessórios"],  # Setembro - Primavera
-        10: ["fantasia", "decoração", "doces", "maquiagem", "acessórios"],  # Outubro - Halloween
-        11: ["eletrônicos", "smartwatch", "celular", "fone", "tv"],  # Novembro - Black Friday
-        12: ["presentes", "árvore", "decoração", "espumante", "roupa branca"]  # Dezembro - Natal
+    sazonais_data = {
+        1: [
+            {"produto": "roupa de praia", "motivo": "🏖️ Verão - Pessoas buscam looks para praia e viagens"},
+            {"produto": "protetor solar", "motivo": "☀️ Proteção contra raios UV - Alta temporada de praia"},
+            {"produto": "óculos de sol", "motivo": "👓 Acessório de verão - Tendência no Pinterest"},
+            {"produto": "sandalias", "motivo": "🩴 Moda verão - Buscas por sandálias confortáveis"}
+        ],
+        2: [
+            {"produto": "fantasia carnaval", "motivo": "🎭 Carnaval - Buscas por fantasias criativas"},
+            {"produto": "glitter", "motivo": "✨ Maquiagem de carnaval - Tendência no TikTok"},
+            {"produto": "perfume", "motivo": "🎁 Dia dos Namorados - Busca por presentes"},
+            {"produto": "maquiagem", "motivo": "💄 Looks de carnaval - Alto engajamento"}
+        ],
+        3: [
+            {"produto": "jaqueta", "motivo": "🧥 Outono chegando - Buscas por jaquetas femininas"},
+            {"produto": "bota", "motivo": "👢 Tendência outono - Pinterest com looks de bota"},
+            {"produto": "cachecol", "motivo": "🧣 Frio chegando - Buscas por acessórios de inverno"}
+        ],
+        4: [
+            {"produto": "ovo de chocolate", "motivo": "🐣 Páscoa - Buscas por presentes e doces"},
+            {"produto": "brinquedo", "motivo": "🎁 Presentes de Páscoa para crianças"},
+            {"produto": "cesta", "motivo": "🧺 Decoração de Páscoa - Tendência no Pinterest"}
+        ],
+        5: [
+            {"produto": "perfume", "motivo": "👩 Dia das Mães - Busca por presentes"},
+            {"produto": "bolsa", "motivo": "👜 Presente para mães - Tendência no Google"},
+            {"produto": "flores", "motivo": "🌺 Dia das Mães - Buscas por arranjos"},
+            {"produto": "vestido", "motivo": "👗 Look de Dia das Mães - Tendência"}
+        ],
+        6: [
+            {"produto": "casaco", "motivo": "❄️ Inverno chegando - Buscas por casacos quentes"},
+            {"produto": "blusa de lã", "motivo": "🧶 Looks de inverno - Tendência no TikTok"},
+            {"produto": "cachecol", "motivo": "🧣 Acessório de inverno em alta"},
+            {"produto": "bota", "motivo": "👢 Moda inverno - Buscas por botas"}
+        ],
+        7: [
+            {"produto": "mala viagem", "motivo": "🧳 Férias escolares - Buscas por acessórios de viagem"},
+            {"produto": "roupa conforto", "motivo": "😌 Looks de viagem - Tendência"},
+            {"produto": "protetor solar", "motivo": "☀️ Férias de julho - Buscas por proteção"},
+            {"produto": "chapéu", "motivo": "🧢 Acessório de viagem - Pinterest"}
+        ],
+        8: [
+            {"produto": "relógio", "motivo": "⌚ Dia dos Pais - Busca por presentes"},
+            {"produto": "cinto", "motivo": "💼 Presente para pais - Tendência"},
+            {"produto": "ferramentas", "motivo": "🔧 Dia dos Pais - Buscas por kits"}
+        ],
+        9: [
+            {"produto": "flores", "motivo": "🌸 Primavera - Tendência no Pinterest"},
+            {"produto": "vestido leve", "motivo": "👗 Looks de primavera - TikTok"},
+            {"produto": "sapato aberto", "motivo": "👡 Moda primavera - Buscas"}
+        ],
+        10: [
+            {"produto": "fantasia", "motivo": "🎃 Halloween - Buscas por fantasias"},
+            {"produto": "decoração", "motivo": "🕷️ Decoração de Halloween - Pinterest"},
+            {"produto": "doces", "motivo": "🍬 Halloween - Buscas por guloseimas"}
+        ],
+        11: [
+            {"produto": "smartwatch", "motivo": "🛒 Black Friday - Buscas por eletrônicos"},
+            {"produto": "celular", "motivo": "📱 Black Friday - Alta demanda"},
+            {"produto": "fone bluetooth", "motivo": "🎧 Promoções - Tendência de compras"},
+            {"produto": "eletrônicos", "motivo": "💻 Black Friday - Buscas em alta"}
+        ],
+        12: [
+            {"produto": "árvore", "motivo": "🎄 Natal - Decoração em alta no Pinterest"},
+            {"produto": "decoração", "motivo": "✨ Enfeites de Natal - Tendência"},
+            {"produto": "espumante", "motivo": "🥂 Réveillon - Buscas por festa"},
+            {"produto": "roupa branca", "motivo": "🤍 Réveillon - Tradição de fim de ano"}
+        ]
     }
     
-    return produtos_sazonais.get(mes, [])
+    return sazonais_data.get(mes, [])
 
 # ============================================================
 # GRADE DE DESCOBERTA - FUNÇÃO PRINCIPAL
@@ -108,13 +243,6 @@ def get_produtos_sazonais() -> List[str]:
 def descobrir_produtos_grade(categoria: str = None, quantidade: int = 10) -> List[Dict]:
     """
     Descobre produtos usando a grade de descoberta
-    
-    Args:
-        categoria (str): Categoria específica (opcional)
-        quantidade (int): Quantidade de produtos para retornar
-    
-    Returns:
-        List[Dict]: Lista de produtos descobertos
     """
     produtos = []
     termos_usados = []
@@ -128,7 +256,8 @@ def descobrir_produtos_grade(categoria: str = None, quantidade: int = 10) -> Lis
                 "produto": produto,
                 "fonte": "sazonal",
                 "categoria": "sazonal",
-                "score": random.randint(7, 9)
+                "score": random.randint(7, 9),
+                "motivo": obter_motivo_busca(produto)
             })
     
     # 2. PEGA PRODUTOS DA CATEGORIA ESPECÍFICA
@@ -140,21 +269,23 @@ def descobrir_produtos_grade(categoria: str = None, quantidade: int = 10) -> Lis
                     "produto": termo,
                     "fonte": "grade",
                     "categoria": categoria,
-                    "score": random.randint(5, 8)
+                    "score": random.randint(5, 8),
+                    "motivo": obter_motivo_busca(termo)
                 })
     
     # 3. PEGA PRODUTOS DE TODAS AS CATEGORIAS (mix)
     if not categoria or len(produtos) < quantidade:
         for cat, dados in GRADE_PRODUTOS.items():
-            if cat != categoria:  # Pula a categoria já usada
-                for termo in dados["termos"][:3]:  # Pega 3 de cada
+            if cat != categoria:
+                for termo in dados["termos"][:3]:
                     if termo not in termos_usados and len(produtos) < quantidade:
                         termos_usados.append(termo)
                         produtos.append({
                             "produto": termo,
                             "fonte": "grade",
                             "categoria": cat,
-                            "score": random.randint(4, 7)
+                            "score": random.randint(4, 7),
+                            "motivo": obter_motivo_busca(termo)
                         })
     
     # 4. EMBARALHA E RETORNA
@@ -162,16 +293,11 @@ def descobrir_produtos_grade(categoria: str = None, quantidade: int = 10) -> Lis
     return produtos[:quantidade]
 
 def enriquecer_produto(produto: str) -> Dict:
-    """
-    Enriquece um produto com dados simulados (fallback)
-    """
+    """Enriquece um produto com dados simulados (fallback)"""
     import random
     
-    # Gera dados realistas baseados no nome do produto
     nome_lower = produto.lower()
     
-    # Define categoria baseada no nome
-    categoria = "Geral"
     categorias_map = {
         "casaco": "Moda", "blusa": "Moda", "vestido": "Moda", "calça": "Moda",
         "sapato": "Moda", "tênis": "Moda", "jaqueta": "Moda", "saia": "Moda",
@@ -182,6 +308,7 @@ def enriquecer_produto(produto: str) -> Dict:
         "organizador": "Casa", "caixa": "Casa", "lixeira": "Casa", "garrafa": "Casa"
     }
     
+    categoria = "Geral"
     for palavra, cat in categorias_map.items():
         if palavra in nome_lower:
             categoria = cat
@@ -196,43 +323,35 @@ def enriquecer_produto(produto: str) -> Dict:
         "categoria": categoria,
         "tendencia": random.choice(["🚀 Em alta", "📈 Crescendo", "➡️ Estável"]),
         "score": random.randint(4, 9),
-        "fonte": "grade_descoberta"
+        "fonte": "grade_descoberta",
+        "motivo": obter_motivo_busca(produto)
     }
 
 def obter_produtos_por_categoria(categoria: str) -> List[str]:
-    """
-    Retorna produtos de uma categoria específica
-    """
+    """Retorna produtos de uma categoria específica"""
     if categoria in GRADE_PRODUTOS:
         return GRADE_PRODUTOS[categoria]["termos"]
     return []
 
 def obter_hashtags_categoria(categoria: str) -> List[str]:
-    """
-    Retorna hashtags de uma categoria específica
-    """
+    """Retorna hashtags de uma categoria específica"""
     if categoria in GRADE_PRODUTOS:
         return GRADE_PRODUTOS[categoria]["hashtags"]
     return ["#tendência", "#2026", "#produto"]
 
 def mesclar_produtos(produtos_existentes: List[str], quantidade: int = 5) -> List[str]:
-    """
-    Mescla produtos existentes com novos da grade
-    """
+    """Mescla produtos existentes com novos da grade"""
     todos_produtos = []
     
-    # Adiciona produtos de todas as categorias
     for categoria, dados in GRADE_PRODUTOS.items():
         for termo in dados["termos"]:
             if termo not in produtos_existentes and termo not in todos_produtos:
                 todos_produtos.append(termo)
     
-    # Adiciona sazonais
     for produto in get_produtos_sazonais():
         if produto not in produtos_existentes and produto not in todos_produtos:
             todos_produtos.append(produto)
     
-    # Embaralha e retorna
     random.shuffle(todos_produtos)
     return todos_produtos[:quantidade]
 
@@ -240,8 +359,11 @@ __all__ = [
     'descobrir_produtos_grade',
     'enriquecer_produto',
     'get_produtos_sazonais',
+    'get_produtos_sazonais_com_motivos',
     'GRADE_PRODUTOS',
     'obter_produtos_por_categoria',
     'obter_hashtags_categoria',
-    'mesclar_produtos'
+    'mesclar_produtos',
+    'obter_motivo_busca',
+    'MOTIVOS_BUSCA'
 ]
