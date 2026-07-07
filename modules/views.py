@@ -223,7 +223,7 @@ def render_apoiadores_compactos():
                     """, unsafe_allow_html=True)
 
 # ============================================================
-# INSIGHTS ESTRATÉGICOS - SEM PLOTLY
+# INSIGHTS ESTRATÉGICOS - SEM TENDÊNCIAS DE MERCADO
 # ============================================================
 def render_insights_estrategicos(produtos):
     """
@@ -326,43 +326,6 @@ def render_insights_estrategicos(produtos):
         
         df_top3 = pd.DataFrame(dados_top3)
         st.dataframe(df_top3, use_container_width=True, hide_index=True)
-    
-    # ============================================================
-    # TENDÊNCIAS DE MERCADO
-    # ============================================================
-    st.markdown("---")
-    st.markdown("### 📊 Tendências de Mercado")
-    st.caption("O que está em alta no Pinterest e Google Trends")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        with st.container(border=True):
-            st.markdown("**📌 Pinterest Trends**")
-            st.caption("O que as pessoas estão salvando:")
-            st.markdown("""
-            - ✅ Looks de inverno + casacos
-            - ✅ Organização minimalista
-            - ✅ Decoração de Natal
-            - ✅ Receitas fitness
-            """)
-            
-            st.markdown("**🔑 Palavras-chave:**")
-            st.markdown("`look inverno`, `organização casa`, `decoração natal`, `receitas saudáveis`")
-    
-    with col2:
-        with st.container(border=True):
-            st.markdown("**🔍 Google Trends**")
-            st.caption("O que as pessoas estão pesquisando:")
-            st.markdown("""
-            - ✅ "Melhor smartwatch 2026"
-            - ✅ "Casaco feminino preço"
-            - ✅ "Presentes para mães"
-            - ✅ "Brinquedos educativos 2 anos"
-            """)
-            
-            st.markdown("**🏷️ Hashtags em alta:**")
-            st.markdown("#smartwatch2026 #modainverno #presentes #brinquedoseducativos")
 
 # ============================================================
 # DASHBOARD PRINCIPAL
