@@ -287,7 +287,6 @@ def render_insights_estrategicos(produtos):
                 produto_nome = item.get("Produto", "")
                 score = item.get("Score", 0)
                 
-                # Define cor baseada no score
                 if score >= 8:
                     cor = "🟢"
                 elif score >= 6:
@@ -393,7 +392,7 @@ def render_dashboard():
     st.markdown("---")
     
     # ============================================================
-    # VISÃO GERAL DO MÊS - UNIFICADA COM SUGESTÕES
+    # VISÃO GERAL DO MÊS - UNIFICADA COM SUGESTÕES E TOP 3
     # ============================================================
     st.markdown("## 📊 Visão Geral do Mês")
     
@@ -415,9 +414,7 @@ def render_dashboard():
         eventos = [p.get("Evento", "Tendência") for p in produtos_top]
         evento_mais_freq = max(set(eventos), key=eventos.count) if eventos else "Tendência"
         
-        # ============================================================
         # LINHA 1: MENSAGEM DESTAQUE
-        # ============================================================
         if top1:
             st.markdown(f"""
             <div style="
@@ -449,16 +446,10 @@ def render_dashboard():
             </div>
             """, unsafe_allow_html=True)
         
-        # ============================================================
-        # LINHA 2: MÉTRICAS + OPORTUNIDADE + SUGESTÕES (UNIFICADO)
-        # ============================================================
-        
-        # Coluna esquerda: Métricas (2/3)
-        # Coluna direita: Oportunidade (1/3)
+        # LINHA 2: MÉTRICAS + OPORTUNIDADE
         col1, col2 = st.columns([2, 1])
         
         with col1:
-            # Métricas em 3 colunas
             m1, m2, m3 = st.columns(3)
             with m1:
                 st.metric(
@@ -553,15 +544,12 @@ def render_dashboard():
                 else:
                     st.info("📊 Aguardando dados...")
         
-        # ============================================================
-        # LINHA 3: SUGESTÕES DE PRODUTOS PARA HOJE (INTEGRADO)
-        # ============================================================
+        # LINHA 3: SUGESTÕES DE PRODUTOS PARA HOJE
         st.markdown("---")
         st.markdown("### 🎯 Sugestões de Produtos para Hoje")
         st.caption(f"📊 Top {BUSCAS_DIARIAS} do dia | Buscas realizadas com base em tendências atuais")
         
         if produtos_sugestoes:
-            # Exibe em cards horizontais (3 por linha)
             cols = st.columns(3)
             
             for i, item in enumerate(produtos_sugestoes[:3]):
@@ -613,7 +601,6 @@ def render_dashboard():
                     </div>
                     """, unsafe_allow_html=True)
             
-            # Expandir detalhes
             with st.expander("📋 Ver detalhes completos", expanded=False):
                 dados_tabela = []
                 for item in produtos_sugestoes:
@@ -636,9 +623,68 @@ def render_dashboard():
                 st.dataframe(df, use_container_width=True, hide_index=True)
             
             st.caption(f"💡 {BUSCAS_DIARIAS} sugestões geradas com base em tendências atuais de mercado")
-        
         else:
-            st.info("📭 Nenhuma sugestão disponível no momento. Tente atualizar a página.")
+            st.info("📭 Nenhuma sugestão disponível no momento.")
+        
+        # LINHA 4: TOP 3 PRODUTOS DO MÊS (INTEGRADO)
+        st.markdown("---")
+        st.markdown("### 🏆 Top 3 Produtos do Mês")
+        st.caption("Produtos com maior potencial - Use essas informações para criar conteúdo")
+        
+        # Exibe os Top 3 em cards
+        top3 = sorted(produtos_top, key=lambda x: x.get("Score", 0), reverse=True)[:3]
+        
+        cols = st.columns(3)
+        for i, item in enumerate(top3):
+            with cols[i]:
+                produto_nome = item.get("Produto", "")
+                score = item.get("Score", 0)
+                crescimento = item.get("Crescimento", "+0%")
+                views = item.get("Views TikTok", "0M")
+                pins = item.get("Pins", "0")
+                
+                indicadores = obter_indicadores_horario(produto_nome)
+                horario = indicadores.get("melhor_horario", "19h-22h") if indicadores else "19h-22h"
+                
+                dados_palavra = obter_palavra_chave(produto_nome)
+                palavra_chave = dados_palavra.get("palavra", f"{produto_nome} tendência 2026")
+                hashtags = dados_palavra.get("hashtags", ["#tendência", "#moda", "#2026"])[:3]
+                
+                emojis = ["🥇", "🥈", "🥉"]
+                
+                with st.container(border=True):
+                    st.markdown(f"### {emojis[i]} {produto_nome}")
+                    
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.metric("Score", f"{score}/10")
+                    with col2:
+                        st.metric("Crescimento", crescimento)
+                    
+                    st.markdown(f"""
+                    <div style="
+                        background: #f0f0f0; 
+                        padding: 6px 10px; 
+                        border-radius: 6px; 
+                        margin: 6px 0;
+                    ">
+                        <div style="font-size: 12px; color: #333;">
+                            🔑 <strong>Palavra-chave:</strong> {palavra_chave}
+                        </div>
+                        <div style="margin-top: 4px; font-size: 11px;">
+                            {' '.join([f'<span style="background: #e0e0e0; padding: 2px 10px; border-radius: 12px; margin: 2px;">{h}</span>' for h in hashtags])}
+                        </div>
+                        <div style="margin-top: 4px; font-size: 11px; color: #555;">
+                            🕐 Melhor horário: <strong>{horario}</strong>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.caption(f"👁️ {views}")
+                    with col2:
+                        st.caption(f"📌 {pins}")
     
     else:
         # Fallback sem dados
@@ -674,7 +720,11 @@ def render_dashboard():
         
         st.markdown("---")
         st.markdown("### 🎯 Sugestões de Produtos para Hoje")
-        st.info("📭 Nenhuma sugestão disponível no momento. Tente atualizar a página.")
+        st.info("📭 Nenhuma sugestão disponível no momento.")
+        
+        st.markdown("---")
+        st.markdown("### 🏆 Top 3 Produtos do Mês")
+        st.info("📭 Aguardando dados...")
     
     st.markdown("---")
     
