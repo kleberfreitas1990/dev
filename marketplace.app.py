@@ -1,3 +1,17 @@
+# marketplace.app.py - NO INÍCIO
+
+import logging
+import sys
+
+# Configura logging para ver o que está acontecendo
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[logging.StreamHandler(sys.stdout)]
+)
+
+# Isso vai mostrar no console/log do Streamlit o que está acontecendo
+
 import streamlit as st
 import warnings
 from datetime import datetime
