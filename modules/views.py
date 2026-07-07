@@ -139,21 +139,6 @@ def render_grade_descoberta():
             "Motivo da Busca": st.column_config.TextColumn("Motivo da Busca", width="large"),
         }
     )
-    
-    # ============================================================
-    # BOTÃO PARA BUSCAR NA SHOPEE
-    # ============================================================
-    st.markdown("---")
-    st.markdown("### 🔍 Buscar produtos na Shopee")
-    
-    # Cria botões para cada produto
-    cols = st.columns(min(len(produtos_descobrir), 6))
-    for i, item in enumerate(produtos_descobrir[:6]):
-        with cols[i]:
-            produto = item.get("produto", "")
-            if st.button(f"🔍 {produto.capitalize()}", use_container_width=True):
-                link = f"https://shopee.com.br/search?keyword={quote(produto)}"
-                st.markdown(f"[Abrir na Shopee]({link})")
 
 # ============================================================
 # APOIADORES EM CARDS PEQUENOS (COM COROA CENTRALIZADA)
@@ -427,48 +412,136 @@ def render_dashboard():
     
     st.markdown("---")
     
+    # ============================================================
+    # VISÃO GERAL DO MÊS - DINÂMICA
+    # ============================================================
     st.markdown("## 📊 Visão Geral do Mês")
     
-    col1, col2 = st.columns([2, 1])
+    # Busca produtos para análise
+    produtos_top = gerar_top10_produtos(forcar_atualizacao=False)
     
-    with col1:
-        with st.container(border=True):
-            st.markdown("""
-            **❄️ Inverno no auge!** Casacos e blusas de lã são os mais procurados. 
-            Aproveite as férias para conteúdo de viagens e looks de inverno.
-            """)
-            
-            m1, m2, m3 = st.columns(3)
-            with m1:
-                st.metric("🔥 Produto em Alta", "casaco", delta="Moda")
-            with m2:
-                st.metric("📈 Crescimento Médio", "19.1%", delta="+2.3%")
-            with m3:
-                st.metric("🎯 Foco Principal", "Férias Escolares", delta="Alta demanda")
+    if produtos_top:
+        # ============================================================
+        # PRODUTO EM ALTA (Top 1)
+        # ============================================================
+        top1 = produtos_top[0] if produtos_top else None
+        
+        # ============================================================
+        # MÉDIAS
+        # ============================================================
+        scores = [p.get("Score", 0) for p in produtos_top]
+        crescimentos = [float(p.get("Crescimento", "+0%").replace("+", "").replace("%", "")) for p in produtos_top]
+        
+        score_medio = sum(scores) / len(scores) if scores else 0
+        crescimento_medio = sum(crescimentos) / len(crescimentos) if crescimentos else 0
+        
+        # ============================================================
+        # CATEGORIA MAIS FREQUENTE
+        # ============================================================
+        categorias = [p.get("Categoria", "Geral") for p in produtos_top]
+        categoria_mais_freq = max(set(categorias), key=categorias.count) if categorias else "Geral"
+        
+        # ============================================================
+        # MELHOR EVENTO
+        # ============================================================
+        eventos = [p.get("Evento", "Tendência") for p in produtos_top]
+        evento_mais_freq = max(set(eventos), key=eventos.count) if eventos else "Tendência"
+        
+        col1, col2 = st.columns([2, 1])
+        
+        with col1:
+            with st.container(border=True):
+                # Mensagem dinâmica baseada no top 1
+                if top1:
+                    st.markdown(f"""
+                    **🔥 {top1.get('Produto', 'Produto')} em alta!** 
+                    Com score {top1.get('Score', 0)}/10 e {top1.get('Crescimento', '+0%')} de crescimento, 
+                    este é o momento ideal para criar conteúdo sobre este produto.
+                    """)
+                else:
+                    st.markdown("**📊 Análise de mercado em tempo real**")
+                
+                # Métricas dinâmicas
+                m1, m2, m3 = st.columns(3)
+                with m1:
+                    st.metric(
+                        "🔥 Produto em Alta", 
+                        top1.get("Produto", "N/A") if top1 else "N/A",
+                        delta=top1.get("Categoria", "Moda") if top1 else "N/A"
+                    )
+                with m2:
+                    st.metric(
+                        "📈 Crescimento Médio", 
+                        f"{crescimento_medio:.1f}%",
+                        delta=f"{crescimento_medio - 5:.1f}%"
+                    )
+                with m3:
+                    st.metric(
+                        "🎯 Categoria em Alta", 
+                        categoria_mais_freq,
+                        delta=evento_mais_freq
+                    )
+        
+        with col2:
+            with st.container(border=True):
+                st.markdown("### 🎯 Melhor Oportunidade")
+                
+                # Produto com melhor score
+                melhor_score = max(produtos_top, key=lambda x: x.get("Score", 0)) if produtos_top else None
+                
+                if melhor_score:
+                    st.markdown(f"**{melhor_score.get('Produto', 'N/A')}**")
+                    st.caption(f"Score: {melhor_score.get('Score', 0)}/10")
+                    
+                    # Barra de potencial
+                    potencial = melhor_score.get("Score", 0) * 10
+                    cor = "green" if potencial >= 70 else "orange" if potencial >= 40 else "red"
+                    
+                    st.markdown(f"""
+                    <div style="margin: 8px 0;">
+                        <small>Potencial de Mercado</small>
+                        <div style="background: #e0e0e0; border-radius: 10px; height: 20px; position: relative; overflow: hidden;">
+                            <div style="background: {cor}; width: {potencial}%; height: 20px; border-radius: 10px; transition: width 0.5s;">
+                                <span style="position: absolute; left: 50%; top: 2px; color: {'white' if potencial > 50 else 'black'}; font-weight: bold; font-size: 12px;">{potencial:.0f}%</span>
+                            </div>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    st.caption(f"🟢 {melhor_score.get('Potencial', 'Médio')} potencial")
+                    
+                    col_s1, col_s2 = st.columns(2)
+                    with col_s1:
+                        st.success(f"✅ {melhor_score.get('Score', 0)}/10 Score")
+                    with col_s2:
+                        st.success(f"📈 {melhor_score.get('Crescimento', '+0%')}")
+                else:
+                    st.info("📊 Aguardando dados...")
     
-    with col2:
-        with st.container(border=True):
-            st.markdown("### 🎯 Melhor Oportunidade")
-            
-            st.markdown("**Potencial de Mercado**")
-            potencial = 85
-            cor = "green" if potencial >= 70 else "orange" if potencial >= 40 else "red"
-            
-            st.markdown(f"""
-            <div style="background: #e0e0e0; border-radius: 10px; height: 20px; position: relative;">
-                <div style="background: {cor}; width: {potencial}%; height: 20px; border-radius: 10px; transition: width 0.5s;">
-                    <span style="position: absolute: right: 10px; top: 2px; color: black; font-weight: bold;">{potencial}%</span>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            st.caption("🟢 Produtos com status Alto potencial")
-            
-            col_s1, col_s2 = st.columns(2)
-            with col_s1:
-                st.success("✅ Alta Demanda")
-            with col_s2:
-                st.success("✅ Baixa Concorrência")
+    else:
+        # Fallback quando não há dados
+        col1, col2 = st.columns([2, 1])
+        
+        with col1:
+            with st.container(border=True):
+                st.markdown("""
+                **📊 Análise de mercado em tempo real**
+                Buscando os melhores produtos para você criar conteúdo.
+                """)
+                
+                m1, m2, m3 = st.columns(3)
+                with m1:
+                    st.metric("🔥 Produto em Alta", "Aguardando", delta="...")
+                with m2:
+                    st.metric("📈 Crescimento Médio", "0%", delta="0%")
+                with m3:
+                    st.metric("🎯 Categoria em Alta", "Geral", delta="Tendência")
+        
+        with col2:
+            with st.container(border=True):
+                st.markdown("### 🎯 Melhor Oportunidade")
+                st.info("📊 Carregando dados...")
+                st.caption("🟢 Aguardando análise")
     
     st.markdown("---")
     
