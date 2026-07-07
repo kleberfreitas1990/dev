@@ -127,12 +127,7 @@ with tab2:
             lambda x: f'<a href="https://shopee.com.br/search?keyword={quote(x)}" target="_blank" style="text-decoration: none;"><span style="background-color: #f0f0f0; color: #333; padding: 2px 10px; border-radius: 12px; font-size: 12px; border: 1px solid #ddd;">🔍 Buscar</span></a>'
         )
         
-        # Adiciona botão "Criar Conteúdo" na tabela
-        df["🎬 Criar Conteúdo"] = df["Produto"].apply(
-            lambda x: f'<a href="#" onclick="document.getElementById(\'ir_para_conteudo_{x.lower()}\').click(); return false;" style="text-decoration: none;"><span style="background-color: #FF6B6B; color: white; padding: 2px 10px; border-radius: 12px; font-size: 12px; border: none;">🎬 Criar</span></a>'
-        )
-        
-        colunas = ["Produto", "🔑 Palavra-chave", "Categoria", "Evento", "Potencial", "Score", "Pins", "Crescimento", "Views TikTok", "Buscas no Mês", "Resultados ML", "Tendência", "Buscar na Shopee", "🎬 Criar Conteúdo"]
+        colunas = ["Produto", "🔑 Palavra-chave", "Categoria", "Evento", "Potencial", "Score", "Pins", "Crescimento", "Views TikTok", "Buscas no Mês", "Resultados ML", "Tendência", "Buscar na Shopee"]
         df = df[colunas]
         
         st.markdown(
@@ -231,6 +226,12 @@ with tab5:
     
     # Verifica se veio de um clique do dashboard
     produto_pre_selecionado = st.session_state.get("produto_conteudo", "")
+    
+    # Se veio da aba de insights, mostra mensagem
+    if st.session_state.get("aba_conteudo", False):
+        if produto_pre_selecionado:
+            st.success(f"🎬 Criando conteúdo para: **{produto_pre_selecionado}**")
+        st.session_state.aba_conteudo = False
     
     col1, col2 = st.columns([2, 1])
     
@@ -624,33 +625,47 @@ with tab7:
             st.markdown("### 🔄 Sincronizar Apoiadores")
             st.caption("Sincroniza manualmente apoiadores com licenças")
             
-            if st.button("🔄 Sincronizar Agora", use_container_width=True):
-                try:
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("🔄 Sincronizar Agora", use_container_width=True):
+                    try:
+                        sistema = SistemaLicencas()
+                        apoiadores = carregar_apoiadores()
+                        
+                        # Pega todos os emails de apoiadores
+                        emails_apoiadores = [a.get("email") for a in apoiadores.values()]
+                        
+                        # Verifica licenças que são apoiadores mas não estão na lista
+                        contador = 0
+                        for codigo, dados in sistema.dados["licencas"].items():
+                            if dados.get("is_apoiador", False) and dados.get("status") == "ativo":
+                                email = dados.get("email")
+                                usuario = dados.get("usuario")
+                                if email and email not in emails_apoiadores:
+                                    # Adiciona como apoiador
+                                    adicionar_apoiador(usuario, email, "Apoiador")
+                                    contador += 1
+                        
+                        if contador > 0:
+                            st.success(f"✅ {contador} apoiadores sincronizados!")
+                        else:
+                            st.info("ℹ️ Nenhum apoiador novo para sincronizar.")
+                        
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"❌ Erro na sincronização: {str(e)}")
+            
+            with col2:
+                if st.button("📋 Verificar Licenças", use_container_width=True):
                     sistema = SistemaLicencas()
-                    apoiadores = carregar_apoiadores()
-                    
-                    # Pega todos os emails de apoiadores
-                    emails_apoiadores = [a.get("email") for a in apoiadores.values()]
-                    
-                    # Verifica licenças que são apoiadores mas não estão na lista
-                    contador = 0
+                    st.write("### Licenças com flag de apoiador:")
+                    encontrou = False
                     for codigo, dados in sistema.dados["licencas"].items():
-                        if dados.get("is_apoiador", False) and dados.get("status") == "ativo":
-                            email = dados.get("email")
-                            usuario = dados.get("usuario")
-                            if email and email not in emails_apoiadores:
-                                # Adiciona como apoiador
-                                adicionar_apoiador(usuario, email, "Apoiador")
-                                contador += 1
-                    
-                    if contador > 0:
-                        st.success(f"✅ {contador} apoiadores sincronizados!")
-                    else:
-                        st.info("ℹ️ Nenhum apoiador novo para sincronizar.")
-                    
-                    st.rerun()
-                except Exception as e:
-                    st.error(f"❌ Erro na sincronização: {str(e)}")
+                        if dados.get("is_apoiador", False):
+                            st.write(f"- {codigo}: {dados.get('usuario')} ({dados.get('email')})")
+                            encontrou = True
+                    if not encontrou:
+                        st.info("ℹ️ Nenhuma licença com flag de apoiador encontrada.")
             
             st.markdown("---")
             
