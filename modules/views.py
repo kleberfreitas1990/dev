@@ -419,8 +419,8 @@ def render_painel_apoiadores_detalhado():
                 st.markdown(f"**📅 Entrada:** {data_entrada}")
                 st.markdown(f"**📌 Plano:** {plano}")
                 
-                # Verifica repasse
-                depois = sum(1 for k, d in apoiadores.items() if d.get("ordem", 999) > ordeme)
+                # Verifica repasse - CORRIGIDO: variável é 'ordem' não 'ordeme'
+                depois = sum(1 for k, d in apoiadores.items() if d.get("ordem", 999) > ordem)
                 
                 if depois > 0 and apoiador.get("repasse_ativo", True):
                     st.success(f"⬇️ {depois} apoiador(es) - R${depois * 5.00:.2f}/mês")
