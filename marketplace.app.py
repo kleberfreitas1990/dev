@@ -6,6 +6,7 @@ import pandas as pd
 import time
 import logging
 import sys
+import os
 
 # ============================================================
 # CONFIGURAÇÃO DE LOGGING
@@ -34,9 +35,16 @@ st.set_page_config(
 # ============================================================
 # IMPORTAR MÓDULOS
 # ============================================================
-from modules.auth import verificar_login, SistemaLicencas
+from modules.auth import verificar_login, SistemaLicencas, listar_apoiadores_por_licencas
 from modules.views import render_dashboard, render_status_usuario, render_painel_apoiadores_detalhado
-from modules.models import gerar_top10_produtos, PALAVRAS_CHAVE_CAUDA_LONGA, obter_palavra_chave
+from modules.models import (
+    gerar_top10_produtos, 
+    PALAVRAS_CHAVE_CAUDA_LONGA, 
+    obter_palavra_chave,
+    carregar_apoiadores,
+    adicionar_apoiador,
+    remover_apoiador
+)
 from modules.serper import buscar_produtos_serper
 
 # Importa módulo de conteúdo IA
@@ -434,49 +442,232 @@ with tab7:
         st.markdown("## 🔑 Gerenciamento de Licenças")
         st.caption("Crie, gerencie e monitore licenças do sistema")
         
+        # Carrega dados atualizados
+        sistema = SistemaLicencas()
+        apoiadores = carregar_apoiadores()
+        
+        total_licencas = len(sistema.dados["licencas"])
+        ativas = sum(1 for l in sistema.dados["licencas"].values() if l.get("status") == "ativo")
+        total_apoiadores = len(apoiadores)
+        
         col1, col2, col3 = st.columns(3)
         with col1:
-            st.metric("📊 Total", "2")
+            st.metric("📊 Total Licenças", total_licencas)
         with col2:
-            st.metric("✅ Ativas", "2")
+            st.metric("✅ Ativas", ativas)
         with col3:
-            st.metric("🔑 Admin", "1")
+            st.metric("👑 Apoiadores", total_apoiadores)
         
         st.markdown("---")
         
+        # ============================================================
+        # CRIAR NOVA LICENÇA (COM SINCRONIZAÇÃO DE APOIADOR)
+        # ============================================================
         with st.expander("🆕 Criar Nova Licença", expanded=True):
+            st.markdown("### 📝 Dados do Usuário")
+            st.caption("Preencha os dados para gerar uma nova licença")
+            
             col1, col2 = st.columns(2)
             with col1:
-                novo_usuario = st.text_input("Nome do Usuário", placeholder="Ex: João Silva", key="lic_nome")
-                novo_email = st.text_input("E-mail", placeholder="joao@email.com", key="lic_email")
+                novo_usuario = st.text_input("👤 Nome do Usuário", placeholder="Ex: João Silva", key="lic_nome")
+                novo_email = st.text_input("📧 E-mail", placeholder="joao@email.com", key="lic_email")
             with col2:
-                plano = st.selectbox("Plano", ["Trial 7 dias", "Apoiador R$ 59,90"], key="lic_plano")
-                is_apoiador = st.checkbox("👑 Tornar APOIADOR (royalties)", key="lic_apoiador")
+                plano = st.selectbox("📋 Plano", ["Trial 7 dias", "Apoiador R$ 59,90", "Premium R$ 99,90"], key="lic_plano")
+                is_apoiador = st.checkbox("👑 Tornar APOIADOR (recebe royalties)", key="lic_apoiador")
+                
+                if is_apoiador:
+                    st.info("💡 O apoiador receberá R$ 5,00 por novo apoiador cadastrado após ele.")
             
             if st.button("🚀 Gerar Licença", use_container_width=True, key="lic_btn"):
                 if not novo_usuario or not novo_email:
-                    st.error("❌ Preencha nome e e-mail")
+                    st.error("❌ Preencha nome e e-mail!")
                 else:
-                    sistema = SistemaLicencas()
-                    codigo = sistema.gerar_licenca(novo_usuario, novo_email, plano, is_apoiador)
-                    st.success("✅ Licença gerada com sucesso!")
-                    st.code(f"Código: {codigo}", language="text")
-                    if is_apoiador:
-                        st.success("👑 Usuário adicionado como apoiador!")
-                    st.warning("⚠️ Guarde este código! Ele não será exibido novamente.")
+                    try:
+                        # 1. Gera a licença
+                        sistema = SistemaLicencas()
+                        codigo = sistema.gerar_licenca(novo_usuario, novo_email, plano, is_apoiador)
+                        
+                        # 2. Se for apoiador, adiciona na lista de apoiadores
+                        if is_apoiador:
+                            # Verifica se já existe
+                            apoiadores_existentes = carregar_apoiadores()
+                            ja_existe = False
+                            for ap in apoiadores_existentes.values():
+                                if ap.get("email") == novo_email:
+                                    ja_existe = True
+                                    break
+                            
+                            if not ja_existe:
+                                # Mapeia plano para tipo de apoiador
+                                plano_apoiador = "Premium" if "Premium" in plano else "Apoiador"
+                                novo_apoiador = adicionar_apoiador(
+                                    nome=novo_usuario,
+                                    email=novo_email,
+                                    plano=plano_apoiador
+                                )
+                                st.success(f"👑 {novo_usuario} adicionado como apoiador!")
+                            else:
+                                st.info(f"ℹ️ {novo_usuario} já é apoiador.")
+                        
+                        # 3. Mostra o código
+                        st.success("✅ Licença gerada com sucesso!")
+                        st.code(f"Código: {codigo}", language="text")
+                        st.warning("⚠️ Guarde este código! Ele não será exibido novamente.")
+                        
+                        # 4. Mostra resumo
+                        st.markdown("---")
+                        st.markdown("### 📋 Resumo")
+                        st.markdown(f"""
+                        - **Usuário:** {novo_usuario}
+                        - **E-mail:** {novo_email}
+                        - **Plano:** {plano}
+                        - **Apoiador:** {'✅ Sim' if is_apoiador else '❌ Não'}
+                        - **Código:** `{codigo}`
+                        """)
+                        
+                        time.sleep(1)
+                        st.rerun()
+                        
+                    except Exception as e:
+                        st.error(f"❌ Erro ao gerar licença: {str(e)}")
         
         st.markdown("---")
-        st.markdown("### 📋 Licenças Ativas")
+        
+        # ============================================================
+        # LISTA DE APOIADORES (INTEGRADA)
+        # ============================================================
+        st.markdown("## 👑 Apoiadores do Projeto")
+        st.caption("Lista de todos os apoiadores cadastrados")
+        
+        apoiadores = carregar_apoiadores()
+        
+        if apoiadores:
+            # Ordena por ordem
+            apoiadores_ordenados = sorted(apoiadores.values(), key=lambda x: x.get("ordem", 999))
+            
+            # Exibe em cards
+            cores = ["#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7", "#DDA0DD", "#FF8A5C", "#A29BFE"]
+            
+            # Exibe em grid de 4
+            cols = st.columns(4)
+            for i, apoiador in enumerate(apoiadores_ordenados):
+                with cols[i % 4]:
+                    cor = cores[i % len(cores)]
+                    nome = apoiador.get("nome", "Apoiador")
+                    email = apoiador.get("email", "")
+                    ordem = apoiador.get("ordem", 999)
+                    coroinha = apoiador.get("coroinha", "👑")
+                    plano = apoiador.get("plano", "Apoiador")
+                    
+                    with st.container(border=True):
+                        st.markdown(f"""
+                        <div style="
+                            background: {cor};
+                            color: white;
+                            padding: 8px 12px;
+                            border-radius: 8px 8px 0 0;
+                            margin: -12px -12px 10px -12px;
+                            text-align: center;
+                            font-weight: bold;
+                            font-size: 16px;
+                        ">
+                            {coroinha} {nome}
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
+                        st.markdown(f"**📧** {email}")
+                        st.markdown(f"**📋 Ordem:** #{ordem}")
+                        st.markdown(f"**📌 Plano:** {plano}")
+                        
+                        # Verifica repasse
+                        depois = sum(1 for a in apoiadores.values() if a.get("ordem", 999) > ordem)
+                        if depois > 0 and apoiador.get("repasse_ativo", True):
+                            st.success(f"⬇️ {depois} apoiadores - R${depois * 5.00:.2f}/mês")
+                        else:
+                            st.info("⏳ Aguardando novos apoiadores")
+        else:
+            st.info("📭 Nenhum apoiador cadastrado ainda.")
+        
+        st.markdown("---")
+        
+        # ============================================================
+        # LISTA DE LICENÇAS ATIVAS
+        # ============================================================
+        st.markdown("## 📋 Licenças Ativas")
+        st.caption("Todas as licenças geradas no sistema")
         
         sistema = SistemaLicencas()
         licencas = sistema.dados["licencas"]
         
-        df_licencas = pd.DataFrame([
-            {"Código": codigo, "Usuário": dados.get("usuario"), "Plano": dados.get("plano"), "Status": "🟢 Ativo" if dados.get("status") == "ativo" else "🔴 Inativo"}
-            for codigo, dados in licencas.items()
-        ])
+        # Cria DataFrame com todas as licenças
+        dados_licencas = []
+        for codigo, dados in licencas.items():
+            # Verifica se é apoiador
+            is_apoiador = dados.get("is_apoiador", False)
+            status = dados.get("status", "ativo")
+            
+            dados_licencas.append({
+                "Código": codigo[:12] + "..." if len(codigo) > 12 else codigo,
+                "Usuário": dados.get("usuario", "N/A"),
+                "E-mail": dados.get("email", "N/A"),
+                "Plano": dados.get("plano", "N/A"),
+                "👑 Apoiador": "✅ Sim" if is_apoiador else "❌ Não",
+                "Status": "🟢 Ativo" if status == "ativo" else "🔴 Inativo"
+            })
         
-        st.dataframe(df_licencas, use_container_width=True, hide_index=True)
+        if dados_licencas:
+            df_licencas = pd.DataFrame(dados_licencas)
+            st.dataframe(df_licencas, use_container_width=True, hide_index=True)
+        
+        st.markdown("---")
+        
+        # ============================================================
+        # AÇÕES RÁPIDAS
+        # ============================================================
+        with st.expander("⚙️ Ações Rápidas"):
+            st.markdown("### 🔄 Sincronizar Apoiadores")
+            st.caption("Sincroniza manualmente apoiadores com licenças")
+            
+            if st.button("🔄 Sincronizar Agora", use_container_width=True):
+                try:
+                    sistema = SistemaLicencas()
+                    apoiadores = carregar_apoiadores()
+                    
+                    # Pega todos os emails de apoiadores
+                    emails_apoiadores = [a.get("email") for a in apoiadores.values()]
+                    
+                    # Verifica licenças que são apoiadores mas não estão na lista
+                    contador = 0
+                    for codigo, dados in sistema.dados["licencas"].items():
+                        if dados.get("is_apoiador", False) and dados.get("status") == "ativo":
+                            email = dados.get("email")
+                            usuario = dados.get("usuario")
+                            if email and email not in emails_apoiadores:
+                                # Adiciona como apoiador
+                                adicionar_apoiador(usuario, email, "Apoiador")
+                                contador += 1
+                    
+                    if contador > 0:
+                        st.success(f"✅ {contador} apoiadores sincronizados!")
+                    else:
+                        st.info("ℹ️ Nenhum apoiador novo para sincronizar.")
+                    
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"❌ Erro na sincronização: {str(e)}")
+            
+            st.markdown("---")
+            
+            # Botão para limpar cache
+            if st.button("🧹 Limpar Cache de Conteúdo", use_container_width=True):
+                try:
+                    if os.path.exists("conteudo_cache.json"):
+                        os.remove("conteudo_cache.json")
+                        st.success("✅ Cache de conteúdo limpo!")
+                    else:
+                        st.info("ℹ️ Nenhum cache encontrado.")
+                except Exception as e:
+                    st.error(f"❌ Erro: {str(e)}")
 
 # ============================================================
 # RODAPE
