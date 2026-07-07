@@ -222,10 +222,29 @@ def render_painel_diagnostico():
         st.metric("🔄 Última Atualização", resultados.get("ultima_atualizacao", "Nunca"))
     
     # ============================================================
-    # FLUXO DE BUSCA
+    # RECOMENDAÇÕES
     # ============================================================
     st.markdown("---")
-    st.markdown("### 📊 Fluxo de Busca")
+    st.markdown("### 💡 Recomendações")
     
-    # Cria um fluxo visual
-    fluxo = """
+    if resultados["nivel_1_raspagem"]["status"] == "❌":
+        st.warning("⚠️ **Raspagem com falha:** Verifique a conexão com a Shopee ou se o site mudou a estrutura.")
+    elif resultados["nivel_1_raspagem"]["status"] == "🟡":
+        st.info("ℹ️ **Raspagem usando cache:** Os dados estão sendo carregados do cache, não da fonte ao vivo.")
+    else:
+        st.success("✅ **Raspagem funcionando:** Os termos da Shopee estão sendo capturados corretamente.")
+    
+    if resultados["nivel_2_api"]["status"] == "❌":
+        st.warning("⚠️ **API com falha:** Verifique a chave SERPER_API_KEY nos secrets.")
+    else:
+        st.success("✅ **API funcionando:** As buscas no Google Shopping estão ativas.")
+    
+    if resultados["nivel_3_selenium"]["status"] == "🟡":
+        st.info("ℹ️ **Selenium não implementado:** Os dados são gerados via fallback. Isso é esperado se você não configurou Selenium.")
+    
+    st.caption("🔧 Para melhorar os resultados, configure Selenium para capturar dados mais precisos.")
+
+__all__ = [
+    'diagnosticar_buscas',
+    'render_painel_diagnostico'
+]
