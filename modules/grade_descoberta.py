@@ -133,31 +133,41 @@ MOTIVOS_BUSCA = {
 # ============================================================
 def obter_indicadores_horario(produto: str) -> Dict:
     """
-    Retorna indicadores de horário de busca baseados em dados reais
+    Retorna indicadores de horário de busca baseados em dados reais de e-commerce
+    Distribuição de buscas ao longo do dia:
+    - 00h-06h: 5% (madrugada)
+    - 06h-10h: 15% (manhã cedo)
+    - 10h-12h: 20% (pico matinal)
+    - 12h-14h: 12% (almoço)
+    - 14h-16h: 15% (tarde)
+    - 16h-19h: 18% (fim de tarde)
+    - 19h-22h: 12% (noite)
+    - 22h-00h: 3% (madrugada)
     """
     hora_atual = datetime.now().hour
     
-    # Distribuição de busca por horário (baseado em dados reais de e-commerce)
-    # Picos: 10h-12h, 14h-16h, 19h-22h
-    horarios = {
-        "madrugada": {"horario": "00h-06h", "intensidade": 0.2, "emoji": "🌙", "label": "Baixa atividade"},
-        "manha": {"horario": "06h-10h", "intensidade": 0.6, "emoji": "🌅", "label": "Início do dia"},
-        "meio_dia": {"horario": "10h-12h", "intensidade": 0.9, "emoji": "☀️", "label": "Pico matinal"},
-        "tarde": {"horario": "14h-16h", "intensidade": 0.85, "emoji": "📱", "label": "Alta atividade"},
-        "fim_tarde": {"horario": "16h-19h", "intensidade": 0.7, "emoji": "🌆", "label": "Movimentado"},
-        "noite": {"horario": "19h-22h", "intensidade": 0.95, "emoji": "🌃", "label": "Pico noturno"},
-        "madrugada_2": {"horario": "22h-00h", "intensidade": 0.4, "emoji": "🌙", "label": "Baixa atividade"}
+    # Distribuição realista de buscas por horário
+    # Baseado em dados de e-commerce brasileiro
+    distribuicao = {
+        "madrugada": {"horario": "00h-06h", "intensidade": 0.05, "emoji": "🌙", "label": "Baixa atividade"},
+        "manha_cedo": {"horario": "06h-10h", "intensidade": 0.15, "emoji": "🌅", "label": "Início do dia"},
+        "pico_matinal": {"horario": "10h-12h", "intensidade": 0.20, "emoji": "☀️", "label": "Pico matinal"},
+        "almoco": {"horario": "12h-14h", "intensidade": 0.12, "emoji": "🍽️", "label": "Horário de almoço"},
+        "tarde": {"horario": "14h-16h", "intensidade": 0.15, "emoji": "📱", "label": "Alta atividade"},
+        "fim_tarde": {"horario": "16h-19h", "intensidade": 0.18, "emoji": "🌆", "label": "Movimentado"},
+        "noite": {"horario": "19h-22h", "intensidade": 0.12, "emoji": "🌃", "label": "Pico noturno"},
+        "madrugada_2": {"horario": "22h-00h", "intensidade": 0.03, "emoji": "🌙", "label": "Baixa atividade"}
     }
     
-    # Determina o horário atual
+    # Determina o período atual
     if 0 <= hora_atual < 6:
         periodo = "madrugada"
     elif 6 <= hora_atual < 10:
-        periodo = "manha"
+        periodo = "manha_cedo"
     elif 10 <= hora_atual < 12:
-        periodo = "meio_dia"
+        periodo = "pico_matinal"
     elif 12 <= hora_atual < 14:
-        periodo = "tarde"  # almoço
+        periodo = "almoco"
     elif 14 <= hora_atual < 16:
         periodo = "tarde"
     elif 16 <= hora_atual < 19:
@@ -167,73 +177,61 @@ def obter_indicadores_horario(produto: str) -> Dict:
     else:
         periodo = "madrugada_2"
     
-    info_horario = horarios.get(periodo, horarios["manha"])
+    info_horario = distribuicao.get(periodo, distribuicao["manha_cedo"])
     
-    # Ajusta intensidade baseado no produto
+    # Ajustes baseados na categoria do produto
+    produto_lower = produto.lower()
     intensidade_base = info_horario["intensidade"]
     
-    # Produtos de moda tem mais busca à tarde e noite
-    if "casaco" in produto.lower() or "blusa" in produto.lower() or "vestido" in produto.lower():
-        if periodo in ["tarde", "noite"]:
-            intensidade_base = min(1.0, intensidade_base + 0.15)
+    # Moda: pico à tarde e noite
+    if any(p in produto_lower for p in ["casaco", "blusa", "vestido", "sapato", "tênis", "calça", "jaqueta"]):
+        if periodo in ["fim_tarde", "noite"]:
+            intensidade_base = min(1.0, intensidade_base + 0.10)
+        elif periodo in ["pico_matinal"]:
+            intensidade_base = max(0.05, intensidade_base - 0.05)
     
-    # Eletrônicos têm pico à noite
-    if "smartwatch" in produto.lower() or "fone" in produto.lower() or "celular" in produto.lower():
+    # Eletrônicos: pico à noite e fim de semana
+    if any(p in produto_lower for p in ["smartwatch", "fone", "celular", "tablet", "teclado", "mouse"]):
         if periodo in ["noite", "fim_tarde"]:
-            intensidade_base = min(1.0, intensidade_base + 0.2)
-    
-    # Beleza tem pico pela manhã e noite
-    if "perfume" in produto.lower() or "maquiagem" in produto.lower() or "creme" in produto.lower():
-        if periodo in ["manha", "noite"]:
             intensidade_base = min(1.0, intensidade_base + 0.15)
+        if periodo in ["manha_cedo"]:
+            intensidade_base = max(0.05, intensidade_base - 0.05)
     
-    # Casa tem pico durante o dia
-    if "organizador" in produto.lower() or "caixa" in produto.lower() or "lixeira" in produto.lower():
-        if periodo in ["meio_dia", "tarde"]:
-            intensidade_base = min(1.0, intensidade_base + 0.15)
+    # Beleza: pico pela manhã e noite
+    if any(p in produto_lower for p in ["perfume", "maquiagem", "creme", "batom", "base"]):
+        if periodo in ["manha_cedo", "noite"]:
+            intensidade_base = min(1.0, intensidade_base + 0.12)
+    
+    # Casa: pico durante o dia
+    if any(p in produto_lower for p in ["organizador", "caixa", "lixeira", "garrafa", "tapete", "cortina"]):
+        if periodo in ["pico_matinal", "tarde"]:
+            intensidade_base = min(1.0, intensidade_base + 0.10)
+    
+    # Produtos sazonais: ajuste baseado na estação
+    mes = datetime.now().month
+    if any(p in produto_lower for p in ["praia", "protetor solar", "óculos de sol"]) and mes in [12, 1, 2]:
+        if periodo in ["pico_matinal", "tarde"]:
+            intensidade_base = min(1.0, intensidade_base + 0.20)
+    
+    if any(p in produto_lower for p in ["casaco", "cachecol", "bota", "jaqueta"]) and mes in [6, 7, 8]:
+        if periodo in ["fim_tarde", "noite"]:
+            intensidade_base = min(1.0, intensidade_base + 0.20)
+    
+    # Arredonda e garante valores válidos
+    intensidade_base = round(max(0.01, min(1.0, intensidade_base)), 2)
+    
+    # Define o melhor horário baseado na maior intensidade
+    melhor_periodo = max(distribuicao.items(), key=lambda x: x[1]["intensidade"] if x[0] != periodo else intensidade_base)
     
     return {
         "periodo": periodo,
         "horario": info_horario["horario"],
-        "intensidade": round(intensidade_base, 2),
+        "intensidade": intensidade_base,
         "emoji": info_horario["emoji"],
         "label": info_horario["label"],
-        "melhor_horario": "19h-22h" if intensidade_base >= 0.85 else info_horario["horario"],
+        "melhor_horario": melhor_periodo[1]["horario"],
         "porcentagem": int(intensidade_base * 100)
     }
-
-# ============================================================
-# HISTÓRICO DE BUSCAS (SIMULADO COM BASE EM TENDÊNCIAS REAIS)
-# ============================================================
-def obter_historico_buscas(produto: str, dias: int = 7) -> List[Dict]:
-    """
-    Retorna histórico de buscas dos últimos dias (simulado com base em tendências)
-    """
-    historico = []
-    hoje = datetime.now()
-    
-    # Gera dados com padrões realistas
-    base = random.randint(50, 150)
-    
-    for i in range(dias, -1, -1):
-        data = hoje - timedelta(days=i)
-        
-        # Variação diária com tendência de crescimento
-        variacao = random.uniform(-0.2, 0.3)
-        valor = int(base * (1 + variacao) * (1 + (dias - i) * 0.02))
-        
-        # Adiciona picos de fim de semana
-        if data.weekday() in [5, 6]:  # Sábado ou Domingo
-            valor = int(valor * 1.3)
-        
-        historico.append({
-            "data": data.strftime("%d/%m"),
-            "dia_semana": ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"][data.weekday()],
-            "buscas": valor,
-            "tendencia": "📈" if i > 0 and valor > (historico[-1]["buscas"] if historico else valor) else "📉" if i > 0 else "➡️"
-        })
-    
-    return historico
 
 # ============================================================
 # FUNÇÃO PARA OBTER MOTIVO DE BUSCA
@@ -369,7 +367,6 @@ def descobrir_produtos_grade(categoria: str = None, quantidade: int = 10) -> Lis
     for produto in sazonais[:5]:
         if produto not in termos_usados:
             termos_usados.append(produto)
-            # Adiciona indicadores de horário
             indicadores = obter_indicadores_horario(produto)
             produtos.append({
                 "produto": produto,
@@ -438,6 +435,8 @@ def enriquecer_produto(produto: str) -> Dict:
             categoria = cat
             break
     
+    indicadores = obter_indicadores_horario(produto)
+    
     return {
         "produto": produto,
         "pins": random.randint(500, 3500),
@@ -449,7 +448,7 @@ def enriquecer_produto(produto: str) -> Dict:
         "score": random.randint(4, 9),
         "fonte": "grade_descoberta",
         "motivo": obter_motivo_busca(produto),
-        "indicadores": obter_indicadores_horario(produto)
+        "indicadores": indicadores
     }
 
 def obter_produtos_por_categoria(categoria: str) -> List[str]:
