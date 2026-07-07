@@ -232,35 +232,8 @@ with tab6:
                 if not novo_usuario or not novo_email:
                     st.error("❌ Preencha nome e e-mail")
                 else:
-                    from modules.models import SistemaLicencas
+                    from modules.auth import SistemaLicencas
                     sistema = SistemaLicencas()
                     codigo = sistema.gerar_licenca(novo_usuario, novo_email, plano, is_apoiador)
                     st.success("✅ Licença gerada com sucesso!")
-                    st.code(f"Código: {codigo}", language="text")
-                    if is_apoiador:
-                        st.success("👑 Usuário adicionado como apoiador!")
-                    st.warning("⚠️ Guarde este código! Ele não será exibido novamente.")
-        
-        st.markdown("---")
-        st.markdown("### 📋 Licenças Ativas")
-        
-        from modules.models import SistemaLicencas
-        sistema = SistemaLicencas()
-        licencas = sistema.dados["licencas"]
-        
-        df_licencas = pd.DataFrame([
-            {"Código": codigo, "Usuário": dados.get("usuario"), "Plano": dados.get("plano"), "Status": "🟢 Ativo" if dados.get("status") == "ativo" else "🔴 Inativo"}
-            for codigo, dados in licencas.items()
-        ])
-        
-        st.dataframe(df_licencas, use_container_width=True, hide_index=True)
-with st.expander("🧪 Teste Shopee", expanded=True):
-    from modules.shopee import capturar_buscas_shopee_com_cache
-    buscas = capturar_buscas_shopee_com_cache()
-    st.write(f"**{len(buscas)} termos encontrados:**")
-    st.write(buscas)
-# ============================================================
-# RODAPE
-# ============================================================
-st.markdown("---")
-st.caption(f"🛒 Minerador de Produtos v4.0 | {datetime.now().year}")
+                   
