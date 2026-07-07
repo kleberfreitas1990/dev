@@ -23,7 +23,9 @@ from modules.grade_descoberta import (
     get_produtos_sazonais,
     get_produtos_sazonais_com_motivos,
     GRADE_PRODUTOS,
-    obter_motivo_busca
+    obter_motivo_busca,
+    obter_indicadores_horario,
+    obter_historico_buscas
 )
 
 # Tenta importar serper, se falhar usa fallback
@@ -43,11 +45,11 @@ def render_status_usuario():
     pass
 
 # ============================================================
-# GRADE DE DESCOBERTA - VISUALIZAÇÃO EM TABELA
+# GRADE DE DESCOBERTA - UNIFICADA COM INDICADORES
 # ============================================================
 def render_grade_descoberta():
     """
-    Renderiza a grade de descoberta de produtos em formato de tabela
+    Renderiza a grade de descoberta de produtos com indicadores de horário
     """
     st.markdown("## 🎯 Grade de Descoberta de Produtos")
     st.caption("Produtos em tendência descobertos automaticamente - Análise baseada em dados do Pinterest e Google Trends")
@@ -87,58 +89,99 @@ def render_grade_descoberta():
         return
     
     # ============================================================
-    # EXIBE EM TABELA COM DATAFRAME
+    # EXIBE EM CARDS UNIFICADOS COM INDICADORES
     # ============================================================
     st.markdown(f"### 📦 {len(produtos_descobrir)} produtos descobertos")
     
-    # Cria DataFrame
-    dados_tabela = []
-    for item in produtos_descobrir:
-        produto = item.get("produto", "").capitalize()
-        score = item.get("score", 0)
-        categoria = item.get("categoria", "Geral").capitalize()
-        motivo = item.get("motivo", "📊 Produto em tendência no mercado")
-        
-        # Define status de score
-        if score >= 8:
-            status = "🔥 Alta"
-        elif score >= 6:
-            status = "📈 Média"
-        else:
-            status = "📊 Baixa"
-        
-        # Palavra-chave e hashtags para cada produto
-        dados_palavra = obter_palavra_chave(produto.lower())
-        palavra_chave = dados_palavra.get("palavra", f"{produto} tendência 2026")
-        hashtags = dados_palavra.get("hashtags", ["#tendência", "#moda", "#2026"])[:3]
-        
-        dados_tabela.append({
-            "Produto": produto,
-            "Categoria": categoria,
-            "Score": f"{score}/10",
-            "Status": status,
-            "Palavra-chave": palavra_chave,
-            "Hashtags": " ".join(hashtags),
-            "Motivo da Busca": motivo
-        })
+    # Cores para os cards
+    cores = ["#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7", "#DDA0DD", "#FF8A5C", "#A29BFE"]
     
-    df = pd.DataFrame(dados_tabela)
+    # Exibe em grid de 3
+    cols = st.columns(3)
     
-    # Exibe com st.dataframe para melhor formatação
-    st.dataframe(
-        df,
-        use_container_width=True,
-        hide_index=True,
-        column_config={
-            "Produto": st.column_config.TextColumn("Produto", width="medium"),
-            "Categoria": st.column_config.TextColumn("Categoria", width="small"),
-            "Score": st.column_config.TextColumn("Score", width="small"),
-            "Status": st.column_config.TextColumn("Status", width="small"),
-            "Palavra-chave": st.column_config.TextColumn("Palavra-chave", width="large"),
-            "Hashtags": st.column_config.TextColumn("Hashtags", width="medium"),
-            "Motivo da Busca": st.column_config.TextColumn("Motivo da Busca", width="large"),
-        }
-    )
+    for i, item in enumerate(produtos_descobrir):
+        with cols[i % 3]:
+            produto = item.get("produto", "").capitalize()
+            score = item.get("score", 0)
+            categoria = item.get("categoria", "Geral").capitalize()
+            motivo = item.get("motivo", "📊 Produto em tendência no mercado")
+            indicadores = item.get("indicadores", {})
+            
+            cor = cores[i % len(cores)]
+            
+            with st.container(border=True):
+                # Cabeçalho com cor
+                st.markdown(f"""
+                <div style="
+                    background: {cor};
+                    color: white;
+                    padding: 8px 12px;
+                    border-radius: 8px 8px 0 0;
+                    margin: -12px -12px 10px -12px;
+                    text-align: center;
+                    font-weight: bold;
+                    font-size: 16px;
+                ">
+                    {produto}
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Score e Categoria
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.markdown(f"**⭐ Score:** {score}/10")
+                    st.caption(f"📂 {categoria}")
+                with col2:
+                    # Indicador de horário
+                    if indicadores:
+                        emoji = indicadores.get("emoji", "🕐")
+                        horario = indicadores.get("horario", "10h-12h")
+                        intensidade = indicadores.get("porcentagem", 50)
+                        st.markdown(f"{emoji} **{horario}**")
+                        # Barra de intensidade
+                        cor_barra = "green" if intensidade >= 70 else "orange" if intensidade >= 40 else "red"
+                        st.markdown(f"""
+                        <div style="background: #e0e0e0; border-radius: 5px; height: 6px; overflow: hidden;">
+                            <div style="background: {cor_barra}; width: {intensidade}%; height: 6px; border-radius: 5px;"></div>
+                        </div>
+                        <small style="font-size: 10px; color: #666;">{indicadores.get('label', '')}</small>
+                        """, unsafe_allow_html=True)
+                
+                # Motivo da Busca
+                st.markdown(f"""
+                <div style="background: #f8f9fa; padding: 6px 10px; border-radius: 6px; margin: 6px 0; font-size: 12px; color: #555;">
+                    💡 {motivo[:100]}...
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Palavra-chave e Hashtags
+                dados_palavra = obter_palavra_chave(produto)
+                palavra_chave = dados_palavra.get("palavra", f"{produto} tendência 2026")
+                hashtags = dados_palavra.get("hashtags", ["#tendência", "#moda", "#2026"])[:3]
+                
+                st.markdown(f"""
+                <div style="background: #f0f0f0; padding: 4px 8px; border-radius: 6px; margin: 4px 0; font-size: 11px; color: #333;">
+                    🔑 {palavra_chave}
+                </div>
+                <div style="margin: 4px 0; font-size: 11px;">
+                    {' '.join([f'<span style="background: #e0e0e0; padding: 2px 8px; border-radius: 12px; margin: 2px;">{h}</span>' for h in hashtags])}
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Dica de conteúdo
+                dicas = [
+                    f"🎬 Crie um review completo do {produto}",
+                    f"📱 Faça um unboxing do {produto}",
+                    f"🔄 Compare o {produto} com outros",
+                    f"💡 Mostre 3 formas de usar {produto}"
+                ]
+                st.info(f"💡 {random.choice(dicas)}")
+                
+                # Link Shopee
+                st.markdown(
+                    f'<a href="https://shopee.com.br/search?keyword={quote(item.get("produto", ""))}" target="_blank" style="text-decoration: none;"><span style="background-color: #f0f0f0; color: #333; padding: 4px 12px; border-radius: 12px; font-size: 12px; border: 1px solid #ddd; display: inline-block;">🔍 Buscar na Shopee</span></a>',
+                    unsafe_allow_html=True
+                )
 
 # ============================================================
 # APOIADORES EM CARDS PEQUENOS (COM COROA CENTRALIZADA)
@@ -225,11 +268,11 @@ def render_apoiadores_compactos():
                     """, unsafe_allow_html=True)
 
 # ============================================================
-# INSIGHTS ESTRATÉGICOS - COM CONTEÚDO PARA CRIADOR
+# INSIGHTS ESTRATÉGICOS - UNIFICADO
 # ============================================================
 def render_insights_estrategicos(produtos):
     """
-    Renderiza insights estratégicos com dicas para criação de conteúdo
+    Renderiza insights estratégicos unificados
     """
     
     st.markdown("## 💡 Insights Estratégicos")
@@ -243,7 +286,7 @@ def render_insights_estrategicos(produtos):
     if sazonais:
         with st.container(border=True):
             st.markdown("### 📅 Produtos Sazonais do Mês")
-            st.caption("Produtos em alta devido à temporada atual - Use esses temas nos seus vídeos")
+            st.caption("Produtos em alta devido à temporada atual")
             
             # Exibe em cards menores
             cols = st.columns(min(len(sazonais), 4))
@@ -252,29 +295,33 @@ def render_insights_estrategicos(produtos):
                     produto = item.get("produto", "").capitalize()
                     motivo = item.get("motivo", "")
                     
+                    # Indicadores de horário para sazonais
+                    indicadores = obter_indicadores_horario(produto)
+                    
                     with st.container(border=True):
                         st.markdown(f"**{produto}**")
-                        st.caption(f"💡 {motivo[:80]}...")
+                        st.caption(f"💡 {motivo[:60]}...")
                         
-                        # Gera hashtags e palavras-chave
+                        # Indicador de horário
+                        if indicadores:
+                            st.caption(f"🕐 Melhor horário: {indicadores.get('melhor_horario', '19h-22h')} ({indicadores.get('porcentagem', 70)}% de busca)")
+                        
+                        # Palavra-chave e hashtags
                         dados_palavra = obter_palavra_chave(produto)
                         palavra_chave = dados_palavra.get("palavra", f"{produto} tendência 2026")
-                        hashtags = dados_palavra.get("hashtags", ["#tendência", "#moda", "#2026"])[:3]
+                        hashtags = dados_palavra.get("hashtags", ["#tendência", "#moda", "#2026"])[:2]
                         
                         st.markdown(f"""
-                        <div style="background: #f8f9fa; padding: 4px 8px; border-radius: 6px; margin: 4px 0; font-size: 11px; color: #333;">
+                        <div style="background: #f8f9fa; padding: 3px 6px; border-radius: 4px; margin: 3px 0; font-size: 10px; color: #333;">
                             🔑 {palavra_chave}
                         </div>
-                        <div style="margin: 2px 0; font-size: 11px;">
-                            {' '.join([f'<span style="background: #e0e0e0; padding: 2px 8px; border-radius: 12px; margin: 2px;">{h}</span>' for h in hashtags])}
+                        <div style="margin: 2px 0; font-size: 10px;">
+                            {' '.join([f'<span style="background: #e0e0e0; padding: 1px 6px; border-radius: 10px; margin: 1px;">{h}</span>' for h in hashtags])}
                         </div>
                         """, unsafe_allow_html=True)
-                        
-                        # Dica de conteúdo
-                        st.caption(f"💡 Dica: Crie um vídeo sobre '{produto}' para aproveitar a tendência!")
     
     # ============================================================
-    # TOP 3 PRODUTOS DO MÊS - COM CONTEÚDO PARA CRIADOR
+    # TOP 3 PRODUTOS DO MÊS - UNIFICADO
     # ============================================================
     st.markdown("---")
     st.markdown("### 🏆 Top 3 Produtos do Mês")
@@ -289,6 +336,9 @@ def render_insights_estrategicos(produtos):
                 produto_nome = item.get("Produto", "")
                 emojis = ["🥇", "🥈", "🥉"]
                 
+                # Indicadores de horário para o top produto
+                indicadores = obter_indicadores_horario(produto_nome)
+                
                 with st.container(border=True):
                     st.markdown(f"**{emojis[i]} {produto_nome}**")
                     
@@ -301,49 +351,41 @@ def render_insights_estrategicos(produtos):
                         st.caption(f"👁️ {item.get('Views TikTok', '0M')}")
                         st.caption(f"📌 {item.get('Pins', '0')}")
                     
-                    # Palavra-chave principal
+                    # Indicador de horário
+                    if indicadores:
+                        st.markdown(f"""
+                        <div style="background: #f0f0f0; padding: 4px 8px; border-radius: 6px; margin: 4px 0; font-size: 11px; color: #333; text-align: center;">
+                            {indicadores.get('emoji', '🕐')} Melhor horário: <strong>{indicadores.get('melhor_horario', '19h-22h')}</strong>
+                            <br><small>{indicadores.get('label', '')}</small>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    # Palavra-chave
                     produto_lower = produto_nome.lower()
                     dados_palavra = obter_palavra_chave(produto_lower)
                     palavra_chave = dados_palavra.get("palavra", f"{produto_lower} tendência 2026")
                     hashtags = dados_palavra.get("hashtags", ["#tendência", "#moda", "#2026"])
                     
                     st.markdown(f"""
-                    <div style="background: #f8f9fa; padding: 6px 10px; border-radius: 6px; margin: 6px 0;">
-                        <div style="font-size: 12px; color: #333;">
-                            🔑 <strong>Palavra-chave:</strong> {palavra_chave}
-                        </div>
-                        <div style="margin-top: 4px; font-size: 11px;">
-                            {' '.join([f'<span style="background: #e0e0e0; padding: 2px 10px; border-radius: 12px; margin: 2px;">{h}</span>' for h in hashtags[:4]])}
-                        </div>
+                    <div style="background: #f8f9fa; padding: 4px 8px; border-radius: 6px; margin: 4px 0; font-size: 11px; color: #333;">
+                        🔑 {palavra_chave}
+                    </div>
+                    <div style="margin: 2px 0; font-size: 10px;">
+                        {' '.join([f'<span style="background: #e0e0e0; padding: 1px 8px; border-radius: 10px; margin: 1px;">{h}</span>' for h in hashtags[:3]])}
                     </div>
                     """, unsafe_allow_html=True)
                     
                     # Dica de conteúdo
                     dicas_conteudo = [
-                        f"🎬 Crie um review completo do {produto_nome} mostrando prós e contras",
-                        f"📱 Faça um unboxing do {produto_nome} para engajar seus seguidores",
-                        f"🔄 Compare o {produto_nome} com outros produtos do mercado",
-                        f"💡 Mostre 3 formas diferentes de usar o {produto_nome}",
-                        f"📊 Faça um antes e depois usando o {produto_nome}"
+                        f"🎬 Crie um review completo do {produto_nome}",
+                        f"📱 Faça um unboxing do {produto_nome}",
+                        f"🔄 Compare o {produto_nome} com outros produtos",
+                        f"💡 Mostre 3 formas diferentes de usar o {produto_nome}"
                     ]
                     
                     st.markdown(f"""
-                    <div style="background: #e8f5e9; padding: 6px 10px; border-radius: 6px; margin: 6px 0; font-size: 12px; color: #2e7d32;">
-                        💡 <strong>Dica de conteúdo:</strong> {dicas_conteudo[i % len(dicas_conteudo)]}
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                    # Ângulo de gravação
-                    angulos = [
-                        "📷 Grave com luz natural em um ambiente clean",
-                        "🎥 Use um microfone de lapela para melhor áudio",
-                        "📱 Grave na vertical para TikTok e Reels",
-                        "🎬 Comece com um gancho forte nos primeiros 3 segundos"
-                    ]
-                    
-                    st.markdown(f"""
-                    <div style="background: #e3f2fd; padding: 6px 10px; border-radius: 6px; margin: 6px 0; font-size: 12px; color: #0d47a1;">
-                        🎯 <strong>Ângulo de gravação:</strong> {angulos[i % len(angulos)]}
+                    <div style="background: #e8f5e9; padding: 4px 8px; border-radius: 6px; margin: 4px 0; font-size: 11px; color: #2e7d32;">
+                        💡 {dicas_conteudo[i % len(dicas_conteudo)]}
                     </div>
                     """, unsafe_allow_html=True)
     
@@ -367,7 +409,6 @@ def render_insights_estrategicos(produtos):
             - ✅ Receitas fitness
             """)
             
-            # Palavras-chave Pinterest
             st.markdown("**🔑 Palavras-chave:**")
             st.markdown("`look inverno`, `organização casa`, `decoração natal`, `receitas saudáveis`")
     
@@ -382,7 +423,6 @@ def render_insights_estrategicos(produtos):
             - ✅ "Brinquedos educativos 2 anos"
             """)
             
-            # Hashtags Google
             st.markdown("**🏷️ Hashtags em alta:**")
             st.markdown("#smartwatch2026 #modainverno #presentes #brinquedoseducativos")
 
@@ -421,29 +461,17 @@ def render_dashboard():
     produtos_top = gerar_top10_produtos(forcar_atualizacao=False)
     
     if produtos_top:
-        # ============================================================
-        # PRODUTO EM ALTA (Top 1)
-        # ============================================================
         top1 = produtos_top[0] if produtos_top else None
         
-        # ============================================================
-        # MÉDIAS
-        # ============================================================
         scores = [p.get("Score", 0) for p in produtos_top]
         crescimentos = [float(p.get("Crescimento", "+0%").replace("+", "").replace("%", "")) for p in produtos_top]
         
         score_medio = sum(scores) / len(scores) if scores else 0
         crescimento_medio = sum(crescimentos) / len(crescimentos) if crescimentos else 0
         
-        # ============================================================
-        # CATEGORIA MAIS FREQUENTE
-        # ============================================================
         categorias = [p.get("Categoria", "Geral") for p in produtos_top]
         categoria_mais_freq = max(set(categorias), key=categorias.count) if categorias else "Geral"
         
-        # ============================================================
-        # MELHOR EVENTO
-        # ============================================================
         eventos = [p.get("Evento", "Tendência") for p in produtos_top]
         evento_mais_freq = max(set(eventos), key=eventos.count) if eventos else "Tendência"
         
@@ -451,7 +479,6 @@ def render_dashboard():
         
         with col1:
             with st.container(border=True):
-                # Mensagem dinâmica baseada no top 1
                 if top1:
                     st.markdown(f"""
                     **🔥 {top1.get('Produto', 'Produto')} em alta!** 
@@ -461,7 +488,6 @@ def render_dashboard():
                 else:
                     st.markdown("**📊 Análise de mercado em tempo real**")
                 
-                # Métricas dinâmicas
                 m1, m2, m3 = st.columns(3)
                 with m1:
                     st.metric(
@@ -486,14 +512,24 @@ def render_dashboard():
             with st.container(border=True):
                 st.markdown("### 🎯 Melhor Oportunidade")
                 
-                # Produto com melhor score
                 melhor_score = max(produtos_top, key=lambda x: x.get("Score", 0)) if produtos_top else None
                 
                 if melhor_score:
-                    st.markdown(f"**{melhor_score.get('Produto', 'N/A')}**")
+                    produto_nome = melhor_score.get('Produto', 'N/A')
+                    
+                    # Indicadores de horário
+                    indicadores = obter_indicadores_horario(produto_nome)
+                    
+                    st.markdown(f"**{produto_nome}**")
                     st.caption(f"Score: {melhor_score.get('Score', 0)}/10")
                     
-                    # Barra de potencial
+                    if indicadores:
+                        st.markdown(f"""
+                        <div style="background: #f0f0f0; padding: 4px 8px; border-radius: 6px; margin: 4px 0; font-size: 11px; color: #333; text-align: center;">
+                            {indicadores.get('emoji', '🕐')} Melhor horário: <strong>{indicadores.get('melhor_horario', '19h-22h')}</strong>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
                     potencial = melhor_score.get("Score", 0) * 10
                     cor = "green" if potencial >= 70 else "orange" if potencial >= 40 else "red"
                     
@@ -519,7 +555,6 @@ def render_dashboard():
                     st.info("📊 Aguardando dados...")
     
     else:
-        # Fallback quando não há dados
         col1, col2 = st.columns([2, 1])
         
         with col1:
@@ -564,7 +599,6 @@ def render_dashboard():
         for item in produtos:
             produto = item.get("Produto", "").lower()
             
-            # USA A FUNÇÃO MELHORADA PARA PALAVRA-CHAVE
             dados_palavra = obter_palavra_chave(produto)
             palavra_chave = dados_palavra.get("palavra", f"{produto} tendência 2026")
             
@@ -585,7 +619,6 @@ def render_dashboard():
         
         df = pd.DataFrame(dados_tabela)
         
-        # Usa st.dataframe para melhor formatação
         st.dataframe(
             df,
             use_container_width=True,
@@ -633,7 +666,7 @@ def render_dashboard():
     
     st.markdown("---")
     
-    # ===== APOIADORES COMPACTOS (ABAIXO DOS INSIGHTS) =====
+    # ===== APOIADORES COMPACTOS =====
     render_apoiadores_compactos()
     
     st.markdown("---")
@@ -678,17 +711,14 @@ def render_painel_apoiadores_detalhado():
         st.info("📭 Nenhum apoiador cadastrado ainda.")
         return
     
-    # Ordena por ordem de entrada
     apoiadores_ordenados = sorted(apoiadores.values(), key=lambda x: x.get("ordem", 999))
     
-    # Cores para os cards
     cores = [
         "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", 
         "#FFEAA7", "#DDA0DD", "#FF8A5C", "#A29BFE",
         "#FD79A8", "#00B894", "#E17055", "#6C5CE7"
     ]
     
-    # Exibe os apoiadores em cards (4 por linha)
     cols = st.columns(4)
     
     for i, apoiador in enumerate(apoiadores_ordenados):
@@ -700,7 +730,6 @@ def render_painel_apoiadores_detalhado():
             data_entrada = apoiador.get("data_entrada", "2026-07-01")
             plano = apoiador.get("plano", "Apoiador")
             
-            # Chave para remoção
             chave_apoiador = None
             for k, v in carregar_apoiadores().items():
                 if v.get("nome") == nome and v.get("ordem") == ordem:
@@ -708,7 +737,6 @@ def render_painel_apoiadores_detalhado():
                     break
             
             with st.container(border=True):
-                # Cabeçalho com cor
                 st.markdown(f"""
                 <div style="
                     background: {cor};
@@ -727,7 +755,6 @@ def render_painel_apoiadores_detalhado():
                 st.markdown(f"**📅 Entrada:** {data_entrada}")
                 st.markdown(f"**📌 Plano:** {plano}")
                 
-                # Verifica repasse
                 depois = sum(1 for k, d in apoiadores.items() if d.get("ordem", 999) > ordem)
                 
                 if depois > 0 and apoiador.get("repasse_ativo", True):
@@ -735,7 +762,6 @@ def render_painel_apoiadores_detalhado():
                 else:
                     st.info("⏳ Aguardando novos apoiadores")
                 
-                # Botão Remover (apenas admin)
                 if st.session_state.get("is_admin", False) and chave_apoiador:
                     if st.button(f"🗑️ Remover", key=f"remove_card_{chave_apoiador}"):
                         if remover_apoiador(chave_apoiador):
@@ -750,7 +776,6 @@ def render_painel_apoiadores_detalhado():
     
     st.markdown("---")
     
-    # ===== ADICIONAR APOIADOR (APENAS ADMIN) =====
     if st.session_state.get("is_admin", False):
         with st.expander("➕ Adicionar Apoiador", expanded=False):
             st.markdown("### Adicionar Novo Apoiador")
@@ -773,7 +798,6 @@ def render_painel_apoiadores_detalhado():
     
     st.markdown("---")
     
-    # ===== REMOVER APOIADOR (APENAS ADMIN) =====
     if st.session_state.get("is_admin", False) and apoiadores_ordenados:
         st.markdown("### 🗑️ Remover Apoiador")
         
