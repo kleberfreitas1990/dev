@@ -1,3 +1,5 @@
+# modules/auth.py
+
 import streamlit as st
 import time
 import json
@@ -9,10 +11,10 @@ from datetime import datetime
 # ============================================================
 LICENCA_TRIAL = "TESTE-AFILIADO-2026"
 ADMIN_LICENCA = "ADMIN-2026-KLEBER"
-ARQUIVO_LICENCAS = "licencas.json"
+ARQUIVO_LICENCAS = "licencas.json"  # <-- NA RAIZ
 
 # ============================================================
-# CLASSE SISTEMA DE LICENÇAS (DIRETO NO AUTH)
+# CLASSE SISTEMA DE LICENÇAS
 # ============================================================
 class SistemaLicencas:
     def __init__(self):
