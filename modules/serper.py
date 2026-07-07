@@ -1,3 +1,5 @@
+# modules/serper.py
+
 import streamlit as st
 import requests
 import json
@@ -18,9 +20,9 @@ from modules.validation import (
 logger = logging.getLogger(__name__)
 
 # ============================================================
-# CONFIGURAÇÃO
+# ARQUIVO DE CACHE (NA RAIZ)
 # ============================================================
-ARQUIVO_SERPER_CACHE = "serper_cache.json"
+ARQUIVO_SERPER_CACHE = "serper_cache.json"  # <-- NA RAIZ
 
 # ============================================================
 # FUNÇÃO PARA BUSCAR PRODUTOS VIA SERPER.DEV
@@ -117,7 +119,7 @@ def buscar_produtos_serper(
         return []
 
 # ============================================================
-# FUNÇÕES DE CACHE
+# FUNÇÕES DE CACHE (NA RAIZ)
 # ============================================================
 def carregar_cache_serper() -> Dict:
     """Carrega o cache do Serper.dev com validação"""
