@@ -232,7 +232,7 @@ with tab6:
                 if not novo_usuario or not novo_email:
                     st.error("❌ Preencha nome e e-mail")
                 else:
-                    from modules.models import SistemaLicencas
+                    from modules.auth import SistemaLicencas
                     sistema = SistemaLicencas()
                     codigo = sistema.gerar_licenca(novo_usuario, novo_email, plano, is_apoiador)
                     st.success("✅ Licença gerada com sucesso!")
@@ -244,7 +244,7 @@ with tab6:
         st.markdown("---")
         st.markdown("### 📋 Licenças Ativas")
         
-        from modules.models import SistemaLicencas
+        from modules.auth import SistemaLicencas
         sistema = SistemaLicencas()
         licencas = sistema.dados["licencas"]
         
