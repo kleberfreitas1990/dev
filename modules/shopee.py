@@ -1,3 +1,5 @@
+# modules/shopee.py
+
 import streamlit as st
 import requests
 import re
@@ -23,9 +25,9 @@ from modules.validation import (
 logger = logging.getLogger(__name__)
 
 # ============================================================
-# ARQUIVO DE CACHE
+# ARQUIVO DE CACHE (NA RAIZ)
 # ============================================================
-ARQUIVO_SHOPEE_CACHE = "shopee_trends_cache.json"
+ARQUIVO_SHOPEE_CACHE = "shopee_trends_cache.json"  # <-- NA RAIZ
 
 # ============================================================
 # USER AGENTS ROTATIVOS
