@@ -6,8 +6,8 @@ from urllib.parse import quote
 # Importa do auth.py (SistemaLicencas está aqui)
 from modules.auth import SistemaLicencas
 from modules.models import (
-    # DADOS_COMPLETOS foi removido - não use mais
     PALAVRAS_CHAVE_CAUDA_LONGA,
+    obter_palavra_chave,
     gerar_top10_produtos,
     gerar_sugestoes_diarias,
     BUSCAS_DIARIAS,
@@ -198,7 +198,9 @@ def render_dashboard():
         dados_tabela = []
         for item in produtos:
             produto = item.get("Produto", "").lower()
-            dados_palavra = PALAVRAS_CHAVE_CAUDA_LONGA.get(produto, {})
+            
+            # USA A FUNÇÃO MELHORADA PARA PALAVRA-CHAVE
+            dados_palavra = obter_palavra_chave(produto)
             palavra_chave = dados_palavra.get("palavra", f"{produto} tendência 2026")
             
             dados_tabela.append({
@@ -259,9 +261,11 @@ def render_dashboard():
         
         for i, item in enumerate(top3):
             with cols[i]:
-                produto = item.get("Produto", "").lower()
-                dados_palavra = PALAVRAS_CHAVE_CAUDA_LONGA.get(produto, {})
-                palavra_chave = dados_palavra.get("palavra", f"{produto} tendência 2026")
+                produto_nome = item.get("Produto", "").lower()
+                
+                # USA A FUNÇÃO MELHORADA PARA PALAVRA-CHAVE
+                dados_palavra = obter_palavra_chave(produto_nome)
+                palavra_chave = dados_palavra.get("palavra", f"{produto_nome} tendência 2026")
                 hashtags = dados_palavra.get("hashtags", ["#tendência", "#moda", "#2026"])
                 
                 with st.container(border=True):
