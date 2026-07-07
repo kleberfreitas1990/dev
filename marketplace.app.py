@@ -254,7 +254,11 @@ with tab6:
         ])
         
         st.dataframe(df_licencas, use_container_width=True, hide_index=True)
-
+with st.expander("🧪 Teste Shopee", expanded=True):
+    from modules.shopee import capturar_buscas_shopee_com_cache
+    buscas = capturar_buscas_shopee_com_cache()
+    st.write(f"**{len(buscas)} termos encontrados:**")
+    st.write(buscas)
 # ============================================================
 # RODAPE
 # ============================================================
