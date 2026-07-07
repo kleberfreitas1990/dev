@@ -1,14 +1,12 @@
-# modules/views.py - CORRIGIR AS IMPORTAÇÕES
-
 import streamlit as st
 import pandas as pd
 from datetime import datetime
 from urllib.parse import quote
 
-# CORRIGIDO: Importa do auth.py em vez de models.py
-from modules.auth import SistemaLicencas  # <-- ADICIONAR ESTA LINHA
+# Importa do auth.py (SistemaLicencas está aqui)
+from modules.auth import SistemaLicencas
 from modules.models import (
-    DADOS_COMPLETOS,  # VAI SER SUBSTITUÍDO POR DADOS DINÂMICOS
+    # DADOS_COMPLETOS foi removido - não use mais
     PALAVRAS_CHAVE_CAUDA_LONGA,
     gerar_top10_produtos,
     gerar_sugestoes_diarias,
@@ -193,7 +191,7 @@ def render_dashboard():
     st.markdown("## 🎯 Sugestões de Produtos para Hoje")
     st.caption(f"📊 Top 3 do dia | {BUSCAS_DIARIAS} buscas realizadas")
     
-    # Usa forcar_atualizacao=True para sempre buscar novos dados
+    # FORÇA ATUALIZAÇÃO para buscar dados novos
     produtos = gerar_sugestoes_diarias(forcar_atualizacao=True)
     
     if produtos:
@@ -240,14 +238,15 @@ def render_dashboard():
         st.caption("Ranking completo baseado em score e dados de mercado")
         
         top10 = gerar_top10_produtos(forcar_atualizacao=True)
-        df_top10 = pd.DataFrame(top10)
-        colunas_top10 = ["Produto", "Categoria", "Evento", "Potencial", "Score", "Pins", "Crescimento", "Views TikTok", "Buscas no Mês", "Resultados ML", "Variação", "Tendência"]
-        df_top10 = df_top10[colunas_top10]
-        
-        st.markdown(
-            df_top10.to_html(escape=False, index=False),
-            unsafe_allow_html=True
-        )
+        if top10:
+            df_top10 = pd.DataFrame(top10)
+            colunas_top10 = ["Produto", "Categoria", "Evento", "Potencial", "Score", "Pins", "Crescimento", "Views TikTok", "Buscas no Mês", "Resultados ML", "Variação", "Tendência"]
+            df_top10 = df_top10[colunas_top10]
+            
+            st.markdown(
+                df_top10.to_html(escape=False, index=False),
+                unsafe_allow_html=True
+            )
     
     st.markdown("---")
     
@@ -390,7 +389,6 @@ def render_painel_apoiadores_detalhado():
                 # Botão Remover (apenas admin)
                 if st.session_state.get("is_admin", False) and chave_apoiador:
                     if st.button(f"🗑️ Remover", key=f"remove_card_{chave_apoiador}"):
-                        # CORRIGIDO: Usa auth.SistemaLicencas
                         if remover_apoiador(chave_apoiador):
                             sistema = SistemaLicencas()
                             for codigo, dados in sistema.dados["licencas"].items():
@@ -450,7 +448,6 @@ def render_painel_apoiadores_detalhado():
                             break
                     
                     if chave_remover:
-                        # CORRIGIDO: Usa auth.SistemaLicencas
                         if remover_apoiador(chave_remover):
                             sistema = SistemaLicencas()
                             for codigo, dados in sistema.dados["licencas"].items():
