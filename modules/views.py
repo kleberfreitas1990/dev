@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 from urllib.parse import quote
+import random
 
 from modules.models import (
     DADOS_COMPLETOS,
@@ -13,6 +14,7 @@ from modules.models import (
     adicionar_apoiador,
     remover_apoiador
 )
+from modules.shopee import capturar_buscas_shopee_com_cache
 
 # Tenta importar serper, se falhar usa fallback
 try:
@@ -185,9 +187,29 @@ def render_dashboard():
     
     st.markdown("---")
     
+    # ===== MOSTRAR TENDÊNCIAS DA SHOPEE =====
+    st.markdown("## 🛍️ Tendências da Shopee")
+    st.caption("Termos mais buscados no momento")
+    
+    buscas_shopee = capturar_buscas_shopee_com_cache()
+    
+    if buscas_shopee:
+        cols = st.columns(5)
+        for i, termo in enumerate(buscas_shopee[:10]):
+            with cols[i % 5]:
+                with st.container(border=True):
+                    st.markdown(f"**{i+1}.** {termo}")
+                    st.caption(f"🔍 Busca em alta")
+                    link = f"https://shopee.com.br/search?keyword={quote(termo)}"
+                    st.markdown(f'<a href="{link}" target="_blank"><span style="background-color: #f0f0f0; color: #333; padding: 2px 10px; border-radius: 12px; font-size: 11px; border: 1px solid #ddd;">🔍 Buscar</span></a>', unsafe_allow_html=True)
+    else:
+        st.info("📭 Nenhuma tendência encontrada no momento.")
+    
+    st.markdown("---")
+    
     # ===== TABELA DE PRODUTOS DO DIA =====
     st.markdown("## 🎯 Sugestões de Produtos para Hoje")
-    st.caption(f"📊 Top 3 do dia | {BUSCAS_DIARIAS} buscas realizadas")
+    st.caption(f"📊 Top 3 do dia | Fontes: Shopee + Pinterest + Google Shopping | {BUSCAS_DIARIAS} buscas realizadas")
     
     produtos = gerar_sugestoes_diarias()
     
@@ -280,7 +302,7 @@ def render_dashboard():
     
     st.markdown("---")
     
-    # ===== APOIADORES COMPACTOS (ABAIXO DOS INSIGHTS) =====
+    # ===== APOIADORES COMPACTOS =====
     render_apoiadores_compactos()
     
     st.markdown("---")
