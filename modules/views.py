@@ -81,7 +81,7 @@ def render_grade_descoberta():
         produto = item.get("produto", "").capitalize()
         score = item.get("score", 0)
         categoria = item.get("categoria", "Geral").capitalize()
-        motivo = item.get("motivo", "📊 Produto em tendência no mercado")
+        motivo = item.get("motivo", "📊 Produto em tendência no mercado atual")
         
         status = "🔥 Alta" if score >= 8 else "📈 Média" if score >= 6 else "📊 Baixa"
         
@@ -213,17 +213,17 @@ def render_dashboard():
     st.markdown("## 📊 Visão Geral do Mês")
     
     # Obtém produtos (pode ser dict ou list)
-    produtos_raw = gerar_top10_produtos(forcar_atualizacao=True)
+    produtos_dict = gerar_top10_produtos(forcar_atualizacao=True)
     
     # Padroniza para lista
     produtos_lista = []
-    if isinstance(produtos_raw, dict):
-        for termo, dados in produtos_raw.items():
+    if isinstance(produtos_dict, dict):
+        for termo, dados in produtos_dict.items():
             item = dados.copy()
             item["_termo"] = termo
             produtos_lista.append(item)
-    elif isinstance(produtos_raw, list):
-        produtos_lista = produtos_raw
+    elif isinstance(produtos_dict, list):
+        produtos_lista = produtos_raw = produtos_dict
     
     if produtos_lista:
         top1 = produtos_lista[0]
@@ -255,6 +255,8 @@ def render_dashboard():
 
         st.markdown("---")
         render_insights_estrategicos(produtos_lista)
+        st.markdown("---")
+        render_grade_descoberta()
     else:
         st.info("📭 Nenhum dado disponível no momento.")
 
@@ -266,4 +268,4 @@ def render_painel_apoiadores_detalhado():
     st.markdown("### 💡 Como se tornar um apoiador?")
     st.write("Apoiadores ajudam a manter o projeto ativo e recebem benefícios exclusivos.")
 
-__all__ = ['render_dashboard', 'render_status_usuario', 'render_painel_apoiadores_detalhado']
+__all__ = ['render_dashboard', 'render_status_usuario', 'render_painel_apoiadores_detalhado', 'render_grade_descoberta']
