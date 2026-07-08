@@ -101,21 +101,14 @@ def resetar_contador_serper() -> bool:
         logger.error(f"Erro ao resetar contador: {e}")
         return False
 
-# ============================================================
-# FUNÇÃO PARA OBTER CHAVE DA API
-# ============================================================
 def obter_chave_serper() -> str:
-    """
-    Obtém a chave da API Serper dos secrets
-    """
+    """Obtém a chave da API Serper dos secrets"""
     try:
-        # Tenta diferentes formas de acessar
         if hasattr(st, 'secrets'):
             chave = st.secrets.get("SERPER_API_KEY", "")
             if chave:
                 return chave
         
-        # Fallback: tenta variável de ambiente
         import os
         chave = os.environ.get("SERPER_API_KEY", "")
         if chave:
@@ -130,7 +123,7 @@ def obter_chave_serper() -> str:
 # ============================================================
 # FUNÇÃO PRINCIPAL DE BUSCA
 # ============================================================
-def buscar_produtos_serper(termo: str, limite: int = 5, usar_cache: bool = True) -> List[Dict]:
+def buscar_produtos_serper(termo: str, limite: int = 5, usar_cache: bool = False) -> List[Dict]:
     """Busca produtos no Google Shopping via Serper.dev com LIMITE DIÁRIO"""
     
     inicio = time.time()
@@ -138,7 +131,7 @@ def buscar_produtos_serper(termo: str, limite: int = 5, usar_cache: bool = True)
     if not termo or len(termo) < 2:
         return []
     
-    # 1. VERIFICA CACHE
+    # 1. VERIFICA CACHE (apenas se permitido)
     if usar_cache:
         cache = carregar_cache_serper()
         chave_cache = f"serper_{termo}_{limite}"
@@ -339,29 +332,3 @@ __all__ = [
     'LIMITE_DIARIO_SERPER',
     'obter_chave_serper'
 ]
-def capturar_buscas_shopee_com_selenium_fallback() -> List[str]:
-    """
-    Tenta capturar buscas usando Selenium (fallback)
-    """
-    try:
-        from modules.selenium_scraper import capturar_buscas_shopee_selenium, SELENIUM_DISPONIVEL
-        
-        if not SELENIUM_DISPONIVEL:
-            logger.warning("Selenium não disponível")
-            return []
-        
-        logger.info("🌐 Tentando capturar com Selenium...")
-        termos = capturar_buscas_shopee_selenium()
-        
-        if termos:
-            logger.info(f"✅ Selenium capturou {len(termos)} termos")
-            return termos
-        
-        return []
-        
-    except ImportError:
-        logger.warning("⚠️ Selenium não instalado. Use: pip install selenium webdriver-manager")
-        return []
-    except Exception as e:
-        logger.error(f"❌ Erro no Selenium: {e}")
-        return []
