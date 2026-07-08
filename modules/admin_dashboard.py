@@ -10,8 +10,8 @@ from typing import Dict, List
 
 from modules.logger import carregar_logs, obter_estatisticas_logs, limpar_logs
 from modules.shopee import obter_stats_cache_shopee
-from modules.serper import obter_stats_cache_serper, obter_stats_serper
-from modules.produtos_dinamicos import carregar_cache_produtos
+from modules.serper import obter_stats_cache_serper, obter_stats_serper, resetar_contador_serper
+from modules.produtos_dinamicos import carregar_cache_produtos, limpar_cache_produtos
 
 
 def verificar_status_buscas() -> Dict:
@@ -304,7 +304,6 @@ def render_admin_resumo():
     st.markdown("### 📊 Status da API Serper")
     st.caption("Monitoramento do limite diário de requisições")
     
-    from modules.serper import obter_stats_serper
     stats_serper = obter_stats_serper()
     
     col1, col2, col3, col4 = st.columns(4)
@@ -361,7 +360,7 @@ def render_admin_resumo():
         st.metric("📈 Taxa", stats_logs["taxa_sucesso"])
     
     # ============================================================
-    # BOTÕES DE AÇÃO - UNIFICADOS (SEM DUPLICAÇÃO)
+    # BOTÕES DE AÇÃO - COM LIMPEZA FORÇADA
     # ============================================================
     st.markdown("---")
     st.markdown("### ⚙️ Ações Rápidas")
@@ -373,9 +372,22 @@ def render_admin_resumo():
             with st.spinner("⏳ Atualizando dados..."):
                 try:
                     from modules.models import gerar_top10_produtos
-                    from modules.serper import resetar_contador_serper
+                    from modules.produtos_dinamicos import limpar_cache_produtos
+                    from modules.shopee import limpar_cache_shopee
+                    from modules.serper import limpar_cache_serper
                     
+                    # 1. Limpa TODOS os caches
+                    st.info("🧹 Limpando caches...")
+                    limpar_cache_produtos()
+                    limpar_cache_shopee()
+                    limpar_cache_serper()
+                    
+                    # 2. Reseta o contador
+                    st.info("🔄 Resetando contador...")
                     resetar_contador_serper()
+                    
+                    # 3. Força atualização
+                    st.info("🔍 Buscando novos dados...")
                     produtos = gerar_top10_produtos(forcar_atualizacao=True)
                     
                     st.success(f"✅ Atualização concluída! {len(produtos)} produtos carregados.")
@@ -402,7 +414,6 @@ def render_admin_resumo():
     with col3:
         if st.button("🔄 Resetar Contador Serper", use_container_width=True, key="btn_resetar_contador"):
             try:
-                from modules.serper import resetar_contador_serper
                 if resetar_contador_serper():
                     st.success("✅ Contador Serper resetado!")
                     st.rerun()
@@ -412,7 +423,7 @@ def render_admin_resumo():
                 st.error(f"❌ Erro: {str(e)}")
     
     # ============================================================
-    # LOGS COMPLETOS (COM BOTÃO LIMPAR LOGS AQUI - ÚNICO)
+    # LOGS COMPLETOS
     # ============================================================
     st.markdown("---")
     st.markdown("### 📋 Logs Completos")
@@ -433,7 +444,6 @@ def render_admin_resumo():
             hide_index=True
         )
         
-        # Botão Limpar Logs - ÚNICO (aqui)
         if st.button("🧹 Limpar Logs", use_container_width=True, key="btn_limpar_logs"):
             try:
                 if limpar_logs():
