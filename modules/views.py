@@ -4,20 +4,23 @@ import random
 from datetime import datetime
 from urllib.parse import quote
 import json
+import os
 
 # Importa do auth.py
 from modules.auth import SistemaLicencas
 from modules.models import (
     obter_palavra_chave,
     gerar_top10_produtos,
-    carregar_apoiadores
+    carregar_apoiadores,
+    adicionar_apoiador,
+    remover_apoiador
 )
 
 # Importa para verificar data do cache
 from modules.produtos_dinamicos import carregar_cache_produtos, obter_melhor_horario_postagem
 
 # ============================================================
-# APOIADORES EM CARDS PEQUENOS (RESTAURADO)
+# APOIADORES EM CARDS PEQUENOS
 # ============================================================
 def render_apoiadores_compactos():
     """Renderiza os apoiadores em cards pequenos com coroa centralizada"""
@@ -29,17 +32,33 @@ def render_apoiadores_compactos():
     apoiadores_ordenados = sorted(apoiadores.values(), key=lambda x: x.get("ordem", 999))
     cores = ["#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7", "#DDA0DD", "#FF8A5C", "#A29BFE"]
     
-    cols = st.columns(6)
+    cols = st.columns(4)
     for i, apoiador in enumerate(apoiadores_ordenados):
-        with cols[i % 6]:
+        with cols[i % 4]:
             cor = cores[i % len(cores)]
             nome = apoiador.get("nome", "Apoiador")
+            ordem = apoiador.get("ordem", 999)
             coroinha = apoiador.get("coroinha", "👑")
+            data_entrada = apoiador.get("data_entrada", "2026-07-01")
+            plano = apoiador.get("plano", "Apoiador")
             
             with st.container(border=True):
-                st.markdown(f'<div style="text-align: center; font-size: 24px;">{coroinha}</div>', unsafe_allow_html=True)
-                st.markdown(f'<div style="text-align: center; font-weight: bold; font-size: 12px;">{nome}</div>', unsafe_allow_html=True)
-                st.markdown(f'<div style="background: {cor}; height: 3px; border-radius: 2px; margin-top: 4px;"></div>', unsafe_allow_html=True)
+                st.markdown(f"""
+                <div style="
+                    background: {cor};
+                    color: white;
+                    padding: 8px 12px;
+                    border-radius: 8px 8px 0 0;
+                    margin: -12px -12px 10px -12px;
+                    text-align: center;
+                    font-weight: bold;
+                ">
+                    {coroinha} {nome}
+                </div>
+                """, unsafe_allow_html=True)
+                st.markdown(f"**📋 Ordem:** #{ordem}")
+                st.markdown(f"**📅 Entrada:** {data_entrada}")
+                st.markdown(f"**📌 Plano:** {plano}")
 
 # ============================================================
 # STATUS DO USUÁRIO
@@ -103,7 +122,6 @@ def render_insights_estrategicos(produtos_lista):
 # ============================================================
 def render_dashboard():
     """Renderiza o dashboard principal restaurado"""
-    # Apoiadores no TOPO
     render_apoiadores_compactos()
     st.markdown("---")
     
