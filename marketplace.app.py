@@ -7,6 +7,7 @@ import time
 import logging
 import sys
 import os
+import json
 
 # ============================================================
 # CONFIGURAÇÃO DE LOGGING
@@ -168,21 +169,29 @@ with tab2:
                 except Exception as e:
                     st.error(f"❌ Erro: {str(e)}")
     
-    produtos_dinamicos = gerar_top10_produtos(forcar_atualizacao=True)
+    produtos = gerar_top10_produtos(forcar_atualizacao=True)
     
-    if produtos_dinamicos:
+    if produtos:
         dados_tabela = []
-        for termo, item in produtos_dinamicos.items():
-            # As chaves aqui devem corresponder às chaves geradas em produtos_dinamicos.py
+        for item in produtos:
+            produto = item.get("Produto", "").lower()
+            
+            dados_palavra = obter_palavra_chave(produto)
+            palavra_chave = dados_palavra.get("palavra", f"{produto} tendência 2026")
+            
             dados_tabela.append({
-                "Produto": item.get("Produto", termo),
-                "Preço Médio": item.get("Preco_Medio", "N/A"),
-                "Lojas Disponíveis": item.get("Lojas_Disponiveis", 0),
-                "Buscas Estimadas/Mês": item.get("Buscas_Estimadas_Mes", 0),
+                "Produto": item.get("Produto", ""),
+                "🔑 Palavra-chave": palavra_chave,
                 "Categoria": item.get("Categoria", "Geral"),
-                "Tendência": item.get("Tendencia", "➡️ Estável"),
+                "Evento": item.get("Evento", "Tendência"),
+                "Potencial": item.get("Potencial", "🟡 Médio"),
                 "Score": item.get("Score", 0),
-                "Fonte": item.get("fonte", "Desconhecida")
+                "Pins": item.get("Pins", "0"),
+                "Crescimento": item.get("Crescimento", "+0%"),
+                "Views TikTok": item.get("Views TikTok", "0M"),
+                "Buscas no Mês": item.get("Buscas no Mês", "0"),
+                "Resultados ML": item.get("Resultados ML", "0"),
+                "Tendência": item.get("Tendência", "➡️ Estável")
             })
         
         df = pd.DataFrame(dados_tabela)
@@ -191,17 +200,7 @@ with tab2:
             lambda x: f'<a href="https://shopee.com.br/search?keyword={quote(x)}" target="_blank" style="text-decoration: none;"><span style="background-color: #f0f0f0; color: #333; padding: 2px 10px; border-radius: 12px; font-size: 12px; border: 1px solid #ddd;">🔍 Buscar</span></a>'
         )
         
-        colunas = [
-            "Produto", 
-            "Preço Médio", 
-            "Lojas Disponíveis", 
-            "Buscas Estimadas/Mês", 
-            "Categoria", 
-            "Tendência", 
-            "Score", 
-            "Fonte",
-            "Buscar na Shopee"
-        ]
+        colunas = ["Produto", "🔑 Palavra-chave", "Categoria", "Evento", "Potencial", "Score", "Pins", "Crescimento", "Views TikTok", "Buscas no Mês", "Resultados ML", "Tendência", "Buscar na Shopee"]
         df = df[colunas]
         
         st.markdown(
@@ -277,7 +276,6 @@ with tab4:
         st.markdown("#### ⚙️ Configurações Técnicas")
         resolucao = st.radio("Qualidade", ["480p", "720p", "1080p"], index=1)
         duracao = st.selectbox("Duração (segundos)", [4, 6, 8, 10], index=1)
-        estilo = st.selectbox("Estilo Visual", ["Realista", "Cinematográfico", "Animado", "Minimalista"])
         st.metric("🎫 Créditos restantes", "10 / 10")
         
         if st.button("🚀 Gerar Vídeo", type="primary", use_container_width=True):
@@ -355,23 +353,11 @@ with tab5:
                     
                     st.markdown("---")
                     st.markdown("## 📝 Títulos Sugeridos")
-                    st.caption("Sugestões de títulos otimizados para o seu vídeo")
                     st.json(conteudo.get("titulos", []))
                     
                     st.markdown("---")
                     st.markdown("## ✍️ Roteiro Detalhado")
-                    st.caption("Roteiro completo para a criação do seu vídeo")
                     st.markdown(conteudo.get("roteiro", ""))
-                    
-                    st.markdown("---")
-                    st.markdown("## 💡 Dicas de Gravação")
-                    st.caption("Sugestões para otimizar a gravação e performance")
-                    st.markdown(conteudo.get("dicas_gravacao", ""))
-                    
-                    st.markdown("---")
-                    st.markdown("## 📊 Análise de Concorrência")
-                    st.caption("Informações sobre o que seus concorrentes estão fazendo")
-                    st.markdown(conteudo.get("analise_concorrencia", ""))
                     
                 except Exception as e:
                     st.error(f"❌ Erro ao gerar conteúdo: {e}")
@@ -381,8 +367,6 @@ with tab5:
 # ============================================================
 with tab6:
     st.markdown("## 👑 Gerenciar Apoiadores")
-    st.caption("Adicione ou remova apoiadores do sistema")
-    
     if st.session_state.get("is_admin", False):
         st.markdown("### Adicionar Novo Apoiador")
         with st.form("form_novo_apoiador"):
@@ -395,8 +379,6 @@ with tab6:
                     adicionar_apoiador(nome_apoiador, email_apoiador, plano_apoiador)
                     st.success(f"✅ Apoiador {nome_apoiador} adicionado!")
                     st.rerun()
-                else:
-                    st.error("❌ Preencha todos os campos.")
         
         st.markdown("### Apoiadores Atuais")
         apoiadores_atuais = carregar_apoiadores()
@@ -409,8 +391,6 @@ with tab6:
                 remover_apoiador(apoiador_remover)
                 st.success(f"✅ Apoiador {apoiadores_atuais[apoiador_remover]['nome']} removido!")
                 st.rerun()
-        else:
-            st.info("Nenhum apoiador cadastrado.")
     else:
         st.warning("Apenas administradores podem gerenciar apoiadores.")
 
@@ -419,19 +399,10 @@ with tab6:
 # ============================================================
 with tab7:
     st.markdown("## 🔑 Gerenciar Licenças")
-    st.caption("Visualize e gerencie as licenças do sistema")
-    
     if st.session_state.get("is_admin", False):
         sistema_licencas = SistemaLicencas()
         licencas_df = pd.DataFrame(sistema_licencas.dados["licencas"]).T
         st.dataframe(licencas_df)
-        
-        st.markdown("### Apoiadores por Licença")
-        apoiadores_licencas = listar_apoiadores_por_licencas()
-        if apoiadores_licencas:
-            st.dataframe(pd.DataFrame(apoiadores_licencas))
-        else:
-            st.info("Nenhum apoiador vinculado a licenças.")
     else:
         st.warning("Apenas administradores podem gerenciar licenças.")
 
@@ -447,17 +418,13 @@ with tab8:
 # ============================================================
 with tab9:
     st.markdown("## 📊 Logs do Sistema")
-    st.caption("Visualize os logs de atividades e erros")
-    
     if st.session_state.get("is_admin", False):
         try:
             with open("logs.json", "r", encoding="utf-8") as f:
                 logs = json.load(f)
                 st.json(logs)
-        except FileNotFoundError:
+        except:
             st.info("Nenhum log encontrado.")
-        except Exception as e:
-            st.error(f"Erro ao carregar logs: {e}")
     else:
         st.warning("Apenas administradores podem visualizar os logs.")
 
@@ -466,40 +433,10 @@ with tab9:
 # ============================================================
 with tab10:
     st.markdown("## ⚙️ Painel Administrativo")
-    st.caption("Configurações e ferramentas para administradores")
-    
     if st.session_state.get("is_admin", False):
-        st.markdown("### Resetar Contadores Serper")
-        st.info("Use com cautela! Isso resetará o limite diário de requisições da Serper API.")
-        if st.button("Resetar Contador Serper"):
-            from modules.serper import resetar_contador_serper
-            if resetar_contador_serper():
-                st.success("✅ Contador Serper resetado com sucesso!")
-            else:
-                st.error("❌ Erro ao resetar contador Serper.")
-        
-        st.markdown("### Limpar Cache de Produtos")
-        st.info("Isso removerá o cache de produtos e forçará uma nova busca na próxima atualização.")
-        if st.button("Limpar Cache"):
-            from modules.produtos_dinamicos import limpar_cache_produtos
-            if limpar_cache_produtos():
-                st.success("✅ Cache de produtos limpo com sucesso!")
-            else:
-                st.error("❌ Erro ao limpar cache de produtos.")
-
-        st.markdown("### Limpar Cache da Shopee")
-        st.info("Isso removerá o cache de tendências da Shopee e forçará uma nova raspagem.")
-        if st.button("Limpar Cache Shopee"):
-            from modules.shopee import limpar_cache_shopee
-            if limpar_cache_shopee():
-                st.success("✅ Cache da Shopee limpo com sucesso!")
-            else:
-                st.error("❌ Erro ao limpar cache da Shopee.")
-
+        if st.button("Limpar Cache de Produtos"):
+            if os.path.exists("produtos_cache.json"):
+                os.remove("produtos_cache.json")
+                st.success("✅ Cache limpo!")
     else:
         st.warning("Apenas administradores podem acessar o painel administrativo.")
-
-
-# ============================================================
-# FUNÇÕES AUXILIARES (se necessário)
-# ============================================================
