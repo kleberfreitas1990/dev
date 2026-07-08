@@ -5,11 +5,12 @@ import random
 from datetime import datetime, timedelta
 from typing import List, Dict, Any
 
-from modules.shopee import capturar_buscas_shopee_com_cache
+from modules.shopee import capturar_buscas_shopee_com_cache, capturar_buscas_shopee_com_selenium_fallback
 from modules.serper import buscar_produtos_serper, obter_requisicoes_restantes, LIMITE_DIARIO_SERPER, resetar_contador_serper
 from modules.validation import validar_termo_busca, validar_produtos_serper
 from modules.grade_descoberta import descobrir_produtos_grade, enriquecer_produto
 from modules.logger import registrar_busca
+from modules.selenium_scraper import SELENIUM_DISPONIVEL, buscar_produtos_shopee_selenium
 
 logger = logging.getLogger(__name__)
 
@@ -55,34 +56,54 @@ PRODUTOS_FALLBACK = {
 }
 
 # ============================================================
-# FUNÇÃO PRINCIPAL - COM ATUALIZAÇÃO AUTOMÁTICA DIÁRIA
+# FUNÇÃO PRINCIPAL - PRIORIZA API E SELENIUM
 # ============================================================
 def obter_produtos_dinamicos(forcar_atualizacao: bool = True) -> Dict[str, Any]:
     """
     Obtém produtos com dados atualizados.
-    SEMPRE BUSCA DADOS NOVOS quando forcar_atualizacao=True.
+    PRIORIZA API Serper e Selenium, usa Grade apenas como último recurso.
     """
-    # SEMPRE busca novos dados quando forçado
     logger.info("🔄 Buscando dados atualizados...")
-    produtos = buscar_produtos_com_grade()
+    
+    # Tenta buscar com API + Selenium
+    produtos = buscar_produtos_com_grade_e_selenium()
+    
+    # Se falhou, usa fallback
+    if not produtos or len(produtos) < 3:
+        logger.warning("⚠️ Poucos produtos encontrados, usando fallback")
+        produtos = PRODUTOS_FALLBACK
     
     # Salva no cache
     salvar_cache_produtos(produtos)
     
     return produtos
 
-def buscar_produtos_com_grade(limite: int = 10) -> Dict[str, Any]:
+def buscar_produtos_com_grade_e_selenium(limite: int = 10) -> Dict[str, Any]:
     """
-    Busca produtos usando: Shopee → Serper → Grade de Descoberta
+    Busca produtos usando: Shopee (Selenium) → Serper → Grade de Descoberta
     """
     produtos = {}
+    termos = []
     
     # ============================================================
-    # 1. BUSCA TERMOS DA SHOPEE (FORÇA NOVA BUSCA)
+    # 1. BUSCA TERMOS DA SHOPEE (PRIORIZA SELENIUM)
     # ============================================================
     logger.info("📡 Buscando termos da Shopee...")
-    termos = capturar_buscas_shopee_com_cache(ignorar_cache=True)
     
+    # Tenta Selenium primeiro
+    if SELENIUM_DISPONIVEL:
+        logger.info("🔍 Tentando capturar com Selenium...")
+        termos_selenium = capturar_buscas_shopee_com_selenium_fallback()
+        if termos_selenium:
+            termos = termos_selenium
+            logger.info(f"✅ Selenium capturou {len(termos)} termos")
+    
+    # Se Selenium falhou, tenta raspagem normal
+    if not termos:
+        logger.info("📡 Tentando raspagem normal...")
+        termos = capturar_buscas_shopee_com_cache(ignorar_cache=True)
+    
+    # Se ainda não tem termos, usa fallback
     if not termos:
         logger.warning("Nenhum termo da Shopee encontrado")
         return usar_grade_descoberta(limite)
@@ -90,59 +111,78 @@ def buscar_produtos_com_grade(limite: int = 10) -> Dict[str, Any]:
     logger.info(f"Encontrados {len(termos)} termos da Shopee")
     
     # ============================================================
-    # 2. BUSCA NO SERPER (COM LIMITE DE 20 REQUISIÇÕES)
+    # 2. BUSCA NO SERPER (PRIORITÁRIO)
     # ============================================================
     restantes = obter_requisicoes_restantes()
     logger.info(f"📊 Requisições Serper restantes: {restantes}/{LIMITE_DIARIO_SERPER}")
     
-    # Usa apenas os termos que cabem no limite
-    termos_para_buscar = termos[:min(len(termos), restantes)]
+    # Usa os primeiros termos que cabem no limite
+    termos_para_buscar = termos[:min(len(termos), restantes, limite)]
     
-    if not termos_para_buscar and restantes == 0:
-        logger.warning("⚠️ Limite diário do Serper atingido. Usando Grade de Descoberta.")
-        return usar_grade_descoberta(limite)
-    
-    # ============================================================
-    # 3. PROCESSA CADA TERMO
-    # ============================================================
-    for i, termo in enumerate(termos_para_buscar[:limite]):
-        try:
-            termo_validado = validar_termo_busca(termo)
-            if not termo_validado:
+    if termos_para_buscar:
+        for i, termo in enumerate(termos_para_buscar):
+            try:
+                termo_validado = validar_termo_busca(termo)
+                if not termo_validado:
+                    continue
+                
+                logger.info(f"🔍 Buscando no Serper: '{termo_validado}'...")
+                
+                # Tenta Serper primeiro
+                produtos_serper = buscar_produtos_serper(termo_validado, limite=3, usar_cache=False)
+                
+                if produtos_serper and len(produtos_serper) > 0:
+                    total_resultados = len(produtos_serper) * 10
+                    
+                    produtos[termo_validado] = {
+                        "pins": random.randint(1500, 3500),
+                        "pins_historico": random.randint(1200, 3000),
+                        "crescimento": random.randint(15, 50),
+                        "views_tiktok": round(random.uniform(2.0, 6.0), 1),
+                        "resultados_ml": total_resultados,
+                        "buscas_mes": random.randint(8000, 20000),
+                        "buscas_historico": random.randint(6000, 16000),
+                        "categoria": definir_categoria(termo_validado),
+                        "evento": definir_evento(termo_validado),
+                        "variacao": round(random.uniform(5.0, 30.0), 1),
+                        "tendencia": definir_tendencia(i),
+                        "score": calcular_score_simulado(i),
+                        "fonte": "serper"
+                    }
+                    logger.info(f"  ✅ Produto processado via Serper: '{termo_validado}'")
+                else:
+                    # Se Serper falhou, tenta Selenium para produtos
+                    logger.info(f"  ⚠️ Serper sem resultados para '{termo_validado}', tentando Selenium...")
+                    if SELENIUM_DISPONIVEL:
+                        produtos_selenium = buscar_produtos_shopee_selenium(termo_validado, limite=2)
+                        if produtos_selenium:
+                            produtos[termo_validado] = {
+                                "pins": random.randint(1000, 3000),
+                                "pins_historico": random.randint(800, 2500),
+                                "crescimento": random.randint(10, 40),
+                                "views_tiktok": round(random.uniform(1.5, 5.0), 1),
+                                "resultados_ml": len(produtos_selenium) * 10,
+                                "buscas_mes": random.randint(5000, 15000),
+                                "buscas_historico": random.randint(4000, 12000),
+                                "categoria": definir_categoria(termo_validado),
+                                "evento": definir_evento(termo_validado),
+                                "variacao": round(random.uniform(5.0, 25.0), 1),
+                                "tendencia": definir_tendencia(i),
+                                "score": calcular_score_simulado(i),
+                                "fonte": "selenium"
+                            }
+                            logger.info(f"  ✅ Produto processado via Selenium: '{termo_validado}'")
+                        else:
+                            logger.info(f"  ❌ Selenium também sem resultados para '{termo_validado}'")
+                    else:
+                        logger.info(f"  ⚠️ Selenium não disponível para '{termo_validado}'")
+                    
+            except Exception as e:
+                logger.error(f"Erro ao buscar produtos para '{termo}': {e}")
                 continue
-            
-            # Tenta buscar no Serper
-            logger.info(f"🔍 Buscando no Serper: '{termo_validado}'...")
-            produtos_serper = buscar_produtos_serper(termo_validado, limite=3)
-            
-            if produtos_serper and len(produtos_serper) > 0:
-                total_resultados = len(produtos_serper) * 10
-                
-                produtos[termo_validado] = {
-                    "pins": random.randint(1500, 3500),
-                    "pins_historico": random.randint(1200, 3000),
-                    "crescimento": random.randint(15, 50),
-                    "views_tiktok": round(random.uniform(2.0, 6.0), 1),
-                    "resultados_ml": total_resultados,
-                    "buscas_mes": random.randint(8000, 20000),
-                    "buscas_historico": random.randint(6000, 16000),
-                    "categoria": definir_categoria(termo_validado),
-                    "evento": definir_evento(termo_validado),
-                    "variacao": round(random.uniform(5.0, 30.0), 1),
-                    "tendencia": definir_tendencia(i),
-                    "score": calcular_score_simulado(i),
-                    "fonte": "serper"
-                }
-                logger.info(f"  ✅ Produto processado: '{termo_validado}'")
-            else:
-                logger.info(f"  ⚠️ Sem resultados no Serper para '{termo_validado}'")
-                
-        except Exception as e:
-            logger.error(f"Erro ao buscar produtos para '{termo}': {e}")
-            continue
     
     # ============================================================
-    # 4. SE TIVER POUCOS PRODUTOS, USA GRADE DE DESCOBERTA
+    # 3. SE TIVER POUCOS PRODUTOS, USA GRADE DE DESCOBERTA
     # ============================================================
     if len(produtos) < 5:
         logger.info("🔄 Poucos produtos encontrados. Usando Grade de Descoberta...")
@@ -160,26 +200,24 @@ def buscar_produtos_com_grade(limite: int = 10) -> Dict[str, Any]:
         termo="atualizacao_diaria",
         sucesso=True if len(produtos) > 0 else False,
         quantidade=len(produtos),
-        detalhes=f"Produtos atualizados: {len(produtos)}"
+        detalhes=f"Produtos atualizados: {len(produtos)} (Fonte: Serper/Selenium)"
     )
     
     return produtos
 
 def usar_grade_descoberta(quantidade: int = 10) -> Dict[str, Any]:
     """
-    Usa a grade de descoberta para encontrar produtos
+    Usa a grade de descoberta como ÚLTIMO RECURSO
     """
     from modules.grade_descoberta import descobrir_produtos_grade, enriquecer_produto
     
     produtos = {}
     
-    # Descobre produtos da grade
     produtos_descobrir = descobrir_produtos_grade(quantidade=quantidade)
     
     for item in produtos_descobrir:
         produto = item.get("produto", "")
         if produto:
-            # Enriquece com dados simulados
             dados = enriquecer_produto(produto)
             produtos[produto] = {
                 "pins": dados.get("pins", random.randint(500, 3000)),
@@ -197,7 +235,7 @@ def usar_grade_descoberta(quantidade: int = 10) -> Dict[str, Any]:
                 "fonte": "grade_descoberta"
             }
     
-    logger.info(f"✅ Grade de Descoberta gerou {len(produtos)} produtos")
+    logger.info(f"✅ Grade de Descoberta gerou {len(produtos)} produtos (FALLBACK)")
     return produtos
 
 # ============================================================
@@ -289,6 +327,6 @@ __all__ = [
     'obter_produtos_dinamicos',
     'limpar_cache_produtos',
     'PRODUTOS_FALLBACK',
-    'buscar_produtos_com_grade',
+    'buscar_produtos_com_grade_e_selenium',
     'carregar_cache_produtos'
 ]
