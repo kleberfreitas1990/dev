@@ -497,12 +497,12 @@ def calcular_score(produto: str, dados: Dict) -> int:
     
     return max(1, min(score, 10))
 
-def gerar_top10_produtos(forcar_atualizacao: bool = False) -> List[Dict]:
+def gerar_top10_produtos(forcar_atualizacao: bool = True) -> List[Dict]:
     """
     Gera top 10 produtos com dados dinâmicos.
-    Se o cache for antigo, atualiza automaticamente.
+    SEMPRE FORÇA ATUALIZAÇÃO para evitar cache antigo.
     """
-    dados_completos = obter_dados_completos(forcar_atualizacao)
+    dados_completos = obter_dados_completos(forcar_atualizacao=True)
     
     resultados = []
     for produto, dados in dados_completos.items():
@@ -544,9 +544,9 @@ def gerar_top10_produtos(forcar_atualizacao: bool = False) -> List[Dict]:
     
     return sorted(resultados, key=lambda x: x["Score"], reverse=True)[:10]
 
-def gerar_sugestoes_diarias(forcar_atualizacao: bool = False) -> List[Dict]:
-    """Gera sugestões diárias (top 3)"""
-    top10 = gerar_top10_produtos(forcar_atualizacao)
+def gerar_sugestoes_diarias(forcar_atualizacao: bool = True) -> List[Dict]:
+    """Gera sugestões diárias (top 3) - SEMPRE FORÇA ATUALIZAÇÃO"""
+    top10 = gerar_top10_produtos(forcar_atualizacao=True)
     return top10[:BUSCAS_DIARIAS]
 
 # ============================================================
