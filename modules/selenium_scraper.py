@@ -10,7 +10,7 @@ from typing import List, Dict
 
 logger = logging.getLogger(__name__)
 
-# Tentar importar Selenium, se não tiver instalado, retorna None
+# Tentar importar Selenium
 try:
     from selenium import webdriver
     from selenium.webdriver.chrome.options import Options
@@ -19,25 +19,21 @@ try:
     from selenium.webdriver.support import expected_conditions as EC
     from webdriver_manager.chrome import ChromeDriverManager
     from selenium.webdriver.chrome.service import Service
+    from bs4 import BeautifulSoup
+    import requests
     SELENIUM_DISPONIVEL = True
+    logger.info("✅ Selenium disponível")
 except ImportError:
     SELENIUM_DISPONIVEL = False
-    logger.warning("Selenium não instalado. Use: pip install selenium webdriver-manager")
+    logger.warning("⚠️ Selenium não instalado. Use: pip install selenium webdriver-manager beautifulsoup4")
 
 from modules.validation import validar_termo_busca
 from modules.logger import registrar_busca
 
 
-def capturar_com_selenium(url: str, timeout: int = 10) -> str:
+def capturar_com_selenium(url: str, timeout: int = 15) -> str:
     """
     Captura o conteúdo de uma página usando Selenium
-    
-    Args:
-        url (str): URL da página
-        timeout (int): Tempo máximo de espera
-    
-    Returns:
-        str: HTML da página ou None se falhar
     """
     if not SELENIUM_DISPONIVEL:
         logger.warning("Selenium não disponível")
@@ -180,27 +176,22 @@ def buscar_produtos_shopee_selenium(termo: str, limite: int = 5) -> List[Dict]:
         
         # Tenta extrair produtos do HTML
         # Padrões de produtos na Shopee
-        padroes_produto = [
-            r'"name":"([^"]+)"',
-            r'"price":(\d+)',
-            r'"shopid":(\d+)'
-        ]
-        
-        # Busca por nomes de produtos
         nomes = re.findall(r'"name":"([^"]+)"', html)
         precos = re.findall(r'"price":(\d+)', html)
+        lojas = re.findall(r'"shopname":"([^"]+)"', html)
         
         for i, nome in enumerate(nomes[:limite]):
             preco = precos[i] if i < len(precos) else "0"
+            loja = lojas[i] if i < len(lojas) else "Shopee"
             try:
-                preco_real = float(preco) / 100000  # Shopee usa centavos * 1000
+                preco_real = float(preco) / 100000
             except:
                 preco_real = 0
             
             produtos.append({
                 "nome": nome,
                 "preco": f"R$ {preco_real:.2f}",
-                "loja": "Shopee",
+                "loja": loja,
                 "link": f"https://shopee.com.br/search?keyword={termo.replace(' ', '%20')}"
             })
         
