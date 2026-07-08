@@ -11,15 +11,12 @@ import pandas as pd
 from datetime import datetime
 from typing import Dict, List, Any
 
+logger = logging.getLogger(__name__)
+
 # ============================================================
 # ARQUIVO DE LOGS
 # ============================================================
 ARQUIVO_LOGS = "buscas_logs.json"
-
-# ============================================================
-# CONFIGURAÇÃO DE LOGGING
-# ============================================================
-logger = logging.getLogger(__name__)
 
 # ============================================================
 # FUNÇÕES DE LOG
@@ -109,15 +106,13 @@ def obter_estatisticas_logs() -> Dict:
             "ultimas_buscas": []
         }
     
-    # Estatísticas gerais
     total = len(logs)
     sucessos = sum(1 for l in logs if l.get("sucesso", False))
     falhas = total - sucessos
     taxa_sucesso = f"{(sucessos/total*100):.1f}%" if total > 0 else "0%"
     
-    # Por nível
     por_nivel = {}
-    niveis = ["raspagem", "api", "selenium", "cache"]
+    niveis = ["raspagem", "api", "selenium", "cache", "sistema"]
     for nivel in niveis:
         logs_nivel = [l for l in logs if l.get("nivel") == nivel]
         if logs_nivel:
@@ -130,7 +125,6 @@ def obter_estatisticas_logs() -> Dict:
                 "taxa": f"{(sucesso_nivel/total_nivel*100):.1f}%" if total_nivel > 0 else "0%"
             }
     
-    # Últimas 10 buscas
     ultimas = []
     for log in logs[-10:]:
         ultimas.append({
@@ -157,9 +151,6 @@ def render_painel_logs():
     st.markdown("## 📊 Monitor de Buscas")
     st.caption("Veja todas as tentativas de busca e seus resultados")
     
-    # ============================================================
-    # ESTATÍSTICAS RÁPIDAS
-    # ============================================================
     stats = obter_estatisticas_logs()
     
     col1, col2, col3, col4 = st.columns(4)
@@ -174,9 +165,6 @@ def render_painel_logs():
     
     st.markdown("---")
     
-    # ============================================================
-    # ESTATÍSTICAS POR NÍVEL
-    # ============================================================
     if stats["por_nivel"]:
         st.markdown("### 📡 Por Nível de Busca")
         
@@ -185,7 +173,8 @@ def render_painel_logs():
             "raspagem": "📡",
             "api": "🌐", 
             "selenium": "🔄",
-            "cache": "💾"
+            "cache": "💾",
+            "sistema": "⚙️"
         }
         
         nivel_lista = list(stats["por_nivel"].items())
@@ -201,51 +190,30 @@ def render_painel_logs():
     
     st.markdown("---")
     
-    # ============================================================
-    # ÚLTIMAS BUSCAS
-    # ============================================================
     st.markdown("### 🔄 Últimas Buscas Realizadas")
     
     if stats["ultimas_buscas"]:
-        # Tabela com as últimas buscas
         df_ultimas = pd.DataFrame(stats["ultimas_buscas"][::-1])
-        
-        # Renomeia colunas
         df_ultimas.columns = ["Data", "Nível", "Termo", "Status", "Resultados"]
         
-        # Estiliza
         st.dataframe(
             df_ultimas,
             use_container_width=True,
-            hide_index=True,
-            column_config={
-                "Data": st.column_config.TextColumn("Data", width="small"),
-                "Nível": st.column_config.TextColumn("Nível", width="small"),
-                "Termo": st.column_config.TextColumn("Termo", width="medium"),
-                "Status": st.column_config.TextColumn("Status", width="small"),
-                "Resultados": st.column_config.TextColumn("Resultados", width="small"),
-            }
+            hide_index=True
         )
     else:
         st.info("📭 Nenhuma busca realizada ainda.")
     
     st.markdown("---")
     
-    # ============================================================
-    # LOGS COMPLETOS (EXPANDÍVEL)
-    # ============================================================
     with st.expander("📋 Ver Logs Completos"):
         logs = carregar_logs()
         
         if logs:
-            # Cria DataFrame com todos os logs
             df_logs = pd.DataFrame(logs)
-            
-            # Seleciona e renomeia colunas
             colunas = ["data", "nivel", "termo", "sucesso", "quantidade", "tempo_execucao", "erro"]
             df_logs = df_logs[colunas] if all(c in df_logs.columns for c in colunas) else df_logs
             
-            # Formata
             df_logs["sucesso"] = df_logs["sucesso"].apply(lambda x: "✅" if x else "❌")
             df_logs["tempo_execucao"] = df_logs["tempo_execucao"].apply(lambda x: f"{x}s" if x else "-")
             
@@ -255,7 +223,6 @@ def render_painel_logs():
                 hide_index=True
             )
             
-            # Botão para limpar logs
             if st.button("🧹 Limpar Logs", use_container_width=True):
                 if limpar_logs():
                     st.success("✅ Logs limpos com sucesso!")
