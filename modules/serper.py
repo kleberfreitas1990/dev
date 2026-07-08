@@ -339,3 +339,29 @@ __all__ = [
     'LIMITE_DIARIO_SERPER',
     'obter_chave_serper'
 ]
+def capturar_buscas_shopee_com_selenium_fallback() -> List[str]:
+    """
+    Tenta capturar buscas usando Selenium (fallback)
+    """
+    try:
+        from modules.selenium_scraper import capturar_buscas_shopee_selenium, SELENIUM_DISPONIVEL
+        
+        if not SELENIUM_DISPONIVEL:
+            logger.warning("Selenium não disponível")
+            return []
+        
+        logger.info("🌐 Tentando capturar com Selenium...")
+        termos = capturar_buscas_shopee_selenium()
+        
+        if termos:
+            logger.info(f"✅ Selenium capturou {len(termos)} termos")
+            return termos
+        
+        return []
+        
+    except ImportError:
+        logger.warning("⚠️ Selenium não instalado. Use: pip install selenium webdriver-manager")
+        return []
+    except Exception as e:
+        logger.error(f"❌ Erro no Selenium: {e}")
+        return []
