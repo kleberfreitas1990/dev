@@ -16,10 +16,8 @@ from modules.validation import (
     validar_cache_dados,
     sanitizar_json
 )
+from modules.logger import registrar_busca
 
-# ============================================================
-# CONFIGURAÇÃO DE LOGGING
-# ============================================================
 logger = logging.getLogger(__name__)
 
 # ============================================================
@@ -57,7 +55,10 @@ TERMOS_REAIS_SHOPEE = [
 # FUNÇÃO PARA CAPTURAR BUSCAS DA SHOPEE
 # ============================================================
 def capturar_buscas_shopee(max_tentativas: int = 3) -> List[str]:
-    """Captura buscas em alta da Shopee com múltiplas estratégias"""
+    """
+    Captura buscas em alta da Shopee com múltiplas estratégias
+    """
+    inicio = time.time()
     termos = []
     
     # ESTRATÉGIA 1: Capturar do rodapé da página
@@ -97,7 +98,14 @@ def capturar_buscas_shopee(max_tentativas: int = 3) -> List[str]:
                                 termos.append(termo_validado)
                 
                 if len(termos) >= 10:
-                    logger.info(f"Capturados {len(termos)} termos via rodapé")
+                    registrar_busca(
+                        nivel="raspagem",
+                        termo="shopee_trends",
+                        sucesso=True,
+                        quantidade=len(termos),
+                        detalhes=f"Capturados {len(termos)} termos do rodapé",
+                        tempo_execucao=time.time() - inicio
+                    )
                     return termos[:20]
             
         except requests.exceptions.Timeout:
@@ -132,8 +140,16 @@ def capturar_buscas_shopee(max_tentativas: int = 3) -> List[str]:
                         if termo_validado and termo_validado not in termos:
                             termos.append(termo_validado)
                 
-                logger.info(f"Capturados {len(termos)} termos via API")
-                return termos[:20]
+                if len(termos) > 0:
+                    registrar_busca(
+                        nivel="raspagem",
+                        termo="shopee_trends",
+                        sucesso=True,
+                        quantidade=len(termos),
+                        detalhes=f"Capturados {len(termos)} termos via API",
+                        tempo_execucao=time.time() - inicio
+                    )
+                    return termos[:20]
         except Exception as e:
             logger.error(f"Erro na API: {e}")
     
@@ -144,11 +160,37 @@ def capturar_buscas_shopee(max_tentativas: int = 3) -> List[str]:
         for termo in termos_fallback:
             if termo not in termos:
                 termos.append(termo)
+        
+        registrar_busca(
+            nivel="raspagem",
+            termo="shopee_trends",
+            sucesso=True if len(termos) > 0 else False,
+            quantidade=len(termos),
+            detalhes=f"Usando fallback - {len(termos)} termos",
+            tempo_execucao=time.time() - inicio
+        )
+    
+    # SE FALHOU TUDO
+    if not termos:
+        registrar_busca(
+            nivel="raspagem",
+            termo="shopee_trends",
+            sucesso=False,
+            quantidade=0,
+            detalhes="Todas as estratégias falharam",
+            tempo_execucao=time.time() - inicio,
+            erro="Nenhum termo encontrado"
+        )
     
     return termos[:20]
 
 def capturar_buscas_shopee_com_cache(ignorar_cache: bool = False) -> List[str]:
-    """Captura buscas com cache diário"""
+    """
+    Captura buscas com cache diário
+    
+    Args:
+        ignorar_cache (bool): Se True, força nova busca
+    """
     hoje = datetime.now().date().isoformat()
     
     if not ignorar_cache and os.path.exists(ARQUIVO_SHOPEE_CACHE):
@@ -176,6 +218,7 @@ def capturar_buscas_shopee_com_cache(ignorar_cache: bool = False) -> List[str]:
                     "timestamp": datetime.now().isoformat(),
                     "total": len(termos_validados)
                 }, f, ensure_ascii=False, indent=2)
+            logger.info(f"Cache da Shopee atualizado com {len(termos_validados)} termos")
         except:
             pass
     
@@ -212,27 +255,3 @@ __all__ = [
     'obter_stats_cache_shopee',
     'TERMOS_REAIS_SHOPEE'
 ]
-# modules/shopee.py - ADICIONAR NO FINAL DO ARQUIVO
-
-def capturar_buscas_shopee_com_selenium_fallback() -> List[str]:
-    """
-    Tenta capturar buscas usando Selenium (fallback)
-    """
-    try:
-        from modules.selenium_scraper import capturar_buscas_shopee_selenium
-        
-        logger.info("Tentando capturar com Selenium...")
-        termos = capturar_buscas_shopee_selenium()
-        
-        if termos:
-            logger.info(f"Selenium capturou {len(termos)} termos")
-            return termos
-        
-        return []
-        
-    except ImportError:
-        logger.warning("Selenium não instalado. Usando fallback padrão.")
-        return []
-    except Exception as e:
-        logger.error(f"Erro no Selenium: {e}")
-        return []
