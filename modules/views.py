@@ -344,7 +344,10 @@ def render_dashboard():
     
     col1, col2, col3, col4, col5 = st.columns(5)
     with col1:
-        serper_key = st.secrets.get("SERPER_API_KEY", "")
+        try:
+            serper_key = st.secrets.get("SERPER_API_KEY", "")
+        except:
+            serper_key = ""
         st.markdown("🔌 " + ("✅" if serper_key else "❌"))
     with col2:
         st.markdown("🎫 10/10")
