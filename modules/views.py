@@ -29,7 +29,7 @@ from modules.grade_descoberta import (
 )
 
 # Importa para verificar data do cache
-from modules.produtos_dinamicos import verificar_data_cache
+from modules.produtos_dinamicos import carregar_cache_produtos
 
 # Tenta importar serper, se falhar usa fallback
 try:
@@ -339,7 +339,8 @@ def render_dashboard():
     # ============================================================
     # STATUS DOS DADOS NO TOPO
     # ============================================================
-    status_cache = verificar_data_cache()
+    cache = carregar_cache_produtos()
+    status_cache = {"data": cache.get("data", "Desconhecida")} if cache else {"data": "Sem cache"}
     hoje = datetime.now().date().isoformat()
     
     col1, col2, col3, col4, col5 = st.columns(5)
