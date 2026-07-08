@@ -122,9 +122,7 @@ def obter_dados_completos(forcar_atualizacao: bool = False) -> Dict:
 # PALAVRAS CHAVE - EXPANDIDAS E ESPECÍFICAS
 # ============================================================
 PALAVRAS_CHAVE_CAUDA_LONGA = {
-    # ============================================================
     # MODA
-    # ============================================================
     "casaco": {
         "palavra": "casaco feminino inverno 2026",
         "hashtags": ["#casacofeminino", "#inverno2026", "#lookinverno", "#modainverno"]
@@ -185,10 +183,7 @@ PALAVRAS_CHAVE_CAUDA_LONGA = {
         "palavra": "bota feminina cano curto",
         "hashtags": ["#bota", "#modafeminina", "#inverno", "#look"]
     },
-    
-    # ============================================================
     # ELETRÔNICOS
-    # ============================================================
     "smartwatch": {
         "palavra": "smartwatch feminino elegante 2026",
         "hashtags": ["#smartwatch", "#tecnologia", "#eletrônicos", "#mulherdigital"]
@@ -237,10 +232,7 @@ PALAVRAS_CHAVE_CAUDA_LONGA = {
         "palavra": "ar condicionado Elgin 12000 BTUs",
         "hashtags": ["#elgin", "#arcondicionado", "#climatizador", "#casa"]
     },
-    
-    # ============================================================
     # BELEZA
-    # ============================================================
     "perfume": {
         "palavra": "perfume importado floral feminino",
         "hashtags": ["#perfumeimportado", "#belezafeminina", "#presentes", "#floral"]
@@ -265,10 +257,7 @@ PALAVRAS_CHAVE_CAUDA_LONGA = {
         "palavra": "kit L'Oréal Paris skincare",
         "hashtags": ["#loreal", "#skincare", "#beleza", "#cuidados"]
     },
-    
-    # ============================================================
     # CASA E ORGANIZAÇÃO
-    # ============================================================
     "organizador": {
         "palavra": "organizador de gavetas e armários",
         "hashtags": ["#organizador", "#casa", "#organização", "#decoração"]
@@ -313,10 +302,7 @@ PALAVRAS_CHAVE_CAUDA_LONGA = {
         "palavra": "cadeira gamer confortável",
         "hashtags": ["#cadeiragamer", "#games", "#setup", "#conforto"]
     },
-    
-    # ============================================================
     # INFANTIL
-    # ============================================================
     "brinquedo": {
         "palavra": "brinquedo educativo infantil 2 anos",
         "hashtags": ["#brinquedo", "#infantil", "#educativo", "#crianças"]
@@ -333,10 +319,7 @@ PALAVRAS_CHAVE_CAUDA_LONGA = {
         "palavra": "moto infantil elétrica",
         "hashtags": ["#motoinfantil", "#crianças", "#brinquedo", "#elétrico"]
     },
-    
-    # ============================================================
     # ESPORTE E LAZER
-    # ============================================================
     "chopeira": {
         "palavra": "chopeira elétrica 5L chopp",
         "hashtags": ["#chopeira", "#cerveja", "#chope", "#festa"]
@@ -369,60 +352,20 @@ PALAVRAS_CHAVE_CAUDA_LONGA = {
         "palavra": "tênis Kenner feminino",
         "hashtags": ["#kenner", "#tenis", "#moda", "#feminino"]
     },
-    
-    # ============================================================
-    # ALIMENTOS E BEBIDAS
-    # ============================================================
-    "vinho": {
-        "palavra": "vinho tinto importado",
-        "hashtags": ["#vinho", "#bebida", "#importado", "#tinto"]
-    },
-    "espumante": {
-        "palavra": "espumante brut importado",
-        "hashtags": ["#espumante", "#bebida", "#celebração", "#brut"]
-    },
-    "cerveja": {
-        "palavra": "cerveja artesanal importada",
-        "hashtags": ["#cerveja", "#artesanal", "#bebida", "#importada"]
-    },
-    
-    # ============================================================
-    # DECORAÇÃO
-    # ============================================================
-    "decoração": {
-        "palavra": "decoração de casa moderna",
-        "hashtags": ["#decoração", "#casa", "#moderna", "#design"]
-    },
-    "árvore": {
-        "palavra": "árvore de natal decorativa",
-        "hashtags": ["#árvoredenatal", "#natal", "#decoração", "#festa"]
-    },
-    
-    # ============================================================
     # PADRÃO (FALLBACK)
-    # ============================================================
     "padrao": {
         "palavra": "produto tendência mercado 2026",
         "hashtags": ["#tendência", "#produto", "#2026", "#mercado"]
     }
 }
 
-# ============================================================
-# FUNÇÃO INTELIGENTE PARA OBTER PALAVRA-CHAVE
-# ============================================================
 def obter_palavra_chave(produto: str) -> Dict:
     """
     Obtém palavra-chave para um produto com busca inteligente
-    
-    Args:
-        produto (str): Nome do produto
-        
-    Returns:
-        Dict: Dicionário com palavra-chave e hashtags
     """
     produto_lower = produto.lower().strip()
     
-    # Remove palavras genéricas que não ajudam na busca
+    # Remove palavras genéricas
     palavras_ignorar = [
         "produto", "novo", "lançamento", "tendência", "mercado",
         "kit", "com", "para", "de", "da", "do", "das", "dos", 
@@ -456,15 +399,12 @@ def obter_palavra_chave(produto: str) -> Dict:
         "infantil": ["brinquedo", "boneca", "carrinho", "moto", "crianças", "bebê", "nenê"],
         "esporte": ["chopeira", "figurinha", "legend", "kenner", "cerveja", "coleção", "bola", "chuteira"],
         "livro": ["livro", "leitura", "editora", "romance"],
-        "ferramenta": ["furadeira", "parafusadeira", "serra", "chave", "alicate"],
-        "alimento": ["vinho", "espumante", "cerveja", "bebida", "refrigerante"],
-        "decoracao": ["decoração", "árvore", "natal", "presente"]
+        "ferramenta": ["furadeira", "parafusadeira", "serra", "chave", "alicate"]
     }
     
     for categoria, palavras_chave in categorias.items():
         for palavra_chave in palavras_chave:
             if palavra_chave in produto_lower:
-                # Gera um termo mais natural
                 termo_base = produto_lower.replace(palavra_chave, "").strip()
                 if termo_base and len(termo_base) > 2:
                     return {
@@ -477,12 +417,9 @@ def obter_palavra_chave(produto: str) -> Dict:
                         "hashtags": [f"#{palavra_chave}", f"#{categoria}", "#2026", "#tendência"]
                     }
     
-    # 5. FALLBACK INTELIGENTE - usa o próprio nome do produto
+    # 5. FALLBACK INTELIGENTE
     if len(palavras) > 0:
-        # Pega as palavras mais relevantes
         termo_base = " ".join(palavras[:3])
-        
-        # Tenta identificar o tipo do produto pelo contexto
         tipos = {
             "tecnologia": ["eletrônico", "digital", "tech", "gamer", "pc", "smart", "fone", "celular"],
             "moda": ["roupa", "vestuário", "look", "jeans", "sapato", "tenis", "camisa", "blusa", "casaco"],
@@ -505,7 +442,7 @@ def obter_palavra_chave(produto: str) -> Dict:
             "hashtags": [f"#{termo_base.replace(' ', '')}", f"#{tipo_encontrado}", "#2026", "#tendência"]
         }
     
-    # 6. ÚLTIMO RECURSO - usa o nome do produto sem palavras genéricas
+    # 6. ÚLTIMO RECURSO
     nome_limpo = produto_lower
     for palavra in palavras_ignorar:
         nome_limpo = nome_limpo.replace(palavra, "").strip()
@@ -516,7 +453,6 @@ def obter_palavra_chave(produto: str) -> Dict:
             "hashtags": [f"#{nome_limpo.replace(' ', '')}", "#tendência", "#2026"]
         }
     
-    # FALLBACK FINAL - mais descritivo
     return {
         "palavra": f"{produto}",
         "hashtags": [f"#{produto.lower().replace(' ', '')}", "#tendência", "#2026"]
@@ -559,11 +495,13 @@ def calcular_score(produto: str, dados: Dict) -> int:
     if dados.get("variacao", 0) > 15:
         score += 1
     
-    # Score mínimo 1, máximo 10
     return max(1, min(score, 10))
 
 def gerar_top10_produtos(forcar_atualizacao: bool = False) -> List[Dict]:
-    """Gera top 10 produtos com dados dinâmicos"""
+    """
+    Gera top 10 produtos com dados dinâmicos.
+    Se o cache for antigo, atualiza automaticamente.
+    """
     dados_completos = obter_dados_completos(forcar_atualizacao)
     
     resultados = []
@@ -577,7 +515,6 @@ def gerar_top10_produtos(forcar_atualizacao: bool = False) -> List[Dict]:
         else:
             potencial = "🔴 Baixo"
         
-        # ARREDONDA OS VALORES PARA EVITAR NÚMEROS QUEBRADOS
         views_tiktok = dados.get('views_tiktok', 0)
         if isinstance(views_tiktok, float):
             views_tiktok = round(views_tiktok, 1)
@@ -586,7 +523,6 @@ def gerar_top10_produtos(forcar_atualizacao: bool = False) -> List[Dict]:
         if isinstance(variacao, float):
             variacao = round(variacao, 1)
         
-        # Tenta obter palavra-chave específica
         dados_palavra = obter_palavra_chave(produto)
         palavra_chave = dados_palavra.get("palavra", f"{produto}")
         
@@ -606,7 +542,6 @@ def gerar_top10_produtos(forcar_atualizacao: bool = False) -> List[Dict]:
             "PalavraChave": palavra_chave
         })
     
-    # Ordena por score e retorna top 10
     return sorted(resultados, key=lambda x: x["Score"], reverse=True)[:10]
 
 def gerar_sugestoes_diarias(forcar_atualizacao: bool = False) -> List[Dict]:
