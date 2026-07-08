@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 def diagnosticar_buscas():
     """
-    Diagnostica os 3 níveis de busca: Raspberry, API e Selenium
+    Diagnostica os 3 níveis de busca: Raspagem, API e Selenium
     Retorna o status de cada um
     """
     resultados = {
@@ -64,30 +64,30 @@ def diagnosticar_buscas():
     try:
         from modules.serper import buscar_produtos_serper, obter_stats_cache_serper
         
-        # Tenta buscar um termo de teste
-        termo_teste = "smartwatch"
-        produtos = buscar_produtos_serper(termo_teste, limite=2)
-        
-        if produtos and len(produtos) > 0:
+        # Verifica se tem chave ANTES de tentar buscar
+        serper_key = st.secrets.get("SERPER_API_KEY", "")
+        if not serper_key:
             resultados["nivel_2_api"] = {
-                "status": "✅",
-                "mensagem": f"OK - {len(produtos)} produtos encontrados",
-                "detalhes": [p.get("nome", "")[:30] for p in produtos[:3]]
+                "status": "❌",
+                "mensagem": "Chave Serper não configurada",
+                "detalhes": "Adicione SERPER_API_KEY nos secrets do Streamlit Cloud"
             }
         else:
-            # Verifica se tem chave
-            serper_key = st.secrets.get("SERPER_API_KEY", "")
-            if not serper_key:
+            # Tenta buscar um termo de teste
+            termo_teste = "smartwatch"
+            produtos = buscar_produtos_serper(termo_teste, limite=2, usar_cache=False)
+            
+            if produtos and len(produtos) > 0:
                 resultados["nivel_2_api"] = {
-                    "status": "❌",
-                    "mensagem": "Chave Serper não configurada",
-                    "detalhes": "Adicione SERPER_API_KEY nos secrets"
+                    "status": "✅",
+                    "mensagem": f"OK - {len(produtos)} produtos encontrados",
+                    "detalhes": [p.get("nome", "")[:30] for p in produtos[:3]]
                 }
             else:
                 resultados["nivel_2_api"] = {
                     "status": "❌",
                     "mensagem": "Falha - Nenhum produto encontrado",
-                    "detalhes": "Verificar API key ou limite"
+                    "detalhes": "Verificar se a API Key é válida ou se o limite foi atingido"
                 }
     except Exception as e:
         resultados["nivel_2_api"] = {
@@ -96,13 +96,30 @@ def diagnosticar_buscas():
         }
     
     # ============================================================
-    # NÍVEL 3: Selenium (Não implementado - placeholder)
+    # NÍVEL 3: Selenium (Integração Real)
     # ============================================================
-    resultados["nivel_3_selenium"] = {
-        "status": "🟡",
-        "mensagem": "Não implementado - Usando fallback",
-        "detalhes": "Os dados são simulados com base nos níveis 1 e 2"
-    }
+    try:
+        from modules.selenium_client import verificar_status_selenium
+        
+        status_selenium = verificar_status_selenium()
+        if status_selenium.get("online"):
+            resultados["nivel_3_selenium"] = {
+                "status": "✅",
+                "mensagem": "OK - Servidor Selenium Online",
+                "detalhes": f"URL: {status_selenium.get('url')}"
+            }
+        else:
+            erro = status_selenium.get("error", "Servidor Offline")
+            resultados["nivel_3_selenium"] = {
+                "status": "❌",
+                "mensagem": f"Falha - {erro}",
+                "detalhes": f"URL: {status_selenium.get('url')}"
+            }
+    except Exception as e:
+        resultados["nivel_3_selenium"] = {
+            "status": "❌",
+            "mensagem": f"Erro ao conectar: {str(e)[:50]}"
+        }
     
     # ============================================================
     # CACHE
@@ -136,7 +153,7 @@ def diagnosticar_buscas():
     # ============================================================
     # STATUS GERAL
     # ============================================================
-    niveis_ok = sum(1 for k in ["nivel_1_raspagem", "nivel_2_api"] 
+    niveis_ok = sum(1 for k in ["nivel_1_raspagem", "nivel_2_api", "nivel_3_selenium"] 
                     if resultados.get(k, {}).get("status") == "✅")
     
     resultados["status_geral"] = {
@@ -197,7 +214,7 @@ def render_painel_diagnostico():
     
     with col1:
         with st.container(border=True):
-            st.markdown("### 🔄 Nível 3 - Selenium")
+            st.markdown("### 🔄 Nível 3 - Selenium (Render)")
             status = resultados["nivel_3_selenium"]
             st.markdown(f"**Status:** {status.get('status')} {status.get('mensagem')}")
             if status.get("detalhes"):
@@ -235,14 +252,16 @@ def render_painel_diagnostico():
         st.success("✅ **Raspagem funcionando:** Os termos da Shopee estão sendo capturados corretamente.")
     
     if resultados["nivel_2_api"]["status"] == "❌":
-        st.warning("⚠️ **API com falha:** Verifique a chave SERPER_API_KEY nos secrets.")
+        st.warning("⚠️ **API com falha:** Verifique a chave SERPER_API_KEY nos secrets do Streamlit Cloud.")
     else:
         st.success("✅ **API funcionando:** As buscas no Google Shopping estão ativas.")
     
-    if resultados["nivel_3_selenium"]["status"] == "🟡":
-        st.info("ℹ️ **Selenium não implementado:** Os dados são gerados via fallback. Isso é esperado se você não configurou Selenium.")
+    if resultados["nivel_3_selenium"]["status"] == "❌":
+        st.warning("⚠️ **Selenium Offline:** Verifique se o servidor no Render está rodando e se a URL SELENIUM_API_URL está correta nos secrets.")
+    elif resultados["nivel_3_selenium"]["status"] == "✅":
+        st.success("✅ **Selenium Online:** O servidor de scraping está respondendo corretamente.")
     
-    st.caption("🔧 Para melhorar os resultados, configure Selenium para capturar dados mais precisos.")
+    st.caption("🔧 Mantenha seus segredos (Secrets) atualizados no painel do Streamlit Cloud para garantir o funcionamento total.")
 
 __all__ = [
     'diagnosticar_buscas',
