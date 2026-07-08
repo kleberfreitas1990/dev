@@ -56,7 +56,7 @@ def render_grade_descoberta():
     Renderiza a grade de descoberta de produtos em formato de tabela
     """
     st.markdown("## 🎯 Grade de Descoberta de Produtos")
-    st.caption("Produtos em tendência descobertos automaticamente - Análise baseada em dados do Pinterest e Google Trends")
+    st.caption("Produtos em tendência descobertos automaticamente")
     
     col1, col2 = st.columns([2, 1])
     with col1:
@@ -82,16 +82,11 @@ def render_grade_descoberta():
         score = item.get("score", 0)
         categoria = item.get("categoria", "Geral").capitalize()
         motivo = item.get("motivo", "📊 Produto em tendência no mercado")
-        indicadores = item.get("indicadores", {})
         
         status = "🔥 Alta" if score >= 8 else "📈 Média" if score >= 6 else "📊 Baixa"
         
         dados_palavra = obter_palavra_chave(produto)
         palavra_chave = dados_palavra.get("palavra", f"{produto} tendência 2026")
-        hashtags = dados_palavra.get("hashtags", ["#tendência", "#moda", "#2026"])[:3]
-        
-        horario = indicadores.get("horario", "10h-12h") if indicadores else "10h-12h"
-        intensidade = indicadores.get("porcentagem", 50) if indicadores else 50
         
         dados_tabela.append({
             "Produto": produto,
@@ -99,9 +94,6 @@ def render_grade_descoberta():
             "Score": f"{score}/10",
             "Status": status,
             "Palavra-chave": palavra_chave,
-            "Hashtags": " ".join(hashtags),
-            "Melhor Horário": horario,
-            "Intensidade": f"{intensidade}%",
             "Motivo": motivo[:80] + "..."
         })
     
@@ -121,7 +113,7 @@ def render_apoiadores_compactos():
     st.caption("Pessoas que acreditam e apoiam este projeto")
     
     apoiadores_ordenados = sorted(apoiadores.values(), key=lambda x: x.get("ordem", 999))
-    cores = ["#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7", "#DDA0DD", "#FF8A5C", "#A29BFE", "#FD79A8", "#00B894", "#E17055", "#6C5CE7"]
+    cores = ["#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7", "#DDA0DD", "#FF8A5C", "#A29BFE"]
     
     cols = st.columns(6)
     for i, apoiador in enumerate(apoiadores_ordenados):
@@ -136,71 +128,54 @@ def render_apoiadores_compactos():
                 st.markdown(f'<div style="text-align: center; font-weight: bold; font-size: 13px; margin: 0;">{nome}</div>', unsafe_allow_html=True)
                 st.markdown(f'<div style="text-align: center; font-size: 10px; color: #888; margin: 0;">#{ordem}</div>', unsafe_allow_html=True)
                 st.markdown(f'<div style="background: {cor}; height: 3px; border-radius: 2px; margin: 4px 0 2px 0;"></div>', unsafe_allow_html=True)
-                
-                depois = sum(1 for k, d in apoiadores.items() if d.get("ordem", 999) > ordem)
-                if depois > 0 and apoiador.get("repasse_ativo", True):
-                    st.markdown(f'<div style="text-align: center; font-size: 10px; color: #4CAF50; margin: 0;">⬇️ R${depois * 5.00:.0f}</div>', unsafe_allow_html=True)
-                else:
-                    st.markdown('<div style="text-align: center; font-size: 10px; color: #888; margin: 0;">⏳</div>', unsafe_allow_html=True)
 
 # ============================================================
 # INSIGHTS ESTRATÉGICOS
 # ============================================================
-def render_insights_estrategicos(produtos_dict):
+def render_insights_estrategicos(produtos_input):
     """Renderiza insights estratégicos"""
     st.markdown("## 💡 Insights Estratégicos")
     st.caption("Análise de mercado baseada em dados reais")
     
-    sazonais = get_produtos_sazonais_com_motivos()
-    if sazonais:
-        st.markdown("### 📅 Produtos Sazonais do Mês")
-        st.caption("Produtos em alta devido à temporada atual")
-        dados_sazonais = []
-        for item in sazonais[:4]:
-            produto = item.get("produto", "").capitalize()
-            motivo = item.get("motivo", "")
-            indicadores = obter_indicadores_horario(produto)
-            horario = indicadores.get("melhor_horario", "19h-22h")
-            intensidade = indicadores.get("porcentagem", 70)
-            dados_palavra = obter_palavra_chave(produto)
-            palavra_chave = dados_palavra.get("palavra", f"{produto} tendência 2026")
-            hashtags = dados_palavra.get("hashtags", ["#tendência", "#moda"])[:2]
-            dados_sazonais.append({
-                "Produto": produto, "Motivo": motivo[:60] + "...", "Melhor Horário": horario,
-                "Intensidade": f"{intensidade}%", "Palavra-chave": palavra_chave, "Hashtags": " ".join(hashtags)
-            })
-        st.dataframe(pd.DataFrame(dados_sazonais), use_container_width=True, hide_index=True)
+    # Padroniza produtos para lista
+    produtos_lista = []
+    if isinstance(produtos_input, dict):
+        for termo, dados in produtos_input.items():
+            item = dados.copy()
+            item["_termo"] = termo
+            produtos_lista.append(item)
+    elif isinstance(produtos_input, list):
+        produtos_lista = produtos_input
     
+    if not produtos_lista:
+        st.info("📭 Nenhum dado disponível para insights.")
+        return
+
     st.markdown("---")
     st.markdown("### 🏆 Top 3 Produtos do Mês")
-    if produtos_dict:
-        # Converte dicionário para lista para ordenar
-        produtos_lista = []
-        for termo, dados in produtos_dict.items():
-            dados["_termo"] = termo
-            produtos_lista.append(dados)
-        
-        top3 = sorted(produtos_lista, key=lambda x: x.get("Score", 0), reverse=True)[:3]
-        cols = st.columns(3)
-        for i, item in enumerate(top3):
-            with cols[i]:
-                produto_nome = item.get("Produto", item.get("_termo", ""))
-                score = item.get("Score", 0)
-                cor = "🟢" if score >= 80 else "🟡" if score >= 60 else "🔴"
-                st.metric(label=f"{['🥇', '🥈', '🥉'][i]} {produto_nome}", value=f"{score}/100", delta=f"{cor} {item.get('Tendencia', '➡️ Estável')}")
-        
-        dados_top3 = []
-        for item in top3:
-            p_nome = item.get("Produto", item.get("_termo", ""))
-            indicadores = obter_indicadores_horario(p_nome)
-            horario = indicadores.get("melhor_horario", "19h-22h")
-            dados_palavra = obter_palavra_chave(p_nome)
-            dados_top3.append({
-                "Produto": p_nome, "Score": f"{item.get('Score', 0)}/100", "Tendência": item.get('Tendencia', '➡️ Estável'),
-                "Preço Médio": item.get('Preco_Medio', 'N/A'), "Buscas Est.": f"{item.get('Buscas_Estimadas_Mes', 0):,}",
-                "Palavra-chave": dados_palavra.get("palavra", p_nome), "Melhor Horário": horario
-            })
-        st.dataframe(pd.DataFrame(dados_top3), use_container_width=True, hide_index=True)
+    
+    top3 = sorted(produtos_lista, key=lambda x: x.get("Score", 0), reverse=True)[:3]
+    cols = st.columns(3)
+    for i, item in enumerate(top3):
+        with cols[i]:
+            produto_nome = item.get("Produto", item.get("_termo", "N/A"))
+            score = item.get("Score", 0)
+            cor = "🟢" if score >= 80 else "🟡" if score >= 60 else "🔴"
+            st.metric(label=f"{['🥇', '🥈', '🥉'][i]} {produto_nome}", value=f"{score}/100", delta=f"{cor} {item.get('Tendencia', '➡️ Estável')}")
+    
+    dados_top3 = []
+    for item in top3:
+        p_nome = item.get("Produto", item.get("_termo", "N/A"))
+        dados_palavra = obter_palavra_chave(p_nome)
+        dados_top3.append({
+            "Produto": p_nome, 
+            "Score": f"{item.get('Score', 0)}/100", 
+            "Tendência": item.get('Tendencia', '➡️ Estável'),
+            "Preço Médio": item.get('Preco_Medio', 'N/A'), 
+            "Buscas Est.": f"{item.get('Buscas_Estimadas_Mes', 0):,}",
+            "Palavra-chave": dados_palavra.get("palavra", p_nome)
+        })
+    st.dataframe(pd.DataFrame(dados_top3), use_container_width=True, hide_index=True)
 
 # ============================================================
 # DASHBOARD PRINCIPAL
@@ -224,29 +199,40 @@ def render_dashboard():
         else:
             st.warning(f"📅 {status_cache['data']}")
     with col5:
-        from modules.serper import obter_stats_serper
-        stats = obter_stats_serper()
-        st.markdown(f"📡 {stats.get('usadas_hoje', 0)}/{stats.get('limite_diario', 20)}")
+        try:
+            from modules.serper import obter_stats_serper
+            stats = obter_stats_serper()
+            st.markdown(f"📡 {stats.get('usadas_hoje', 0)}/{stats.get('limite_diario', 20)}")
+        except:
+            st.markdown("📡 N/A")
     
     st.markdown("---")
     st.title("📊 Minerador de Produtos")
     st.caption(f"📅 {datetime.now().strftime('%A, %d de %B de %Y - %H:%M')}")
     
     st.markdown("## 📊 Visão Geral do Mês")
-    produtos_dict = gerar_top10_produtos(forcar_atualizacao=True)
     
-    if produtos_dict:
-        # Converte para lista para análise
-        produtos_lista = list(produtos_dict.values())
-        top1 = produtos_lista[0] if produtos_lista else None
-        
-        scores = [p.get("Score", 0) for p in produtos_lista]
-        score_medio = sum(scores) / len(scores) if scores else 0
+    # Obtém produtos (pode ser dict ou list)
+    produtos_raw = gerar_top10_produtos(forcar_atualizacao=True)
+    
+    # Padroniza para lista
+    produtos_lista = []
+    if isinstance(produtos_raw, dict):
+        for termo, dados in produtos_raw.items():
+            item = dados.copy()
+            item["_termo"] = termo
+            produtos_lista.append(item)
+    elif isinstance(produtos_raw, list):
+        produtos_lista = produtos_raw
+    
+    if produtos_lista:
+        top1 = produtos_lista[0]
+        score_medio = sum([p.get("Score", 0) for p in produtos_lista]) / len(produtos_lista)
         
         st.markdown(f"""
         <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 16px 20px; border-radius: 10px; margin-bottom: 16px; text-align: center;">
             <span style="font-size: 18px; font-weight: bold;">🔥 {top1.get('Produto', 'Produto')} em alta!</span>
-            <span style="font-size: 15px; margin-left: 10px;">Com score {top1.get('Score', 0)}/100 e tendência {top1.get('Tendencia', 'Crescente')}, este é o momento ideal para criar conteúdo.</span>
+            <span style="font-size: 15px; margin-left: 10px;">Com score {top1.get('Score', 0)}/100 e tendência {top1.get('Tendencia', 'Crescente')}.</span>
         </div>
         """, unsafe_allow_html=True)
         
@@ -254,7 +240,7 @@ def render_dashboard():
         with col1:
             m1, m2, m3 = st.columns(3)
             with m1:
-                st.metric(label="🔥 Produto em Alta", value=top1.get("Produto", "N/A") if top1 else "N/A", delta=top1.get("Categoria", "Geral"))
+                st.metric(label="🔥 Produto em Alta", value=top1.get("Produto", "N/A"), delta=top1.get("Categoria", "Geral"))
             with m2:
                 st.metric(label="📈 Score Médio", value=f"{score_medio:.1f}", delta="Forte")
             with m3:
@@ -265,10 +251,10 @@ def render_dashboard():
         with col2:
             with st.container(border=True):
                 st.markdown("**💡 Dica de Hoje**")
-                st.caption("Foque em vídeos curtos (Reels/TikTok) para o produto " + (top1.get('Produto', 'em destaque') if top1 else 'em destaque') + ". O engajamento para este nicho está 25% acima da média.")
+                st.caption(f"Foque em vídeos curtos para o produto {top1.get('Produto', 'em destaque')}. O engajamento está alto!")
 
         st.markdown("---")
-        render_insights_estrategicos(produtos_dict)
+        render_insights_estrategicos(produtos_lista)
     else:
         st.info("📭 Nenhum dado disponível no momento.")
 
