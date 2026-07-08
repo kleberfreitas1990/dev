@@ -55,16 +55,49 @@ PRODUTOS_FALLBACK = {
 }
 
 # ============================================================
-# FUNÇÃO PRINCIPAL - PRIORIZA API SERPER
+# FUNÇÃO PARA VERIFICAR DATA DO CACHE
+# ============================================================
+def verificar_data_cache() -> Dict:
+    """
+    Verifica a data do cache e retorna informações
+    """
+    cache = carregar_cache_produtos()
+    hoje = datetime.now().date().isoformat()
+    
+    if cache:
+        data_cache = cache.get("data", "Nunca")
+        total = len(cache.get("produtos", {}))
+        
+        if data_cache == hoje:
+            status = "✅ Atualizado hoje"
+        else:
+            status = f"⚠️ Última atualização: {data_cache}"
+        
+        return {
+            "status": status,
+            "data": data_cache,
+            "total": total,
+            "cache_existe": True
+        }
+    else:
+        return {
+            "status": "❌ Nenhum cache encontrado",
+            "data": "Nunca",
+            "total": 0,
+            "cache_existe": False
+        }
+
+# ============================================================
+# FUNÇÃO PRINCIPAL - SEMPRE BUSCA DADOS NOVOS
 # ============================================================
 def obter_produtos_dinamicos(forcar_atualizacao: bool = True) -> Dict[str, Any]:
     """
     Obtém produtos com dados atualizados.
-    PRIORIZA API Serper, usa Grade apenas como último recurso.
+    SEMPRE busca dados novos, ignora completamente o cache.
     """
-    logger.info("🔄 Buscando dados atualizados...")
+    logger.info("🔄 Buscando dados NOVOS (ignorando cache)...")
     
-    # Tenta buscar com API
+    # SEMPRE busca novos dados
     produtos = buscar_produtos_com_api_e_grade()
     
     # Se falhou, usa fallback
@@ -72,7 +105,7 @@ def obter_produtos_dinamicos(forcar_atualizacao: bool = True) -> Dict[str, Any]:
         logger.warning("⚠️ Poucos produtos encontrados, usando fallback")
         produtos = PRODUTOS_FALLBACK
     
-    # Salva no cache
+    # Salva no cache com a data de hoje
     salvar_cache_produtos(produtos)
     
     return produtos
@@ -84,7 +117,7 @@ def buscar_produtos_com_api_e_grade(limite: int = 10) -> Dict[str, Any]:
     produtos = {}
     
     # ============================================================
-    # 1. BUSCA TERMOS DA SHOPEE
+    # 1. BUSCA TERMOS DA SHOPEE (FORÇA NOVA BUSCA)
     # ============================================================
     logger.info("📡 Buscando termos da Shopee...")
     termos = capturar_buscas_shopee_com_cache(ignorar_cache=True)
@@ -289,5 +322,6 @@ __all__ = [
     'limpar_cache_produtos',
     'PRODUTOS_FALLBACK',
     'buscar_produtos_com_api_e_grade',
-    'carregar_cache_produtos'
+    'carregar_cache_produtos',
+    'verificar_data_cache'
 ]
