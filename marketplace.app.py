@@ -7,7 +7,17 @@ import time
 import logging
 import sys
 import os
-
+# ============================================================
+# DEBUG: Verificar Secrets
+# ============================================================
+try:
+    selenium_url = st.secrets.get("SELENIUM_API_URL", "")
+    if selenium_url:
+        st.sidebar.success(f"✅ SELENIUM_API_URL: {selenium_url[:30]}...")
+    else:
+        st.sidebar.error("❌ SELENIUM_API_URL não encontrado!")
+except Exception as e:
+    st.sidebar.error(f"❌ Erro ao ler Secrets: {e}")
 # ============================================================
 # CONFIGURAÇÃO DE LOGGING
 # ============================================================
