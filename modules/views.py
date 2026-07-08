@@ -28,6 +28,9 @@ from modules.grade_descoberta import (
     obter_indicadores_horario
 )
 
+# Importa para verificar data do cache
+from modules.produtos_dinamicos import verificar_data_cache
+
 # Tenta importar serper, se falhar usa fallback
 try:
     from modules.serper import buscar_produtos_serper
@@ -333,34 +336,37 @@ def render_insights_estrategicos(produtos):
 def render_dashboard():
     """Renderiza o dashboard principal"""
     
-    st.title("📊 Minerador de Produtos")
-    st.caption(f"📅 {datetime.now().strftime('%A, %d de %B de %Y - %H:%M')}")
+    # ============================================================
+    # STATUS DOS DADOS NO TOPO
+    # ============================================================
+    status_cache = verificar_data_cache()
+    hoje = datetime.now().date().isoformat()
     
-    # Status compacto
-    col_status1, col_status2, col_status3, col_status4, col_status5 = st.columns(5)
-    with col_status1:
+    col1, col2, col3, col4, col5 = st.columns(5)
+    with col1:
         serper_key = st.secrets.get("SERPER_API_KEY", "")
         st.markdown("🔌 " + ("✅" if serper_key else "❌"))
-    with col_status2:
+    with col2:
         st.markdown("🎫 10/10")
-    with col_status3:
+    with col3:
         st.markdown(f"👤 {st.session_state.get('licenca_usuario', '')[:8]}...")
-    with col_status4:
-        from modules.produtos_dinamicos import carregar_cache_produtos
-        cache = carregar_cache_produtos()
-        if cache:
-            st.markdown(f"📅 {cache.get('data', 'Nunca')}")
+    with col4:
+        if status_cache['data'] == hoje:
+            st.success(f"📅 {status_cache['data']}")
         else:
-            st.markdown("📅 Nunca")
-    with col_status5:
+            st.warning(f"📅 {status_cache['data']}")
+    with col5:
         from modules.serper import obter_stats_serper
         stats = obter_stats_serper()
         st.markdown(f"📡 {stats.get('usadas_hoje', 0)}/{stats.get('limite_diario', 20)}")
     
     st.markdown("---")
     
+    st.title("📊 Minerador de Produtos")
+    st.caption(f"📅 {datetime.now().strftime('%A, %d de %B de %Y - %H:%M')}")
+    
     # ============================================================
-    # VISÃO GERAL DO MÊS - COMPLETA (MENSAGEM + MÉTRICAS + OPORTUNIDADE + SUGESTÕES + TOP 3)
+    # VISÃO GERAL DO MÊS - COMPLETA
     # ============================================================
     st.markdown("## 📊 Visão Geral do Mês")
     
