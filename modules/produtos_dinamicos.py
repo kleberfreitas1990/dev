@@ -6,9 +6,10 @@ from datetime import datetime, timedelta
 from typing import List, Dict, Any
 
 from modules.shopee import capturar_buscas_shopee_com_cache
-from modules.serper import buscar_produtos_serper, obter_requisicoes_restantes, LIMITE_DIARIO_SERPER
+from modules.serper import buscar_produtos_serper, obter_requisicoes_restantes, LIMITE_DIARIO_SERPER, resetar_contador_serper
 from modules.validation import validar_termo_busca, validar_produtos_serper
 from modules.grade_descoberta import descobrir_produtos_grade, enriquecer_produto
+from modules.logger import registrar_busca
 
 logger = logging.getLogger(__name__)
 
@@ -82,6 +83,8 @@ def obter_produtos_dinamicos(forcar_atualizacao: bool = False) -> Dict[str, Any]
                 
                 if dias_diferenca >= 1:
                     logger.info(f"🔄 Cache de {data_cache} ({dias_diferenca} dias atrás) - Atualizando...")
+                    # Reseta o contador para permitir novas buscas
+                    resetar_contador_serper()
                     # Força atualização
                     produtos = buscar_produtos_com_grade()
                     salvar_cache_produtos(produtos)
@@ -89,7 +92,7 @@ def obter_produtos_dinamicos(forcar_atualizacao: bool = False) -> Dict[str, Any]
             except:
                 pass
     
-    # Se não tem cache ou é antigo, busca novos dados
+    # Se não tem cache, busca novos dados
     logger.info("🔄 Buscando dados atualizados...")
     produtos = buscar_produtos_com_grade()
     
@@ -105,10 +108,10 @@ def buscar_produtos_com_grade(limite: int = 10) -> Dict[str, Any]:
     produtos = {}
     
     # ============================================================
-    # 1. BUSCA TERMOS DA SHOPEE
+    # 1. BUSCA TERMOS DA SHOPEE (FORÇA NOVA BUSCA)
     # ============================================================
     logger.info("📡 Buscando termos da Shopee...")
-    termos = capturar_buscas_shopee_com_cache()
+    termos = capturar_buscas_shopee_com_cache(ignorar_cache=True)
     
     if not termos:
         logger.warning("Nenhum termo da Shopee encontrado")
@@ -180,6 +183,15 @@ def buscar_produtos_com_grade(limite: int = 10) -> Dict[str, Any]:
             if chave not in produtos:
                 produtos[chave] = valor
                 produtos[chave]["fonte"] = "grade_descoberta"
+    
+    # Registra no log
+    registrar_busca(
+        nivel="sistema",
+        termo="atualizacao_diaria",
+        sucesso=True if len(produtos) > 0 else False,
+        quantidade=len(produtos),
+        detalhes=f"Produtos atualizados: {len(produtos)}"
+    )
     
     return produtos
 
