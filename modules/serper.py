@@ -20,15 +20,13 @@ ARQUIVO_SERPER_CONTADOR = "serper_contador.json"
 # ============================================================
 # LIMITE DIÁRIO DE REQUISIÇÕES
 # ============================================================
-LIMITE_DIARIO_SERPER = 20  # Máximo de 20 requisições por dia
+LIMITE_DIARIO_SERPER = 20
 
 # ============================================================
 # FUNÇÕES DE CONTADOR
 # ============================================================
 def obter_contador_serper() -> Dict:
-    """
-    Obtém o contador de requisições do dia
-    """
+    """Obtém o contador de requisições do dia"""
     hoje = date.today().isoformat()
     
     if os.path.exists(ARQUIVO_SERPER_CONTADOR):
@@ -40,17 +38,10 @@ def obter_contador_serper() -> Dict:
         except:
             pass
     
-    # Cria novo contador
-    return {
-        "data": hoje,
-        "total": 0,
-        "termos": []
-    }
+    return {"data": hoje, "total": 0, "termos": []}
 
 def salvar_contador_serper(contador: Dict) -> bool:
-    """
-    Salva o contador de requisições
-    """
+    """Salva o contador de requisições"""
     try:
         with open(ARQUIVO_SERPER_CONTADOR, 'w', encoding='utf-8') as f:
             json.dump(contador, f, ensure_ascii=False, indent=2)
@@ -60,17 +51,13 @@ def salvar_contador_serper(contador: Dict) -> bool:
         return False
 
 def pode_fazer_requisicao_serper(termo: str) -> bool:
-    """
-    Verifica se pode fazer uma nova requisição
-    """
+    """Verifica se pode fazer uma nova requisição"""
     contador = obter_contador_serper()
     
-    # Verifica se já atingiu o limite
     if contador["total"] >= LIMITE_DIARIO_SERPER:
         logger.warning(f"Limite diário de {LIMITE_DIARIO_SERPER} requisições atingido!")
         return False
     
-    # Verifica se o termo já foi buscado hoje
     if termo in contador["termos"]:
         logger.info(f"Termo '{termo}' já foi buscado hoje")
         return False
@@ -78,30 +65,21 @@ def pode_fazer_requisicao_serper(termo: str) -> bool:
     return True
 
 def registrar_requisicao_serper(termo: str) -> bool:
-    """
-    Registra uma requisição feita
-    """
+    """Registra uma requisição feita"""
     contador = obter_contador_serper()
-    
     contador["total"] += 1
     if termo not in contador["termos"]:
         contador["termos"].append(termo)
-    
     return salvar_contador_serper(contador)
 
 def obter_requisicoes_restantes() -> int:
-    """
-    Retorna quantas requisições restam hoje
-    """
+    """Retorna quantas requisições restam hoje"""
     contador = obter_contador_serper()
     return max(0, LIMITE_DIARIO_SERPER - contador["total"])
 
 def obter_stats_serper() -> Dict:
-    """
-    Obtém estatísticas do Serper
-    """
+    """Obtém estatísticas do Serper"""
     contador = obter_contador_serper()
-    
     return {
         "limite_diario": LIMITE_DIARIO_SERPER,
         "usadas_hoje": contador["total"],
@@ -111,34 +89,26 @@ def obter_stats_serper() -> Dict:
     }
 
 def resetar_contador_serper() -> bool:
-    """
-    Reseta o contador manualmente
-    """
+    """Reseta o contador manualmente"""
     try:
         if os.path.exists(ARQUIVO_SERPER_CONTADOR):
             os.remove(ARQUIVO_SERPER_CONTADOR)
+            logger.info("Contador Serper resetado manualmente")
         return True
-    except:
+    except Exception as e:
+        logger.error(f"Erro ao resetar contador: {e}")
         return False
 
 # ============================================================
 # FUNÇÃO PRINCIPAL DE BUSCA
 # ============================================================
-def buscar_produtos_serper(
-    termo: str, 
-    limite: int = 5, 
-    usar_cache: bool = True
-) -> List[Dict]:
-    """
-    Busca produtos no Google Shopping via Serper.dev com LIMITE DIÁRIO
-    """
+def buscar_produtos_serper(termo: str, limite: int = 5, usar_cache: bool = True) -> List[Dict]:
+    """Busca produtos no Google Shopping via Serper.dev com LIMITE DIÁRIO"""
     
     if not termo or len(termo) < 2:
         return []
     
-    # ============================================================
-    # 1. VERIFICA CACHE PRIMEIRO (não gasta requisição)
-    # ============================================================
+    # 1. VERIFICA CACHE
     if usar_cache:
         cache = carregar_cache_serper()
         chave_cache = f"serper_{termo}_{limite}"
@@ -149,17 +119,13 @@ def buscar_produtos_serper(
                     logger.info(f"Cache Serper usado para '{termo}'")
                     return dados_cache.get("resultados", [])
     
-    # ============================================================
-    # 2. VERIFICA LIMITE DE REQUISIÇÕES
-    # ============================================================
+    # 2. VERIFICA LIMITE
     if not pode_fazer_requisicao_serper(termo):
         restantes = obter_requisicoes_restantes()
         logger.warning(f"Limite diário atingido. Restam {restantes} requisições.")
         return []
     
-    # ============================================================
     # 3. FAZ A REQUISIÇÃO
-    # ============================================================
     api_key = st.secrets.get("SERPER_API_KEY", "")
     if not api_key:
         logger.warning("Chave SERPER_API_KEY não configurada")
@@ -173,7 +139,6 @@ def buscar_produtos_serper(
         logger.info(f"🔍 Buscando produtos para '{termo}' no Serper...")
         response = requests.post(url, json=payload, headers=headers, timeout=15)
         
-        # REGISTRA A REQUISIÇÃO (mesmo se falhar)
         registrar_requisicao_serper(termo)
         restantes = obter_requisicoes_restantes()
         logger.info(f"📊 Requisições restantes hoje: {restantes}")
@@ -209,84 +174,57 @@ def buscar_produtos_serper(
 # FUNÇÕES DE CACHE
 # ============================================================
 def carregar_cache_serper() -> Dict:
-    """Carrega o cache do Serper.dev com validação"""
     if os.path.exists(ARQUIVO_SERPER_CACHE):
         try:
             with open(ARQUIVO_SERPER_CACHE, 'r', encoding='utf-8') as f:
                 return json.load(f)
-        except (json.JSONDecodeError, IOError) as e:
-            logger.warning(f"Erro ao ler cache Serper: {e}")
+        except:
             return {}
     return {}
 
 def salvar_cache_serper(chave: str, resultados: List[Dict]) -> bool:
-    """Salva resultados no cache com validação"""
     if not resultados:
-        logger.warning(f"Tentativa de salvar cache vazio para '{chave}'")
         return False
     
     try:
         cache = carregar_cache_serper()
-        
-        # Sanitiza os dados antes de salvar
-        resultados_sanitizados = [sanitizar_json(p) for p in resultados]
-        
         cache[chave] = {
             "data": datetime.now().date().isoformat(),
-            "resultados": resultados_sanitizados,
+            "resultados": resultados,
             "timestamp": datetime.now().isoformat(),
-            "total": len(resultados_sanitizados)
+            "total": len(resultados)
         }
-        
         with open(ARQUIVO_SERPER_CACHE, 'w', encoding='utf-8') as f:
             json.dump(cache, f, ensure_ascii=False, indent=2)
-        
-        logger.info(f"Cache Serper salvo para '{chave}' ({len(resultados)} produtos)")
         return True
-    except Exception as e:
-        logger.error(f"Erro ao salvar cache Serper: {e}")
+    except:
         return False
 
 def limpar_cache_serper() -> bool:
-    """Limpa o cache do Serper"""
     if os.path.exists(ARQUIVO_SERPER_CACHE):
         try:
             os.remove(ARQUIVO_SERPER_CACHE)
-            logger.info("Cache Serper removido")
             return True
-        except IOError as e:
-            logger.error(f"Erro ao remover cache Serper: {e}")
-            return False
-    return True
+        except:
+            pass
+    return False
 
 def obter_stats_cache_serper() -> dict:
-    """
-    Obtém estatísticas do cache do Serper
-    """
-    stats = {
-        "existe": False,
-        "total_chaves": 0,
-        "total_produtos": 0,
-        "tamanho_kb": 0
-    }
-    
+    stats = {"existe": False, "total_chaves": 0, "total_produtos": 0, "tamanho_kb": 0}
     if os.path.exists(ARQUIVO_SERPER_CACHE):
         stats["existe"] = True
         try:
             with open(ARQUIVO_SERPER_CACHE, 'r', encoding='utf-8') as f:
                 dados = json.load(f)
                 stats["total_chaves"] = len(dados)
-                
                 total_produtos = 0
                 for chave, valor in dados.items():
                     if isinstance(valor, dict) and "resultados" in valor:
                         total_produtos += len(valor.get("resultados", []))
                 stats["total_produtos"] = total_produtos
-                
                 stats["tamanho_kb"] = round(os.path.getsize(ARQUIVO_SERPER_CACHE) / 1024, 2)
-        except Exception as e:
-            logger.error(f"Erro ao ler estatísticas Serper: {e}")
-    
+        except:
+            pass
     return stats
 
 # ============================================================
