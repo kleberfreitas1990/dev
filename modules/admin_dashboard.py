@@ -361,15 +361,15 @@ def render_admin_resumo():
         st.metric("📈 Taxa", stats_logs["taxa_sucesso"])
     
     # ============================================================
-    # BOTÕES DE AÇÃO (SEM DUPLICAÇÃO)
+    # BOTÕES DE AÇÃO - UNIFICADOS (SEM DUPLICAÇÃO)
     # ============================================================
     st.markdown("---")
     st.markdown("### ⚙️ Ações Rápidas")
     
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3 = st.columns(3)
     
     with col1:
-        if st.button("🔄 Forçar Atualização", use_container_width=True):
+        if st.button("🔄 Forçar Atualização", use_container_width=True, key="btn_forcar_atualizacao"):
             with st.spinner("⏳ Atualizando dados..."):
                 try:
                     from modules.models import gerar_top10_produtos
@@ -384,7 +384,7 @@ def render_admin_resumo():
                     st.error(f"❌ Erro ao atualizar: {str(e)}")
     
     with col2:
-        if st.button("🧹 Limpar Cache", use_container_width=True):
+        if st.button("🧹 Limpar Cache", use_container_width=True, key="btn_limpar_cache"):
             try:
                 from modules.produtos_dinamicos import limpar_cache_produtos
                 from modules.shopee import limpar_cache_shopee
@@ -400,7 +400,7 @@ def render_admin_resumo():
                 st.error(f"❌ Erro ao limpar cache: {str(e)}")
     
     with col3:
-        if st.button("🔄 Resetar Contador Serper", use_container_width=True):
+        if st.button("🔄 Resetar Contador Serper", use_container_width=True, key="btn_resetar_contador"):
             try:
                 from modules.serper import resetar_contador_serper
                 if resetar_contador_serper():
@@ -411,8 +411,30 @@ def render_admin_resumo():
             except Exception as e:
                 st.error(f"❌ Erro: {str(e)}")
     
-    with col4:
-        if st.button("🧹 Limpar Logs", use_container_width=True):
+    # ============================================================
+    # LOGS COMPLETOS (COM BOTÃO LIMPAR LOGS AQUI - ÚNICO)
+    # ============================================================
+    st.markdown("---")
+    st.markdown("### 📋 Logs Completos")
+    
+    logs = carregar_logs()
+    
+    if logs:
+        df_logs = pd.DataFrame(logs)
+        colunas = ["data", "nivel", "termo", "sucesso", "quantidade", "tempo_execucao", "erro"]
+        df_logs = df_logs[colunas] if all(c in df_logs.columns for c in colunas) else df_logs
+        
+        df_logs["sucesso"] = df_logs["sucesso"].apply(lambda x: "✅" if x else "❌")
+        df_logs["tempo_execucao"] = df_logs["tempo_execucao"].apply(lambda x: f"{x}s" if x else "-")
+        
+        st.dataframe(
+            df_logs,
+            use_container_width=True,
+            hide_index=True
+        )
+        
+        # Botão Limpar Logs - ÚNICO (aqui)
+        if st.button("🧹 Limpar Logs", use_container_width=True, key="btn_limpar_logs"):
             try:
                 if limpar_logs():
                     st.success("✅ Logs limpos com sucesso!")
@@ -421,6 +443,8 @@ def render_admin_resumo():
                     st.error("❌ Erro ao limpar logs")
             except Exception as e:
                 st.error(f"❌ Erro: {str(e)}")
+    else:
+        st.info("📭 Nenhum log disponível")
     
     st.markdown("---")
     
