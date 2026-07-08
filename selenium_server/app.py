@@ -48,16 +48,8 @@ def index():
     """Status do servidor"""
     return jsonify({
         "status": "online",
-        "service": "Selenium Scraper",
-        "version": "1.0.2",
-        "chrome_bin": os.environ.get("CHROME_BIN", "chromium"),
-        "endpoints": [
-            "/",
-            "/teste",
-            "/produtos (POST)",
-            "/tendencias",
-            "/buscas"
-        ]
+        "service": "Selenium Scraper Real-Time 2026",
+        "version": "1.1.0"
     })
 
 @app.route("/teste")
@@ -68,20 +60,49 @@ def testar_chrome():
         driver = get_driver()
         driver.get("https://www.google.com")
         titulo = driver.title
-        return jsonify({
-            "status": "ok",
-            "message": "Chrome funcionando perfeitamente",
-            "title": titulo
-        })
+        return jsonify({"status": "ok", "title": titulo})
     except Exception as e:
         logger.error(f"Erro no teste: {e}")
-        return jsonify({
-            "status": "error",
-            "message": str(e)
-        }), 500
+        return jsonify({"status": "error", "message": str(e)}), 500
     finally:
-        if driver:
-            driver.quit()
+        if driver: driver.quit()
+
+@app.route("/tendencias")
+def tendencias():
+    """Captura tendências reais da Shopee e hashtags populares"""
+    driver = None
+    try:
+        driver = get_driver()
+        driver.get("https://shopee.com.br/")
+        time.sleep(4)
+        
+        soup = BeautifulSoup(driver.page_source, 'html.parser')
+        termos = []
+        
+        # Captura termos de busca populares
+        for link in soup.find_all('a', href=True):
+            href = link.get('href', '')
+            if 'keyword=' in href:
+                match = re.search(r'keyword=([^&]+)', href)
+                if match:
+                    termo = requests.utils.unquote(match.group(1))
+                    if termo and termo not in termos:
+                        termos.append(termo)
+            if len(termos) >= 15: break
+        
+        # Hashtags sugeridas baseadas no mercado brasileiro 2026
+        hashtags = ["#achadinhos", "#shopeebr", "#afiliados", "#tendencia2026", "#viral"]
+        
+        return jsonify({
+            "status": "success",
+            "tendencias": termos if termos else ["smartphone", "notebook", "fone bluetooth"],
+            "hashtags": hashtags
+        })
+    except Exception as e:
+        logger.error(f"Erro ao buscar tendências: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+    finally:
+        if driver: driver.quit()
 
 @app.route("/produtos", methods=["POST"])
 def buscar_produtos():
@@ -96,7 +117,7 @@ def buscar_produtos():
     driver = None
     try:
         driver = get_driver()
-        url = f"https://shopee.com.br/search?keyword={termo.replace(" ", "%20")}"
+        url = f"https://shopee.com.br/search?keyword={termo.replace(' ', '%20')}"
         driver.get(url)
         
         WebDriverWait(driver, 15).until(
@@ -108,118 +129,17 @@ def buscar_produtos():
         
         for item in items:
             try:
-                nome = item.find_element(By.CSS_SELECTOR, ".name").text
-                preco = item.find_element(By.CSS_SELECTOR, ".price").text
-                loja = item.find_element(By.CSS_SELECTOR, ".shop-name").text
-                
-                try:
-                    img = item.find_element(By.CSS_SELECTOR, "img").get_attribute("src")
-                except:
-                    img = ""
-                
-                produtos.append({
-                    "nome": nome,
-                    "preco": preco,
-                    "loja": loja,
-                    "imagem": img,
-                    "url": url
-                })
-            except Exception as e:
-                logger.warning(f"Erro ao extrair item: {e}")
-                continue
+                nome = item.find_element(By.CSS_SELECTOR, ".name" if len(item.find_elements(By.CSS_SELECTOR, ".name")) > 0 else ".shopee-item-card__name").text
+                preco = item.find_element(By.CSS_SELECTOR, ".price" if len(item.find_elements(By.CSS_SELECTOR, ".price")) > 0 else ".shopee-item-card__current-price").text
+                produtos.append({"nome": nome, "preco": preco})
+            except: continue
         
-        return jsonify({
-            "produtos": produtos,
-            "total": len(produtos),
-            "termo": termo,
-            "status": "success"
-        })
-        
+        return jsonify({"produtos": produtos, "status": "success"})
     except Exception as e:
-        logger.error(f"Erro na busca: {e}")
-        return jsonify({
-            "error": str(e),
-            "status": "error"
-        }), 500
+        return jsonify({"error": str(e), "status": "error"}), 500
     finally:
-        if driver:
-            driver.quit()
+        if driver: driver.quit()
 
-@app.route("/tendencias")
-def tendencias():
-    """Captura tendências da Shopee (termos de busca populares e categorias)"""
-    driver = None
-    try:
-        driver = get_driver()
-        driver.get("https://shopee.com.br/")
-        time.sleep(3) # Espera a página carregar completamente
-        
-        soup = BeautifulSoup(driver.page_source, 'html.parser')
-        
-        tendencias_encontradas = []
-        
-        # Tenta capturar termos de busca populares (ex: do rodapé ou seções de "Mais Buscados")
-        # Procurar por links que contenham 'keyword=' no href
-        for link in soup.find_all('a', href=True):
-            href = link.get('href', '')
-            if 'keyword=' in href:
-                match = re.search(r'keyword=([^&]+)', href)
-                if match:
-                    termo = requests.utils.unquote(match.group(1))
-                    if termo and termo not in tendencias_encontradas:
-                        tendencias_encontradas.append(termo)
-            if len(tendencias_encontradas) >= 20: # Limita para não pegar demais
-                break
-
-        # Tenta capturar categorias em destaque (se houver um seletor específico)
-        # Exemplo: elementos com a classe 'category-card' ou similar
-        categorias_elementos = soup.find_all(class_=re.compile(r'category-card|home-category-list__category-card'))
-        for elem in categorias_elementos:
-            nome_categoria = elem.get_text(strip=True)
-            if nome_categoria and nome_categoria not in tendencias_encontradas:
-                tendencias_encontradas.append(nome_categoria)
-            if len(tendencias_encontradas) >= 20: # Limita para não pegar demais
-                break
-
-        return jsonify({
-            'tendencias': tendencias_encontradas if tendencias_encontradas else ['smartphone', 'notebook', 'fone bluetooth'],
-            'status': 'success'
-        })
-    except Exception as e:
-        logger.error(f"Erro ao buscar tendências: {e}")
-        return jsonify({
-            'tendencias': ['smartphone', 'notebook', 'fone bluetooth'], # Fallback
-            'status': 'error',
-            'message': str(e)
-        })
-    finally:
-        if driver:
-            driver.quit()
-
-@app.route("/buscas")
-def buscas_populares():
-    """Retorna termos de busca populares (agora dinâmico via scraping da Shopee)"""
-    driver = None
-    try:
-        driver = get_driver()
-        driver.get("https://shopee.com.br/")
-        time.sleep(3) # Espera a página carregar
-
-        soup = BeautifulSoup(driver.page_source, 'html.parser')
-        termos_populares = []
-
-        # Procurar por elementos que representam buscas populares
-        # Exemplo: elementos com a classe 'shopee-searchbar__hot-search-item' ou links com 'keyword='
-        for link in soup.find_all('a', href=True):
-            href = link.get('href', '')
-            if 'keyword=' in href:
-                match = re.search(r'keyword=([^&]+)', href)
-                if match:
-                    termo = requests.utils.unquote(match.group(1))
-                    if termo and termo not in termos_populares:
-                        termos_populares.append(termo)
-            if len(termos_populares) >= 20: # Limita para não pegar demais
-                break
-
-        # Tenta encontrar termos em seções específicas, se houver
-        # Ex: divs com títulos de 
+if __name__ == '__main__':
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
