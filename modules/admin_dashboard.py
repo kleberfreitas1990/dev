@@ -8,7 +8,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 from typing import Dict, List
 
-from modules.logger import carregar_logs, obter_estatisticas_logs
+from modules.logger import carregar_logs, obter_estatisticas_logs, limpar_logs
 from modules.shopee import obter_stats_cache_shopee
 from modules.serper import obter_stats_cache_serper, obter_stats_serper
 from modules.produtos_dinamicos import carregar_cache_produtos
@@ -36,7 +36,6 @@ def verificar_status_buscas() -> Dict:
             total = stats_shopee.get("total_termos", 0)
             data = stats_shopee.get("data", "Nunca")
             
-            # Verifica se o cache é de hoje
             hoje = datetime.now().date().isoformat()
             is_hoje = data == hoje
             
@@ -99,7 +98,6 @@ def verificar_status_buscas() -> Dict:
                     "total": 0
                 }
         else:
-            # Verifica se a chave está configurada
             serper_key = st.secrets.get("SERPER_API_KEY", "")
             if not serper_key:
                 status["api"] = {
@@ -201,7 +199,6 @@ def render_admin_resumo():
     st.markdown("## 📊 Resumo Administrativo")
     st.caption("Status atual das buscas e sistemas")
     
-    # Busca status
     status = verificar_status_buscas()
     
     # ============================================================
@@ -266,7 +263,6 @@ def render_admin_resumo():
     # ============================================================
     st.markdown("### 📋 Detalhes por Sistema")
     
-    # Cria DataFrame resumido
     dados_resumo = []
     
     for nome, info in status.items():
@@ -287,7 +283,6 @@ def render_admin_resumo():
     
     df_resumo = pd.DataFrame(dados_resumo)
     
-    # Estiliza o DataFrame
     st.dataframe(
         df_resumo,
         use_container_width=True,
@@ -326,7 +321,6 @@ def render_admin_resumo():
         else:
             st.metric("🔄 Restantes", restantes, delta="Esgotado!", delta_color="inverse")
     with col4:
-        # Barra de progresso do limite
         progresso = stats_serper["usadas_hoje"] / stats_serper["limite_diario"] * 100
         cor = "green" if progresso < 70 else "orange" if progresso < 90 else "red"
         st.markdown(f"""
@@ -340,7 +334,6 @@ def render_admin_resumo():
         </div>
         """, unsafe_allow_html=True)
     
-    # Mostra termos buscados
     if stats_serper["termos_buscados"]:
         with st.expander(f"📋 Termos buscados hoje ({len(stats_serper['termos_buscados'])} termos)"):
             for termo in stats_serper["termos_buscados"]:
@@ -368,7 +361,7 @@ def render_admin_resumo():
         st.metric("📈 Taxa", stats_logs["taxa_sucesso"])
     
     # ============================================================
-    # BOTÕES DE AÇÃO
+    # BOTÕES DE AÇÃO (SEM DUPLICAÇÃO)
     # ============================================================
     st.markdown("---")
     st.markdown("### ⚙️ Ações Rápidas")
@@ -380,8 +373,12 @@ def render_admin_resumo():
             with st.spinner("⏳ Atualizando dados..."):
                 try:
                     from modules.models import gerar_top10_produtos
-                    gerar_top10_produtos(forcar_atualizacao=True)
-                    st.success("✅ Dados atualizados com sucesso!")
+                    from modules.serper import resetar_contador_serper
+                    
+                    resetar_contador_serper()
+                    produtos = gerar_top10_produtos(forcar_atualizacao=True)
+                    
+                    st.success(f"✅ Atualização concluída! {len(produtos)} produtos carregados.")
                     st.rerun()
                 except Exception as e:
                     st.error(f"❌ Erro ao atualizar: {str(e)}")
@@ -417,7 +414,6 @@ def render_admin_resumo():
     with col4:
         if st.button("🧹 Limpar Logs", use_container_width=True):
             try:
-                from modules.logger import limpar_logs
                 if limpar_logs():
                     st.success("✅ Logs limpos com sucesso!")
                     st.rerun()
@@ -428,9 +424,6 @@ def render_admin_resumo():
     
     st.markdown("---")
     
-    # ============================================================
-    # LEGENDA
-    # ============================================================
     st.caption("""
     **Legenda:**
     - ✅ Funcionando corretamente
