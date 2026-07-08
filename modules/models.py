@@ -106,17 +106,12 @@ def remover_apoiador(id_apoiador):
 # ============================================================
 # DADOS DE PRODUTOS (DINÂMICOS)
 # ============================================================
-def obter_dados_completos(forcar_atualizacao: bool = False) -> Dict:
+def obter_dados_completos(forcar_atualizacao: bool = True) -> Dict:
     """
     Obtém dados completos de produtos (dinâmicos)
-    
-    Args:
-        forcar_atualizacao (bool): Força atualização
-        
-    Returns:
-        Dict: Dados completos dos produtos
+    SEMPRE FORÇA ATUALIZAÇÃO
     """
-    return obter_produtos_dinamicos(forcar_atualizacao)
+    return obter_produtos_dinamicos(forcar_atualizacao=True)
 
 # ============================================================
 # PALAVRAS CHAVE - EXPANDIDAS E ESPECÍFICAS
@@ -500,7 +495,7 @@ def calcular_score(produto: str, dados: Dict) -> int:
 def gerar_top10_produtos(forcar_atualizacao: bool = True) -> List[Dict]:
     """
     Gera top 10 produtos com dados dinâmicos.
-    SEMPRE FORÇA ATUALIZAÇÃO para evitar cache antigo.
+    SEMPRE FORÇA ATUALIZAÇÃO
     """
     dados_completos = obter_dados_completos(forcar_atualizacao=True)
     
