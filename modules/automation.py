@@ -23,8 +23,8 @@ def executar_atualizacao_automatica():
 
     agora = datetime.now()
     
-    # Define intervalo de atualização (ex: 12 horas)
-    INTERVALO_HORAS = 12
+    # Define intervalo de atualização (2 horas)
+    INTERVALO_HORAS = 2
     
     precisa_atualizar = False
     

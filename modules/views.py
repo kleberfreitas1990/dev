@@ -371,14 +371,8 @@ def render_dashboard():
         st.caption(f"📅 {datetime.now().strftime('%A, %d de %B de %Y - %H:%M')}")
     
     with col_refresh:
-        if st.button("🧹 Limpar Cache", use_container_width=True, help="Força a atualização dos dados reais"):
-            st.cache_data.clear()
-            st.cache_resource.clear()
-            # Limpa o arquivo de cache para forçar regeneração a partir do fallback real
-            if os.path.exists("produtos_cache.json"):
-                os.remove("produtos_cache.json")
-            st.success("Cache limpo!")
-            st.rerun()
+        # Botão removido - Atualização agora é 100% automática a cada 2 horas
+        st.empty()
     
     # ============================================================
     # VISÃO GERAL DO MÊS - COMPLETA
@@ -932,7 +926,7 @@ def render_top_20_marketplace():
     Renderiza uma nova grade exclusiva com os 20 produtos reais de marketplace
     Ignora completamente o cache e usa dados fixos reais
     """
-    st.markdown("## 🔥 Top 20 Marketplace Real")
+    st.markdown("## 🔥 Top 20 Google (Shopping & Trends)")
     st.caption("Dados brutos de alto giro pesquisados diretamente na Shopee Brasil - Julho 2026")
     
     produtos_reais = [

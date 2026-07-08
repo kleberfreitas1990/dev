@@ -520,10 +520,14 @@ def gerar_top10_produtos(forcar_atualizacao: bool = False) -> List[Dict]:
         dados_palavra = obter_palavra_chave(produto)
         palavra_chave = dados_palavra.get("palavra", f"{produto}")
         
+        fonte_bruta = dados.get("fonte", "shopee")
+        fonte_display = "Google" if fonte_bruta == "serper" else "Shopee"
+        
         resultados.append({
             "Produto": produto.capitalize(),
             "Categoria": dados.get("categoria", "Geral"),
             "Evento": dados.get("evento", "Tendência"),
+            "Fonte": fonte_display,
             "Potencial": potencial,
             "Score": score,
             "Pins": f"{dados.get('pins', 0):,}",
@@ -538,9 +542,9 @@ def gerar_top10_produtos(forcar_atualizacao: bool = False) -> List[Dict]:
     
     return sorted(resultados, key=lambda x: x["Score"], reverse=True)[:10]
 
-def gerar_sugestoes_diarias(forcar_atualizacao: bool = True) -> List[Dict]:
-    """Gera sugestões diárias (top 3) - SEMPRE FORÇA ATUALIZAÇÃO"""
-    top10 = gerar_top10_produtos(forcar_atualizacao=True)
+def gerar_sugestoes_diarias(forcar_atualizacao: bool = False) -> List[Dict]:
+    """Gera sugestões diárias (top 3)"""
+    top10 = gerar_top10_produtos(forcar_atualizacao=forcar_atualizacao)
     return top10[:BUSCAS_DIARIAS]
 
 # ============================================================

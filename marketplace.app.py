@@ -11,7 +11,7 @@ import os
 # ============================================================
 # VERSÃO DO SISTEMA
 # ============================================================
-VERSAO_SISTEMA = "v4.2 - Marketplace Real"
+VERSAO_SISTEMA = "v4.3 - Automação Total"
 
 # ============================================================
 # CONFIGURAÇÃO DE LOGGING
@@ -104,7 +104,7 @@ st.markdown("---")
 # ============================================================
 tab1, tab_new, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs([
     "📊 Dashboard",
-    "🔥 Top 20 Marketplace",
+    "🔥 Top 20 Google",
     "📌 Sugestões de Produtos",
     "📅 Calendário de Conteúdo",
     "🎬 Criar Vídeo IA",
@@ -178,7 +178,8 @@ with tab2:
                 "Views TikTok": item.get("Views TikTok", "0M"),
                 "Buscas no Mês": item.get("Buscas no Mês", "0"),
                 "Resultados ML": item.get("Resultados ML", "0"),
-                "Tendência": item.get("Tendência", "➡️ Estável")
+                "Tendência": item.get("Tendência", "➡️ Estável"),
+                "Fonte": item.get("Fonte", "Shopee")
             })
         
         df = pd.DataFrame(dados_tabela)
@@ -187,7 +188,7 @@ with tab2:
             lambda x: f'<a href="https://shopee.com.br/search?keyword={quote(x)}" target="_blank" style="text-decoration: none;"><span style="background-color: #f0f0f0; color: #333; padding: 2px 10px; border-radius: 12px; font-size: 12px; border: 1px solid #ddd;">🔍 Buscar</span></a>'
         )
         
-        colunas = ["Produto", "🔑 Palavra-chave", "Categoria", "Evento", "Potencial", "Score", "Pins", "Crescimento", "Views TikTok", "Buscas no Mês", "Resultados ML", "Tendência", "Buscar na Shopee"]
+        colunas = ["Produto", "Fonte", "🔑 Palavra-chave", "Categoria", "Evento", "Potencial", "Score", "Pins", "Crescimento", "Views TikTok", "Buscas no Mês", "Resultados ML", "Tendência", "Buscar na Shopee"]
         df = df[colunas]
         
         st.markdown(
@@ -327,8 +328,8 @@ with tab7:
 # TAB 8: DIAGNÓSTICO
 # ============================================================
 with tab8:
-    from modules.diagnostico import render_diagnostico
-    render_diagnostico()
+    from modules.diagnostico import render_painel_diagnostico
+    render_painel_diagnostico()
 
 # ============================================================
 # TAB 9: LOGS
