@@ -58,6 +58,14 @@ from modules.conteudo_ia import (
     salvar_conteudo_cache
 )
 
+# Importa cliente Selenium
+from modules.selenium_client import (
+    capturar_buscas_selenium,
+    capturar_tendencias_selenium,
+    buscar_produtos_selenium,
+    verificar_status_selenium
+)
+
 # ============================================================
 # VERIFICAR LOGIN
 # ============================================================
@@ -101,7 +109,6 @@ def sincronizar_apoiadores_automatico():
 
 # Sincroniza apoiadores automaticamente (apenas admin)
 if st.session_state.get("is_admin", False):
-    # Verifica se já sincronizou na sessão
     if "sincronizado_hoje" not in st.session_state:
         sincronizar_apoiadores_automatico()
         st.session_state.sincronizado_hoje = True
@@ -141,6 +148,26 @@ with tab2:
     st.markdown("## 🎯 Sugestões de Produtos Estratégicos")
     st.caption("Top produtos baseados em tendências de mercado")
     
+    # Botão para buscar dados com Selenium
+    col1, col2 = st.columns([3, 1])
+    with col2:
+        if st.button("🔄 Buscar Dados Reais", use_container_width=True):
+            with st.spinner("⏳ Buscando dados com Selenium..."):
+                try:
+                    status = verificar_status_selenium()
+                    if not status.get("online"):
+                        st.error("❌ Servidor Selenium offline. Aguarde o Render iniciar (pode levar 1 minuto).")
+                    else:
+                        termos = capturar_buscas_selenium()
+                        if termos:
+                            st.success(f"✅ {len(termos)} termos capturados!")
+                            st.session_state.termos_selenium = termos
+                            st.rerun()
+                        else:
+                            st.warning("⚠️ Nenhum termo encontrado")
+                except Exception as e:
+                    st.error(f"❌ Erro: {str(e)}")
+    
     produtos = gerar_top10_produtos(forcar_atualizacao=True)
     
     if produtos:
@@ -148,7 +175,6 @@ with tab2:
         for item in produtos:
             produto = item.get("Produto", "").lower()
             
-            # USA A FUNÇÃO MELHORADA PARA PALAVRA-CHAVE
             dados_palavra = obter_palavra_chave(produto)
             palavra_chave = dados_palavra.get("palavra", f"{produto} tendência 2026")
             
@@ -270,10 +296,8 @@ with tab5:
     st.markdown("## 🤖 Assistente de Conteúdo para Criadores")
     st.caption("Gerador inteligente de roteiros, títulos e estratégias para seus vídeos")
     
-    # Verifica se veio de um clique do dashboard
     produto_pre_selecionado = st.session_state.get("produto_conteudo", "")
     
-    # Se veio da aba de insights, mostra mensagem
     if st.session_state.get("aba_conteudo", False):
         if produto_pre_selecionado:
             st.success(f"🎬 Criando conteúdo para: **{produto_pre_selecionado}**")
@@ -304,7 +328,6 @@ with tab5:
             key="duracao_conteudo"
         )
     
-    # Limpa o estado após usar
     if produto_pre_selecionado:
         st.session_state.produto_conteudo = ""
     
@@ -314,33 +337,26 @@ with tab5:
         else:
             with st.spinner("🤖 Gerando conteúdo inteligente..."):
                 try:
-                    # Mapeia duração
                     duracao_map = {
                         "curto (15-30s)": "curto",
                         "medio (30-60s)": "medio",
                         "longo (60-90s)": "longo"
                     }
                     
-                    # Gera conteúdo completo
                     conteudo = gerar_conteudo_completo(
                         produto=produto_conteudo,
                         categoria=categoria_conteudo,
                         duracao=duracao_map[duracao_conteudo]
                     )
                     
-                    # Salva no cache
                     salvar_conteudo_cache(conteudo)
                     
-                    # ============================================================
-                    # TÍTULOS
-                    # ============================================================
                     st.markdown("---")
                     st.markdown("## 📝 Títulos Sugeridos")
                     st.caption("Escolha um título para seu vídeo")
                     
                     titulos = conteudo["titulos"]
                     
-                    # Exibe em grid de 3
                     cols = st.columns(3)
                     for i, titulo in enumerate(titulos[:6]):
                         with cols[i % 3]:
@@ -353,14 +369,10 @@ with tab5:
                                     st.session_state.titulo_selecionado = titulo
                                     st.success(f"✅ Título selecionado: {titulo}")
                     
-                    # ============================================================
-                    # SCRIPT
-                    # ============================================================
                     st.markdown("---")
                     st.markdown("## 🎬 Roteiro Completo")
                     st.caption(f"⏱️ Duração total: {conteudo['script']['duracao_total']} segundos")
                     
-                    # Exibe cada cena
                     for cena in conteudo["script"]["cenas"]:
                         with st.container(border=True):
                             col1, col2, col3 = st.columns([1, 2, 2])
@@ -372,14 +384,10 @@ with tab5:
                             with col3:
                                 st.info(f"🎤 {cena['fala']}")
                     
-                    # Botão copiar script
                     script_completo = "\n\n".join([f"CENA {c['cena']} ({c['duracao']}): {c['enquadramento']}\nFALA: {c['fala']}" for c in conteudo["script"]["cenas"]])
                     if st.button("📋 Copiar Script Completo"):
                         st.code(script_completo, language="text")
                     
-                    # ============================================================
-                    # DICAS DE GRAVAÇÃO
-                    # ============================================================
                     st.markdown("---")
                     st.markdown("## 🎥 Dicas de Gravação")
                     
@@ -398,7 +406,6 @@ with tab5:
                             for audio in dicas["dicas_audio"]:
                                 st.markdown(f"✅ {audio}")
                     
-                    # Melhores horários
                     col1, col2 = st.columns(2)
                     with col1:
                         with st.container(border=True):
@@ -411,9 +418,6 @@ with tab5:
                             for legenda in dicas["legendas_sugeridas"]:
                                 st.markdown(f"💬 {legenda}")
                     
-                    # ============================================================
-                    # HASHTAGS
-                    # ============================================================
                     st.markdown("---")
                     st.markdown("## 🏷️ Hashtags Sugeridas")
                     
@@ -424,9 +428,6 @@ with tab5:
                     if st.button("📋 Copiar Hashtags"):
                         st.code(" ".join(hashtags), language="text")
                     
-                    # ============================================================
-                    # ANÁLISE DE CONCORRÊNCIA
-                    # ============================================================
                     st.markdown("---")
                     st.markdown("## 📊 Análise de Concorrência")
                     
@@ -445,15 +446,11 @@ with tab5:
                             st.info(analise["posicionamento_sugerido"])
                             st.success(f"💪 {analise['ponto_forte']}")
                     
-                    # Concorrentes
                     with st.expander("👀 Ver concorrentes"):
                         df_concorrentes = pd.DataFrame(analise["concorrentes"])
                         df_concorrentes["avaliacao"] = df_concorrentes["avaliacao"].apply(lambda x: f"⭐ {x:.1f}")
                         st.dataframe(df_concorrentes, use_container_width=True, hide_index=True)
                     
-                    # ============================================================
-                    # LINK SHOPEE
-                    # ============================================================
                     st.markdown("---")
                     st.markdown("## 🔗 Link para Shopee")
                     
@@ -485,7 +482,6 @@ with tab7:
         st.markdown("## 🔑 Gerenciamento de Licenças")
         st.caption("Crie, gerencie e monitore licenças do sistema")
         
-        # Carrega dados atualizados
         sistema = SistemaLicencas()
         apoiadores = carregar_apoiadores()
         
@@ -503,9 +499,6 @@ with tab7:
         
         st.markdown("---")
         
-        # ============================================================
-        # CRIAR NOVA LICENÇA (COM SINCRONIZAÇÃO DE APOIADOR)
-        # ============================================================
         with st.expander("🆕 Criar Nova Licença", expanded=True):
             st.markdown("### 📝 Dados do Usuário")
             st.caption("Preencha os dados para gerar uma nova licença")
@@ -526,13 +519,10 @@ with tab7:
                     st.error("❌ Preencha nome e e-mail!")
                 else:
                     try:
-                        # 1. Gera a licença
                         sistema = SistemaLicencas()
                         codigo = sistema.gerar_licenca(novo_usuario, novo_email, plano, is_apoiador)
                         
-                        # 2. Se for apoiador, adiciona na lista de apoiadores
                         if is_apoiador:
-                            # Verifica se já existe
                             apoiadores_existentes = carregar_apoiadores()
                             ja_existe = False
                             for ap in apoiadores_existentes.values():
@@ -541,7 +531,6 @@ with tab7:
                                     break
                             
                             if not ja_existe:
-                                # Mapeia plano para tipo de apoiador
                                 plano_apoiador = "Premium" if "Premium" in plano else "Apoiador"
                                 adicionar_apoiador(
                                     nome=novo_usuario,
@@ -552,12 +541,10 @@ with tab7:
                             else:
                                 st.info(f"ℹ️ {novo_usuario} já é apoiador.")
                         
-                        # 3. Mostra o código
                         st.success("✅ Licença gerada com sucesso!")
                         st.code(f"Código: {codigo}", language="text")
                         st.warning("⚠️ Guarde este código! Ele não será exibido novamente.")
                         
-                        # 4. Mostra resumo
                         st.markdown("---")
                         st.markdown("### 📋 Resumo")
                         st.markdown(f"""
@@ -576,22 +563,15 @@ with tab7:
         
         st.markdown("---")
         
-        # ============================================================
-        # LISTA DE APOIADORES (INTEGRADA)
-        # ============================================================
         st.markdown("## 👑 Apoiadores do Projeto")
         st.caption("Lista de todos os apoiadores cadastrados")
         
         apoiadores = carregar_apoiadores()
         
         if apoiadores:
-            # Ordena por ordem
             apoiadores_ordenados = sorted(apoiadores.values(), key=lambda x: x.get("ordem", 999))
-            
-            # Exibe em cards
             cores = ["#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7", "#DDA0DD", "#FF8A5C", "#A29BFE"]
             
-            # Exibe em grid de 4
             cols = st.columns(4)
             for i, apoiador in enumerate(apoiadores_ordenados):
                 with cols[i % 4]:
@@ -622,7 +602,6 @@ with tab7:
                         st.markdown(f"**📋 Ordem:** #{ordem}")
                         st.markdown(f"**📌 Plano:** {plano}")
                         
-                        # Verifica repasse
                         depois = sum(1 for a in apoiadores.values() if a.get("ordem", 999) > ordem)
                         if depois > 0 and apoiador.get("repasse_ativo", True):
                             st.success(f"⬇️ {depois} apoiadores - R${depois * 5.00:.2f}/mês")
@@ -633,19 +612,14 @@ with tab7:
         
         st.markdown("---")
         
-        # ============================================================
-        # LISTA DE LICENÇAS ATIVAS
-        # ============================================================
         st.markdown("## 📋 Licenças Ativas")
         st.caption("Todas as licenças geradas no sistema")
         
         sistema = SistemaLicencas()
         licencas = sistema.dados["licencas"]
         
-        # Cria DataFrame com todas as licenças
         dados_licencas = []
         for codigo, dados in licencas.items():
-            # Verifica se é apoiador
             is_apoiador = dados.get("is_apoiador", False)
             status = dados.get("status", "ativo")
             
@@ -664,9 +638,6 @@ with tab7:
         
         st.markdown("---")
         
-        # ============================================================
-        # AÇÕES RÁPIDAS
-        # ============================================================
         with st.expander("⚙️ Ações Rápidas"):
             st.markdown("### 🔄 Sincronizar Apoiadores")
             st.caption("Sincroniza manualmente apoiadores com licenças")
@@ -678,17 +649,14 @@ with tab7:
                         sistema = SistemaLicencas()
                         apoiadores = carregar_apoiadores()
                         
-                        # Pega todos os emails de apoiadores
                         emails_apoiadores = [a.get("email") for a in apoiadores.values()]
                         
-                        # Verifica licenças que são apoiadores mas não estão na lista
                         contador = 0
                         for codigo, dados in sistema.dados["licencas"].items():
                             if dados.get("is_apoiador", False) and dados.get("status") == "ativo":
                                 email = dados.get("email")
                                 usuario = dados.get("usuario")
                                 if email and email not in emails_apoiadores:
-                                    # Adiciona como apoiador
                                     adicionar_apoiador(usuario, email, "Apoiador")
                                     contador += 1
                         
@@ -715,7 +683,6 @@ with tab7:
             
             st.markdown("---")
             
-            # Botão para limpar cache
             if st.button("🧹 Limpar Cache de Conteúdo", use_container_width=True):
                 try:
                     if os.path.exists("conteudo_cache.json"):
@@ -744,10 +711,36 @@ with tab9:
 # TAB 10: ADMIN - RESUMO ADMINISTRATIVO
 # ============================================================
 with tab10:
-    # Só mostra se for admin
     if st.session_state.get("is_admin", False):
         from modules.admin_dashboard import render_admin_resumo
         render_admin_resumo()
+        
+        st.markdown("---")
+        st.markdown("### 🌐 Status do Servidor Selenium")
+        
+        status_selenium = verificar_status_selenium()
+        if status_selenium.get("online"):
+            st.success("✅ Servidor Selenium online!")
+            if status_selenium.get("dados"):
+                st.json(status_selenium["dados"])
+        else:
+            st.warning("⚠️ Servidor Selenium offline ou não configurado")
+            st.info("Configure a URL em Settings → Secrets: SELENIUM_API_URL")
+        
+        st.markdown("---")
+        st.markdown("### 📡 Testar Captura com Selenium")
+        
+        if st.button("🧪 Testar Captura de Buscas", use_container_width=True):
+            with st.spinner("⏳ Capturando buscas..."):
+                try:
+                    termos = capturar_buscas_selenium()
+                    if termos:
+                        st.success(f"✅ {len(termos)} termos capturados!")
+                        st.write(termos[:20])
+                    else:
+                        st.warning("⚠️ Nenhum termo encontrado")
+                except Exception as e:
+                    st.error(f"❌ Erro: {str(e)}")
     else:
         st.warning("🔒 **Acesso restrito a administradores.**")
         st.info("Esta área é apenas para visualização administrativa.")
