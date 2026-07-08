@@ -1,0 +1,189 @@
+[
+  {
+    "timestamp": "2026-07-08T17:23:03.590473",
+    "data": "2026-07-08 17:23:03",
+    "nivel": "raspagem",
+    "termo": "shopee_trends",
+    "sucesso": true,
+    "quantidade": 24,
+    "detalhes": "Usando fallback - 24 termos",
+    "tempo_execucao": 12.31,
+    "erro": null
+  },
+  {
+    "timestamp": "2026-07-08T17:23:03.592087",
+    "data": "2026-07-08 17:23:03",
+    "nivel": "api",
+    "termo": "controle pc",
+    "sucesso": false,
+    "quantidade": 0,
+    "detalhes": "Chave Serper não configurada",
+    "tempo_execucao": 0.0,
+    "erro": "SERPER_API_KEY não encontrada"
+  },
+  {
+    "timestamp": "2026-07-08T17:23:03.592448",
+    "data": "2026-07-08 17:23:03",
+    "nivel": "api",
+    "termo": "sapateira",
+    "sucesso": false,
+    "quantidade": 0,
+    "detalhes": "Chave Serper não configurada",
+    "tempo_execucao": 0.0,
+    "erro": "SERPER_API_KEY não encontrada"
+  },
+  {
+    "timestamp": "2026-07-08T17:23:03.593140",
+    "data": "2026-07-08 17:23:03",
+    "nivel": "api",
+    "termo": "lixeira cozinha",
+    "sucesso": false,
+    "quantidade": 0,
+    "detalhes": "Chave Serper não configurada",
+    "tempo_execucao": 0.0,
+    "erro": "SERPER_API_KEY não encontrada"
+  },
+  {
+    "timestamp": "2026-07-08T17:23:03.593544",
+    "data": "2026-07-08 17:23:03",
+    "nivel": "api",
+    "termo": "ar condicionado portátil",
+    "sucesso": false,
+    "quantidade": 0,
+    "detalhes": "Chave Serper não configurada",
+    "tempo_execucao": 0.0,
+    "erro": "SERPER_API_KEY não encontrada"
+  },
+  {
+    "timestamp": "2026-07-08T17:23:03.593893",
+    "data": "2026-07-08 17:23:03",
+    "nivel": "api",
+    "termo": "garrafa térmica",
+    "sucesso": false,
+    "quantidade": 0,
+    "detalhes": "Chave Serper não configurada",
+    "tempo_execucao": 0.0,
+    "erro": "SERPER_API_KEY não encontrada"
+  },
+  {
+    "timestamp": "2026-07-08T17:23:03.594180",
+    "data": "2026-07-08 17:23:03",
+    "nivel": "api",
+    "termo": "sacola personalizada",
+    "sucesso": false,
+    "quantidade": 0,
+    "detalhes": "Chave Serper não configurada",
+    "tempo_execucao": 0.0,
+    "erro": "SERPER_API_KEY não encontrada"
+  },
+  {
+    "timestamp": "2026-07-08T17:23:03.594540",
+    "data": "2026-07-08 17:23:03",
+    "nivel": "api",
+    "termo": "caixa organizadora",
+    "sucesso": false,
+    "quantidade": 0,
+    "detalhes": "Chave Serper não configurada",
+    "tempo_execucao": 0.0,
+    "erro": "SERPER_API_KEY não encontrada"
+  },
+  {
+    "timestamp": "2026-07-08T17:23:03.594854",
+    "data": "2026-07-08 17:23:03",
+    "nivel": "api",
+    "termo": "camisa brasil",
+    "sucesso": false,
+    "quantidade": 0,
+    "detalhes": "Chave Serper não configurada",
+    "tempo_execucao": 0.0,
+    "erro": "SERPER_API_KEY não encontrada"
+  },
+  {
+    "timestamp": "2026-07-08T17:23:03.595136",
+    "data": "2026-07-08 17:23:03",
+    "nivel": "api",
+    "termo": "tênis",
+    "sucesso": false,
+    "quantidade": 0,
+    "detalhes": "Chave Serper não configurada",
+    "tempo_execucao": 0.0,
+    "erro": "SERPER_API_KEY não encontrada"
+  },
+  {
+    "timestamp": "2026-07-08T17:23:03.595426",
+    "data": "2026-07-08 17:23:03",
+    "nivel": "api",
+    "termo": "chopeira",
+    "sucesso": false,
+    "quantidade": 0,
+    "detalhes": "Chave Serper não configurada",
+    "tempo_execucao": 0.0,
+    "erro": "SERPER_API_KEY não encontrada"
+  },
+  {
+    "timestamp": "2026-07-08T17:23:03.596024",
+    "data": "2026-07-08 17:23:03",
+    "nivel": "api",
+    "termo": "relógio",
+    "sucesso": false,
+    "quantidade": 0,
+    "detalhes": "Chave Serper não configurada",
+    "tempo_execucao": 0.0,
+    "erro": "SERPER_API_KEY não encontrada"
+  },
+  {
+    "timestamp": "2026-07-08T17:23:03.596447",
+    "data": "2026-07-08 17:23:03",
+    "nivel": "api",
+    "termo": "tablet",
+    "sucesso": false,
+    "quantidade": 0,
+    "detalhes": "Chave Serper não configurada",
+    "tempo_execucao": 0.0,
+    "erro": "SERPER_API_KEY não encontrada"
+  },
+  {
+    "timestamp": "2026-07-08T17:23:03.596827",
+    "data": "2026-07-08 17:23:03",
+    "nivel": "api",
+    "termo": "organizador",
+    "sucesso": false,
+    "quantidade": 0,
+    "detalhes": "Chave Serper não configurada",
+    "tempo_execucao": 0.0,
+    "erro": "SERPER_API_KEY não encontrada"
+  },
+  {
+    "timestamp": "2026-07-08T17:23:03.597164",
+    "data": "2026-07-08 17:23:03",
+    "nivel": "api",
+    "termo": "lingerie",
+    "sucesso": false,
+    "quantidade": 0,
+    "detalhes": "Chave Serper não configurada",
+    "tempo_execucao": 0.0,
+    "erro": "SERPER_API_KEY não encontrada"
+  },
+  {
+    "timestamp": "2026-07-08T17:23:03.597517",
+    "data": "2026-07-08 17:23:03",
+    "nivel": "api",
+    "termo": "espelho",
+    "sucesso": false,
+    "quantidade": 0,
+    "detalhes": "Chave Serper não configurada",
+    "tempo_execucao": 0.0,
+    "erro": "SERPER_API_KEY não encontrada"
+  },
+  {
+    "timestamp": "2026-07-08T17:23:03.597825",
+    "data": "2026-07-08 17:23:03",
+    "nivel": "sistema",
+    "termo": "atualizacao_diaria",
+    "sucesso": true,
+    "quantidade": 3,
+    "detalhes": "Produtos atualizados: 3 (Fonte: Serper/Selenium)",
+    "tempo_execucao": 0,
+    "erro": null
+  }
+]

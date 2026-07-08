@@ -1,0 +1,52 @@
+{
+  "data": "2026-07-08",
+  "produtos": {
+    "smartphone": {
+      "pins": 2500,
+      "pins_historico": 2000,
+      "crescimento": 30,
+      "views_tiktok": 4.5,
+      "resultados_ml": 150000,
+      "buscas_mes": 15000,
+      "buscas_historico": 12000,
+      "categoria": "eletrônico",
+      "evento": "Tecnologia",
+      "variacao": 10.5,
+      "tendencia": "⬆️ Crescendo",
+      "score": 85,
+      "fonte": "fallback"
+    },
+    "notebook": {
+      "pins": 1800,
+      "pins_historico": 1500,
+      "crescimento": 20,
+      "views_tiktok": 3.2,
+      "resultados_ml": 100000,
+      "buscas_mes": 10000,
+      "buscas_historico": 8000,
+      "categoria": "eletrônico",
+      "evento": "Tecnologia",
+      "variacao": 8.0,
+      "tendencia": "➡️ Estável",
+      "score": 70,
+      "fonte": "fallback"
+    },
+    "fone bluetooth": {
+      "pins": 3000,
+      "pins_historico": 2800,
+      "crescimento": 40,
+      "views_tiktok": 5.1,
+      "resultados_ml": 200000,
+      "buscas_mes": 18000,
+      "buscas_historico": 16000,
+      "categoria": "eletrônico",
+      "evento": "Acessórios",
+      "variacao": 12.3,
+      "tendencia": "⬆️ Crescendo",
+      "score": 90,
+      "fonte": "fallback"
+    }
+  },
+  "timestamp": "2026-07-08T17:23:03.598440",
+  "total": 3
+}
