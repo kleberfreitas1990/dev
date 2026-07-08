@@ -337,7 +337,7 @@ def render_dashboard():
     st.caption(f"📅 {datetime.now().strftime('%A, %d de %B de %Y - %H:%M')}")
     
     # Status compacto
-    col_status1, col_status2, col_status3, col_status4 = st.columns(4)
+    col_status1, col_status2, col_status3, col_status4, col_status5 = st.columns(5)
     with col_status1:
         serper_key = st.secrets.get("SERPER_API_KEY", "")
         st.markdown("🔌 " + ("✅" if serper_key else "❌"))
@@ -346,10 +346,16 @@ def render_dashboard():
     with col_status3:
         st.markdown(f"👤 {st.session_state.get('licenca_usuario', '')[:8]}...")
     with col_status4:
-        if st.button("🚪 Sair", use_container_width=True):
-            for key in list(st.session_state.keys()):
-                del st.session_state[key]
-            st.rerun()
+        from modules.produtos_dinamicos import carregar_cache_produtos
+        cache = carregar_cache_produtos()
+        if cache:
+            st.markdown(f"📅 {cache.get('data', 'Nunca')}")
+        else:
+            st.markdown("📅 Nunca")
+    with col_status5:
+        from modules.serper import obter_stats_serper
+        stats = obter_stats_serper()
+        st.markdown(f"📡 {stats.get('usadas_hoje', 0)}/{stats.get('limite_diario', 20)}")
     
     st.markdown("---")
     
@@ -358,7 +364,8 @@ def render_dashboard():
     # ============================================================
     st.markdown("## 📊 Visão Geral do Mês")
     
-    produtos_top = gerar_top10_produtos(forcar_atualizacao=False)
+    # SEMPRE FORÇA ATUALIZAÇÃO
+    produtos_top = gerar_top10_produtos(forcar_atualizacao=True)
     produtos_sugestoes = gerar_sugestoes_diarias(forcar_atualizacao=True)
     
     if produtos_top:
