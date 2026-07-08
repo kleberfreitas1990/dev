@@ -11,6 +11,7 @@ from modules.validation import (
     validar_cache_dados,
     sanitizar_json
 )
+from modules.logger import registrar_busca
 
 logger = logging.getLogger(__name__)
 
@@ -105,6 +106,8 @@ def resetar_contador_serper() -> bool:
 def buscar_produtos_serper(termo: str, limite: int = 5, usar_cache: bool = True) -> List[Dict]:
     """Busca produtos no Google Shopping via Serper.dev com LIMITE DIÁRIO"""
     
+    inicio = time.time()
+    
     if not termo or len(termo) < 2:
         return []
     
@@ -117,18 +120,45 @@ def buscar_produtos_serper(termo: str, limite: int = 5, usar_cache: bool = True)
             if validar_cache_dados(dados_cache, "resultados"):
                 if dados_cache.get("data") == datetime.now().date().isoformat():
                     logger.info(f"Cache Serper usado para '{termo}'")
-                    return dados_cache.get("resultados", [])
+                    resultados = dados_cache.get("resultados", [])
+                    registrar_busca(
+                        nivel="cache",
+                        termo=termo,
+                        sucesso=True,
+                        quantidade=len(resultados),
+                        detalhes=f"Cache Serper usado para '{termo}'",
+                        tempo_execucao=time.time() - inicio
+                    )
+                    return resultados
     
     # 2. VERIFICA LIMITE
     if not pode_fazer_requisicao_serper(termo):
         restantes = obter_requisicoes_restantes()
         logger.warning(f"Limite diário atingido. Restam {restantes} requisições.")
+        registrar_busca(
+            nivel="api",
+            termo=termo,
+            sucesso=False,
+            quantidade=0,
+            detalhes=f"Limite diário atingido. Restam {restantes}",
+            tempo_execucao=time.time() - inicio,
+            erro="Limite diário atingido"
+        )
         return []
     
     # 3. FAZ A REQUISIÇÃO
     api_key = st.secrets.get("SERPER_API_KEY", "")
     if not api_key:
         logger.warning("Chave SERPER_API_KEY não configurada")
+        registrar_busca(
+            nivel="api",
+            termo=termo,
+            sucesso=False,
+            quantidade=0,
+            detalhes="Chave Serper não configurada",
+            tempo_execucao=time.time() - inicio,
+            erro="SERPER_API_KEY não encontrada"
+        )
         return []
     
     try:
@@ -160,13 +190,40 @@ def buscar_produtos_serper(termo: str, limite: int = 5, usar_cache: bool = True)
             if produtos_validados and usar_cache:
                 salvar_cache_serper(chave_cache, produtos_validados)
             
+            registrar_busca(
+                nivel="api",
+                termo=termo,
+                sucesso=True,
+                quantidade=len(produtos_validados),
+                detalhes=f"Encontrados {len(produtos_validados)} produtos",
+                tempo_execucao=time.time() - inicio
+            )
+            
             logger.info(f"✅ Encontrados {len(produtos_validados)} produtos para '{termo}'")
             return produtos_validados
         else:
+            registrar_busca(
+                nivel="api",
+                termo=termo,
+                sucesso=False,
+                quantidade=0,
+                detalhes=f"Erro {response.status_code}",
+                tempo_execucao=time.time() - inicio,
+                erro=f"HTTP {response.status_code}"
+            )
             logger.error(f"❌ Erro Serper: {response.status_code}")
             return []
             
     except Exception as e:
+        registrar_busca(
+            nivel="api",
+            termo=termo,
+            sucesso=False,
+            quantidade=0,
+            detalhes=f"Erro ao buscar '{termo}'",
+            tempo_execucao=time.time() - inicio,
+            erro=str(e)[:100]
+        )
         logger.error(f"❌ Erro ao buscar '{termo}': {e}")
         return []
 
