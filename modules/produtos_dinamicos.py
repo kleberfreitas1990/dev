@@ -54,35 +54,49 @@ PRODUTOS_FALLBACK = {
 }
 
 # ============================================================
-# FUNÇÃO PRINCIPAL - COM GRADE DE DESCOBERTA
+# FUNÇÃO PRINCIPAL - COM ATUALIZAÇÃO AUTOMÁTICA DIÁRIA
 # ============================================================
 def obter_produtos_dinamicos(forcar_atualizacao: bool = False) -> Dict[str, Any]:
     """
-    Obtém produtos com dados atualizados usando:
-    1. Cache
-    2. Shopee + Serper
-    3. Grade de Descoberta (fallback)
+    Obtém produtos com dados atualizados.
+    Se o cache for de um dia anterior, atualiza automaticamente.
     """
     hoje = datetime.now().date().isoformat()
     
     # Tenta carregar do cache
-    if not forcar_atualizacao:
-        cache = carregar_cache_produtos()
-        if cache:
-            data_cache = cache.get("data")
-            if data_cache == hoje:
-                logger.info(f"Usando cache de produtos de hoje")
-                return cache.get("produtos", PRODUTOS_FALLBACK)
+    cache = carregar_cache_produtos()
     
-    # Busca dados atualizados
-    logger.info("Buscando dados atualizados de produtos...")
+    if cache and not forcar_atualizacao:
+        data_cache = cache.get("data")
+        
+        # Se o cache é de hoje, usa
+        if data_cache == hoje:
+            logger.info(f"📅 Usando cache de hoje ({len(cache.get('produtos', {}))} produtos)")
+            return cache.get("produtos", PRODUTOS_FALLBACK)
+        
+        # Se o cache é de ontem ou mais antigo, ATUALIZA AUTOMATICAMENTE
+        if data_cache:
+            try:
+                data_cache_dt = datetime.strptime(data_cache, "%Y-%m-%d").date()
+                dias_diferenca = (datetime.now().date() - data_cache_dt).days
+                
+                if dias_diferenca >= 1:
+                    logger.info(f"🔄 Cache de {data_cache} ({dias_diferenca} dias atrás) - Atualizando...")
+                    # Força atualização
+                    produtos = buscar_produtos_com_grade()
+                    salvar_cache_produtos(produtos)
+                    return produtos
+            except:
+                pass
+    
+    # Se não tem cache ou é antigo, busca novos dados
+    logger.info("🔄 Buscando dados atualizados...")
     produtos = buscar_produtos_com_grade()
     
     # Salva no cache
-    if produtos:
-        salvar_cache_produtos(produtos)
+    salvar_cache_produtos(produtos)
     
-    return produtos if produtos else PRODUTOS_FALLBACK
+    return produtos
 
 def buscar_produtos_com_grade(limite: int = 10) -> Dict[str, Any]:
     """
@@ -271,7 +285,7 @@ def salvar_cache_produtos(produtos: Dict) -> bool:
                 "produtos": produtos,
                 "total": len(produtos)
             }, f, ensure_ascii=False, indent=2)
-        logger.info(f"Cache de produtos salvo com {len(produtos)} produtos")
+        logger.info(f"💾 Cache de produtos salvo com {len(produtos)} produtos - Data: {datetime.now().date().isoformat()}")
         return True
     except Exception as e:
         logger.error(f"Erro ao salvar cache: {e}")
@@ -293,5 +307,6 @@ __all__ = [
     'obter_produtos_dinamicos',
     'limpar_cache_produtos',
     'PRODUTOS_FALLBACK',
-    'buscar_produtos_com_grade'
+    'buscar_produtos_com_grade',
+    'carregar_cache_produtos'
 ]
