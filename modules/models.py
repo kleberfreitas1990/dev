@@ -1,14 +1,10 @@
 import json
 import os
-import random
-import logging
 from datetime import datetime
 from typing import List, Dict, Any
 
 # Importa sistema de produtos dinâmicos
 from modules.produtos_dinamicos import obter_produtos_dinamicos, PRODUTOS_FALLBACK
-
-logger = logging.getLogger(__name__)
 
 # ============================================================
 # ARQUIVOS DE DADOS (NA RAIZ)
@@ -121,59 +117,445 @@ def obter_dados_completos(forcar_atualizacao: bool = True) -> Dict:
 # PALAVRAS CHAVE - EXPANDIDAS E ESPECÍFICAS
 # ============================================================
 PALAVRAS_CHAVE_CAUDA_LONGA = {
-    "casaco": {"palavra": "casaco feminino inverno 2026", "hashtags": ["#casacofeminino", "#inverno2026", "#lookinverno"]},
-    "smartwatch": {"palavra": "smartwatch feminino elegante 2026", "hashtags": ["#smartwatch", "#tecnologia", "#eletrônicos"]},
-    "creatina": {"palavra": "creatina monohidratada pura 300g", "hashtags": ["#creatina", "#fitness", "#suplementos"]}
+    # MODA
+    "casaco": {
+        "palavra": "casaco feminino inverno 2026",
+        "hashtags": ["#casacofeminino", "#inverno2026", "#lookinverno", "#modainverno"]
+    },
+    "blusa": {
+        "palavra": "blusa de lã elegante feminina",
+        "hashtags": ["#blusadelã", "#modainverno", "#lookelegante", "#feminino"]
+    },
+    "blusa de lã": {
+        "palavra": "blusa de lã elegante feminina",
+        "hashtags": ["#blusadelã", "#modainverno", "#lookelegante", "#feminino"]
+    },
+    "vestido": {
+        "palavra": "vestido longo festa verão 2026",
+        "hashtags": ["#vestidofeminino", "#modaverao", "#lookfestival", "#verao2026"]
+    },
+    "sapato": {
+        "palavra": "sapato salto alto feminino conforto",
+        "hashtags": ["#sapatofeminino", "#moda", "#sapatoespecial", "#look"]
+    },
+    "sapateira": {
+        "palavra": "sapateira organizadora de sapatos",
+        "hashtags": ["#sapateira", "#organizador", "#casa", "#organização"]
+    },
+    "tênis": {
+        "palavra": "tênis esportivo masculino conforto",
+        "hashtags": ["#tenis", "#esporte", "#moda", "#conforto", "#corrida"]
+    },
+    "tenis": {
+        "palavra": "tênis esportivo masculino conforto",
+        "hashtags": ["#tenis", "#esporte", "#moda", "#conforto", "#corrida"]
+    },
+    "calça": {
+        "palavra": "calça jeans feminina cintura alta",
+        "hashtags": ["#calçajeans", "#modafeminina", "#jeans", "#look"]
+    },
+    "camisa": {
+        "palavra": "camisa social masculina slim",
+        "hashtags": ["#camisa", "#modamasculina", "#social", "#slim"]
+    },
+    "roupas": {
+        "palavra": "roupas femininas elegantes",
+        "hashtags": ["#roupasfemininas", "#moda", "#look", "#feminino"]
+    },
+    "roupa": {
+        "palavra": "roupas femininas elegantes",
+        "hashtags": ["#roupasfemininas", "#moda", "#look", "#feminino"]
+    },
+    "lingerie": {
+        "palavra": "lingerie feminina sensual",
+        "hashtags": ["#lingerie", "#feminino", "#sedução", "#modaintima"]
+    },
+    "espelho": {
+        "palavra": "espelho decorativo para sala",
+        "hashtags": ["#espelho", "#decoração", "#casa", "#sala"]
+    },
+    "bota": {
+        "palavra": "bota feminina cano curto",
+        "hashtags": ["#bota", "#modafeminina", "#inverno", "#look"]
+    },
+    # ELETRÔNICOS
+    "smartwatch": {
+        "palavra": "smartwatch feminino elegante 2026",
+        "hashtags": ["#smartwatch", "#tecnologia", "#eletrônicos", "#mulherdigital"]
+    },
+    "fone": {
+        "palavra": "fone bluetooth JBL original",
+        "hashtags": ["#fonebluetooth", "#áudio", "#tecnologia", "#jbl"]
+    },
+    "fone bluetooth": {
+        "palavra": "fone bluetooth JBL original",
+        "hashtags": ["#fonebluetooth", "#áudio", "#tecnologia", "#jbl"]
+    },
+    "controle pc": {
+        "palavra": "controle para PC gamer sem fio",
+        "hashtags": ["#controlepc", "#gamer", "#pc", "#games"]
+    },
+    "controle": {
+        "palavra": "controle para PC gamer sem fio",
+        "hashtags": ["#controlepc", "#gamer", "#pc", "#games"]
+    },
+    "pc": {
+        "palavra": "PC gamer completo setup",
+        "hashtags": ["#pcgamer", "#setup", "#games", "#tecnologia"]
+    },
+    "celular": {
+        "palavra": "celular smartphone 5G camera 108MP",
+        "hashtags": ["#smartphone", "#tecnologia", "#5g", "#fotografia"]
+    },
+    "tablet": {
+        "palavra": "tablet para estudos e trabalho 2026",
+        "hashtags": ["#tablet", "#estudos", "#tecnologia", "#produtividade"]
+    },
+    "relógio": {
+        "palavra": "relógio masculino elegante premium",
+        "hashtags": ["#relogio", "#masculino", "#elegante", "#acessório"]
+    },
+    "ar condicionado": {
+        "palavra": "ar condicionado portátil 12000 BTUs",
+        "hashtags": ["#arcondicionado", "#climatizador", "#casa", "#conforto"]
+    },
+    "ar condicionado portátil": {
+        "palavra": "ar condicionado portátil 12000 BTUs",
+        "hashtags": ["#arcondicionado", "#climatizador", "#casa", "#conforto"]
+    },
+    "elgin": {
+        "palavra": "ar condicionado Elgin 12000 BTUs",
+        "hashtags": ["#elgin", "#arcondicionado", "#climatizador", "#casa"]
+    },
+    # BELEZA
+    "perfume": {
+        "palavra": "perfume importado floral feminino",
+        "hashtags": ["#perfumeimportado", "#belezafeminina", "#presentes", "#floral"]
+    },
+    "perfume importado": {
+        "palavra": "perfume importado floral feminino",
+        "hashtags": ["#perfumeimportado", "#belezafeminina", "#presentes", "#floral"]
+    },
+    "maquiagem": {
+        "palavra": "kit maquiagem profissional completo",
+        "hashtags": ["#maquiagem", "#belezafeminina", "#makeup", "#profissional"]
+    },
+    "creme": {
+        "palavra": "creme hidratante facial antissinais",
+        "hashtags": ["#cremehidratante", "#skincare", "#belezafeminina", "#antiidade"]
+    },
+    "kit loreal": {
+        "palavra": "kit L'Oréal Paris skincare",
+        "hashtags": ["#loreal", "#skincare", "#beleza", "#cuidados"]
+    },
+    "loreal": {
+        "palavra": "kit L'Oréal Paris skincare",
+        "hashtags": ["#loreal", "#skincare", "#beleza", "#cuidados"]
+    },
+    # CASA E ORGANIZAÇÃO
+    "organizador": {
+        "palavra": "organizador de gavetas e armários",
+        "hashtags": ["#organizador", "#casa", "#organização", "#decoração"]
+    },
+    "caixa": {
+        "palavra": "caixa organizadora plástica empilhável",
+        "hashtags": ["#caixaorganizadora", "#casa", "#organização", "#armazenamento"]
+    },
+    "caixa organizadora": {
+        "palavra": "caixa organizadora plástica empilhável",
+        "hashtags": ["#caixaorganizadora", "#casa", "#organização", "#armazenamento"]
+    },
+    "lixeira": {
+        "palavra": "lixeira cozinha inox pedal",
+        "hashtags": ["#lixeira", "#cozinha", "#inox", "#organização"]
+    },
+    "lixeira cozinha": {
+        "palavra": "lixeira cozinha inox pedal",
+        "hashtags": ["#lixeira", "#cozinha", "#inox", "#organização"]
+    },
+    "garrafa": {
+        "palavra": "garrafa térmica inox 1L",
+        "hashtags": ["#garrafatermica", "#casa", "#inox", "#hidratação"]
+    },
+    "garrafa térmica": {
+        "palavra": "garrafa térmica inox 1L",
+        "hashtags": ["#garrafatermica", "#casa", "#inox", "#hidratação"]
+    },
+    "sacola": {
+        "palavra": "sacola personalizada ecobag",
+        "hashtags": ["#sacola", "#ecobag", "#sustentável", "#personalizada"]
+    },
+    "sacola personalizada": {
+        "palavra": "sacola personalizada ecobag",
+        "hashtags": ["#sacola", "#ecobag", "#sustentável", "#personalizada"]
+    },
+    "kit cadeira": {
+        "palavra": "kit cadeira e mesa para escritório",
+        "hashtags": ["#cadeira", "#escritório", "#homeoffice", "#mobília"]
+    },
+    "cadeira": {
+        "palavra": "cadeira gamer confortável",
+        "hashtags": ["#cadeiragamer", "#games", "#setup", "#conforto"]
+    },
+    # INFANTIL
+    "brinquedo": {
+        "palavra": "brinquedo educativo infantil 2 anos",
+        "hashtags": ["#brinquedo", "#infantil", "#educativo", "#crianças"]
+    },
+    "boneca": {
+        "palavra": "boneca interativa falante",
+        "hashtags": ["#boneca", "#infantil", "#brinquedo", "#presente"]
+    },
+    "carrinho": {
+        "palavra": "carrinho de controle remoto",
+        "hashtags": ["#carrinho", "#infantil", "#controle", "#brinquedo"]
+    },
+    "moto infantil": {
+        "palavra": "moto infantil elétrica",
+        "hashtags": ["#motoinfantil", "#crianças", "#brinquedo", "#elétrico"]
+    },
+    # ESPORTE E LAZER
+    "chopeira": {
+        "palavra": "chopeira elétrica 5L chopp",
+        "hashtags": ["#chopeira", "#cerveja", "#chope", "#festa"]
+    },
+    "figurinha": {
+        "palavra": "figurinha legend álbum completo",
+        "hashtags": ["#figurinha", "#legend", "#coleção", "#álbum"]
+    },
+    "figurinha legend": {
+        "palavra": "figurinha legend álbum completo",
+        "hashtags": ["#figurinha", "#legend", "#coleção", "#álbum"]
+    },
+    "legend": {
+        "palavra": "figurinha legend álbum completo",
+        "hashtags": ["#figurinha", "#legend", "#coleção", "#álbum"]
+    },
+    "joia cobre": {
+        "palavra": "joia de cobre elegante",
+        "hashtags": ["#joia", "#cobre", "#bijuteria", "#elegante"]
+    },
+    "cobre": {
+        "palavra": "joia de cobre elegante",
+        "hashtags": ["#joia", "#cobre", "#bijuteria", "#elegante"]
+    },
+    "kenner": {
+        "palavra": "tênis Kenner feminino",
+        "hashtags": ["#kenner", "#tenis", "#moda", "#feminino"]
+    },
+    "kenner feminina": {
+        "palavra": "tênis Kenner feminino",
+        "hashtags": ["#kenner", "#tenis", "#moda", "#feminino"]
+    },
+    # PADRÃO (FALLBACK)
+    "padrao": {
+        "palavra": "produto tendência mercado 2026",
+        "hashtags": ["#tendência", "#produto", "#2026", "#mercado"]
+    }
 }
 
 def obter_palavra_chave(produto: str) -> Dict:
-    """Obtém palavra-chave para um produto"""
-    p = produto.lower()
+    """
+    Obtém palavra-chave para um produto com busca inteligente
+    """
+    produto_lower = produto.lower().strip()
+    
+    # Remove palavras genéricas
+    palavras_ignorar = [
+        "produto", "novo", "lançamento", "tendência", "mercado",
+        "kit", "com", "para", "de", "da", "do", "das", "dos", 
+        "e", "em", "na", "no", "nas", "nos", "um", "uma", "uns", "umas",
+        "a", "o", "as", "os", "ao", "aos", "à", "às"
+    ]
+    
+    # 1. BUSCA EXATA
+    if produto_lower in PALAVRAS_CHAVE_CAUDA_LONGA:
+        return PALAVRAS_CHAVE_CAUDA_LONGA[produto_lower]
+    
+    # 2. BUSCA POR PALAVRA-CHAVE
     for chave, dados in PALAVRAS_CHAVE_CAUDA_LONGA.items():
-        if chave in p:
+        if chave in produto_lower:
             return dados
-    return {"palavra": f"{produto} tendência 2026", "hashtags": ["#achadinhos", "#shopeebr", "#viral"]}
+    
+    # 3. BUSCA POR PALAVRAS INDIVIDUAIS
+    palavras = [p for p in produto_lower.split() if p not in palavras_ignorar and len(p) > 2]
+    
+    for palavra in palavras:
+        for chave, dados in PALAVRAS_CHAVE_CAUDA_LONGA.items():
+            if palavra in chave or chave in palavra:
+                return dados
+    
+    # 4. BUSCA POR CATEGORIA
+    categorias = {
+        "eletrônico": ["controle", "pc", "smartwatch", "fone", "celular", "tablet", "relógio", "ar condicionado", "elgin", "gamer", "tv", "monitor"],
+        "moda": ["casaco", "blusa", "vestido", "sapato", "tênis", "tenis", "calça", "camisa", "roupa", "lingerie", "bota", "jaqueta", "saia", "short"],
+        "casa": ["sapateira", "organizador", "caixa", "lixeira", "garrafa", "sacola", "cadeira", "espelho", "inox", "mesa", "sofá", "estante"],
+        "beleza": ["perfume", "maquiagem", "creme", "loreal", "skincare", "makeup", "batom", "base", "rimel"],
+        "infantil": ["brinquedo", "boneca", "carrinho", "moto", "crianças", "bebê", "nenê"],
+        "esporte": ["chopeira", "figurinha", "legend", "kenner", "cerveja", "coleção", "bola", "chuteira"],
+        "livro": ["livro", "leitura", "editora", "romance"],
+        "ferramenta": ["furadeira", "parafusadeira", "serra", "chave", "alicate"]
+    }
+    
+    for categoria, palavras_chave in categorias.items():
+        for palavra_chave in palavras_chave:
+            if palavra_chave in produto_lower:
+                termo_base = produto_lower.replace(palavra_chave, "").strip()
+                if termo_base and len(termo_base) > 2:
+                    return {
+                        "palavra": f"{palavra_chave} {termo_base} - {categoria}",
+                        "hashtags": [f"#{palavra_chave}", f"#{categoria}", "#2026", "#tendência"]
+                    }
+                else:
+                    return {
+                        "palavra": f"{palavra_chave} - {categoria} 2026",
+                        "hashtags": [f"#{palavra_chave}", f"#{categoria}", "#2026", "#tendência"]
+                    }
+    
+    # 5. FALLBACK INTELIGENTE
+    if len(palavras) > 0:
+        termo_base = " ".join(palavras[:3])
+        tipos = {
+            "tecnologia": ["eletrônico", "digital", "tech", "gamer", "pc", "smart", "fone", "celular"],
+            "moda": ["roupa", "vestuário", "look", "jeans", "sapato", "tenis", "camisa", "blusa", "casaco"],
+            "decoração": ["casa", "decoração", "móvel", "organizador", "caixa", "espelho", "mesa"],
+            "beleza": ["perfume", "makeup", "skincare", "maquiagem", "creme"],
+            "infantil": ["brinquedo", "criança", "bebê", "boneca", "carrinho"]
+        }
+        
+        tipo_encontrado = "produto"
+        for tipo, palavras_tipo in tipos.items():
+            for p in palavras_tipo:
+                if p in produto_lower:
+                    tipo_encontrado = tipo
+                    break
+            if tipo_encontrado != "produto":
+                break
+        
+        return {
+            "palavra": f"{termo_base} - {tipo_encontrado} 2026",
+            "hashtags": [f"#{termo_base.replace(' ', '')}", f"#{tipo_encontrado}", "#2026", "#tendência"]
+        }
+    
+    # 6. ÚLTIMO RECURSO
+    nome_limpo = produto_lower
+    for palavra in palavras_ignorar:
+        nome_limpo = nome_limpo.replace(palavra, "").strip()
+    
+    if nome_limpo and len(nome_limpo) > 2:
+        return {
+            "palavra": f"{nome_limpo} - tendência 2026",
+            "hashtags": [f"#{nome_limpo.replace(' ', '')}", "#tendência", "#2026"]
+        }
+    
+    return {
+        "palavra": f"{produto}",
+        "hashtags": [f"#{produto.lower().replace(' ', '')}", "#tendência", "#2026"]
+    }
 
 # ============================================================
-# FUNÇÃO PARA GERAR TOP 10 PRODUTOS
+# CONSTANTES
 # ============================================================
-def gerar_top10_produtos(forcar_atualizacao=False):
-    """Gera o Top 10 produtos baseados em dados reais ou fallback"""
-    try:
-        produtos_dinamicos = obter_produtos_dinamicos(forcar_atualizacao=forcar_atualizacao)
-        
-        if not produtos_dinamicos:
-            produtos_dinamicos = PRODUTOS_FALLBACK
-            
-        lista_produtos = []
-        for termo, item in produtos_dinamicos.items():
-            lista_produtos.append({
-                "Produto": item.get("Produto", termo.capitalize()),
-                "Categoria": item.get("Categoria", "Geral"),
-                "Evento": item.get("Evento", "Tendência"),
-                "Potencial": item.get("Potencial", "🟢 Alto"),
-                "Score": item.get("Score", random.randint(70, 98)),
-                "Pins": item.get("Pins", f"{random.randint(1000, 5000):,}"),
-                "Crescimento": item.get("Crescimento", f"+{random.randint(20, 150)}%"),
-                "Views TikTok": item.get("Views TikTok", f"{random.uniform(0.5, 8.0):.1f}M"),
-                "Buscas no Mês": item.get("Buscas no Mês", f"{random.randint(5000, 100000):,}"),
-                "Resultados ML": item.get("Resultados ML", f"{random.randint(100, 5000):,}"),
-                "Tendência": item.get("Tendência", "🚀 Alta")
-            })
-            
-        lista_produtos = sorted(lista_produtos, key=lambda x: x["Score"], reverse=True)
-        return lista_produtos[:10]
-        
-    except Exception as e:
-        logger.error(f"Erro ao gerar Top 10: {e}")
-        return []
+BUSCAS_DIARIAS = 3
 
 # ============================================================
-# FUNÇÃO PARA GERAR SUGESTÕES DIÁRIAS
+# FUNÇÕES DE CÁLCULO
 # ============================================================
-def gerar_sugestoes_diarias(forcar_atualizacao=False):
-    """Gera 3 sugestões diárias baseadas no Top 10"""
-    produtos = gerar_top10_produtos(forcar_atualizacao=forcar_atualizacao)
-    if produtos:
-        return random.sample(produtos, min(len(produtos), 3))
-    return []
+def calcular_score(produto: str, dados: Dict) -> int:
+    """Calcula score para um produto"""
+    score = 0
+    
+    if dados.get("pins", 0) > 2000:
+        score += 3
+    elif dados.get("pins", 0) > 1000:
+        score += 2
+    else:
+        score += 1
+    
+    if dados.get("crescimento", 0) > 30:
+        score += 2
+    elif dados.get("crescimento", 0) > 15:
+        score += 1
+    
+    if dados.get("views_tiktok", 0) > 3:
+        score += 2
+    elif dados.get("views_tiktok", 0) > 1:
+        score += 1
+    
+    if dados.get("buscas_mes", 0) > 10000:
+        score += 2
+    elif dados.get("buscas_mes", 0) > 5000:
+        score += 1
+    
+    if dados.get("variacao", 0) > 15:
+        score += 1
+    
+    return max(1, min(score, 10))
+
+def gerar_top10_produtos(forcar_atualizacao: bool = True) -> List[Dict]:
+    """
+    Gera top 10 produtos com dados dinâmicos.
+    SEMPRE FORÇA ATUALIZAÇÃO
+    """
+    dados_completos = obter_dados_completos(forcar_atualizacao=True)
+    
+    resultados = []
+    for produto, dados in dados_completos.items():
+        score = dados.get("score", calcular_score(produto, dados))
+        
+        if score >= 8:
+            potencial = "🟢 Alto"
+        elif score >= 5:
+            potencial = "🟡 Médio"
+        else:
+            potencial = "🔴 Baixo"
+        
+        views_tiktok = dados.get('views_tiktok', 0)
+        if isinstance(views_tiktok, float):
+            views_tiktok = round(views_tiktok, 1)
+        
+        variacao = dados.get('variacao', 0)
+        if isinstance(variacao, float):
+            variacao = round(variacao, 1)
+        
+        dados_palavra = obter_palavra_chave(produto)
+        palavra_chave = dados_palavra.get("palavra", f"{produto}")
+        
+        resultados.append({
+            "Produto": produto.capitalize(),
+            "Categoria": dados.get("categoria", "Geral"),
+            "Evento": dados.get("evento", "Tendência"),
+            "Potencial": potencial,
+            "Score": score,
+            "Pins": f"{dados.get('pins', 0):,}",
+            "Crescimento": f"+{dados.get('crescimento', 0)}%",
+            "Views TikTok": f"{views_tiktok}M",
+            "Buscas no Mês": f"{dados.get('buscas_mes', 0):,}",
+            "Resultados ML": f"{dados.get('resultados_ml', 0):,}",
+            "Variação": f"+{variacao}%",
+            "Tendência": dados.get('tendencia', '➡️ Estável'),
+            "PalavraChave": palavra_chave
+        })
+    
+    return sorted(resultados, key=lambda x: x["Score"], reverse=True)[:10]
+
+def gerar_sugestoes_diarias(forcar_atualizacao: bool = True) -> List[Dict]:
+    """Gera sugestões diárias (top 3) - SEMPRE FORÇA ATUALIZAÇÃO"""
+    top10 = gerar_top10_produtos(forcar_atualizacao=True)
+    return top10[:BUSCAS_DIARIAS]
+
+# ============================================================
+# EXPORTAÇÕES
+# ============================================================
+__all__ = [
+    'carregar_apoiadores',
+    'adicionar_apoiador',
+    'remover_apoiador',
+    'obter_dados_completos',
+    'obter_palavra_chave',
+    'PALAVRAS_CHAVE_CAUDA_LONGA',
+    'calcular_score',
+    'gerar_top10_produtos',
+    'gerar_sugestoes_diarias',
+    'BUSCAS_DIARIAS'
+]

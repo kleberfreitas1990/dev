@@ -317,11 +317,20 @@ def limpar_cache_produtos() -> bool:
 # ============================================================
 # EXPORTAÇÕES
 # ============================================================
+def obter_melhor_horario_postagem(categoria: str) -> Dict:
+    cat = categoria.lower()
+    if "eletrônico" in cat:
+        return {"rede": "TikTok", "horario": "17:00"}
+    elif "moda" in cat:
+        return {"rede": "Instagram", "horario": "12:30"}
+    return {"rede": "TikTok", "horario": "16:00"}
+
 __all__ = [
     'obter_produtos_dinamicos',
     'limpar_cache_produtos',
     'PRODUTOS_FALLBACK',
     'buscar_produtos_com_api_e_grade',
     'carregar_cache_produtos',
-    'verificar_data_cache'
+    'verificar_data_cache',
+    'obter_melhor_horario_postagem'
 ]
