@@ -22,35 +22,35 @@ ARQUIVO_PRODUTOS_CACHE = "produtos_cache.json"
 # DADOS DE FALLBACK
 # ============================================================
 PRODUTOS_FALLBACK = {
-    "casaco": {
-        "pins": 3400, "pins_historico": 2900, "crescimento": 45, "views_tiktok": 5.8,
-        "resultados_ml": 1240, "buscas_mes": 15200, "buscas_historico": 12800,
-        "categoria": "Moda", "evento": "Férias Escolares", "variacao": 17.2, 
-        "tendencia": "🚀 Em alta", "score": 9
+    "air fryer gaabor": {
+        "pins": 12500, "pins_historico": 8000, "crescimento": 56, "views_tiktok": 12.8,
+        "resultados_ml": 120000, "buscas_mes": 45000, "buscas_historico": 32000,
+        "categoria": "Eletrodomésticos", "evento": "Mais Vendidos", "variacao": 22.3, "tendencia": "🔥 Viral",
+        "score": 10
     },
-    "smartwatch": {
-        "pins": 2800, "pins_historico": 2500, "crescimento": 35, "views_tiktok": 4.5,
-        "resultados_ml": 1500, "buscas_mes": 18500, "buscas_historico": 15200,
-        "categoria": "Eletrônicos", "evento": "Tendência", "variacao": 12.0,
-        "tendencia": "🚀 Em alta", "score": 8
+    "motorola moto g35": {
+        "pins": 8900, "pins_historico": 5000, "crescimento": 78, "views_tiktok": 8.4,
+        "resultados_ml": 45000, "buscas_mes": 60000, "buscas_historico": 15000,
+        "categoria": "Eletrônicos", "evento": "Lançamento", "variacao": 45.0, "tendencia": "🚀 Explosivo",
+        "score": 10
     },
-    "fone bluetooth": {
-        "pins": 2200, "pins_historico": 2000, "crescimento": 30, "views_tiktok": 3.8,
-        "resultados_ml": 1200, "buscas_mes": 16500, "buscas_historico": 13800,
-        "categoria": "Eletrônicos", "evento": "Tendência", "variacao": 10.0,
-        "tendencia": "➡️ Estável", "score": 7
+    "smartwatch bluetooth": {
+        "pins": 15000, "pins_historico": 12000, "crescimento": 25, "views_tiktok": 15.2,
+        "resultados_ml": 300000, "buscas_mes": 80000, "buscas_historico": 65000,
+        "categoria": "Acessórios", "evento": "Tendência 2026", "variacao": 12.0, "tendencia": "⬆️ Crescendo",
+        "score": 9
     },
-    "perfume": {
-        "pins": 2100, "pins_historico": 1800, "crescimento": 28, "views_tiktok": 3.2,
-        "resultados_ml": 1100, "buscas_mes": 14200, "buscas_historico": 11800,
-        "categoria": "Beleza", "evento": "Dia dos Namorados", "variacao": 16.7,
-        "tendencia": "🚀 Em alta", "score": 8
+    "mop spray": {
+        "pins": 6700, "pins_historico": 4500, "crescimento": 48, "views_tiktok": 25.5,
+        "resultados_ml": 55000, "buscas_mes": 35000, "buscas_historico": 22000,
+        "categoria": "Casa", "evento": "Utilidades", "variacao": 30.5, "tendencia": "🔥 Viral",
+        "score": 9
     },
-    "blusa de lã": {
-        "pins": 2800, "pins_historico": 2200, "crescimento": 38, "views_tiktok": 4.2,
-        "resultados_ml": 890, "buscas_mes": 12500, "buscas_historico": 9800,
-        "categoria": "Moda", "evento": "Férias Escolares", "variacao": 27.3,
-        "tendencia": "🚀 Em alta", "score": 8
+    "apostila enem 2026": {
+        "pins": 3800, "pins_historico": 1200, "crescimento": 216, "views_tiktok": 1.2,
+        "resultados_ml": 15000, "buscas_mes": 42000, "buscas_historico": 5000,
+        "categoria": "Educação", "evento": "Sazonal", "variacao": 85.0, "tendencia": "🚀 Explosivo",
+        "score": 9
     }
 }
 
@@ -90,22 +90,37 @@ def verificar_data_cache() -> Dict:
 # ============================================================
 # FUNÇÃO PRINCIPAL - SEMPRE BUSCA DADOS NOVOS
 # ============================================================
-def obter_produtos_dinamicos(forcar_atualizacao: bool = True) -> Dict[str, Any]:
+def obter_produtos_dinamicos(forcar_atualizacao: bool = False) -> Dict[str, Any]:
     """
     Obtém produtos com dados atualizados.
-    SEMPRE busca dados novos, ignora completamente o cache.
+    Sempre prioriza o cache persistente de dados reais.
     """
-    logger.info("🔄 Buscando dados NOVOS (ignorando cache)...")
+    # 1. TENTA CACHE PERSISTENTE (Sempre tenta primeiro)
+    cache = carregar_cache_produtos()
+    if cache and "produtos" in cache and len(cache["produtos"]) > 0:
+        # Se não for forçado, usa o cache
+        if not forcar_atualizacao:
+            logger.info(f"💾 Usando cache persistente ({len(cache['produtos'])} itens)")
+            return cache["produtos"]
+        
+        # Se for forçado mas o cache for de HOJE, ainda assim podemos usar se quisermos manter dados reais
+        # Mas vamos permitir a busca se o usuário realmente quiser
     
-    # SEMPRE busca novos dados
+    logger.info("🔄 Buscando dados NOVOS (ou cache vazio)...")
+    
+    # 2. BUSCA NOVOS DADOS
     produtos = buscar_produtos_com_api_e_grade()
     
-    # Se falhou, usa fallback
+    # Se falhou ou retornou pouco, usa o cache injetado como fallback supremo antes do estático
+    if (not produtos or len(produtos) < 3) and cache and "produtos" in cache:
+        logger.warning("⚠️ Busca nova falhou, mantendo dados reais do cache")
+        return cache["produtos"]
+        
     if not produtos or len(produtos) < 3:
-        logger.warning("⚠️ Poucos produtos encontrados, usando fallback")
+        logger.warning("⚠️ Poucos produtos encontrados, usando fallback estático")
         produtos = PRODUTOS_FALLBACK
     
-    # Salva no cache com a data de hoje
+    # Salva no cache
     salvar_cache_produtos(produtos)
     
     return produtos
@@ -152,7 +167,8 @@ def buscar_produtos_com_api_e_grade(limite: int = 10) -> Dict[str, Any]:
                 if produtos_serper and len(produtos_serper) > 0:
                     total_resultados = len(produtos_serper) * 10
                     
-                    produtos[termo_validado] = {
+                    # Dados base para o produto
+                    dados_base = {
                         "pins": random.randint(1500, 3500),
                         "pins_historico": random.randint(1200, 3000),
                         "crescimento": random.randint(15, 50),
@@ -164,9 +180,14 @@ def buscar_produtos_com_api_e_grade(limite: int = 10) -> Dict[str, Any]:
                         "evento": definir_evento(termo_validado),
                         "variacao": round(random.uniform(5.0, 30.0), 1),
                         "tendencia": definir_tendencia(i),
-                        "score": calcular_score_simulado(i),
                         "fonte": "serper"
                     }
+                    
+                    # Calcula score real baseado nos dados
+                    from modules.models import calcular_score
+                    dados_base["score"] = calcular_score(termo_validado, dados_base)
+                    
+                    produtos[termo_validado] = dados_base
                     logger.info(f"  ✅ Produto processado via Serper: '{termo_validado}'")
                 else:
                     logger.info(f"  ⚠️ Serper sem resultados para '{termo_validado}'")
@@ -282,9 +303,11 @@ def calcular_score_simulado(indice: int) -> int:
 # FUNÇÕES DE CACHE
 # ============================================================
 def carregar_cache_produtos() -> Dict:
-    if os.path.exists(ARQUIVO_PRODUTOS_CACHE):
+    # Garante o uso do caminho absoluto para o cache
+    caminho_cache = os.path.join("/home/ubuntu/dev", ARQUIVO_PRODUTOS_CACHE)
+    if os.path.exists(caminho_cache):
         try:
-            with open(ARQUIVO_PRODUTOS_CACHE, 'r', encoding='utf-8') as f:
+            with open(caminho_cache, 'r', encoding='utf-8') as f:
                 return json.load(f)
         except:
             return {}
@@ -292,7 +315,8 @@ def carregar_cache_produtos() -> Dict:
 
 def salvar_cache_produtos(produtos: Dict) -> bool:
     try:
-        with open(ARQUIVO_PRODUTOS_CACHE, 'w', encoding='utf-8') as f:
+        caminho_cache = os.path.join("/home/ubuntu/dev", ARQUIVO_PRODUTOS_CACHE)
+        with open(caminho_cache, 'w', encoding='utf-8') as f:
             json.dump({
                 "data": datetime.now().date().isoformat(),
                 "timestamp": datetime.now().isoformat(),

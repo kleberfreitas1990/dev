@@ -17,6 +17,7 @@ from modules.validation import (
     sanitizar_json
 )
 from modules.logger import registrar_busca
+from modules.selenium_client import capturar_buscas_selenium, verificar_status_selenium
 
 logger = logging.getLogger(__name__)
 
@@ -40,15 +41,26 @@ USER_AGENTS = [
 # TERMOS REAIS DA SHOPEE (FALLBACK)
 # ============================================================
 TERMOS_REAIS_SHOPEE = [
-    "controle pc", "sapateira", "lixeira cozinha", 
-    "ar condicionado portátil", "garrafa térmica", 
-    "sacola personalizada", "caixa organizadora", 
-    "camisa brasil", "tênis", "chopeira", 
-    "relógio", "tablet", "organizador", "lingerie", 
-    "espelho", "vestido", "roupas feminina", 
-    "figurinha legend", "joia cobre", 
-    "kenner feminina", "moto infantil", "kit cadeira",
-    "ar condicionado elgin", "kit loreal"
+    "air fryer gaabor 5.5l",
+    "motorola moto g35 5g",
+    "smartwatch bluetooth amoled",
+    "mop spray com reservatório",
+    "apostila enem 2026 completa",
+    "touca de cetim anti-frizz",
+    "kit 10 cuecas boxer zorba",
+    "protetor solar facial fps 60",
+    "varal de chão 3 andares inox",
+    "kit 6 potes de vidro hermético",
+    "fone bluetooth h'maston rs-25",
+    "câmera wi-fi segurança 360",
+    "liquidificador mondial turbo l-1200",
+    "calça pantalona duna",
+    "ring light led 10 polegadas",
+    "kit bolsas maternidade luxo",
+    "mini processador manual 3 lâminas",
+    "garrafa térmica inox 1l",
+    "camiseta tech insider original",
+    "tênis plataforma vizzano branco"
 ]
 
 # ============================================================
@@ -57,82 +69,76 @@ TERMOS_REAIS_SHOPEE = [
 def capturar_buscas_shopee(max_tentativas: int = 3) -> List[str]:
     """
     Captura buscas em alta da Shopee com múltiplas estratégias
+    Prioridade: Selenium Real -> Raspagem Direta -> API Sugestões -> Fallback
     """
     inicio = time.time()
     termos = []
     
-    # ESTRATÉGIA 1: Capturar do rodapé da página
-    for tentativa in range(max_tentativas):
-        try:
-            user_agent = USER_AGENTS[tentativa % len(USER_AGENTS)]
-            
-            url = "https://shopee.com.br"
-            headers = {
-                "User-Agent": user_agent,
-                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-                "Accept-Language": "pt-BR,pt;q=0.9,en;q=0.8",
-                "Accept-Encoding": "gzip, deflate, br",
-                "Connection": "keep-alive",
-                "Upgrade-Insecure-Requests": "1",
-                "Sec-Fetch-Dest": "document",
-                "Sec-Fetch-Mode": "navigate",
-                "Sec-Fetch-Site": "none",
-                "Cache-Control": "max-age=0"
-            }
-            
-            timeout = 10 + (tentativa * 2)
-            response = requests.get(url, headers=headers, timeout=timeout)
-            
-            if response.status_code == 200:
-                soup = BeautifulSoup(response.text, 'html.parser')
-                
-                links = soup.find_all('a', href=True)
-                for link in links:
-                    href = link.get('href', '')
-                    if '/search?keyword=' in href:
-                        match = re.search(r'keyword=([^&]+)', href)
-                        if match:
-                            termo = requests.utils.unquote(match.group(1))
-                            termo_validado = validar_termo_busca(termo)
-                            if termo_validado and termo_validado not in termos:
-                                termos.append(termo_validado)
-                
-                if len(termos) >= 10:
+    # ESTRATÉGIA 0: Selenium Real (Servidor Render)
+    try:
+        status = verificar_status_selenium()
+        if status.get("online"):
+            logger.info("📡 Usando Selenium Real para capturar buscas...")
+            termos_selenium = capturar_buscas_selenium()
+            if termos_selenium:
+                termos = validar_lista_termos(termos_selenium)
+                if len(termos) >= 5:
                     registrar_busca(
                         nivel="raspagem",
-                        termo="shopee_trends",
+                        termo="shopee_selenium",
                         sucesso=True,
                         quantidade=len(termos),
-                        detalhes=f"Capturados {len(termos)} termos do rodapé",
+                        detalhes=f"Capturados {len(termos)} termos via Selenium Real",
                         tempo_execucao=time.time() - inicio
                     )
                     return termos[:20]
-            
-        except requests.exceptions.Timeout:
-            logger.warning(f"Timeout na tentativa {tentativa+1}")
-            time.sleep(1)
-        except requests.exceptions.RequestException as e:
-            logger.warning(f"Erro na tentativa {tentativa+1}: {e}")
-            time.sleep(2)
-        except Exception as e:
-            logger.error(f"Erro inesperado: {e}")
-            time.sleep(1)
+    except Exception as e:
+        logger.warning(f"Erro ao usar Selenium Real: {e}")
+
+    # ESTRATÉGIA 1: Capturar do rodapé da página (Raspagem Direta)
+    if len(termos) < 5:
+        for tentativa in range(max_tentativas):
+            try:
+                user_agent = USER_AGENTS[tentativa % len(USER_AGENTS)]
+                url = "https://shopee.com.br"
+                headers = {"User-Agent": user_agent}
+                
+                response = requests.get(url, headers=headers, timeout=10)
+                if response.status_code == 200:
+                    soup = BeautifulSoup(response.text, 'html.parser')
+                    links = soup.find_all('a', href=True)
+                    for link in links:
+                        href = link.get('href', '')
+                        if '/search?keyword=' in href:
+                            match = re.search(r'keyword=([^&]+)', href)
+                            if match:
+                                termo = requests.utils.unquote(match.group(1))
+                                termo_validado = validar_termo_busca(termo)
+                                if termo_validado and termo_validado not in termos:
+                                    termos.append(termo_validado)
+                    
+                    if len(termos) >= 10:
+                        registrar_busca(
+                            nivel="raspagem",
+                            termo="shopee_footer",
+                            sucesso=True,
+                            quantidade=len(termos),
+                            detalhes=f"Capturados {len(termos)} termos do rodapé",
+                            tempo_execucao=time.time() - inicio
+                        )
+                        return termos[:20]
+            except Exception as e:
+                logger.warning(f"Erro na raspagem direta (tentativa {tentativa+1}): {e}")
+                time.sleep(1)
     
     # ESTRATÉGIA 2: API de sugestões
     if len(termos) < 5:
         try:
             url = "https://shopee.com.br/api/v4/search/search_suggestions"
             params = {"search": ""}
-            headers = {
-                "User-Agent": USER_AGENTS[0],
-                "Referer": "https://shopee.com.br/"
-            }
-            
-            response = requests.get(url, params=params, headers=headers, timeout=10)
-            
+            response = requests.get(url, params=params, headers={"User-Agent": USER_AGENTS[0]}, timeout=10)
             if response.status_code == 200:
                 data = response.json()
-                
                 if "items" in data:
                     for item in data["items"]:
                         termo = item.get("keyword", "")
@@ -143,7 +149,7 @@ def capturar_buscas_shopee(max_tentativas: int = 3) -> List[str]:
                 if len(termos) > 0:
                     registrar_busca(
                         nivel="raspagem",
-                        termo="shopee_trends",
+                        termo="shopee_api",
                         sucesso=True,
                         quantidade=len(termos),
                         detalhes=f"Capturados {len(termos)} termos via API",
@@ -153,7 +159,7 @@ def capturar_buscas_shopee(max_tentativas: int = 3) -> List[str]:
         except Exception as e:
             logger.error(f"Erro na API: {e}")
     
-    # ESTRATÉGIA 3: FALLBACK
+    # ESTRATÉGIA 3: FALLBACK (LISTA ESTÁTICA)
     if len(termos) < 5:
         logger.info("Usando fallback com termos reais da Shopee")
         termos_fallback = validar_lista_termos(TERMOS_REAIS_SHOPEE)
@@ -163,7 +169,7 @@ def capturar_buscas_shopee(max_tentativas: int = 3) -> List[str]:
         
         registrar_busca(
             nivel="raspagem",
-            termo="shopee_trends",
+            termo="shopee_fallback",
             sucesso=True if len(termos) > 0 else False,
             quantidade=len(termos),
             detalhes=f"Usando fallback - {len(termos)} termos",

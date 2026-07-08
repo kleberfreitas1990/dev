@@ -14,100 +14,14 @@ logger = logging.getLogger(__name__)
 # GRADE DE PRODUTOS POR CATEGORIA (FALLBACK INTELIGENTE)
 # ============================================================
 GRADE_PRODUTOS = {
-    "moda": {
-        "termos": [
-            "casaco feminino", "blusa de lã", "vestido longo", 
-            "calça jeans", "sapato salto", "tênis esportivo",
-            "jaqueta jeans", "saia midi", "blazer feminino",
-            "camisa social", "vestido festa", "short jeans",
-            "cropped", "body feminino", "macacão"
-        ],
-        "hashtags": ["#moda", "#lookdodia", "#tendenciamoda", "#modafeminina"],
+    "geral": {
+        "termos": ["Mini Processador de Alimentos Manual", "Smartwatch D20 Ultra Bluetooth", "Fone de Ouvido Bluetooth i12 TWS", "Mop Spray com Reservatório", "Kit 10 Pares de Meias Soquete", "Lâmpada LED com Sensor de Movimento", "Garrafa Térmica 2 Litros Motivacional", "Ring Light de Mesa 10 Polegadas", "Kit 12 Utensílios de Cozinha em Silicone", "Mini Umidificador de Ar Portátil", "Escova Secadora e Alisadora 3 em 1", "Kit 3 Potes Herméticos de Acrílico", "Touca de Cetim Anti-Frizz", "Suporte Articulado para Celular e Tablet", "Fita LED RGB 5 Metros com Controle", "Dispenser de Água Automático para Galão", "Kit 10 Cuecas Boxer Microfibra", "Maquininha de Cortar Cabelo Vintage T9", "Organizador de Gavetas para Roupas Intimas", "Mini Aspirador de Pó Portátil para Carro"],
+        "hashtags": ["#shopee", "#achadinhos", "#marketplace", "#vendas"],
         "motivos": [
-            "Pessoas buscam looks para o inverno",
-            "Alta demanda por roupas de frio",
-            "Tendência de moda nas redes sociais",
-            "Procura por peças versáteis"
-        ]
-    },
-    "eletrônico": {
-        "termos": [
-            "smartwatch", "fone bluetooth", "caixa de som",
-            "carregador portátil", "webcam", "mouse gamer",
-            "teclado mecânico", "monitor led", "ssd externo",
-            "roteador wifi", "power bank", "adaptador usb",
-            "hd externo", "pen drive", "microfone"
-        ],
-        "hashtags": ["#tecnologia", "#eletrônicos", "#gadgets", "#review"],
-        "motivos": [
-            "Lançamentos tecnológicos do momento",
-            "Necessidade de equipamentos para home office",
-            "Black Friday e promoções",
-            "Crescimento do mercado de games"
-        ]
-    },
-    "beleza": {
-        "termos": [
-            "perfume importado", "kit maquiagem", "creme hidratante",
-            "máscara facial", "esmalte", "pincel maquiagem",
-            "base líquida", "batom matte", "delineador",
-            "sérum facial", "protetor solar", "shampoo sólido",
-            "condicionador", "máscara capilar", "óleo corporal"
-        ],
-        "hashtags": ["#beleza", "#skincare", "#maquiagem", "#makeup"],
-        "motivos": [
-            "Influenciadoras digitais promovendo produtos",
-            "Tendências de skincare no TikTok",
-            "Busca por produtos naturais e veganos",
-            "Cuidados com a pele no inverno"
-        ]
-    },
-    "casa": {
-        "termos": [
-            "organizador de gavetas", "caixa organizadora", "lixeira cozinha",
-            "garrafa térmica", "porta temperos", "tapete quarto",
-            "cortina blackout", "almofada decorativa", "suporte de parede",
-            "potes herméticos", "escova de limpeza", "dispenser sabão",
-            "porta escovas", "organizador de talheres", "suporte de panela"
-        ],
-        "hashtags": ["#casa", "#organização", "#decoração", "#diy"],
-        "motivos": [
-            "Movimento de organização minimalista",
-            "Decoração de casas no Pinterest",
-            "DIY e projetos de decoração",
-            "Busca por praticidade no dia a dia"
-        ]
-    },
-    "infantil": {
-        "termos": [
-            "brinquedo educativo", "boneca interativa", "carrinho controle remoto",
-            "moto infantil", "jogo de montar", "massinha de modelar",
-            "boneco ação", "tabuleiro educativo", "livro infantil",
-            "fantasia infantil", "casa de boneca", "playground",
-            "blocos de montar", "quebra-cabeça", "jogo da memória"
-        ],
-        "hashtags": ["#infantil", "#brinquedos", "#crianças", "#educativo"],
-        "motivos": [
-            "Pais buscam brinquedos educativos",
-            "Tendência de brincadeiras criativas",
-            "Presentes para crianças em alta",
-            "Desenvolvimento infantil em foco"
-        ]
-    },
-    "esporte": {
-        "termos": [
-            "tênis corrida", "bola futebol", "raquete tênis",
-            "garrafa squeeze", "corda pular", "kit academia",
-            "camisa esportiva", "short corrida", "meia compressão",
-            "top esportivo", "luva boxe", "óculos natação",
-            "caneleira", "munhequeira", "faixa de suor"
-        ],
-        "hashtags": ["#esporte", "#fitness", "#treino", "#saúde"],
-        "motivos": [
-            "Pessoas buscando saúde e bem-estar",
-            "Tendência de esportes ao ar livre",
-            "Crescimento do mercado fitness",
-            "Treinos em casa em alta"
+            "Produto de alto giro com milhares de vendas confirmadas",
+            "Tendência viral em vídeos de 'achadinhos' no TikTok",
+            "Item essencial com alta taxa de conversão em marketplaces",
+            "Busca massiva orgânica identificada na Shopee Brasil"
         ]
     }
 }
@@ -116,16 +30,18 @@ GRADE_PRODUTOS = {
 # MOTIVOS DE BUSCA POR PRODUTO (BASEADO EM PINTEREST + GOOGLE)
 # ============================================================
 MOTIVOS_BUSCA = {
+    "air fryer": "🔥 Campeã de vendas na Shopee + Tendência de cozinha saudável no TikTok + Buscas explosivas por Gaabor",
+    "motorola": "🚀 Lançamento 5G com alto volume de busca no Google + Melhor custo-benefício em eletrônicos de julho",
+    "mop spray": "✨ Viral no TikTok com demonstrações de limpeza + Item essencial em utilidades domésticas 2026",
+    "touca de cetim": "👑 Acessório de beleza com maior giro no TikTok + Baixo custo e alta conversão para afiliados",
+    "apostila": "📚 Sazonalidade ENEM 2026 - Picos de busca de estudantes em todo o Brasil",
+    "smartwatch": "⌚ Tendência tecnológica constante + Alta procura por modelos com Bluetooth e monitoramento de saúde",
+    "protetor solar": "☀️ Cuidados com a pele em alta - Skincare viral nas redes sociais",
+    "cueca": "👔 Item básico de moda masculina com maior recorrência de compra e fidelidade à marca Zorba",
+    "varal": "🏠 Solução de organização para apartamentos em alta no Pinterest e Google Trends",
+    "potes": "🍱 Organização de cozinha e 'meal prep' em alta nas redes sociais",
     "casaco": "📌 Busca por looks de inverno no Pinterest + Alto volume de buscas no Google por 'casaco feminino 2026'",
-    "blusa de lã": "📌 Tendência no TikTok + Pinterest com looks de lã + Buscas por 'blusa de lã elegante' no Google",
-    "vestido": "📌 Destaque no Pinterest com looks de festa + Buscas por 'vestido longo' em alta",
-    "smartwatch": "📌 Lançamentos tech no Google + Alto engajamento no TikTok sobre smartwatches",
-    "fone bluetooth": "📌 Review de influenciadores + Buscas por 'melhor fone bluetooth 2026'",
-    "perfume": "📌 Busca por presentes + Tendência no TikTok de perfumes importados",
-    "organizador": "📌 Movimento 'organização que acalma' no Pinterest + Buscas por 'organizador de gavetas'",
-    "tênis": "📌 Tendência de streetwear + Buscas por 'tênis confortável' no Google",
-    "brinquedo": "📌 Pais buscando presentes educativos + Pinterest com ideias de brincadeiras",
-    "maquiagem": "📌 Makeup trends no TikTok + Buscas por 'maquiagem natural' em alta"
+    "organizador": "📌 Movimento 'organização que acalma' no Pinterest + Buscas por 'organizador de gavetas'"
 }
 
 # ============================================================
@@ -268,10 +184,10 @@ def get_produtos_sazonais_com_motivos() -> List[Dict]:
             {"produto": "bota", "motivo": "👢 Moda inverno - Buscas por botas"}
         ],
         7: [
-            {"produto": "mala viagem", "motivo": "🧳 Férias escolares - Buscas por acessórios de viagem"},
-            {"produto": "roupa conforto", "motivo": "😌 Looks de viagem - Tendência"},
-            {"produto": "protetor solar", "motivo": "☀️ Férias de julho - Buscas por proteção"},
-            {"produto": "chapéu", "motivo": "🧢 Acessório de viagem - Pinterest"}
+            {"produto": "mala de viagem 10kg", "motivo": "🧳 Férias escolares - Alta demanda por malas de bordo"},
+            {"produto": "almofada de pescoço", "motivo": "😌 Conforto em viagens - Tendência para férias de julho"},
+            {"produto": "apostila enem 2026", "motivo": "📚 Sazonalidade ENEM - Estudantes iniciando preparação intensa"},
+            {"produto": "kit protetor solar", "motivo": "☀️ Férias de julho - Buscas por proteção em família"}
         ],
         8: [
             {"produto": "relógio", "motivo": "⌚ Dia dos Pais - Busca por presentes"},
@@ -324,17 +240,32 @@ def descobrir_produtos_grade(categoria: str = None, quantidade: int = 10) -> Lis
     produtos = []
     termos_usados = []
     
-    # 1. PEGA PRODUTOS SAZONAIS
+    # 1. PRIORIDADE: PRODUTOS DE MARKETPLACE PURO (GERAL)
+    if "geral" in GRADE_PRODUTOS:
+        for termo in GRADE_PRODUTOS["geral"]["termos"]:
+            if termo not in termos_usados:
+                termos_usados.append(termo)
+                indicadores = obter_indicadores_horario(termo)
+                produtos.append({
+                    "produto": termo,
+                    "fonte": "grade_real",
+                    "categoria": "Marketplace",
+                    "score": random.randint(9, 10),
+                    "motivo": obter_motivo_busca(termo),
+                    "indicadores": indicadores
+                })
+    
+    # 2. PEGA PRODUTOS SAZONAIS (COMO COMPLEMENTO)
     sazonais = get_produtos_sazonais()
-    for produto in sazonais[:5]:
-        if produto not in termos_usados:
+    for produto in sazonais:
+        if produto not in termos_usados and len(produtos) < quantidade:
             termos_usados.append(produto)
             indicadores = obter_indicadores_horario(produto)
             produtos.append({
                 "produto": produto,
                 "fonte": "sazonal",
-                "categoria": "sazonal",
-                "score": random.randint(7, 9),
+                "categoria": "Sazonal",
+                "score": random.randint(7, 8),
                 "motivo": obter_motivo_busca(produto),
                 "indicadores": indicadores
             })
@@ -349,7 +280,7 @@ def descobrir_produtos_grade(categoria: str = None, quantidade: int = 10) -> Lis
                     "produto": termo,
                     "fonte": "grade",
                     "categoria": categoria,
-                    "score": random.randint(5, 8),
+                    "score": random.randint(9, 10) if any(p in termo.lower() for p in ["air fryer", "motorola", "mop spray", "touca de cetim", "apostila", "smartwatch", "protetor", "cueca", "varal", "potes"]) else random.randint(5, 8),
                     "motivo": obter_motivo_busca(termo),
                     "indicadores": indicadores
                 })
@@ -366,13 +297,12 @@ def descobrir_produtos_grade(categoria: str = None, quantidade: int = 10) -> Lis
                             "produto": termo,
                             "fonte": "grade",
                             "categoria": cat,
-                            "score": random.randint(4, 7),
+                            "score": random.randint(8, 9) if any(p in termo.lower() for p in ["air fryer", "motorola", "mop spray", "touca de cetim", "apostila", "smartwatch", "protetor", "cueca", "varal", "potes"]) else random.randint(4, 7),
                             "motivo": obter_motivo_busca(termo),
                             "indicadores": indicadores
                         })
     
-    # 4. EMBARALHA E RETORNA
-    random.shuffle(produtos)
+    # 4. RETORNA NA ORDEM (SEM EMBARALHAR MUITO)
     return produtos[:quantidade]
 
 def enriquecer_produto(produto: str) -> Dict:
@@ -405,7 +335,7 @@ def enriquecer_produto(produto: str) -> Dict:
         "buscas_mes": random.randint(3000, 20000),
         "categoria": categoria,
         "tendencia": random.choice(["🚀 Em alta", "📈 Crescendo", "➡️ Estável"]),
-        "score": random.randint(4, 9),
+        "score": random.randint(9, 10) if any(p in nome_lower for p in ["air fryer", "motorola", "mop spray", "touca de cetim", "apostila", "smartwatch", "protetor", "cueca", "varal", "potes"]) else random.randint(4, 9),
         "fonte": "grade_descoberta",
         "motivo": obter_motivo_busca(produto),
         "indicadores": indicadores

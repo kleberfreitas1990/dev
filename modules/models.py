@@ -492,12 +492,11 @@ def calcular_score(produto: str, dados: Dict) -> int:
     
     return max(1, min(score, 10))
 
-def gerar_top10_produtos(forcar_atualizacao: bool = True) -> List[Dict]:
+def gerar_top10_produtos(forcar_atualizacao: bool = False) -> List[Dict]:
     """
     Gera top 10 produtos com dados dinâmicos.
-    SEMPRE FORÇA ATUALIZAÇÃO
     """
-    dados_completos = obter_dados_completos(forcar_atualizacao=True)
+    dados_completos = obter_produtos_dinamicos(forcar_atualizacao=forcar_atualizacao)
     
     resultados = []
     for produto, dados in dados_completos.items():

@@ -19,6 +19,7 @@ def diagnosticar_buscas():
         "nivel_3_selenium": {"status": "❌", "mensagem": "Não testado"},
         "cache": {"status": "❌", "mensagem": "Não testado"},
         "serper": {"status": "❌", "mensagem": "Não testado"},
+        "automacao": {"status": "❌", "mensagem": "Inativa"},
         "produtos_ativos": 0,
         "ultima_atualizacao": None
     }
@@ -151,6 +152,22 @@ def diagnosticar_buscas():
         }
     
     # ============================================================
+    # AUTOMAÇÃO
+    # ============================================================
+    if "ultima_atualizacao_auto" in st.session_state:
+        resultados["automacao"] = {
+            "status": "✅",
+            "mensagem": "Ativa",
+            "detalhes": f"Última: {st.session_state.ultima_atualizacao_auto.strftime('%H:%M:%S')}"
+        }
+    else:
+        resultados["automacao"] = {
+            "status": "🟡",
+            "mensagem": "Aguardando ciclo",
+            "detalhes": "Será ativada no próximo recarregamento"
+        }
+
+    # ============================================================
     # STATUS GERAL
     # ============================================================
     niveis_ok = sum(1 for k in ["nivel_1_raspagem", "nivel_2_api", "nivel_3_selenium"] 
@@ -186,6 +203,10 @@ def render_painel_diagnostico():
         st.metric("🔄 Selenium", resultados["nivel_3_selenium"]["status"])
     with col4:
         st.metric("💾 Cache", resultados["cache"]["status"])
+    
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric("🤖 Automação", resultados["automacao"]["status"])
     
     st.markdown("---")
     
