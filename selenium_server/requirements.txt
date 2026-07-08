@@ -2,3 +2,4 @@ Flask==2.3.3
 Flask-CORS==4.0.0
 selenium==4.15.2
 gunicorn==21.2.0
+beautifulsoup4==4.12.2
