@@ -57,42 +57,12 @@ PRODUTOS_FALLBACK = {
 # ============================================================
 # FUNÇÃO PRINCIPAL - COM ATUALIZAÇÃO AUTOMÁTICA DIÁRIA
 # ============================================================
-def obter_produtos_dinamicos(forcar_atualizacao: bool = False) -> Dict[str, Any]:
+def obter_produtos_dinamicos(forcar_atualizacao: bool = True) -> Dict[str, Any]:
     """
     Obtém produtos com dados atualizados.
-    Se o cache for de um dia anterior, atualiza automaticamente.
+    SEMPRE BUSCA DADOS NOVOS quando forcar_atualizacao=True.
     """
-    hoje = datetime.now().date().isoformat()
-    
-    # Tenta carregar do cache
-    cache = carregar_cache_produtos()
-    
-    if cache and not forcar_atualizacao:
-        data_cache = cache.get("data")
-        
-        # Se o cache é de hoje, usa
-        if data_cache == hoje:
-            logger.info(f"📅 Usando cache de hoje ({len(cache.get('produtos', {}))} produtos)")
-            return cache.get("produtos", PRODUTOS_FALLBACK)
-        
-        # Se o cache é de ontem ou mais antigo, ATUALIZA AUTOMATICAMENTE
-        if data_cache:
-            try:
-                data_cache_dt = datetime.strptime(data_cache, "%Y-%m-%d").date()
-                dias_diferenca = (datetime.now().date() - data_cache_dt).days
-                
-                if dias_diferenca >= 1:
-                    logger.info(f"🔄 Cache de {data_cache} ({dias_diferenca} dias atrás) - Atualizando...")
-                    # Reseta o contador para permitir novas buscas
-                    resetar_contador_serper()
-                    # Força atualização
-                    produtos = buscar_produtos_com_grade()
-                    salvar_cache_produtos(produtos)
-                    return produtos
-            except:
-                pass
-    
-    # Se não tem cache, busca novos dados
+    # SEMPRE busca novos dados quando forçado
     logger.info("🔄 Buscando dados atualizados...")
     produtos = buscar_produtos_com_grade()
     
