@@ -248,36 +248,22 @@ def obter_stats_cache_shopee() -> dict:
             pass
     return stats
 
+# ============================================================
+# FUNÇÃO FALLBACK PARA SELENIUM (DESATIVADA)
+# ============================================================
+def capturar_buscas_shopee_com_selenium_fallback() -> List[str]:
+    """
+    Tenta capturar buscas usando Selenium - DESATIVADO
+    Selenium não funciona no Streamlit Cloud
+    """
+    logger.warning("⚠️ Selenium desativado no Streamlit Cloud")
+    return []
+
 __all__ = [
     'capturar_buscas_shopee',
     'capturar_buscas_shopee_com_cache',
     'limpar_cache_shopee',
     'obter_stats_cache_shopee',
-    'TERMOS_REAIS_SHOPEE'
+    'TERMOS_REAIS_SHOPEE',
+    'capturar_buscas_shopee_com_selenium_fallback'
 ]
-def capturar_buscas_shopee_com_selenium_fallback() -> List[str]:
-    """
-    Tenta capturar buscas usando Selenium (fallback)
-    """
-    try:
-        from modules.selenium_scraper import capturar_buscas_shopee_selenium, SELENIUM_DISPONIVEL
-        
-        if not SELENIUM_DISPONIVEL:
-            logger.warning("Selenium não disponível")
-            return []
-        
-        logger.info("Tentando capturar com Selenium...")
-        termos = capturar_buscas_shopee_selenium()
-        
-        if termos:
-            logger.info(f"Selenium capturou {len(termos)} termos")
-            return termos
-        
-        return []
-        
-    except ImportError:
-        logger.warning("Selenium não instalado. Usando fallback padrão.")
-        return []
-    except Exception as e:
-        logger.error(f"Erro no Selenium: {e}")
-        return []
