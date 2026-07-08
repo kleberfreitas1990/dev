@@ -249,8 +249,8 @@ with tab3:
                 with (col1 if i % 2 == 0 else col2):
                     with st.container(border=True):
                         dia = data.split("-")[1]
-                        st.markdown(f"**📅 {dia}** - {evento["nome"]}")
-                        st.caption(f"📦 Produtos sugeridos: {", ".join(evento["produtos"][:3])}")
+                        st.markdown(f"**📅 {dia}** - {evento['nome']}")
+                        st.caption(f"📦 Produtos sugeridos: {', '.join(evento['produtos'][:3])}")
         else:
             st.info("📭 Nenhum evento programado para este mês.")
 
@@ -404,10 +404,10 @@ with tab6:
             df_apoiadores = pd.DataFrame(apoiadores_atuais).T
             st.dataframe(df_apoiadores)
             
-            apoiador_remover = st.selectbox("Selecione o apoiador para remover", list(apoiadores_atuais.keys()), format_func=lambda x: apoiadores_atuais[x]["nome"])
+            apoiador_remover = st.selectbox("Selecione o apoiador para remover", list(apoiadores_atuais.keys()), format_func=lambda x: apoiadores_atuais[x]['nome'])
             if st.button("Remover Apoiador"):
                 remover_apoiador(apoiador_remover)
-                st.success(f"✅ Apoiador {apoiadores_atuais[apoiador_remover]["nome"]} removido!")
+                st.success(f"✅ Apoiador {apoiadores_atuais[apoiador_remover]['nome']} removido!")
                 st.rerun()
         else:
             st.info("Nenhum apoiador cadastrado.")
