@@ -57,30 +57,14 @@ def render_grade_descoberta():
     st.markdown("## 🎯 Grade de Descoberta de Produtos")
     st.caption("Produtos em tendência descobertos automaticamente - Análise baseada em dados do Pinterest e Google Trends")
     
-    # ============================================================
-    # FILTROS
-    # ============================================================
-    col1, col2 = st.columns([2, 1])
-    
-    with col1:
-        categoria_filtro = st.selectbox(
-            "Filtrar por categoria:",
-            ["Todas", "moda", "eletrônico", "beleza", "casa", "infantil", "esporte"],
-            index=0
-        )
-    
-    with col2:
-        quantidade = st.selectbox(
-            "Quantidade:",
-            [5, 10, 15, 20],
-            index=3
-        )
+    # Filtros removidos a pedido do usuário - Fixado em 20 itens
+    quantidade = 20
+    categoria = None
     
     # ============================================================
     # BUSCA PRODUTOS
     # ============================================================
     with st.spinner("🔍 Descobrindo produtos..."):
-        categoria = None if categoria_filtro == "Todas" else categoria_filtro
         produtos_descobrir = descobrir_produtos_grade(categoria=categoria, quantidade=quantidade)
     
     if not produtos_descobrir:
@@ -534,151 +518,8 @@ def render_dashboard():
                 else:
                     st.info("📊 Aguardando dados...")
         
-        # ============================================================
-        # LINHA 3: SUGESTÕES DE PRODUTOS PARA HOJE
-        # ============================================================
-        st.markdown("---")
-        st.markdown("### 🎯 Sugestões de Produtos para Hoje")
-        st.caption(f"📊 Top {BUSCAS_DIARIAS} do dia | Buscas realizadas com base em tendências atuais")
-        
-        if produtos_sugestoes:
-            cols = st.columns(3)
-            
-            for i, item in enumerate(produtos_sugestoes[:3]):
-                with cols[i]:
-                    produto_nome = item.get("Produto", "")
-                    score = item.get("Score", 0)
-                    categoria = item.get("Categoria", "Geral")
-                    crescimento = item.get("Crescimento", "+0%")
-                    views = item.get("Views TikTok", "0M")
-                    pins = item.get("Pins", "0")
-                    tendencia = item.get("Tendência", "➡️ Estável")
-                    
-                    if score >= 8:
-                        cor_fundo = "#e8f5e9"
-                        cor_borda = "#4CAF50"
-                        emoji = "🔥"
-                    elif score >= 6:
-                        cor_fundo = "#fff3e0"
-                        cor_borda = "#FF9800"
-                        emoji = "📈"
-                    else:
-                        cor_fundo = "#fce4ec"
-                        cor_borda = "#f44336"
-                        emoji = "📊"
-                    
-                    icones = ["🥇", "🥈", "🥉"]
-                    
-                    st.markdown(f"""
-                    <div style="
-                        background: {cor_fundo};
-                        border-left: 4px solid {cor_borda};
-                        border-radius: 8px;
-                        padding: 12px 14px;
-                        margin: 4px 0;
-                        height: 100%;
-                    ">
-                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-                            <span style="font-size: 20px;">{icones[i]}</span>
-                            <span style="font-weight: bold; font-size: 15px; color: #333;">{produto_nome}</span>
-                            <span style="font-size: 13px; margin-left: auto; background: {cor_borda}; color: white; padding: 1px 10px; border-radius: 12px;">{emoji} {score}/10</span>
-                        </div>
-                        <div style="display: flex; gap: 10px; font-size: 12px; color: #555; flex-wrap: wrap; margin-top: 4px;">
-                            <span>📂 {categoria}</span>
-                            <span>📈 {crescimento}</span>
-                            <span>👁️ {views}</span>
-                            <span>📌 {pins}</span>
-                            <span>{tendencia}</span>
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
-            
-            with st.expander("📋 Ver detalhes completos", expanded=False):
-                dados_tabela = []
-                for item in produtos_sugestoes:
-                    produto = item.get("Produto", "").lower()
-                    dados_palavra = obter_palavra_chave(produto)
-                    palavra_chave = dados_palavra.get("palavra", f"{produto} tendência 2026")
-                    
-                    dados_tabela.append({
-                        "Produto": item.get("Produto", ""),
-                        "Palavra-chave": palavra_chave,
-                        "Categoria": item.get("Categoria", "Geral"),
-                        "Score": item.get("Score", 0),
-                        "Crescimento": item.get("Crescimento", "+0%"),
-                        "Views TikTok": item.get("Views TikTok", "0M"),
-                        "Pins": item.get("Pins", "0"),
-                        "Tendência": item.get("Tendência", "➡️ Estável")
-                    })
-                
-                df = pd.DataFrame(dados_tabela)
-                st.dataframe(df, use_container_width=True, hide_index=True)
-            
-            st.caption(f"💡 {BUSCAS_DIARIAS} sugestões geradas com base em tendências atuais de mercado")
-        else:
-            st.info("📭 Nenhuma sugestão disponível no momento.")
-        
-        # ============================================================
-        # LINHA 4: TOP 3 PRODUTOS DO MÊS (INTEGRADO)
-        # ============================================================
-        st.markdown("---")
-        st.markdown("### 🏆 Top 3 Produtos do Mês")
-        st.caption("Produtos com maior potencial - Use essas informações para criar conteúdo")
-        
-        # Exibe os Top 3 em cards
-        top3 = sorted(produtos_top, key=lambda x: x.get("Score", 0), reverse=True)[:3]
-        
-        cols = st.columns(3)
-        for i, item in enumerate(top3):
-            with cols[i]:
-                produto_nome = item.get("Produto", "")
-                score = item.get("Score", 0)
-                crescimento = item.get("Crescimento", "+0%")
-                views = item.get("Views TikTok", "0M")
-                pins = item.get("Pins", "0")
-                
-                indicadores = obter_indicadores_horario(produto_nome)
-                horario = indicadores.get("melhor_horario", "19h-22h") if indicadores else "19h-22h"
-                
-                dados_palavra = obter_palavra_chave(produto_nome)
-                palavra_chave = dados_palavra.get("palavra", f"{produto_nome} tendência 2026")
-                hashtags = dados_palavra.get("hashtags", ["#tendência", "#moda", "#2026"])[:3]
-                
-                emojis = ["🥇", "🥈", "🥉"]
-                
-                with st.container(border=True):
-                    st.markdown(f"### {emojis[i]} {produto_nome}")
-                    
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        st.metric("Score", f"{score}/10")
-                    with col2:
-                        st.metric("Crescimento", crescimento)
-                    
-                    st.markdown(f"""
-                    <div style="
-                        background: #f0f0f0; 
-                        padding: 6px 10px; 
-                        border-radius: 6px; 
-                        margin: 6px 0;
-                    ">
-                        <div style="font-size: 12px; color: #333;">
-                            🔑 <strong>Palavra-chave:</strong> {palavra_chave}
-                        </div>
-                        <div style="margin-top: 4px; font-size: 11px;">
-                            {' '.join([f'<span style="background: #e0e0e0; padding: 2px 10px; border-radius: 12px; margin: 2px;">{h}</span>' for h in hashtags])}
-                        </div>
-                        <div style="margin-top: 4px; font-size: 11px; color: #555;">
-                            🕐 Melhor horário: <strong>{horario}</strong>
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        st.caption(f"👁️ {views}")
-                    with col2:
-                        st.caption(f"📌 {pins}")
+    # Sugestões e Top 3 removidos a pedido do usuário
+    st.empty()
     
     else:
         # Fallback sem dados
