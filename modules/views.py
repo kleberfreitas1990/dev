@@ -3,6 +3,7 @@ import pandas as pd
 import random
 from datetime import datetime
 from urllib.parse import quote
+import os
 
 # Importa do auth.py (SistemaLicencas está aqui)
 from modules.auth import SistemaLicencas
@@ -253,66 +254,6 @@ def render_insights_estrategicos(produtos):
         
         df_sazonais = pd.DataFrame(dados_sazonais)
         st.dataframe(df_sazonais, use_container_width=True, hide_index=True)
-    
-    # ============================================================
-    # TOP 3 PRODUTOS - TABELA E MÉTRICAS
-    # ============================================================
-    st.markdown("---")
-    st.markdown("### 🏆 Top 3 Produtos do Mês")
-    st.caption("Produtos com maior potencial - Use essas informações para criar conteúdo")
-    
-    if produtos:
-        top3 = sorted(produtos, key=lambda x: x.get("Score", 0), reverse=True)[:3]
-        
-        # ============================================================
-        # EXIBE SCORES COMO MÉTRICAS
-        # ============================================================
-        cols = st.columns(3)
-        for i, item in enumerate(top3):
-            with cols[i]:
-                produto_nome = item.get("Produto", "")
-                score = item.get("Score", 0)
-                
-                if score >= 8:
-                    cor = "🟢"
-                elif score >= 6:
-                    cor = "🟡"
-                else:
-                    cor = "🔴"
-                
-                st.metric(
-                    label=f"{['🥇', '🥈', '🥉'][i]} {produto_nome}",
-                    value=f"{score}/10",
-                    delta=f"{cor} {item.get('Crescimento', '+0%')}"
-                )
-        
-        # ============================================================
-        # TABELA DOS TOP 3
-        # ============================================================
-        dados_top3 = []
-        for item in top3:
-            produto_nome = item.get("Produto", "")
-            
-            indicadores = obter_indicadores_horario(produto_nome)
-            horario = indicadores.get("melhor_horario", "19h-22h") if indicadores else "19h-22h"
-            
-            dados_palavra = obter_palavra_chave(produto_nome)
-            palavra_chave = dados_palavra.get("palavra", f"{produto_nome} tendência 2026")
-            hashtags = dados_palavra.get("hashtags", ["#tendência", "#moda", "#2026"])[:3]
-            
-            dados_top3.append({
-                "Produto": produto_nome,
-                "Score": f"{item.get('Score', 0)}/10",
-                "Crescimento": item.get('Crescimento', '+0%'),
-                "Views TikTok": item.get('Views TikTok', '0M'),
-                "Pins": item.get('Pins', '0'),
-                "Palavra-chave": palavra_chave,
-                "Hashtags": " ".join(hashtags),
-                "Melhor Horário": horario
-            })
-        
-        df_top3 = pd.DataFrame(dados_top3)
-        st.dataframe(df_top3, use_container_width=True, hide_index=True)
 
 # ============================================================
 # DASHBOARD PRINCIPAL
@@ -363,9 +304,6 @@ def render_dashboard():
     # ============================================================
     st.markdown("## 📊 Visão Geral do Mês")
     
-    # Busca dados (respeita o cache se forcar_atualizacao=False)
-    # Por padrão, vamos deixar como False para carregar o cache injetado
-    # O usuário pode forçar via botão se quiser
     produtos_top = gerar_top10_produtos(forcar_atualizacao=False)
     produtos_sugestoes = gerar_sugestoes_diarias(forcar_atualizacao=False)
     
@@ -384,9 +322,7 @@ def render_dashboard():
         eventos = [p.get("Evento", "Tendência") for p in produtos_top]
         evento_mais_freq = max(set(eventos), key=eventos.count) if eventos else "Tendência"
         
-        # ============================================================
         # LINHA 1: MENSAGEM DESTAQUE
-        # ============================================================
         if top1:
             st.markdown(f"""
             <div style="
@@ -399,168 +335,34 @@ def render_dashboard():
             ">
                 <span style="font-size: 18px; font-weight: bold;">🔥 {top1.get('Produto', 'Produto')} em alta!</span>
                 <span style="font-size: 15px; margin-left: 10px;">
-                    Com score {top1.get('Score', 0)}/10 e {top1.get('Crescimento', '+0%')} de crescimento, 
-                    este é o momento ideal para criar conteúdo sobre este produto.
+                    Com score {top1.get('Score', 0)}/10 e {top1.get('Crescimento', '+0%')} de crescimento.
                 </span>
             </div>
             """, unsafe_allow_html=True)
-        else:
-            st.markdown("""
-            <div style="
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-                padding: 16px 20px;
-                border-radius: 10px;
-                margin-bottom: 16px;
-                text-align: center;
-            ">
-                <span style="font-size: 18px; font-weight: bold;">📊 Análise de mercado em tempo real</span>
-            </div>
-            """, unsafe_allow_html=True)
         
-        # ============================================================
         # LINHA 2: MÉTRICAS + OPORTUNIDADE
-        # ============================================================
         col1, col2 = st.columns([2, 1])
-        
         with col1:
             m1, m2, m3 = st.columns(3)
             with m1:
-                st.metric(
-                    label="🔥 Produto em Alta",
-                    value=top1.get("Produto", "N/A") if top1 else "N/A",
-                    delta=top1.get("Categoria", "Moda") if top1 else "N/A"
-                )
+                st.metric(label="🔥 Produto em Alta", value=top1.get("Produto", "N/A") if top1 else "N/A", delta=top1.get("Categoria", "Moda") if top1 else "N/A")
             with m2:
-                st.metric(
-                    label="📈 Crescimento Médio",
-                    value=f"{crescimento_medio:.1f}%",
-                    delta=f"{crescimento_medio - 5:.1f}%"
-                )
+                st.metric(label="📈 Crescimento Médio", value=f"{crescimento_medio:.1f}%", delta=f"{crescimento_medio - 5:.1f}%")
             with m3:
-                st.metric(
-                    label="🎯 Categoria em Alta",
-                    value=categoria_mais_freq,
-                    delta=evento_mais_freq
-                )
+                st.metric(label="🎯 Categoria em Alta", value=categoria_mais_freq, delta=evento_mais_freq)
         
         with col2:
             with st.container(border=True):
                 st.markdown("### 🎯 Melhor Oportunidade")
-                
                 melhor_score = max(produtos_top, key=lambda x: x.get("Score", 0)) if produtos_top else None
-                
                 if melhor_score:
-                    produto_nome = melhor_score.get('Produto', 'N/A')
-                    score = melhor_score.get('Score', 0)
-                    
-                    indicadores = obter_indicadores_horario(produto_nome)
-                    
-                    col_a, col_b = st.columns(2)
-                    with col_a:
-                        st.markdown(f"**{produto_nome}**")
-                    with col_b:
-                        st.markdown(f"⭐ **{score}/10**")
-                    
-                    if indicadores:
-                        st.markdown(f"""
-                        <div style="
-                            background: #f0f0f0; 
-                            padding: 4px 10px; 
-                            border-radius: 6px; 
-                            margin: 6px 0; 
-                            font-size: 12px; 
-                            color: #333; 
-                            text-align: center;
-                        ">
-                            🕐 Melhor horário: <strong>{indicadores.get('melhor_horario', '19h-22h')}</strong>
-                        </div>
-                        """, unsafe_allow_html=True)
-                    
-                    potencial = score * 10
-                    cor = "green" if potencial >= 70 else "orange" if potencial >= 40 else "red"
-                    
-                    st.markdown(f"""
-                    <div style="margin: 6px 0;">
-                        <small>Potencial de Mercado</small>
-                        <div style="
-                            background: #e0e0e0; 
-                            border-radius: 8px; 
-                            height: 18px; 
-                            position: relative; 
-                            overflow: hidden;
-                        ">
-                            <div style="
-                                background: {cor}; 
-                                width: {potencial}%; 
-                                height: 18px; 
-                                border-radius: 8px; 
-                                transition: width 0.5s;
-                            ">
-                                <span style="
-                                    position: absolute; 
-                                    left: 50%; 
-                                    top: 1px; 
-                                    color: {'white' if potencial > 50 else 'black'}; 
-                                    font-weight: bold; 
-                                    font-size: 11px;
-                                ">{potencial:.0f}%</span>
-                            </div>
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                    col_a, col_b = st.columns(2)
-                    with col_a:
-                        st.success(f"✅ {score}/10 Score")
-                    with col_b:
-                        st.success(f"📈 {melhor_score.get('Crescimento', '+0%')}")
+                    st.markdown(f"**{melhor_score.get('Produto', 'N/A')}** ⭐ **{melhor_score.get('Score', 0)}/10**")
+                    st.success(f"📈 {melhor_score.get('Crescimento', '+0%')}")
                 else:
                     st.info("📊 Aguardando dados...")
-        
-    # Sugestões e Top 3 removidos a pedido do usuário
-    st.empty()
-    
     else:
-        # Fallback sem dados
-        st.markdown("""
-        <div style="
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 16px 20px;
-            border-radius: 10px;
-            margin-bottom: 16px;
-            text-align: center;
-        ">
-            <span style="font-size: 18px; font-weight: bold;">📊 Análise de mercado em tempo real</span>
-            <span style="font-size: 15px; margin-left: 10px;">Buscando os melhores produtos para você criar conteúdo.</span>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        col1, col2 = st.columns([2, 1])
-        with col1:
-            m1, m2, m3 = st.columns(3)
-            with m1:
-                st.metric("🔥 Produto em Alta", "Aguardando", delta="...")
-            with m2:
-                st.metric("📈 Crescimento Médio", "0%", delta="0%")
-            with m3:
-                st.metric("🎯 Categoria em Alta", "Geral", delta="Tendência")
-        
-        with col2:
-            with st.container(border=True):
-                st.markdown("### 🎯 Melhor Oportunidade")
-                st.info("📊 Carregando dados...")
-                st.caption("🟢 Aguardando análise")
-        
-        st.markdown("---")
-        st.markdown("### 🎯 Sugestões de Produtos para Hoje")
-        st.info("📭 Nenhuma sugestão disponível no momento.")
-        
-        st.markdown("---")
-        st.markdown("### 🏆 Top 3 Produtos do Mês")
-        st.info("📭 Aguardando dados...")
-    
+        st.info("📊 Buscando dados de mercado...")
+
     st.markdown("---")
     
     # ============================================================
@@ -574,17 +376,12 @@ def render_dashboard():
     st.markdown("## 🏆 Top 10 Produtos em Tendência")
     st.caption("Ranking completo baseado em score e dados de mercado")
     
-    top10 = gerar_top10_produtos(forcar_atualizacao=True)
+    top10 = gerar_top10_produtos(forcar_atualizacao=False)
     if top10:
         df_top10 = pd.DataFrame(top10)
-        colunas_top10 = ["Produto", "Categoria", "Evento", "Potencial", "Score", "Pins", "Crescimento", "Views TikTok", "Buscas no Mês", "Resultados ML", "Variação", "Tendência"]
+        colunas_top10 = ["Produto", "Fonte", "Categoria", "Evento", "Potencial", "Score", "Pins", "Crescimento", "Views TikTok", "Buscas no Mês", "Resultados ML", "Tendência"]
         df_top10 = df_top10[colunas_top10]
-        
-        st.dataframe(
-            df_top10,
-            use_container_width=True,
-            hide_index=True
-        )
+        st.dataframe(df_top10, use_container_width=True, hide_index=True)
     
     st.markdown("---")
     
@@ -596,176 +393,42 @@ def render_dashboard():
     
     # ===== APOIADORES COMPACTOS =====
     render_apoiadores_compactos()
-    
-    st.markdown("---")
-    
-    st.markdown("## 📌 Legenda de Tendências")
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.markdown("""
-        **🚀 Em alta**
-        - Crescimento acelerado
-        - Alta demanda
-        """)
-    with col2:
-        st.markdown("""
-        **📈 Crescendo**
-        - Demanda moderada
-        - Potencial de crescimento
-        """)
-    with col3:
-        st.markdown("""
-        **➡️ Estável**
-        - Demanda consistente
-        - Mercado maduro
-        """)
-    
-    st.caption("Dados combinados: Shopee Trends + Google Shopping + TikTok")
-    
-    return df if 'df' in locals() else None
 
 # ============================================================
-# PAINEL DE APOIADORES DETALHADO (TAB)
+# PAINEL DE APOIADORES DETALHADO
 # ============================================================
 def render_painel_apoiadores_detalhado():
-    """Renderiza o painel de apoiadores detalhado (para a Tab)"""
-    
-    st.markdown("## 👑 Gerenciar Apoiadores")
-    st.caption("Lista completa de apoiadores do projeto")
+    """Renderiza o painel completo de gestão de apoiadores"""
+    st.markdown("## 👑 Gestão de Apoiadores")
+    st.caption("Controle completo da rede de apoio e repasses")
     
     apoiadores = carregar_apoiadores()
-    
     if not apoiadores:
-        st.info("📭 Nenhum apoiador cadastrado ainda.")
-        return
-    
-    apoiadores_ordenados = sorted(apoiadores.values(), key=lambda x: x.get("ordem", 999))
-    
-    cores = [
-        "#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", 
-        "#FFEAA7", "#DDA0DD", "#FF8A5C", "#A29BFE",
-        "#FD79A8", "#00B894", "#E17055", "#6C5CE7"
-    ]
-    
-    cols = st.columns(4)
-    
-    for i, apoiador in enumerate(apoiadores_ordenados):
-        with cols[i % 4]:
-            cor = cores[i % len(cores)]
-            nome = apoiador.get("nome", "Apoiador")
-            ordem = apoiador.get("ordem", 999)
-            coroinha = apoiador.get("coroinha", "👑")
-            data_entrada = apoiador.get("data_entrada", "2026-07-01")
-            plano = apoiador.get("plano", "Apoiador")
-            
-            chave_apoiador = None
-            for k, v in carregar_apoiadores().items():
-                if v.get("nome") == nome and v.get("ordem") == ordem:
-                    chave_apoiador = k
-                    break
-            
-            with st.container(border=True):
-                st.markdown(f"""
-                <div style="
-                    background: {cor};
-                    color: white;
-                    padding: 8px 12px;
-                    border-radius: 8px 8px 0 0;
-                    margin: -12px -12px 10px -12px;
-                    text-align: center;
-                    font-weight: bold;
-                ">
-                    {coroinha} {nome}
-                </div>
-                """, unsafe_allow_html=True)
-                
-                st.markdown(f"**📋 Ordem:** #{ordem}")
-                st.markdown(f"**📅 Entrada:** {data_entrada}")
-                st.markdown(f"**📌 Plano:** {plano}")
-                
-                depois = sum(1 for k, d in apoiadores.items() if d.get("ordem", 999) > ordem)
-                
-                if depois > 0 and apoiador.get("repasse_ativo", True):
-                    st.success(f"⬇️ {depois} apoiador(es) - R${depois * 5.00:.2f}/mês")
-                else:
-                    st.info("⏳ Aguardando novos apoiadores")
-                
-                if st.session_state.get("is_admin", False) and chave_apoiador:
-                    if st.button(f"🗑️ Remover", key=f"remove_card_{chave_apoiador}"):
-                        if remover_apoiador(chave_apoiador):
-                            sistema = SistemaLicencas()
-                            for codigo, dados in sistema.dados["licencas"].items():
-                                if dados.get("usuario") == nome:
-                                    sistema.revogar_licenca(codigo)
-                                    break
-                            st.success(f"✅ {nome} removido com sucesso!")
-                            st.info("🔑 Licença revogada")
-                            st.rerun()
-    
-    st.markdown("---")
-    
-    if st.session_state.get("is_admin", False):
-        with st.expander("➕ Adicionar Apoiador", expanded=False):
-            st.markdown("### Adicionar Novo Apoiador")
-            
-            col1, col2 = st.columns(2)
-            with col1:
-                nome_apo = st.text_input("Nome do Apoiador", placeholder="Ex: João Silva", key="apo_nome")
-                email_apo = st.text_input("E-mail", placeholder="joao@email.com", key="apo_email")
-            with col2:
-                plano_apo = st.selectbox("Plano", ["Fundador", "Apoiador", "Premium"], key="apo_plano")
-            
-            if st.button("👑 Adicionar Apoiador", use_container_width=True, key="apo_btn"):
-                if not nome_apo or not email_apo:
-                    st.error("❌ Preencha nome e e-mail")
-                else:
-                    novo = adicionar_apoiador(nome_apo, email_apo, plano_apo)
-                    st.success(f"✅ {nome_apo} adicionado como apoiador!")
-                    st.info(f"📋 Ordem: #{novo.get('ordem')}")
-                    st.rerun()
-    
-    st.markdown("---")
-    
-    if st.session_state.get("is_admin", False) and apoiadores_ordenados:
-        st.markdown("### 🗑️ Remover Apoiador")
+        st.info("📭 Nenhum apoiador cadastrado.")
+    else:
+        apoiadores_ordenados = sorted(apoiadores.values(), key=lambda x: x.get("ordem", 999))
         
-        col1, col2 = st.columns([2, 1])
-        
-        with col1:
-            nomes_apoiadores = [a.get("nome") for a in apoiadores_ordenados]
-            apoiador_remover = st.selectbox(
-                "Selecione um apoiador para remover:",
-                options=nomes_apoiadores,
-                key="remover_apoiador_select"
-            )
-        
-        with col2:
-            if st.button("🗑️ Remover", use_container_width=True, key="remover_apoiador_btn"):
-                if apoiador_remover:
-                    chave_remover = None
-                    for k, v in carregar_apoiadores().items():
-                        if v.get("nome") == apoiador_remover:
-                            chave_remover = k
-                            break
-                    
-                    if chave_remover:
-                        if remover_apoiador(chave_remover):
-                            sistema = SistemaLicencas()
-                            for codigo, dados in sistema.dados["licencas"].items():
-                                if dados.get("usuario") == apoiador_remover:
-                                    sistema.revogar_licenca(codigo)
-                                    break
-                            st.success(f"✅ {apoiador_remover} removido com sucesso!")
-                            st.info("🔑 Licença revogada")
-                            st.rerun()
+        # Exibição em cards
+        cores = ["#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4"]
+        cols = st.columns(4)
+        for i, apoiador in enumerate(apoiadores_ordenados):
+            with cols[i % 4]:
+                cor = cores[i % len(cores)]
+                nome = apoiador.get("nome", "Apoiador")
+                ordem = apoiador.get("ordem", 999)
+                with st.container(border=True):
+                    st.markdown(f"**{nome}** (#{ordem})")
+                    st.caption(f"📅 {apoiador.get('data_entrada', '2026-07-01')}")
+                    depois = sum(1 for k, d in apoiadores.items() if d.get("ordem", 999) > ordem)
+                    if depois > 0:
+                        st.success(f"⬇️ R${depois * 5.00:.2f}/mês")
 
 # ============================================================
-# NOVA SEÇÃO: TOP 20 MARKETPLACE REAL
+# NOVA SEÇÃO: TOP 20 GOOGLE
 # ============================================================
 def render_top_20_marketplace():
     """
     Renderiza uma nova grade exclusiva com os 20 produtos reais de marketplace
-    Ignora completamente o cache e usa dados fixos reais
     """
     st.markdown("## 🔥 Top 20 Google (Shopping & Trends)")
     st.caption("Dados brutos de alto giro pesquisados diretamente na Shopee Brasil - Julho 2026")
@@ -795,31 +458,14 @@ def render_top_20_marketplace():
     
     dados_tabela = []
     for item in produtos_reais:
-        # Palavra-chave e hashtags
         dados_palavra = obter_palavra_chave(item["produto"])
-        palavra_chave = dados_palavra.get("palavra", f"{item['produto']} tendência 2026")
-        hashtags = dados_palavra.get("hashtags", ["#shopee", "#vendas", "#2026"])[:3]
-        
         dados_tabela.append({
             "Produto": item["produto"],
             "Categoria": item["categoria"],
             "Score": f"{item['score']}/10",
-            "Palavra-chave": palavra_chave,
-            "Hashtags": " ".join(hashtags),
+            "Palavra-chave": dados_palavra.get("palavra", f"{item['produto']}"),
             "Motivo Estratégico": item["motivo"]
         })
     
     df = pd.DataFrame(dados_tabela)
-    st.dataframe(
-        df,
-        use_container_width=True,
-        hide_index=True,
-        column_config={
-            "Produto": st.column_config.TextColumn("Produto", width="medium"),
-            "Categoria": st.column_config.TextColumn("Categoria", width="small"),
-            "Score": st.column_config.TextColumn("Score", width="small"),
-            "Palavra-chave": st.column_config.TextColumn("Palavra-chave", width="large"),
-            "Hashtags": st.column_config.TextColumn("Hashtags", width="medium"),
-            "Motivo Estratégico": st.column_config.TextColumn("Motivo Estratégico", width="large"),
-        }
-    )
+    st.dataframe(df, use_container_width=True, hide_index=True)
