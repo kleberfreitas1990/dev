@@ -261,34 +261,8 @@ def render_insights_estrategicos(produtos):
 def render_dashboard():
     """Renderiza o dashboard principal"""
     
-    # ============================================================
-    # STATUS DOS DADOS NO TOPO
-    # ============================================================
-    status_cache = verificar_data_cache()
-    hoje = datetime.now().date().isoformat()
-    
-    col1, col2, col3, col4, col5 = st.columns(5)
-    with col1:
-        try:
-            serper_key = st.secrets.get("SERPER_API_KEY", "")
-        except:
-            serper_key = ""
-        st.markdown("🔌 " + ("✅" if serper_key else "❌"))
-    with col2:
-        st.markdown("🎫 10/10")
-    with col3:
-        st.markdown(f"👤 {st.session_state.get('licenca_usuario', '')[:8]}...")
-    with col4:
-        if status_cache['data'] == hoje:
-            st.success(f"📅 {status_cache['data']}")
-        else:
-            st.warning(f"📅 {status_cache['data']}")
-    with col5:
-        from modules.serper import obter_stats_serper
-        stats = obter_stats_serper()
-        st.markdown(f"📡 {stats.get('usadas_hoje', 0)}/{stats.get('limite_diario', 20)}")
-    
-    st.markdown("---")
+    # Status do topo removido a pedido do usuário
+    pass
     
     col_title, col_refresh = st.columns([4, 1])
     with col_title:

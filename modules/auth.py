@@ -101,6 +101,41 @@ class SistemaLicencas:
         self.salvar()
         return {"sucesso": True, "codigo": codigo}
 
+    def render_interface_admin(self):
+        """Interface administrativa simplificada para gestão de licenças"""
+        st.markdown("### 📋 Licenças Ativas")
+        
+        licencas = self.dados.get("licencas", {})
+        if not licencas:
+            st.info("📭 Nenhuma licença encontrada.")
+            return
+
+        dados_tabela = []
+        for codigo, info in licencas.items():
+            dados_tabela.append({
+                "Código": f"{codigo[:4]}...{codigo[-4:]}" if len(codigo) > 10 else codigo,
+                "Usuário": info.get("usuario", "N/A"),
+                "Plano": info.get("plano", "N/A"),
+                "Status": info.get("status", "N/A"),
+                "Tipo": info.get("tipo", "N/A")
+            })
+        
+        st.table(dados_tabela)
+        
+        with st.expander("➕ Gerar Nova Licença"):
+            nome = st.text_input("Nome do Usuário")
+            email = st.text_input("E-mail")
+            plano = st.selectbox("Plano", ["Básico", "Premium", "Apoiador"])
+            is_apo = st.checkbox("É Apoiador?")
+            
+            if st.button("Gerar Licença"):
+                if nome and email:
+                    novo_codigo = self.gerar_licenca(nome, email, plano, is_apo)
+                    st.success(f"✅ Licença gerada: `{novo_codigo}`")
+                    st.info("Copie e envie para o usuário.")
+                else:
+                    st.error("Preencha nome e e-mail.")
+
 # ============================================================
 # FUNÇÃO DE LOGIN
 # ============================================================
