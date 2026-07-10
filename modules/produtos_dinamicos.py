@@ -16,41 +16,66 @@ logger = logging.getLogger(__name__)
 # ============================================================
 # ARQUIVO DE CACHE DE PRODUTOS
 # ============================================================
-ARQUIVO_PRODUTOS_CACHE = "produtos_cache.json"
+ARQUIVO_PRODUTOS_CACHE = "produtos_cache_v48.json"
 
 # ============================================================
 # DADOS DE FALLBACK
 # ============================================================
 PRODUTOS_FALLBACK = {
-    "umidificador de ar chama led": {
+    "Umidificador de Ar Chama LED": {
         "pins": 35000, "pins_historico": 20000, "crescimento": 150, "views_tiktok": 85.0,
         "resultados_ml": 75000, "buscas_mes": 95000, "buscas_historico": 40000,
         "categoria": "Decoração", "evento": "Viral TikTok", "variacao": 75.0, "tendencia": "🔥 Explosão",
-        "score": 10
+        "score": 10, "fonte": "Shopee"
     },
-    "mini projetor portátil 4k": {
+    "Mini Projetor Portátil 4K": {
         "pins": 22000, "pins_historico": 15000, "crescimento": 110, "views_tiktok": 55.0,
         "resultados_ml": 120000, "buscas_mes": 65000, "buscas_historico": 30000,
         "categoria": "Eletrônicos", "evento": "Home Cinema", "variacao": 45.0, "tendencia": "🔥 Viral",
-        "score": 10
+        "score": 10, "fonte": "Shopee"
     },
-    "mini câmera de segurança wifi a9": {
+    "Mini Câmera de Segurança WiFi A9": {
         "pins": 12500, "pins_historico": 9000, "crescimento": 95, "views_tiktok": 15.5,
         "resultados_ml": 85000, "buscas_mes": 45000, "buscas_historico": 20000,
         "categoria": "Segurança", "evento": "Utilidades", "variacao": 35.0, "tendencia": "🚀 Explosivo",
-        "score": 10
+        "score": 10, "fonte": "Shopee"
     },
-    "aspirador de pó portátil 120w": {
+    "Aspirador de Pó Portátil 120W": {
         "pins": 14000, "pins_historico": 10000, "crescimento": 85, "views_tiktok": 28.4,
         "resultados_ml": 110000, "buscas_mes": 52000, "buscas_historico": 25000,
         "categoria": "Automotivo", "evento": "Limpeza", "variacao": 30.5, "tendencia": "🔥 Viral",
-        "score": 9
+        "score": 9, "fonte": "Shopee"
     },
-    "luminária mesa indução": {
+    "Luminária de Mesa com Indução": {
         "pins": 15000, "pins_historico": 11000, "crescimento": 88, "views_tiktok": 25.0,
         "resultados_ml": 65000, "buscas_mes": 38000, "buscas_historico": 15000,
         "categoria": "Escritório", "evento": "Tendência", "variacao": 25.0, "tendencia": "📈 Alta",
-        "score": 9
+        "score": 9, "fonte": "Google"
+    },
+    "Smartwatch Huawei Band 9": {
+        "pins": 28000, "pins_historico": 22000, "crescimento": 90, "views_tiktok": 42.0,
+        "resultados_ml": 150000, "buscas_mes": 85000, "buscas_historico": 40000,
+        "categoria": "Eletrônicos", "score": 10, "fonte": "Google", "tendencia": "🔥 Alta"
+    },
+    "Organizador de Fios Magnético": {
+        "pins": 8500, "pins_historico": 6000, "crescimento": 82, "views_tiktok": 8.2,
+        "resultados_ml": 35000, "buscas_mes": 22000, "buscas_historico": 10000,
+        "categoria": "Escritório", "score": 9, "fonte": "Shopee", "tendencia": "📈 Alta"
+    },
+    "Kit 3 Potes Herméticos Bambu": {
+        "pins": 18000, "pins_historico": 14000, "crescimento": 75, "views_tiktok": 12.5,
+        "resultados_ml": 95000, "buscas_mes": 42000, "buscas_historico": 20000,
+        "categoria": "Cozinha", "score": 9, "fonte": "Shopee", "tendencia": "📈 Alta"
+    },
+    "Fone de Ouvido Condução Óssea": {
+        "pins": 11000, "pins_historico": 8500, "crescimento": 78, "views_tiktok": 18.5,
+        "resultados_ml": 55000, "buscas_mes": 32000, "buscas_historico": 15000,
+        "categoria": "Esportes", "score": 9, "fonte": "Google", "tendencia": "📈 Alta"
+    },
+    "Mini Seladora de Embalagens": {
+        "pins": 9500, "pins_historico": 7000, "crescimento": 65, "views_tiktok": 10.2,
+        "resultados_ml": 45000, "buscas_mes": 28000, "buscas_historico": 12000,
+        "categoria": "Cozinha", "score": 8, "fonte": "Shopee", "tendencia": "📈 Média"
     }
 }
 
@@ -98,9 +123,10 @@ def obter_produtos_dinamicos(forcar_atualizacao: bool = False) -> Dict[str, Any]
     # 1. TENTA CACHE PERSISTENTE (Sempre tenta primeiro)
     cache = carregar_cache_produtos()
     if cache and "produtos" in cache and len(cache["produtos"]) > 0:
-        # Se não for forçado, usa o cache
-        if not forcar_atualizacao:
-            logger.info(f"💾 Usando cache persistente ({len(cache['produtos'])} itens)")
+        # Se o cache for de HOJE, usa ele
+        hoje = datetime.now().date().isoformat()
+        if cache.get("data") == hoje and not forcar_atualizacao:
+            logger.info(f"💾 Usando cache persistente de HOJE ({len(cache['produtos'])} itens)")
             return cache["produtos"]
         
         # Se for forçado mas o cache for de HOJE, ainda assim podemos usar se quisermos manter dados reais
