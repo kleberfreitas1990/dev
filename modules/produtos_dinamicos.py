@@ -22,34 +22,34 @@ ARQUIVO_PRODUTOS_CACHE = "produtos_cache.json"
 # DADOS DE FALLBACK
 # ============================================================
 PRODUTOS_FALLBACK = {
-    "air fryer gaabor": {
-        "pins": 12500, "pins_historico": 8000, "crescimento": 56, "views_tiktok": 12.8,
-        "resultados_ml": 120000, "buscas_mes": 45000, "buscas_historico": 32000,
-        "categoria": "Eletrodomésticos", "evento": "Mais Vendidos", "variacao": 22.3, "tendencia": "🔥 Viral",
+    "umidificador de ar chama led": {
+        "pins": 35000, "pins_historico": 20000, "crescimento": 150, "views_tiktok": 85.0,
+        "resultados_ml": 75000, "buscas_mes": 95000, "buscas_historico": 40000,
+        "categoria": "Decoração", "evento": "Viral TikTok", "variacao": 75.0, "tendencia": "🔥 Explosão",
         "score": 10
     },
-    "motorola moto g35": {
-        "pins": 8900, "pins_historico": 5000, "crescimento": 78, "views_tiktok": 8.4,
-        "resultados_ml": 45000, "buscas_mes": 60000, "buscas_historico": 15000,
-        "categoria": "Eletrônicos", "evento": "Lançamento", "variacao": 45.0, "tendencia": "🚀 Explosivo",
+    "mini projetor portátil 4k": {
+        "pins": 22000, "pins_historico": 15000, "crescimento": 110, "views_tiktok": 55.0,
+        "resultados_ml": 120000, "buscas_mes": 65000, "buscas_historico": 30000,
+        "categoria": "Eletrônicos", "evento": "Home Cinema", "variacao": 45.0, "tendencia": "🔥 Viral",
         "score": 10
     },
-    "smartwatch bluetooth": {
-        "pins": 15000, "pins_historico": 12000, "crescimento": 25, "views_tiktok": 15.2,
-        "resultados_ml": 300000, "buscas_mes": 80000, "buscas_historico": 65000,
-        "categoria": "Acessórios", "evento": "Tendência 2026", "variacao": 12.0, "tendencia": "⬆️ Crescendo",
+    "mini câmera de segurança wifi a9": {
+        "pins": 12500, "pins_historico": 9000, "crescimento": 95, "views_tiktok": 15.5,
+        "resultados_ml": 85000, "buscas_mes": 45000, "buscas_historico": 20000,
+        "categoria": "Segurança", "evento": "Utilidades", "variacao": 35.0, "tendencia": "🚀 Explosivo",
+        "score": 10
+    },
+    "aspirador de pó portátil 120w": {
+        "pins": 14000, "pins_historico": 10000, "crescimento": 85, "views_tiktok": 28.4,
+        "resultados_ml": 110000, "buscas_mes": 52000, "buscas_historico": 25000,
+        "categoria": "Automotivo", "evento": "Limpeza", "variacao": 30.5, "tendencia": "🔥 Viral",
         "score": 9
     },
-    "mop spray": {
-        "pins": 6700, "pins_historico": 4500, "crescimento": 48, "views_tiktok": 25.5,
-        "resultados_ml": 55000, "buscas_mes": 35000, "buscas_historico": 22000,
-        "categoria": "Casa", "evento": "Utilidades", "variacao": 30.5, "tendencia": "🔥 Viral",
-        "score": 9
-    },
-    "apostila enem 2026": {
-        "pins": 3800, "pins_historico": 1200, "crescimento": 216, "views_tiktok": 1.2,
-        "resultados_ml": 15000, "buscas_mes": 42000, "buscas_historico": 5000,
-        "categoria": "Educação", "evento": "Sazonal", "variacao": 85.0, "tendencia": "🚀 Explosivo",
+    "luminária mesa indução": {
+        "pins": 15000, "pins_historico": 11000, "crescimento": 88, "views_tiktok": 25.0,
+        "resultados_ml": 65000, "buscas_mes": 38000, "buscas_historico": 15000,
+        "categoria": "Escritório", "evento": "Tendência", "variacao": 25.0, "tendencia": "📈 Alta",
         "score": 9
     }
 }
