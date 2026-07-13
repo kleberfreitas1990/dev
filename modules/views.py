@@ -278,8 +278,24 @@ def render_dashboard():
     # ============================================================
     st.markdown("## 📊 Visão Geral do Mês")
     
-    produtos_top = gerar_top10_produtos(forcar_atualizacao=False)
-    produtos_sugestoes = gerar_sugestoes_diarias(forcar_atualizacao=False)
+    # Forçar dados v4.9
+    from modules.produtos_dinamicos import PRODUTOS_FALLBACK
+    produtos_top_base = PRODUTOS_FALLBACK
+    
+    # Converter para formato de lista para o Top 10
+    produtos_top = []
+    for nome, dados in produtos_top_base.items():
+        item = dados.copy()
+        item["Produto"] = nome
+        item["Crescimento"] = f"+{dados.get('crescimento', 0)}%"
+        item["Categoria"] = dados.get("categoria", "Geral")
+        item["Evento"] = dados.get("evento", "Tendência")
+        item["Score"] = dados.get("score", 0)
+        item["Fonte"] = dados.get("fonte", "Shopee")
+        produtos_top.append(item)
+    
+    produtos_top = sorted(produtos_top, key=lambda x: x.get("Score", 0), reverse=True)[:10]
+    produtos_sugestoes = produtos_top[:5]
     
     if produtos_top:
         top1 = produtos_top[0] if produtos_top else None

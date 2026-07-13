@@ -115,7 +115,7 @@ def verificar_data_cache() -> Dict:
 # ============================================================
 # FUNÇÃO PRINCIPAL - SEMPRE BUSCA DADOS NOVOS
 # ============================================================
-def obter_produtos_dinamicos(forcar_atualizacao: bool = False) -> Dict[str, Any]:
+def obter_produtos_marketplace_v49(forcar_atualizacao: bool = False) -> Dict[str, Any]:
     """
     Obtém produtos com dados atualizados.
     Sempre prioriza o cache persistente de dados reais.
@@ -150,6 +150,10 @@ def obter_produtos_dinamicos(forcar_atualizacao: bool = False) -> Dict[str, Any]
     salvar_cache_produtos(produtos)
     
     return produtos
+
+def obter_produtos_dinamicos(forcar_atualizacao: bool = False) -> Dict[str, Any]:
+    """Wrapper para compatibilidade"""
+    return obter_produtos_marketplace_v49(forcar_atualizacao)
 
 def buscar_produtos_com_api_e_grade(limite: int = 10) -> Dict[str, Any]:
     """
