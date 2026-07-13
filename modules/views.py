@@ -141,7 +141,23 @@ def render_grade_descoberta():
 def render_apoiadores_compactos():
     """Renderiza os apoiadores em cards pequenos com coroa centralizada"""
     
-    apoiadores = carregar_apoiadores()
+    from modules.auth import listar_apoiadores_por_licencas
+    apoiadores_lista = listar_apoiadores_por_licencas()
+    
+    # Converter lista para o formato esperado pelo dicionário de apoiadores
+    apoiadores = {}
+    for i, apo in enumerate(apoiadores_lista):
+        apoiadores[apo['codigo']] = {
+            "nome": apo['nome'],
+            "ordem": i + 1,
+            "coroinha": "👑",
+            "repasse_ativo": True
+        }
+    
+    if not apoiadores:
+        # Fallback para os apoiadores originais se não houver licenças
+        from modules.models import carregar_apoiadores
+        apoiadores = carregar_apoiadores()
     
     if not apoiadores:
         return
@@ -278,9 +294,9 @@ def render_dashboard():
     # ============================================================
     st.markdown("## 📊 Visão Geral do Mês")
     
-    # Forçar dados v4.9
-    from modules.produtos_dinamicos import PRODUTOS_FALLBACK
-    produtos_top_base = PRODUTOS_FALLBACK
+    # Forçar dados v5.0 - Sincronizado com a busca real
+    from modules.produtos_dinamicos import obter_produtos_marketplace_v49
+    produtos_top_base = obter_produtos_marketplace_v49()
     
     # Converter para formato de lista para o Top 10
     produtos_top = []
@@ -392,7 +408,22 @@ def render_painel_apoiadores_detalhado():
     st.markdown("## 👑 Gestão de Apoiadores")
     st.caption("Controle completo da rede de apoio e repasses")
     
-    apoiadores = carregar_apoiadores()
+    from modules.auth import listar_apoiadores_por_licencas
+    apoiadores_lista = listar_apoiadores_por_licencas()
+    
+    # Converter lista
+    apoiadores = {}
+    for i, apo in enumerate(apoiadores_lista):
+        apoiadores[apo['codigo']] = {
+            "nome": apo['nome'],
+            "ordem": i + 1,
+            "data_entrada": datetime.now().strftime("%Y-%m-%d"),
+            "repasse_ativo": True
+        }
+    
+    if not apoiadores:
+        from modules.models import carregar_apoiadores
+        apoiadores = carregar_apoiadores()
     if not apoiadores:
         st.info("📭 Nenhum apoiador cadastrado.")
     else:
@@ -423,28 +454,17 @@ def render_top_20_marketplace():
     st.markdown("## 🔥 Top 20 Google (Shopping & Trends)")
     st.caption("Dados brutos de alto giro pesquisados diretamente na Shopee Brasil - Julho 2026")
     
-    produtos_reais = [
-        {"produto": "Mini Processador de Alimentos Manual", "categoria": "Casa", "score": 10, "motivo": "Campeão de vendas absoluto em utilidades domésticas"},
-        {"produto": "Smartwatch D20 Ultra Bluetooth", "categoria": "Eletrônicos", "score": 10, "motivo": "O eletrônico mais vendido para entrada no marketplace"},
-        {"produto": "Fone de Ouvido Bluetooth i12 TWS", "categoria": "Eletrônicos", "score": 10, "motivo": "Alto giro e volume massivo de buscas diárias"},
-        {"produto": "Mop Spray com Reservatório", "categoria": "Casa", "score": 9, "motivo": "Produto viral com alta taxa de conversão"},
-        {"produto": "Kit 10 Pares de Meias Soquete", "categoria": "Moda", "score": 9, "motivo": "Item de necessidade básica com venda recorrente"},
-        {"produto": "Lâmpada LED com Sensor de Movimento", "categoria": "Eletrônicos", "score": 9, "motivo": "Tendência em iluminação inteligente de baixo custo"},
-        {"produto": "Garrafa Térmica 2 Litros Motivacional", "categoria": "Casa", "score": 9, "motivo": "Febre em vendas impulsionada por redes sociais"},
-        {"produto": "Ring Light de Mesa 10 Polegadas", "categoria": "Eletrônicos", "score": 9, "motivo": "Essencial para criadores de conteúdo iniciantes"},
-        {"produto": "Kit 12 Utensílios de Cozinha em Silicone", "categoria": "Casa", "score": 9, "motivo": "Alta procura por renovação de itens de cozinha"},
-        {"produto": "Mini Umidificador de Ar Portátil", "categoria": "Eletrônicos", "score": 9, "motivo": "Sazonalidade positiva e busca constante"},
-        {"produto": "Escova Secadora e Alisadora 3 em 1", "categoria": "Beleza", "score": 8, "motivo": "Destaque em beleza com alto volume de vendas"},
-        {"produto": "Kit 3 Potes Herméticos de Acrílico", "categoria": "Casa", "score": 8, "motivo": "Tendência forte de organização doméstica"},
-        {"produto": "Touca de Cetim Anti-Frizz", "categoria": "Beleza", "score": 8, "motivo": "Produto de baixo custo com giro extremamente rápido"},
-        {"produto": "Suporte Articulado para Celular e Tablet", "categoria": "Eletrônicos", "score": 8, "motivo": "Acessório indispensável para home office"},
-        {"produto": "Fita LED RGB 5 Metros com Controle", "categoria": "Eletrônicos", "score": 8, "motivo": "Decoração gamer e tech em alta"},
-        {"produto": "Dispenser de Água Automático para Galão", "categoria": "Casa", "score": 8, "motivo": "Utilidade doméstica prática com muita saída"},
-        {"produto": "Kit 10 Cuecas Boxer Microfibra", "categoria": "Moda", "score": 8, "motivo": "Líder em moda masculina básica"},
-        {"produto": "Maquininha de Cortar Cabelo Vintage T9", "categoria": "Eletrônicos", "score": 8, "motivo": "Viral de vendas em cuidados masculinos"},
-        {"produto": "Organizador de Gavetas para Roupas Intimas", "categoria": "Casa", "score": 8, "motivo": "Busca crescente por soluções de espaço"},
-        {"produto": "Mini Aspirador de Pó Portátil para Carro", "categoria": "Eletrônicos", "score": 8, "motivo": "Acessório automotivo mais procurado do mês"}
-    ]
+    from modules.produtos_dinamicos import obter_produtos_marketplace_v49
+    produtos_dict = obter_produtos_marketplace_v49()
+    
+    produtos_reais = []
+    for nome, dados in produtos_dict.items():
+        produtos_reais.append({
+            "produto": nome,
+            "categoria": dados.get("categoria", "Geral"),
+            "score": dados.get("score", 0),
+            "motivo": dados.get("evento", "Tendência de Mercado")
+        })
     
     dados_tabela = []
     for item in produtos_reais:
