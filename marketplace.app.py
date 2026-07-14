@@ -11,7 +11,7 @@ import os
 # ============================================================
 # VERSÃO DO SISTEMA
 # ============================================================
-VERSAO_SISTEMA = "v6.1 - Fix & Tab Reorder"
+VERSAO_SISTEMA = "v6.2 - Metadata Pro Priority"
 
 # ============================================================
 # CONFIGURAÇÃO DE LOGGING
@@ -94,8 +94,11 @@ from modules.auto_update import (
     render_status_automacao_rodape
 )
 
-# Importa módulo de calendário (recriado)
+# Importa módulo de calendário
 from modules.calendar import render_calendar
+
+# Importa módulo Metadata Pro
+from modules.metadados_pro import render_metadados_pro
 
 # ============================================================
 # LOGIN E AUTENTICAÇÃO
@@ -124,17 +127,17 @@ render_status_usuario()
 st.markdown("---")
 
 # ============================================================
-# TABS (REORGANIZADAS: Atualização Auto em 2º lugar)
+# TABS (REORGANIZADAS: Metadata Pro em 2º lugar)
 # ============================================================
-tab1, tab_auto, tab_new, tab2, tab3, tab4, tab5, tab_meta, tab6, tab7, tab8, tab9, tab10 = st.tabs([
+tab1, tab_meta, tab_auto, tab_new, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs([
     "📊 Dashboard",
-    "🔄 Atualização Auto", # Movido para 2º lugar
+    "🎬 Metadata Pro",       # Movido para 2º lugar
+    "🔄 Atualização Auto",
     "🔥 Top 20 Google",
     "📌 Sugestões de Produtos",
     "📅 Calendário de Conteúdo",
     "🎬 Criar Vídeo IA",
     "🤖 Criar Conteúdo",
-    "🎬 Metadata Pro",
     "👑 Apoiadores",
     "🔑 Licenças",
     "🔍 Diagnóstico",
@@ -149,13 +152,22 @@ with tab1:
     render_dashboard()
 
 # ============================================================
-# TAB 2: ATUALIZAÇÃO AUTOMÁTICA (NOVA POSIÇÃO)
+# TAB 2: METADATA PRO (NOVA POSIÇÃO)
+# ============================================================
+with tab_meta:
+    try:
+        render_metadados_pro()
+    except Exception as e:
+        st.error(f"❌ Erro ao carregar Metadata Pro: {str(e)}")
+
+# ============================================================
+# TAB 3: ATUALIZAÇÃO AUTOMÁTICA
 # ============================================================
 with tab_auto:
     render_painel_atualizacao_automatica()
 
 # ============================================================
-# TAB 3: TOP 20 GOOGLE TRENDS + SHOPEE LIVE
+# TAB 4: TOP 20 GOOGLE TRENDS + SHOPEE LIVE
 # ============================================================
 with tab_new:
     st.markdown("## 🔥 Top 20 Google Trends & Shopee")
@@ -304,7 +316,7 @@ with tab_new:
             st.info("📊 Nenhuma sobreposição direta encontrada. Atualize os dados para resultados mais precisos.")
 
 # ============================================================
-# TAB 4: SUGESTÕES DE PRODUTOS
+# TAB 5: SUGESTÕES DE PRODUTOS
 # ============================================================
 with tab2:
     st.markdown("## 📌 Sugestões de Produtos Estratégicos")
@@ -322,13 +334,13 @@ with tab2:
     render_grade_descoberta()
 
 # ============================================================
-# TAB 5: CALENDÁRIO
+# TAB 6: CALENDÁRIO
 # ============================================================
 with tab3:
     render_calendar()
 
 # ============================================================
-# TAB 6: CRIAR VÍDEO IA
+# TAB 7: CRIAR VÍDEO IA
 # ============================================================
 with tab4:
     st.markdown("## 🎬 Criar Vídeo com IA (9:16)")
@@ -365,7 +377,7 @@ with tab4:
                     st.video("https://placehold.co/600x400/000000/FFFFFF?text=Video+Gerado+por+IA")
 
 # ============================================================
-# TAB 7: CRIAR CONTEÚDO IA
+# TAB 8: CRIAR CONTEÚDO IA
 # ============================================================
 with tab5:
     st.markdown("## 🤖 Assistente de Conteúdo para Criadores")
@@ -391,16 +403,6 @@ with tab5:
                         st.markdown(conteudo)
                 except Exception as e:
                     st.error(f"❌ Erro ao gerar conteúdo: {str(e)}")
-
-# ============================================================
-# TAB METADATA PRO (RESTAURADA)
-# ============================================================
-with tab_meta:
-    try:
-        from modules.metadados_pro import render_metadados_pro
-        render_metadados_pro()
-    except Exception as e:
-        st.error(f"❌ Erro ao carregar Metadata Pro: {str(e)}")
 
 # ============================================================
 # TAB 9: APOIADORES
