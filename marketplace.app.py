@@ -11,7 +11,7 @@ import os
 # ============================================================
 # VERSÃO DO SISTEMA
 # ============================================================
-VERSAO_SISTEMA = "v5.0 - Full Sync"
+VERSAO_SISTEMA = "v5.0 - Full Sync (Metadata Pro Restored)"
 
 # ============================================================
 # CONFIGURAÇÃO DE LOGGING
@@ -80,35 +80,36 @@ from modules.selenium_client import (
 )
 
 # ============================================================
-# VERIFICAR LOGIN
+# LOGIN E AUTENTICAÇÃO
 # ============================================================
-licenca = verificar_login()
+if not verificar_login():
+    st.stop()
 
 # ============================================================
-# ROTINA DE ATUALIZAÇÃO AUTOMÁTICA
+# HEADER
 # ============================================================
-executar_atualizacao_automatica()
+col_logo, col_versao = st.columns([4, 1])
+with col_logo:
+    st.title("🛒 Minerador de Produtos")
+    st.caption(f"Inteligência Comercial para Afiliados e Vendedores | {datetime.now().strftime('%d/%m/%Y')}")
 
-# ============================================================
-# STATUS DO USUÁRIO E VERSÃO
-# ============================================================
-col_ver, col_stat = st.columns([1, 4])
-with col_ver:
+with col_versao:
     st.info(f"🚀 **{VERSAO_SISTEMA}**")
-with col_stat:
-    render_status_usuario()
+
+render_status_usuario()
 st.markdown("---")
 
 # ============================================================
 # TABS
 # ============================================================
-tab1, tab_new, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs([
+tab1, tab_new, tab2, tab3, tab4, tab5, tab_meta, tab6, tab7, tab8, tab9, tab10 = st.tabs([
     "📊 Dashboard",
     "🔥 Top 20 Google",
     "📌 Sugestões de Produtos",
     "📅 Calendário de Conteúdo",
     "🎬 Criar Vídeo IA",
     "🤖 Criar Conteúdo",
+    "🎬 Metadata Pro",
     "👑 Apoiadores",
     "🔑 Licenças",
     "🔍 Diagnóstico",
@@ -132,114 +133,26 @@ with tab_new:
 # TAB 2: SUGESTÕES DE PRODUTOS
 # ============================================================
 with tab2:
-    st.markdown("## 🎯 Sugestões de Produtos Estratégicos")
-    st.caption("Top produtos baseados em tendências de mercado")
+    st.markdown("## 📌 Sugestões de Produtos Estratégicos")
+    st.caption("Produtos com alto potencial de conversão baseados em tendências reais")
     
-    # Botão para buscar dados com Selenium
-    col1, col2 = st.columns([3, 1])
-    with col2:
-        if st.button("🔄 Buscar Dados Reais", use_container_width=True, key="btn_selenium_tab2"):
-            with st.spinner("⏳ Buscando dados com Selenium..."):
-                try:
-                    status = verificar_status_selenium()
-                    if not status.get("online"):
-                        st.error("❌ Servidor Selenium offline. Aguarde o Render iniciar (pode levar 1 minuto).")
-                    else:
-                        termos = capturar_buscas_selenium()
-                        if termos:
-                            st.success(f"✅ {len(termos)} termos capturados!")
-                            st.session_state.termos_selenium = termos
-                            st.rerun()
-                        else:
-                            st.warning("⚠️ Nenhum termo encontrado")
-                except Exception as e:
-                    st.error(f"❌ Erro: {str(e)}")
+    if st.button("🔄 Buscar Dados Reais", use_container_width=True, key="btn_selenium_tab2"):
+        with st.spinner("📡 Acessando marketplaces em tempo real..."):
+            termos = capturar_buscas_selenium()
+            if termos:
+                st.success(f"✅ {len(termos)} termos capturados com sucesso!")
+                st.rerun()
+            else:
+                st.error("❌ Não foi possível capturar dados em tempo real.")
     
-    # Carrega dados reais injetados no cache
-    produtos = gerar_top10_produtos(forcar_atualizacao=False)
-    
-    if produtos:
-        dados_tabela = []
-        for item in produtos:
-            produto = item.get("Produto", "").lower()
-            
-            dados_palavra = obter_palavra_chave(produto)
-            palavra_chave = dados_palavra.get("palavra", f"{produto} tendência 2026")
-            
-            dados_tabela.append({
-                "Produto": item.get("Produto", ""),
-                "🔑 Palavra-chave": palavra_chave,
-                "Categoria": item.get("Categoria", "Geral"),
-                "Evento": item.get("Evento", "Tendência"),
-                "Potencial": item.get("Potencial", "🟡 Médio"),
-                "Score": item.get("Score", 0),
-                "Pins": item.get("Pins", "0"),
-                "Crescimento": item.get("Crescimento", "+0%"),
-                "Views TikTok": item.get("Views TikTok", "0M"),
-                "Buscas no Mês": item.get("Buscas no Mês", "0"),
-                "Resultados ML": item.get("Resultados ML", "0"),
-                "Tendência": item.get("Tendência", "➡️ Estável"),
-                "Fonte": item.get("Fonte", "Shopee")
-            })
-        
-        df = pd.DataFrame(dados_tabela)
-        
-        df["Buscar na Shopee"] = df["Produto"].apply(
-            lambda x: f'<a href="https://shopee.com.br/search?keyword={quote(x)}" target="_blank" style="text-decoration: none;"><span style="background-color: #f0f0f0; color: #333; padding: 2px 10px; border-radius: 12px; font-size: 12px; border: 1px solid #ddd;">🔍 Buscar</span></a>'
-        )
-        
-        colunas = ["Produto", "Fonte", "🔑 Palavra-chave", "Categoria", "Evento", "Potencial", "Score", "Pins", "Crescimento", "Views TikTok", "Buscas no Mês", "Resultados ML", "Tendência", "Buscar na Shopee"]
-        df = df[colunas]
-        
-        st.markdown(
-            df.to_html(escape=False, index=False),
-            unsafe_allow_html=True
-        )
-    else:
-        st.info("📭 Nenhum dado disponível")
+    render_grade_descoberta()
 
 # ============================================================
 # TAB 3: CALENDÁRIO
 # ============================================================
 with tab3:
-    st.markdown("## 📅 Calendário de Conteúdo Estratégico")
-    st.caption("Selecione um mês para ver sugestões de produtos e insights")
-    
-    meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", 
-             "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
-    
-    mes_selecionado = st.selectbox("Selecione o mês:", meses, index=datetime.now().month - 1)
-    
-    if mes_selecionado:
-        st.markdown(f"### 📌 Eventos - {mes_selecionado}")
-        
-        eventos = {
-            "01-01": {"nome": "Ano Novo", "produtos": ["decoração", "roupa branca", "espumante"]},
-            "02-14": {"nome": "Dia dos Namorados", "produtos": ["perfume", "jantar", "kit romântico"]},
-            "03-08": {"nome": "Dia da Mulher", "produtos": ["flores", "perfumes", "kits de beleza"]},
-            "05-13": {"nome": "Dia das Mães", "produtos": ["perfume", "bolsa", "vestido"]},
-            "06-12": {"nome": "Dia dos Namorados", "produtos": ["perfume", "vinho", "jantar"]},
-            "07-09": {"nome": "Férias Escolares", "produtos": ["casaco", "blusa de lã", "bota"]},
-            "08-14": {"nome": "Dia dos Pais", "produtos": ["ferramentas", "relógio", "cinto"]},
-            "10-12": {"nome": "Dia das Crianças", "produtos": ["brinquedo", "boneca", "carrinho"]},
-            "10-31": {"nome": "Halloween", "produtos": ["fantasia", "decoração", "doces"]},
-            "11-25": {"nome": "Black Friday", "produtos": ["eletrônicos", "celular", "smartwatch"]},
-            "12-25": {"nome": "Natal", "produtos": ["presentes", "árvore", "decoração"]},
-            "12-31": {"nome": "Réveillon", "produtos": ["roupa branca", "espumante"]}
-        }
-        
-        eventos_mes = {k: v for k, v in eventos.items() if k.startswith(f"{meses.index(mes_selecionado)+1:02d}")}
-        
-        if eventos_mes:
-            col1, col2 = st.columns([1, 1])
-            for i, (data, evento) in enumerate(eventos_mes.items()):
-                with (col1 if i % 2 == 0 else col2):
-                    with st.container(border=True):
-                        dia = data.split("-")[1]
-                        st.markdown(f"**📅 {dia}** - {evento['nome']}")
-                        st.caption(f"📦 Produtos sugeridos: {', '.join(evento['produtos'][:3])}")
-        else:
-            st.info("📭 Nenhum evento programado para este mês.")
+    from modules.calendar import render_calendar
+    render_calendar()
 
 # ============================================================
 # TAB 4: CRIAR VÍDEO IA
@@ -280,7 +193,7 @@ with tab4:
 
 # ============================================================
 # TAB 5: CRIAR CONTEÚDO IA
-# ============================================
+# ============================================================
 with tab5:
     st.markdown("## 🤖 Assistente de Conteúdo para Criadores")
     st.caption("Gerador inteligente de roteiros, títulos e estratégias para seus vídeos")
@@ -305,6 +218,16 @@ with tab5:
                         st.markdown(conteudo)
                 except Exception as e:
                     st.error(f"❌ Erro ao gerar conteúdo: {str(e)}")
+
+# ============================================================
+# TAB METADATA PRO (RESTAURADA)
+# ============================================================
+with tab_meta:
+    try:
+        from modules.metadados_pro import render_metadados_pro
+        render_metadados_pro()
+    except Exception as e:
+        st.error(f"❌ Erro ao carregar Metadata Pro: {str(e)}")
 
 # ============================================================
 # TAB 6: APOIADORES
@@ -352,3 +275,9 @@ with tab10:
         # Aqui viriam controles extras de admin
     else:
         st.warning("⚠️ Esta área é restrita ao administrador do sistema.")
+
+# ============================================================
+# RODAPÉ
+# ============================================================
+st.markdown("---")
+render_status_automacao()
