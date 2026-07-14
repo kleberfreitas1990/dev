@@ -80,17 +80,17 @@ def capturar_buscas_selenium() -> list:
     """
     try:
         url = obter_url_selenium()
-        logger.info(f"Chamando API Selenium em: {url}/buscas")
+        logger.info(f"Chamando API Selenium em: {url}/tendencias")
         
         response = requests.get(
-            f"{url}/buscas",
+            f"{url}/tendencias",
             timeout=35  # Tempo extra para o Render acordar
         )
         
         if response.status_code == 200:
             dados = response.json()
             if dados.get("success"):
-                termos = dados.get("data", [])
+                termos = dados.get("tendencias", [])
                 logger.info(f"✅ Capturados {len(termos)} termos via Selenium")
                 return termos
             else:

@@ -11,7 +11,7 @@ import os
 # ============================================================
 # VERSÃO DO SISTEMA
 # ============================================================
-VERSAO_SISTEMA = "v5.1 - Real Shopee Data"
+VERSAO_SISTEMA = "v5.2 - Metadados Pro & Real-Time Shopee Data"
 
 # ============================================================
 # CONFIGURAÇÃO DE LOGGING
@@ -102,7 +102,7 @@ st.markdown("---")
 # ============================================================
 # TABS
 # ============================================================
-tab1, tab_new, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs([
+tab1, tab_new, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10, tab11 = st.tabs([
     "📊 Dashboard",
     "🔥 Top 20 Google",
     "📌 Sugestões de Produtos",
@@ -112,6 +112,7 @@ tab1, tab_new, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs([
     "👑 Apoiadores",
     "🔑 Licenças",
     "🔍 Diagnóstico",
+    "📈 Metadados Pro",
     "📊 Logs",
     "⚙️ Admin"
 ])
@@ -332,9 +333,16 @@ with tab8:
     render_painel_diagnostico()
 
 # ============================================================
-# TAB 9: LOGS
+# TAB 9: METADADOS PRO
 # ============================================================
 with tab9:
+    from modules.metadados_pro import render_metadados_pro
+    render_metadados_pro()
+
+# ============================================================
+# TAB 10: LOGS
+# ============================================================
+with tab10:
     st.markdown("## 📊 Logs do Sistema")
     if os.path.exists("output.log"):
         with open("output.log", "r") as f:
@@ -343,9 +351,9 @@ with tab9:
         st.info("📭 Nenhum log disponível no momento.")
 
 # ============================================================
-# TAB 10: ADMIN
+# TAB 11: ADMIN
 # ============================================================
-with tab10:
+with tab11:
     st.markdown("## ⚙️ Painel Administrativo")
     if st.session_state.get("is_admin", False):
         st.success("✅ Acesso administrativo autorizado")

@@ -31,6 +31,7 @@ from modules.grade_descoberta import (
 
 # Importa para verificar data do cache
 from modules.produtos_dinamicos import verificar_data_cache
+from modules.metadados_pro import render_metadados_pro
 
 # Tenta importar serper, se falhar usa fallback
 try:

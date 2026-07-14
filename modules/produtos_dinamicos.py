@@ -5,7 +5,7 @@ import random
 from datetime import datetime, timedelta
 from typing import List, Dict, Any
 
-from modules.shopee import capturar_buscas_shopee_com_cache
+from modules.selenium_client import capturar_tendencias_selenium
 from modules.serper import buscar_produtos_serper, obter_requisicoes_restantes, LIMITE_DIARIO_SERPER, resetar_contador_serper
 from modules.validation import validar_termo_busca, validar_produtos_serper
 from modules.grade_descoberta import descobrir_produtos_grade, enriquecer_produto
@@ -170,7 +170,13 @@ def buscar_produtos_com_api_e_grade(limite: int = 10) -> Dict[str, Any]:
     # 1. BUSCA TERMOS DA SHOPEE (FORÇA NOVA BUSCA)
     # ============================================================
     logger.info("📡 Buscando termos da Shopee...")
-    termos = capturar_buscas_shopee_com_cache(ignorar_cache=True)
+    tendencias_data = capturar_tendencias_selenium()
+    termos = tendencias_data.get("tendencias", [])
+    # Adicionar termos específicos do usuário para garantir que sejam buscados
+    termos_usuario = ['Festa Junina', 'Chopeira', 'iPhone 17']
+    for termo_u in termos_usuario:
+        if termo_u not in termos:
+            termos.append(termo_u)
     
     if not termos:
         logger.warning("Nenhum termo da Shopee encontrado")
