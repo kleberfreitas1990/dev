@@ -11,7 +11,7 @@ import os
 # ============================================================
 # VERSÃO DO SISTEMA
 # ============================================================
-VERSAO_SISTEMA = "v6.4 - Deep Stealth Camouflage"
+VERSAO_SISTEMA = "v6.5 - Hot Grid Injection"
 
 # ============================================================
 # CONFIGURAÇÃO DE LOGGING
