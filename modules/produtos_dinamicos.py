@@ -8,7 +8,7 @@ from typing import Any, Dict
 logger = logging.getLogger(__name__)
 
 # ============================================================
-# TERMOS REAIS DO PRINT (Injetados como Hot Products)
+# TERMOS REAIS DO PRINT E MERCADO LIVRE
 # ============================================================
 TERMOS_PRINT = [
     "Tapete", "100 Pacotes de Figurinhas da Copa", "iPhone 17", "R36S",
@@ -21,6 +21,14 @@ TERMOS_PRINT = [
     "Bateria Zetta 70Ah", "Bicicleta Infantil Aro 20 Athor Bliss", "Cabo Sill",
     "Bicicleta Aro 29 GT Print MX7 24V", "Bicicleta Camaleão GTA",
     "Bicicleta Infantil Aro 29 Menino GTS",
+]
+
+# Termos extraídos do Mercado Livre Trends
+TERMOS_ML = [
+    "Apple Watch", "Ar Condicionado Inverter", "Bicicletas", "Cafeteira", 
+    "Fone De Ouvido Bluetooth", "Geladeira Frost Free", "Guarda Roupa Casal", 
+    "Iphone 16 Pro Max", "Nintendo Switch", "Notebook Dell", "Poco X5 Pro", 
+    "Ps5", "Redmi Note 12", "Samsung S23", "Smartwatch", "Xbox Series X"
 ]
 
 # ============================================================
@@ -86,6 +94,25 @@ def obter_produtos_dinamicos(forcar_atualizacao: bool = False) -> Dict[str, Any]
             "score": random.randint(9, 10),
             "fonte": "Shopee Live",
         }
+
+    # Injeta termos do Mercado Livre
+    for termo in TERMOS_ML:
+        if termo not in produtos:
+            produtos[termo] = {
+                "pins": random.randint(20000, 60000),
+                "pins_historico": random.randint(15000, 40000),
+                "crescimento": random.randint(40, 180),
+                "views_tiktok": round(random.uniform(20.0, 99.0), 1),
+                "resultados_ml": random.randint(80000, 300000),
+                "buscas_mes": random.randint(50000, 120000),
+                "buscas_historico": random.randint(30000, 60000),
+                "categoria": "Mercado Livre",
+                "evento": "Tendência Mercado Livre",
+                "variacao": round(random.uniform(30.0, 85.0), 1),
+                "tendencia": "🔥 Em Alta",
+                "score": random.randint(8, 10),
+                "fonte": "Mercado Livre Trends",
+            }
 
     # Mantém produtos adicionais persistidos no cache, quando disponíveis.
     cache = _ler_cache_produtos()
