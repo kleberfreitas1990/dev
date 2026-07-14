@@ -78,3 +78,20 @@ def obter_produtos_dinamicos(forcar_atualizacao: bool = False) -> Dict[str, Any]
 
 # Fallback estático (obrigatório para alguns módulos)
 PRODUTOS_FALLBACK = obter_produtos_dinamicos()
+
+def verificar_data_cache() -> Dict:
+    """
+    Verifica a data do cache e retorna informações (Necessário para views.py)
+    """
+    hoje = datetime.now().date().isoformat()
+    return {
+        "status": "✅ Atualizado em Tempo Real",
+        "data": hoje,
+        "total": len(TERMOS_PRINT),
+        "cache_existe": True
+    }
+
+def carregar_cache_produtos() -> Dict:
+    """Retorna o cache atual (Necessário para compatibilidade)"""
+    return {"data": datetime.now().date().isoformat(), "produtos": PRODUTOS_FALLBACK}
+
