@@ -11,7 +11,7 @@ import os
 # ============================================================
 # VERSÃO DO SISTEMA
 # ============================================================
-VERSAO_SISTEMA = "v6.0 - Google Trends + Shopee Live + Auto-Update"
+VERSAO_SISTEMA = "v6.1 - Fix & Tab Reorder"
 
 # ============================================================
 # CONFIGURAÇÃO DE LOGGING
@@ -94,6 +94,9 @@ from modules.auto_update import (
     render_status_automacao_rodape
 )
 
+# Importa módulo de calendário (recriado)
+from modules.calendar import render_calendar
+
 # ============================================================
 # LOGIN E AUTENTICAÇÃO
 # ============================================================
@@ -121,10 +124,11 @@ render_status_usuario()
 st.markdown("---")
 
 # ============================================================
-# TABS
+# TABS (REORGANIZADAS: Atualização Auto em 2º lugar)
 # ============================================================
-tab1, tab_new, tab2, tab3, tab4, tab5, tab_meta, tab6, tab7, tab8, tab9, tab10, tab_auto = st.tabs([
+tab1, tab_auto, tab_new, tab2, tab3, tab4, tab5, tab_meta, tab6, tab7, tab8, tab9, tab10 = st.tabs([
     "📊 Dashboard",
+    "🔄 Atualização Auto", # Movido para 2º lugar
     "🔥 Top 20 Google",
     "📌 Sugestões de Produtos",
     "📅 Calendário de Conteúdo",
@@ -135,8 +139,7 @@ tab1, tab_new, tab2, tab3, tab4, tab5, tab_meta, tab6, tab7, tab8, tab9, tab10, 
     "🔑 Licenças",
     "🔍 Diagnóstico",
     "📊 Logs",
-    "⚙️ Admin",
-    "🔄 Atualização Auto"
+    "⚙️ Admin"
 ])
 
 # ============================================================
@@ -146,7 +149,13 @@ with tab1:
     render_dashboard()
 
 # ============================================================
-# TAB NOVA: TOP 20 GOOGLE TRENDS + SHOPEE LIVE
+# TAB 2: ATUALIZAÇÃO AUTOMÁTICA (NOVA POSIÇÃO)
+# ============================================================
+with tab_auto:
+    render_painel_atualizacao_automatica()
+
+# ============================================================
+# TAB 3: TOP 20 GOOGLE TRENDS + SHOPEE LIVE
 # ============================================================
 with tab_new:
     st.markdown("## 🔥 Top 20 Google Trends & Shopee")
@@ -295,7 +304,7 @@ with tab_new:
             st.info("📊 Nenhuma sobreposição direta encontrada. Atualize os dados para resultados mais precisos.")
 
 # ============================================================
-# TAB 2: SUGESTÕES DE PRODUTOS
+# TAB 4: SUGESTÕES DE PRODUTOS
 # ============================================================
 with tab2:
     st.markdown("## 📌 Sugestões de Produtos Estratégicos")
@@ -313,14 +322,13 @@ with tab2:
     render_grade_descoberta()
 
 # ============================================================
-# TAB 3: CALENDÁRIO
+# TAB 5: CALENDÁRIO
 # ============================================================
 with tab3:
-    from modules.calendar import render_calendar
     render_calendar()
 
 # ============================================================
-# TAB 4: CRIAR VÍDEO IA
+# TAB 6: CRIAR VÍDEO IA
 # ============================================================
 with tab4:
     st.markdown("## 🎬 Criar Vídeo com IA (9:16)")
@@ -357,7 +365,7 @@ with tab4:
                     st.video("https://placehold.co/600x400/000000/FFFFFF?text=Video+Gerado+por+IA")
 
 # ============================================================
-# TAB 5: CRIAR CONTEÚDO IA
+# TAB 7: CRIAR CONTEÚDO IA
 # ============================================================
 with tab5:
     st.markdown("## 🤖 Assistente de Conteúdo para Criadores")
@@ -395,13 +403,13 @@ with tab_meta:
         st.error(f"❌ Erro ao carregar Metadata Pro: {str(e)}")
 
 # ============================================================
-# TAB 6: APOIADORES
+# TAB 9: APOIADORES
 # ============================================================
 with tab6:
     render_painel_apoiadores_detalhado()
 
 # ============================================================
-# TAB 7: LICENÇAS
+# TAB 10: LICENÇAS
 # ============================================================
 with tab7:
     st.markdown("## 🔑 Gestão de Licenças")
@@ -413,14 +421,14 @@ with tab7:
         st.error(f"❌ Erro ao carregar sistema de licenças: {str(e)}")
 
 # ============================================================
-# TAB 8: DIAGNÓSTICO
+# TAB 11: DIAGNÓSTICO
 # ============================================================
 with tab8:
     from modules.diagnostico import render_painel_diagnostico
     render_painel_diagnostico()
 
 # ============================================================
-# TAB 9: LOGS
+# TAB 12: LOGS
 # ============================================================
 with tab9:
     st.markdown("## 📊 Logs do Sistema")
@@ -431,7 +439,7 @@ with tab9:
         st.info("📭 Nenhum log disponível no momento.")
 
 # ============================================================
-# TAB 10: ADMIN
+# TAB 13: ADMIN
 # ============================================================
 with tab10:
     st.markdown("## ⚙️ Painel Administrativo")
@@ -439,12 +447,6 @@ with tab10:
         st.success("✅ Acesso administrativo autorizado")
     else:
         st.warning("⚠️ Esta área é restrita ao administrador do sistema.")
-
-# ============================================================
-# TAB 11: ATUALIZAÇÃO AUTOMÁTICA (NOVA)
-# ============================================================
-with tab_auto:
-    render_painel_atualizacao_automatica()
 
 # ============================================================
 # RODAPÉ
