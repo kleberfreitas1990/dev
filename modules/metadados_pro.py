@@ -5,159 +5,128 @@ import random
 import time
 from datetime import datetime, timedelta
 
+def gerar_nome_arquivo_real(dispositivo, extensao=".mp4"):
+    """Gera um nome de arquivo idêntico ao de uma câmera real"""
+    num = random.randint(1000, 9999)
+    if dispositivo == "Apple":
+        return f"IMG_{num}{extensao}"
+    else:
+        return f"VID_{datetime.now().strftime('%Y%m%d')}_{num}{extensao}"
+
 def limpar_e_injetar_metadados_ffmpeg(input_path, output_path, dispositivo, coordenadas=None):
     """
-    Usa apenas FFmpeg para limpar metadados originais e injetar novos dados.
-    Remove a dependência do exiftool que estava causando erro.
+    Camuflagem Profunda:
+    - Remove o rastro 'Lavf' (Software Encoder)
+    - Injeta VendorID Apple real
+    - Remove qualquer rastro de processamento
     """
-    # Verificar se ffmpeg está disponível
     try:
-        subprocess.run(['ffmpeg', '-version'], capture_output=True)
-    except FileNotFoundError:
-        st.error("❌ FFmpeg não encontrado no sistema. Por favor, certifique-se de que o arquivo 'packages.txt' contém 'ffmpeg' e que o app foi reiniciado no Streamlit Cloud.")
-        return False
+        # Verificar se ffmpeg está disponível
+        try:
+            subprocess.run(['ffmpeg', '-version'], capture_output=True)
+        except FileNotFoundError:
+            st.error("❌ FFmpeg não encontrado. Verifique o packages.txt.")
+            return False
 
-    try:
-        # 1. Definir metadados baseados no dispositivo
+        # 1. Configurações de Camuflagem
         if dispositivo == "Apple":
             make = "Apple"
-            model = random.choice(["iPhone 13 Pro", "iPhone 14 Pro Max", "iPhone 15 Pro"])
-            software = f"iOS {random.randint(16, 17)}.{random.randint(0, 5)}"
+            model = random.choice(["iPhone 14 Pro", "iPhone 15 Pro Max"])
+            # Encoder camuflado para parecer nativo da Apple
             encoder = "com.apple.avfoundation.avcapturesession"
+            vendor = "apl0" # Apple Vendor ID
         else:
             make = "Samsung"
-            model = random.choice(["SM-G998B", "SM-S908B", "SM-S918B"]) # S21 Ultra, S22 Ultra, S23 Ultra
-            software = f"Android {random.randint(12, 14)}"
+            model = "SM-S918B"
             encoder = "OMX.SEC.AVC.Encoder"
+            vendor = "samsung"
 
-        # Gera uma data retroativa realista
-        data_retroativa = datetime.now() - timedelta(days=random.randint(1, 30))
-        data_str = data_retroativa.strftime("%Y-%m-%dT%H:%M:%S")
-        data_creation = data_retroativa.strftime("%Y-%m-%dT%H:%M:%S.000000Z")
+        data_retro = datetime.now() - timedelta(days=random.randint(1, 15), minutes=random.randint(1, 500))
+        creation_time = data_retro.strftime("%Y-%m-%dT%H:%M:%S.000000Z")
 
-        # 2. Construir comando FFmpeg para limpeza e injeção
-        # -map_metadata -1 remove todos os metadados globais
+        # 2. Comando FFmpeg com flags de camuflagem
+        # -fflags +bitexact: Remove o rastro do Lavf no cabeçalho
+        # -flags:v +bitexact -flags:a +bitexact: Garante que streams não tenham marcas
         cmd = [
             'ffmpeg', '-i', input_path,
-            '-c', 'copy',                # Copia streams sem re-encodar (rápido)
-            '-map_metadata', '-1',       # Remove todos os metadados originais
+            '-c', 'copy',
+            '-map_metadata', '-1',           # Limpa TUDO primeiro
+            '-fflags', '+bitexact',          # REMOVE RASTRO LAVF (CRÍTICO)
+            '-flags:v', '+bitexact',
+            '-flags:a', '+bitexact',
             '-metadata', f'make={make}',
             '-metadata', f'model={model}',
-            '-metadata', f'software={software}',
             '-metadata', f'encoder={encoder}',
-            '-metadata', f'creation_time={data_creation}',
-            '-metadata', f'date={data_str}',
-            # Limpa tags específicas do TikTok/Redes Sociais
-            '-metadata', 'comment=',
-            '-metadata', 'VidMd5=',
-            '-metadata', 'location=',
+            '-metadata', f'creation_time={creation_time}',
+            '-metadata', f'major_brand=qt  ', # Força formato QuickTime/Apple
+            '-metadata', f'minor_version=0',
+            '-metadata', f'compatible_brands=qt  ',
+            '-metadata:s:v', f'handler_name=VideoHandler',
+            '-metadata:s:v', f'vendor_id={vendor}',
+            '-metadata:s:a', f'handler_name=SoundHandler',
+            '-metadata:s:a', f'vendor_id={vendor}',
         ]
 
         if coordenadas:
             lat, lon = coordenadas
-            # Formato ISO 6709 para GPS
-            lat_str = f"+{lat:.4f}" if lat >= 0 else f"{lat:.4f}"
-            lon_str = f"+{lon:.4f}" if lon >= 0 else f"{lon:.4f}"
-            iso6709 = f"{lat_str}{lon_str}/"
-            cmd.extend([
-                '-metadata', f'location={iso6709}',
-                '-metadata', f'com.apple.quicktime.location.ISO6709={iso6709}'
-            ])
+            iso6709 = f"{lat:+.4f}{lon:+.4f}/"
+            cmd.extend(['-metadata', f'location={iso6709}'])
 
         cmd.extend(['-y', output_path])
 
-        # Executa o comando
         result = subprocess.run(cmd, capture_output=True, text=True)
-        
-        if result.returncode != 0:
-            st.error(f"Erro FFmpeg: {result.stderr[-200:]}")
-            return False
-
-        return True
+        return result.returncode == 0
     except Exception as e:
-        st.error(f"Erro no processamento: {str(e)}")
+        st.error(f"Erro: {str(e)}")
         return False
 
 def render_metadados_pro():
-    st.markdown("# 🎬 Metadata Pro - Auto-Injeção Inteligente")
-    st.caption("Limpeza cirúrgica de metadados e injeção de hardware realista via FFmpeg.")
+    st.markdown("# 🎬 Metadata Pro - Camuflagem Profunda")
+    st.caption("Remoção total de rastros digitais (Lavf, FFmpeg) e injeção de hardware nativo.")
     
     with st.container(border=True):
-        st.markdown("### 📁 Upload do vídeo MP4")
-        uploaded_file = st.file_uploader("", type=["mp4", "mov", "mkv"], key="upload_video_metadata")
+        uploaded_file = st.file_uploader("Upload do vídeo", type=["mp4", "mov"], key="up_meta_v64")
 
     if uploaded_file:
-        # Detalhes do arquivo
-        tamanho_mb = round(uploaded_file.size / (1024 * 1024), 2)
+        col_cfg, col_res = st.columns(2)
         
-        col_disp, col_gps = st.columns(2)
-        
-        with col_disp:
-            st.markdown("### 📱 Dispositivo Alvo")
-            dispositivo = st.radio("Simular Hardware:", ["Apple", "Samsung"], horizontal=True, key="radio_dispositivo")
-            st.info(f"📄 Arquivo: `{uploaded_file.name}` ({tamanho_mb} MB)")
-
-        with col_gps:
-            st.markdown("### 🛰️ GPS & Localização")
-            usar_gps = st.checkbox("Injetar Coordenadas Reais", value=True)
-            if usar_gps:
-                st.success("✅ Jitter Dinâmico Ativo (±0.005°)")
-            else:
-                st.warning("⚠️ Sem dados de geolocalização")
-
-        st.markdown("---")
-
-        if st.button("🚀 Iniciar Higienização Profunda", type="primary", use_container_width=True):
-            # 1. Feedback Visual "Load Legal"
-            progress_bar = st.progress(0, text="Iniciando limpeza cirúrgica...")
+        with col_cfg:
+            dispositivo = st.radio("Simular Dispositivo:", ["Apple", "Samsung"], horizontal=True)
+            usar_gps = st.checkbox("Injetar GPS Realista", value=True)
             
-            # Salvar arquivo temporário
-            temp_input = f"temp_in_{random.randint(1000, 9999)}_{uploaded_file.name}"
-            temp_output = f"cleaned_{random.randint(1000, 9999)}_{uploaded_file.name}"
+        with col_res:
+            nome_sugerido = gerar_nome_arquivo_real(dispositivo)
+            st.info(f"📁 Nome Original: `{uploaded_file.name}`")
+            st.success(f"🛡️ Novo Nome: `{nome_sugerido}`")
+
+        if st.button("🚀 Executar Camuflagem Profunda", type="primary", use_container_width=True):
+            progress = st.progress(0, text="Iniciando camuflagem...")
+            
+            temp_in = f"raw_{random.randint(100,999)}_{uploaded_file.name}"
+            temp_out = nome_sugerido # Usa o nome real de câmera
             
             try:
-                with open(temp_input, "wb") as f:
+                with open(temp_in, "wb") as f:
                     f.write(uploaded_file.getbuffer())
                 
-                progress_bar.progress(30, text="Removendo tags de rastreamento (TikTok, VidMd5)...")
-                time.sleep(0.5)
+                progress.progress(40, text="Removendo rastro 'Lavf' e limpando VendorID...")
                 
-                progress_bar.progress(60, text=f"Injetando perfil de hardware {dispositivo}...")
+                coordenadas = (-23.5505 + random.uniform(-0.01, 0.01), -46.6333 + random.uniform(-0.01, 0.01)) if usar_gps else None
                 
-                # Simular coordenadas reais se solicitado
-                coordenadas = None
-                if usar_gps:
-                    lat = -23.5505 + (random.uniform(-0.01, 0.01))
-                    lon = -46.6333 + (random.uniform(-0.01, 0.01))
-                    coordenadas = (lat, lon)
-                
-                # Processamento real
-                sucesso = limpar_e_injetar_metadados_ffmpeg(temp_input, temp_output, dispositivo, coordenadas)
-                
-                if sucesso:
-                    progress_bar.progress(100, text="✅ Higienização concluída com sucesso!")
-                    time.sleep(0.5)
-                    
+                if limpar_e_injetar_metadados_ffmpeg(temp_in, temp_out, dispositivo, coordenadas):
+                    progress.progress(100, text="✅ Camuflagem concluída! Rastro Lavf removido.")
                     st.balloons()
-                    st.success("✨ Vídeo higienizado e pronto para download!")
                     
-                    with open(temp_output, "rb") as f:
+                    with open(temp_out, "rb") as f:
                         st.download_button(
-                            label="📥 Baixar Vídeo Limpo",
+                            label=f"📥 Baixar {nome_sugerido}",
                             data=f,
-                            file_name=f"higienizado_{uploaded_file.name}",
+                            file_name=nome_sugerido,
                             mime="video/mp4",
                             use_container_width=True
                         )
                 else:
-                    st.error("❌ Falha no processamento do vídeo.")
-            
+                    st.error("❌ Falha na camuflagem.")
             finally:
-                # Limpeza de arquivos temporários
-                if os.path.exists(temp_input): os.remove(temp_input)
-                if os.path.exists(temp_output): 
-                    # Não removemos o output imediatamente para permitir o download no Streamlit
-                    # O Streamlit mantém o botão de download ativo enquanto a página não for recarregada
-                    pass
-    else:
-        st.info("💡 Faça o upload de um vídeo para remover rastros e injetar novos metadados.")
+                if os.path.exists(temp_in): os.remove(temp_in)
+                # O temp_out deve ser limpo depois ou gerenciado pelo Streamlit

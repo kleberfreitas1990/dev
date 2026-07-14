@@ -11,7 +11,7 @@ import os
 # ============================================================
 # VERSÃO DO SISTEMA
 # ============================================================
-VERSAO_SISTEMA = "v6.3 - Hot Trends Injection"
+VERSAO_SISTEMA = "v6.4 - Deep Stealth Camouflage"
 
 # ============================================================
 # CONFIGURAÇÃO DE LOGGING
