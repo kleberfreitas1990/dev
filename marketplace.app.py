@@ -11,7 +11,7 @@ import os
 # ============================================================
 # VERSÃO DO SISTEMA
 # ============================================================
-VERSAO_SISTEMA = "v6.2 - Metadata Pro Priority"
+VERSAO_SISTEMA = "v6.3 - Hot Trends Injection"
 
 # ============================================================
 # CONFIGURAÇÃO DE LOGGING

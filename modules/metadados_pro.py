@@ -10,6 +10,13 @@ def limpar_e_injetar_metadados_ffmpeg(input_path, output_path, dispositivo, coor
     Usa apenas FFmpeg para limpar metadados originais e injetar novos dados.
     Remove a dependência do exiftool que estava causando erro.
     """
+    # Verificar se ffmpeg está disponível
+    try:
+        subprocess.run(['ffmpeg', '-version'], capture_output=True)
+    except FileNotFoundError:
+        st.error("❌ FFmpeg não encontrado no sistema. Por favor, certifique-se de que o arquivo 'packages.txt' contém 'ffmpeg' e que o app foi reiniciado no Streamlit Cloud.")
+        return False
+
     try:
         # 1. Definir metadados baseados no dispositivo
         if dispositivo == "Apple":
