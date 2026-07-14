@@ -155,11 +155,7 @@ def render_apoiadores_compactos():
         }
     
     if not apoiadores:
-        # Fallback para os apoiadores originais se não houver licenças
-        from modules.models import carregar_apoiadores
-        apoiadores = carregar_apoiadores()
-    
-    if not apoiadores:
+        st.info("📭 Nenhum apoiador ativo encontrado nas licenças.")
         return
     
     st.markdown("### 👑 Apoiadores do Projeto")
@@ -422,10 +418,7 @@ def render_painel_apoiadores_detalhado():
         }
     
     if not apoiadores:
-        from modules.models import carregar_apoiadores
-        apoiadores = carregar_apoiadores()
-    if not apoiadores:
-        st.info("📭 Nenhum apoiador cadastrado.")
+        st.info("📭 Nenhum apoiador ativo encontrado nas licenças.")
     else:
         apoiadores_ordenados = sorted(apoiadores.values(), key=lambda x: x.get("ordem", 999))
         

@@ -110,11 +110,13 @@ class SistemaLicencas:
             return {"sucesso": True}
         return {"erro": "Licença não encontrada"}
 
-    def renovar_licenca(self, codigo, novo_plano=None, novo_status="ativo"):
+    def renovar_licenca(self, codigo, novo_plano=None, novo_status="ativo", is_apoiador=None):
         if codigo in self.dados["licencas"]:
             self.dados["licencas"][codigo]["status"] = novo_status
             if novo_plano:
                 self.dados["licencas"][codigo]["plano"] = novo_plano
+            if is_apoiador is not None:
+                self.dados["licencas"][codigo]["is_apoiador"] = is_apoiador
             self.salvar()
             return {"sucesso": True}
         return {"erro": "Licença não encontrada"}
@@ -162,8 +164,10 @@ class SistemaLicencas:
                 novo_status = st.selectbox("Novo Status:", ["ativo", "revogado", "expirado"],
                                          index=["ativo", "revogado", "expirado"].index(info_atual.get('status', 'ativo')) if info_atual.get('status') in ["ativo", "revogado", "expirado"] else 0)
                 
+                novo_is_apoiador = st.checkbox("É Apoiador?", value=info_atual.get('is_apoiador', False))
+
                 if st.button("💾 Salvar Alterações", use_container_width=True):
-                    res = self.renovar_licenca(cod_selecionado, novo_plano, novo_status)
+                    res = self.renovar_licenca(cod_selecionado, novo_plano, novo_status, novo_is_apoiador)
                     if "sucesso" in res:
                         st.success("✅ Licença atualizada!")
                         st.rerun()
