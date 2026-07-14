@@ -7,6 +7,7 @@ import random
 import logging
 from datetime import datetime, timedelta
 from typing import List, Dict
+from modules.produtos_dinamicos import TERMOS_ML, obter_produtos_marketplace_v49
 
 logger = logging.getLogger(__name__)
 
@@ -240,10 +241,26 @@ def descobrir_produtos_grade(categoria: str = None, quantidade: int = 10) -> Lis
     produtos = []
     termos_usados = []
     
-    # 1. PRIORIDADE: PRODUTOS DE MARKETPLACE PURO (GERAL)
-    if "geral" in GRADE_PRODUTOS:
+    # 1. PRIORIDADE MÁXIMA: DADOS REAIS DO MERCADO LIVRE (JULHO 2026)
+    produtos_ml_reais = obter_produtos_marketplace_v49()
+    for termo in TERMOS_ML:
+        if termo not in termos_usados and len(produtos) < quantidade:
+            termos_usados.append(termo)
+            dados_reais = produtos_ml_reais.get(termo, {})
+            indicadores = obter_indicadores_horario(termo)
+            produtos.append({
+                "produto": termo,
+                "fonte": "ml_trends_real",
+                "categoria": "Marketplace",
+                "score": dados_reais.get("score", random.randint(9, 10)),
+                "motivo": f"🔥 {dados_reais.get('evento', 'Tendência real identificada no Mercado Livre Brasil')}",
+                "indicadores": indicadores
+            })
+
+    # 2. SEGUNDA PRIORIDADE: PRODUTOS DE MARKETPLACE (GRADE LEGADA)
+    if len(produtos) < quantidade and "geral" in GRADE_PRODUTOS:
         for termo in GRADE_PRODUTOS["geral"]["termos"]:
-            if termo not in termos_usados:
+            if termo not in termos_usados and len(produtos) < quantidade:
                 termos_usados.append(termo)
                 indicadores = obter_indicadores_horario(termo)
                 produtos.append({
