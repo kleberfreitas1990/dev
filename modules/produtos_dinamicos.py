@@ -22,60 +22,65 @@ ARQUIVO_PRODUTOS_CACHE = "produtos_cache_v48.json"
 # DADOS DE FALLBACK
 # ============================================================
 PRODUTOS_FALLBACK = {
-    "Umidificador de Ar Chama LED": {
-        "pins": 35000, "pins_historico": 20000, "crescimento": 150, "views_tiktok": 85.0,
-        "resultados_ml": 75000, "buscas_mes": 95000, "buscas_historico": 40000,
-        "categoria": "Decoração", "evento": "Viral TikTok", "variacao": 75.0, "tendencia": "🔥 Explosão",
+    "Tapete": {
+        "pins": 45000, "pins_historico": 30000, "crescimento": 120, "views_tiktok": 45.0,
+        "resultados_ml": 250000, "buscas_mes": 150000, "buscas_historico": 80000,
+        "categoria": "Casa", "evento": "Decoração", "variacao": 50.0, "tendencia": "🔥 Alta",
         "score": 10, "fonte": "Shopee"
     },
-    "Mini Projetor Portátil 4K": {
-        "pins": 22000, "pins_historico": 15000, "crescimento": 110, "views_tiktok": 55.0,
-        "resultados_ml": 120000, "buscas_mes": 65000, "buscas_historico": 30000,
-        "categoria": "Eletrônicos", "evento": "Home Cinema", "variacao": 45.0, "tendencia": "🔥 Viral",
+    "100 Pacotes de Figurinhas da Copa": {
+        "pins": 85000, "pins_historico": 20000, "crescimento": 350, "views_tiktok": 120.0,
+        "resultados_ml": 50000, "buscas_mes": 300000, "buscas_historico": 50000,
+        "categoria": "Colecionáveis", "evento": "Sazonal", "variacao": 200.0, "tendencia": "🔥 Explosão",
         "score": 10, "fonte": "Shopee"
     },
-    "Mini Câmera de Segurança WiFi A9": {
-        "pins": 12500, "pins_historico": 9000, "crescimento": 95, "views_tiktok": 15.5,
-        "resultados_ml": 85000, "buscas_mes": 45000, "buscas_historico": 20000,
-        "categoria": "Segurança", "evento": "Utilidades", "variacao": 35.0, "tendencia": "🚀 Explosivo",
+    "iPhone 17": {
+        "pins": 120000, "pins_historico": 50000, "crescimento": 200, "views_tiktok": 250.0,
+        "resultados_ml": 15000, "buscas_mes": 500000, "buscas_historico": 100000,
+        "categoria": "Eletrônicos", "evento": "Lançamento", "variacao": 150.0, "tendencia": "🚀 Explosivo",
+        "score": 10, "fonte": "Google"
+    },
+    "R36S Game Console": {
+        "pins": 35000, "pins_historico": 15000, "crescimento": 180, "views_tiktok": 95.0,
+        "resultados_ml": 45000, "buscas_mes": 85000, "buscas_historico": 30000,
+        "categoria": "Games", "evento": "Viral TikTok", "variacao": 85.0, "tendencia": "🔥 Viral",
         "score": 10, "fonte": "Shopee"
     },
-    "Aspirador de Pó Portátil 120W": {
-        "pins": 14000, "pins_historico": 10000, "crescimento": 85, "views_tiktok": 28.4,
-        "resultados_ml": 110000, "buscas_mes": 52000, "buscas_historico": 25000,
-        "categoria": "Automotivo", "evento": "Limpeza", "variacao": 30.5, "tendencia": "🔥 Viral",
+    "Lembrancinha Dia dos Pais": {
+        "pins": 65000, "pins_historico": 10000, "crescimento": 500, "views_tiktok": 45.0,
+        "resultados_ml": 120000, "buscas_mes": 250000, "buscas_historico": 20000,
+        "categoria": "Geral", "evento": "Dia dos Pais", "variacao": 400.0, "tendencia": "🔥 Explosão",
+        "score": 10, "fonte": "Shopee"
+    },
+    "Air Fryer 16L": {
+        "pins": 28000, "pins_historico": 18000, "crescimento": 95, "views_tiktok": 35.0,
+        "resultados_ml": 85000, "buscas_mes": 65000, "buscas_historico": 35000,
+        "categoria": "Cozinha", "evento": "Tendência", "variacao": 45.0, "tendencia": "📈 Alta",
         "score": 9, "fonte": "Shopee"
     },
-    "Luminária de Mesa com Indução": {
-        "pins": 15000, "pins_historico": 11000, "crescimento": 88, "views_tiktok": 25.0,
-        "resultados_ml": 65000, "buscas_mes": 38000, "buscas_historico": 15000,
-        "categoria": "Escritório", "evento": "Tendência", "variacao": 25.0, "tendencia": "📈 Alta",
+    "Bicicleta Elétrica": {
+        "pins": 42000, "pins_historico": 25000, "crescimento": 85, "views_tiktok": 55.0,
+        "resultados_ml": 65000, "buscas_mes": 120000, "buscas_historico": 60000,
+        "categoria": "Mobilidade", "evento": "Eco-friendly", "variacao": 40.0, "tendencia": "📈 Alta",
         "score": 9, "fonte": "Google"
     },
-    "Smartwatch Huawei Band 9": {
-        "pins": 28000, "pins_historico": 22000, "crescimento": 90, "views_tiktok": 42.0,
-        "resultados_ml": 150000, "buscas_mes": 85000, "buscas_historico": 40000,
-        "categoria": "Eletrônicos", "score": 10, "fonte": "Google", "tendencia": "🔥 Alta"
+    "Teclado Mecânico": {
+        "pins": 25000, "pins_historico": 18000, "crescimento": 75, "views_tiktok": 65.0,
+        "resultados_ml": 150000, "buscas_mes": 95000, "buscas_historico": 50000,
+        "categoria": "Eletrônicos", "evento": "Setup Gamer", "variacao": 35.0, "tendencia": "📈 Alta",
+        "score": 9, "fonte": "Shopee"
     },
-    "Organizador de Fios Magnético": {
-        "pins": 8500, "pins_historico": 6000, "crescimento": 82, "views_tiktok": 8.2,
-        "resultados_ml": 35000, "buscas_mes": 22000, "buscas_historico": 10000,
-        "categoria": "Escritório", "score": 9, "fonte": "Shopee", "tendencia": "📈 Alta"
+    "Controle PS4": {
+        "pins": 18000, "pins_historico": 15000, "crescimento": 55, "views_tiktok": 25.0,
+        "resultados_ml": 300000, "buscas_mes": 180000, "buscas_historico": 120000,
+        "categoria": "Games", "evento": "Geral", "variacao": 20.0, "tendencia": "➡️ Estável",
+        "score": 8, "fonte": "Shopee"
     },
-    "Kit 3 Potes Herméticos Bambu": {
-        "pins": 18000, "pins_historico": 14000, "crescimento": 75, "views_tiktok": 12.5,
-        "resultados_ml": 95000, "buscas_mes": 42000, "buscas_historico": 20000,
-        "categoria": "Cozinha", "score": 9, "fonte": "Shopee", "tendencia": "📈 Alta"
-    },
-    "Fone de Ouvido Condução Óssea": {
-        "pins": 11000, "pins_historico": 8500, "crescimento": 78, "views_tiktok": 18.5,
-        "resultados_ml": 55000, "buscas_mes": 32000, "buscas_historico": 15000,
-        "categoria": "Esportes", "score": 9, "fonte": "Google", "tendencia": "📈 Alta"
-    },
-    "Mini Seladora de Embalagens": {
-        "pins": 9500, "pins_historico": 7000, "crescimento": 65, "views_tiktok": 10.2,
-        "resultados_ml": 45000, "buscas_mes": 28000, "buscas_historico": 12000,
-        "categoria": "Cozinha", "score": 8, "fonte": "Shopee", "tendencia": "📈 Média"
+    "Vestido": {
+        "pins": 150000, "pins_historico": 120000, "crescimento": 45, "views_tiktok": 350.0,
+        "resultados_ml": 1000000, "buscas_mes": 800000, "buscas_historico": 600000,
+        "categoria": "Moda", "evento": "Geral", "variacao": 15.0, "tendencia": "➡️ Estável",
+        "score": 8, "fonte": "Shopee"
     }
 }
 
