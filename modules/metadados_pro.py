@@ -17,12 +17,12 @@ def render_metadados_pro():
                 "Categoria": dados.get("categoria", "Geral"),
                 "Evento": dados.get("evento", "Tendência"),
                 "Pins": dados.get("pins", 0),
-                "Crescimento": f"{dados.get("crescimento", 0)}%",
-                "Views TikTok": f"{dados.get("views_tiktok", 0)}M",
-                "Buscas no Mês": dados.get("buscas_mes", 0),
-                "Resultados ML": dados.get("resultados_ml", 0),
-                "Tendência": dados.get("tendencia", "Estável"),
-                "Fonte": dados.get("fonte", "N/A")
+                "Crescimento": f"{dados.get('crescimento', 0)}%",
+                "Views TikTok": f"{dados.get('views_tiktok', 0)}M",
+                "Buscas no Mês": dados.get('buscas_mes', 0),
+                "Resultados ML": dados.get('resultados_ml', 0),
+                "Tendência": dados.get('tendencia', 'Estável'),
+                "Fonte": dados.get('fonte', 'N/A')
             })
         
         df = pd.DataFrame(dados_tabela)
