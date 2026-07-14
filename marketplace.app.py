@@ -11,7 +11,7 @@ import os
 # ============================================================
 # VERSÃO DO SISTEMA
 # ============================================================
-VERSAO_SISTEMA = "v5.0 - Full Sync (Metadata Pro Restored)"
+VERSAO_SISTEMA = "v6.0 - Google Trends + Shopee Live + Auto-Update"
 
 # ============================================================
 # CONFIGURAÇÃO DE LOGGING
@@ -79,11 +79,32 @@ from modules.selenium_client import (
     verificar_status_selenium
 )
 
+# Importa novos módulos de Google Trends + Shopee Live
+from modules.google_shopee_trends import (
+    obter_google_trends,
+    obter_shopee_trending,
+    obter_status_cache,
+    forcar_atualizacao_completa
+)
+
+# Importa módulo de atualização automática aprimorado
+from modules.auto_update import (
+    executar_ciclo_automatico,
+    render_painel_atualizacao_automatica,
+    render_status_automacao_rodape
+)
+
 # ============================================================
 # LOGIN E AUTENTICAÇÃO
 # ============================================================
 if not verificar_login():
     st.stop()
+
+# ============================================================
+# CICLO DE ATUALIZAÇÃO AUTOMÁTICA (executa no início)
+# ============================================================
+executar_atualizacao_automatica()
+executar_ciclo_automatico()
 
 # ============================================================
 # HEADER
@@ -102,7 +123,7 @@ st.markdown("---")
 # ============================================================
 # TABS
 # ============================================================
-tab1, tab_new, tab2, tab3, tab4, tab5, tab_meta, tab6, tab7, tab8, tab9, tab10 = st.tabs([
+tab1, tab_new, tab2, tab3, tab4, tab5, tab_meta, tab6, tab7, tab8, tab9, tab10, tab_auto = st.tabs([
     "📊 Dashboard",
     "🔥 Top 20 Google",
     "📌 Sugestões de Produtos",
@@ -114,7 +135,8 @@ tab1, tab_new, tab2, tab3, tab4, tab5, tab_meta, tab6, tab7, tab8, tab9, tab10 =
     "🔑 Licenças",
     "🔍 Diagnóstico",
     "📊 Logs",
-    "⚙️ Admin"
+    "⚙️ Admin",
+    "🔄 Atualização Auto"
 ])
 
 # ============================================================
@@ -124,10 +146,153 @@ with tab1:
     render_dashboard()
 
 # ============================================================
-# TAB NOVA: TOP 20 MARKETPLACE REAL
+# TAB NOVA: TOP 20 GOOGLE TRENDS + SHOPEE LIVE
 # ============================================================
 with tab_new:
-    render_top_20_marketplace()
+    st.markdown("## 🔥 Top 20 Google Trends & Shopee")
+    st.caption("Dados reais capturados do Google Trends e Shopee Brasil — atualização automática a cada 6 horas")
+
+    # Status do cache
+    status_cache = obter_status_cache()
+    col_s1, col_s2, col_s3 = st.columns(3)
+    with col_s1:
+        g_status = status_cache.get("google_trends", {})
+        icone_g = "✅" if g_status.get("valido") else "⚠️"
+        st.metric(f"{icone_g} Google Trends", f"{g_status.get('total', 0)} itens",
+                  delta=g_status.get("data_formatada", "N/A"))
+    with col_s2:
+        s_status = status_cache.get("shopee", {})
+        icone_s = "✅" if s_status.get("valido") else "⚠️"
+        st.metric(f"{icone_s} Shopee", f"{s_status.get('total', 0)} itens",
+                  delta=s_status.get("data_formatada", "N/A"))
+    with col_s3:
+        if st.button("🔄 Atualizar Dados Agora", use_container_width=True, key="btn_atualizar_top20"):
+            with st.spinner("📡 Buscando dados reais..."):
+                resultado = forcar_atualizacao_completa()
+                st.success(
+                    f"✅ Google: {resultado.get('google_trends', {}).get('total', 0)} itens | "
+                    f"Shopee: {resultado.get('shopee', {}).get('total', 0)} itens | "
+                    f"Tempo: {resultado.get('tempo_total', 0)}s"
+                )
+                st.rerun()
+
+    st.markdown("---")
+
+    # Sub-tabs para Google e Shopee
+    subtab_google, subtab_shopee, subtab_combinado = st.tabs([
+        "🔍 Google Trends", "🛒 Shopee Trending", "📊 Visão Combinada"
+    ])
+
+    with subtab_google:
+        st.markdown("### 📈 Tendências do Google (Brasil)")
+        st.caption("Termos em alta no Google Search e Google Shopping — Brasil")
+
+        with st.spinner("🔍 Carregando dados do Google Trends..."):
+            dados_google = obter_google_trends()
+
+        if dados_google:
+            df_google = pd.DataFrame(dados_google)
+
+            # Normaliza colunas
+            colunas_exibir = []
+            mapa_colunas = {
+                "termo": "Termo de Busca",
+                "interesse": "Interesse (0-100)",
+                "variacao": "Variação",
+                "categoria": "Categoria",
+                "fonte": "Fonte",
+                "atualizado": "Atualizado em",
+                "trafego": "Tráfego Aprox.",
+            }
+            for col_orig, col_novo in mapa_colunas.items():
+                if col_orig in df_google.columns:
+                    df_google = df_google.rename(columns={col_orig: col_novo})
+                    colunas_exibir.append(col_novo)
+
+            st.dataframe(
+                df_google[colunas_exibir] if colunas_exibir else df_google,
+                use_container_width=True,
+                hide_index=True
+            )
+            st.caption(f"📊 {len(dados_google)} tendências carregadas")
+        else:
+            st.info("📭 Nenhum dado do Google Trends disponível. Clique em 'Atualizar Dados Agora'.")
+
+    with subtab_shopee:
+        st.markdown("### 🛒 Produtos em Alta na Shopee Brasil")
+        st.caption("Termos mais buscados e produtos com maior volume de vendas na Shopee")
+
+        with st.spinner("🛒 Carregando dados da Shopee..."):
+            dados_shopee = obter_shopee_trending()
+
+        if dados_shopee:
+            df_shopee = pd.DataFrame(dados_shopee)
+
+            mapa_shopee = {
+                "termo": "Produto",
+                "vendas": "Vendas",
+                "avaliacao": "Avaliação",
+                "preco": "Preço Médio",
+                "categoria": "Categoria",
+                "fonte": "Fonte",
+                "atualizado": "Atualizado em",
+            }
+            colunas_shopee = []
+            for col_orig, col_novo in mapa_shopee.items():
+                if col_orig in df_shopee.columns:
+                    df_shopee = df_shopee.rename(columns={col_orig: col_novo})
+                    colunas_shopee.append(col_novo)
+
+            st.dataframe(
+                df_shopee[colunas_shopee] if colunas_shopee else df_shopee,
+                use_container_width=True,
+                hide_index=True
+            )
+            st.caption(f"🛒 {len(dados_shopee)} produtos carregados")
+        else:
+            st.info("📭 Nenhum dado da Shopee disponível. Clique em 'Atualizar Dados Agora'.")
+
+    with subtab_combinado:
+        st.markdown("### 📊 Visão Combinada — Google + Shopee")
+        st.caption("Produtos que aparecem tanto no Google Trends quanto na Shopee têm maior potencial de conversão")
+
+        with st.spinner("📊 Cruzando dados..."):
+            dados_google_comb = obter_google_trends()
+            dados_shopee_comb = obter_shopee_trending()
+
+        # Exibe tabela combinada da função original (preserva layout existente)
+        render_top_20_marketplace()
+
+        st.markdown("---")
+        st.markdown("#### 🎯 Oportunidades de Alto Potencial")
+        st.caption("Termos presentes em ambas as fontes indicam demanda real e consistente")
+
+        # Cruza os dados
+        termos_google = {d.get("termo", d.get("Termo de Busca", "")).lower() for d in dados_google_comb}
+        oportunidades = []
+        for item in dados_shopee_comb:
+            termo = item.get("termo", "")
+            # Verifica se alguma palavra do termo Shopee aparece no Google
+            palavras = termo.lower().split()
+            match_google = any(
+                any(p in tg for p in palavras if len(p) > 4)
+                for tg in termos_google
+            )
+            if match_google:
+                oportunidades.append({
+                    "Produto (Shopee)": termo,
+                    "Vendas Shopee": item.get("vendas", "N/A"),
+                    "Avaliação": item.get("avaliacao", "N/A"),
+                    "Preço": item.get("preco", "N/A"),
+                    "Categoria": item.get("categoria", "N/A"),
+                    "🎯 Potencial": "🔥 Alto (Google + Shopee)",
+                })
+
+        if oportunidades:
+            df_oport = pd.DataFrame(oportunidades)
+            st.dataframe(df_oport, use_container_width=True, hide_index=True)
+        else:
+            st.info("📊 Nenhuma sobreposição direta encontrada. Atualize os dados para resultados mais precisos.")
 
 # ============================================================
 # TAB 2: SUGESTÕES DE PRODUTOS
@@ -272,12 +437,17 @@ with tab10:
     st.markdown("## ⚙️ Painel Administrativo")
     if st.session_state.get("is_admin", False):
         st.success("✅ Acesso administrativo autorizado")
-        # Aqui viriam controles extras de admin
     else:
         st.warning("⚠️ Esta área é restrita ao administrador do sistema.")
+
+# ============================================================
+# TAB 11: ATUALIZAÇÃO AUTOMÁTICA (NOVA)
+# ============================================================
+with tab_auto:
+    render_painel_atualizacao_automatica()
 
 # ============================================================
 # RODAPÉ
 # ============================================================
 st.markdown("---")
-render_status_automacao()
+render_status_automacao_rodape()

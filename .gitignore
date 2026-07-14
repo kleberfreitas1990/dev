@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Ambientes virtuais
+env/
+venv/
+.venv/
+ENV/
+
+# Caches de dados (regenerados automaticamente)
+google_trends_cache.json
+shopee_live_cache.json
+auto_update_historico.json
+serper_cache.json
+serper_contador.json
+shopee_trends_cache.json
+
+# Logs
+*.log
+output.log
+
+# Arquivos temporários
+*.tmp
+temp_*
+higienizador_*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
