@@ -5,6 +5,7 @@ import random
 import time
 import requests
 import shutil
+import yt_dlp
 from datetime import datetime, timedelta
 from app import PERFIS_CAMERA, LOCALIZACOES_REAIS # Importar para acessar resoluções e altitudes
 
@@ -16,8 +17,8 @@ def gerar_nome_arquivo_real(dispositivo, extensao=".mp4"):
     else:
         return f"VID_{datetime.now().strftime('%Y%m%d')}_{num}{extensao}"
 
-def baixar_video_de_url(url: str, output_path: str) -> bool:
-    """Baixa um vídeo de uma URL para o caminho especificado."""
+def baixar_video_de_url_direta(url: str, output_path: str) -> bool:
+    """Baixa um vídeo de uma URL direta para o caminho especificado."""
     try:
         with requests.get(url, stream=True) as r:
             r.raise_for_status()
@@ -26,10 +27,31 @@ def baixar_video_de_url(url: str, output_path: str) -> bool:
                     f.write(chunk)
         return True
     except requests.exceptions.RequestException as e:
-        st.error(f"❌ Erro ao baixar vídeo da URL: {e}")
+        st.error(f"❌ Erro ao baixar vídeo da URL direta: {e}")
         return False
     except Exception as e:
-        st.error(f"❌ Erro inesperado no download: {e}")
+        st.error(f"❌ Erro inesperado no download direto: {e}")
+        return False
+
+def baixar_video_yt_dlp(url: str, output_path: str) -> bool:
+    """Baixa um vídeo de plataformas sociais usando yt-dlp."""
+    try:
+        ydl_opts = {
+            'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+            'outtmpl': output_path,
+            'noplaylist': True,
+            'quiet': True,
+            'no_warnings': True,
+            'merge_output_format': 'mp4',
+        }
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([url])
+        return True
+    except yt_dlp.utils.DownloadError as e:
+        st.error(f"❌ Erro ao baixar vídeo com yt-dlp: {e}")
+        return False
+    except Exception as e:
+        st.error(f"❌ Erro inesperado no download com yt-dlp: {e}")
         return False
 
 def limpar_e_injetar_metadados_ffmpeg(input_path, output_path, dispositivo, coordenadas=None, altitude=None, resolucao_alvo=None):
@@ -134,7 +156,7 @@ def render_metadados_pro():
         if modo_entrada == "Upload de Arquivo":
             uploaded_file = st.file_uploader("Upload do vídeo", type=["mp4", "mov"], key="up_meta_v64")
         else:
-            video_url = st.text_input("Cole a URL do vídeo (YouTube, Vimeo, etc.)", key="url_meta_v64")
+            video_url = st.text_input("Cole a URL do vídeo (TikTok, Instagram, YouTube, etc.)", key="url_meta_v64")
 
     if uploaded_file or video_url:
         col_cfg, col_res = st.columns(2)
@@ -162,7 +184,13 @@ def render_metadados_pro():
                     progress.progress(20, text="Arquivo local carregado...")
                 elif video_url:
                     progress.progress(20, text="Baixando vídeo da URL...")
-                    if not baixar_video_de_url(video_url, temp_in):
+                    # Detectar se é uma URL de rede social ou link direto
+                    if any(domain in video_url for domain in ['tiktok.com', 'instagram.com', 'youtube.com', 'youtu.be', 'twitter.com', 'x.com']):
+                        sucesso_download = baixar_video_yt_dlp(video_url, temp_in)
+                    else:
+                        sucesso_download = baixar_video_de_url_direta(video_url, temp_in)
+                        
+                    if not sucesso_download:
                         st.error("❌ Falha ao baixar o vídeo da URL.")
                         return
                     progress.progress(40, text="Vídeo baixado. Removendo rastro 'Lavf' e limpando VendorID...")
