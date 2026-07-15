@@ -91,6 +91,8 @@ if __name__ == "__main__":
             "tendencia": "🔥 Explosão Shopee"
         }
     
-    with open("/home/ubuntu/dev/shopee_trends.json", "w", encoding="utf-8") as f:
+    # Usar caminho relativo para funcionar em qualquer ambiente (local ou CI)
+    caminho_saida = os.path.join(os.path.dirname(os.path.abspath(__file__)), "shopee_trends.json")
+    with open(caminho_saida, "w", encoding="utf-8") as f:
         json.dump(dados, f, ensure_ascii=False, indent=2)
     print(f"✅ Finalizado com {len(dados)} produtos.")

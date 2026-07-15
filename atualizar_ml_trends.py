@@ -43,7 +43,9 @@ def atualizar_modulo_produtos(novos_termos):
         print("⚠️ Nenhum termo novo para atualizar.")
         return False
     
-    caminho_arquivo = "modules/produtos_dinamicos.py"
+    # Usar caminho relativo baseado no local do script
+    diretorio_atual = os.path.dirname(os.path.abspath(__file__))
+    caminho_arquivo = os.path.join(diretorio_atual, "modules", "produtos_dinamicos.py")
     if not os.path.exists(caminho_arquivo):
         print("❌ Arquivo produtos_dinamicos.py não encontrado.")
         return False
