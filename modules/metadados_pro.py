@@ -3,6 +3,8 @@ import os
 import subprocess
 import random
 import time
+import requests
+import shutil
 from datetime import datetime, timedelta
 from app import PERFIS_CAMERA, LOCALIZACOES_REAIS # Importar para acessar resoluções e altitudes
 
@@ -13,6 +15,22 @@ def gerar_nome_arquivo_real(dispositivo, extensao=".mp4"):
         return f"IMG_{num}{extensao}"
     else:
         return f"VID_{datetime.now().strftime('%Y%m%d')}_{num}{extensao}"
+
+def baixar_video_de_url(url: str, output_path: str) -> bool:
+    """Baixa um vídeo de uma URL para o caminho especificado."""
+    try:
+        with requests.get(url, stream=True) as r:
+            r.raise_for_status()
+            with open(output_path, 'wb') as f:
+                for chunk in r.iter_content(chunk_size=8192):
+                    f.write(chunk)
+        return True
+    except requests.exceptions.RequestException as e:
+        st.error(f"❌ Erro ao baixar vídeo da URL: {e}")
+        return False
+    except Exception as e:
+        st.error(f"❌ Erro inesperado no download: {e}")
+        return False
 
 def limpar_e_injetar_metadados_ffmpeg(input_path, output_path, dispositivo, coordenadas=None, altitude=None, resolucao_alvo=None):
     """
@@ -108,9 +126,17 @@ def render_metadados_pro():
     st.caption("Remoção total de rastros digitais (Lavf, FFmpeg) e injeção de hardware nativo.")
     
     with st.container(border=True):
-        uploaded_file = st.file_uploader("Upload do vídeo", type=["mp4", "mov"], key="up_meta_v64")
+        modo_entrada = st.radio("Escolha a fonte do vídeo:", ["Upload de Arquivo", "URL de Vídeo"], horizontal=True)
 
-    if uploaded_file:
+        uploaded_file = None
+        video_url = None
+
+        if modo_entrada == "Upload de Arquivo":
+            uploaded_file = st.file_uploader("Upload do vídeo", type=["mp4", "mov"], key="up_meta_v64")
+        else:
+            video_url = st.text_input("Cole a URL do vídeo (YouTube, Vimeo, etc.)", key="url_meta_v64")
+
+    if uploaded_file or video_url:
         col_cfg, col_res = st.columns(2)
         
         with col_cfg:
@@ -119,20 +145,30 @@ def render_metadados_pro():
             
         with col_res:
             nome_sugerido = gerar_nome_arquivo_real(dispositivo)
-            st.info(f"📁 Nome Original: `{uploaded_file.name}`")
+            nome_original = uploaded_file.name if uploaded_file else "Vídeo de URL"
+            st.info(f"📁 Fonte: `{nome_original}`")
             st.success(f"🛡️ Novo Nome: `{nome_sugerido}`")
 
         if st.button("🚀 Executar Camuflagem Profunda", type="primary", use_container_width=True):
             progress = st.progress(0, text="Iniciando camuflagem...")
             
-            temp_in = f"raw_{random.randint(100,999)}_{uploaded_file.name}"
+            temp_in = f"raw_{random.randint(100,999)}.mp4"
             temp_out = nome_sugerido # Usa o nome real de câmera
             
             try:
-                with open(temp_in, "wb") as f:
-                    f.write(uploaded_file.getbuffer())
-                
-                progress.progress(40, text="Removendo rastro 'Lavf' e limpando VendorID...")
+                if uploaded_file:
+                    with open(temp_in, "wb") as f:
+                        f.write(uploaded_file.getbuffer())
+                    progress.progress(20, text="Arquivo local carregado...")
+                elif video_url:
+                    progress.progress(20, text="Baixando vídeo da URL...")
+                    if not baixar_video_de_url(video_url, temp_in):
+                        st.error("❌ Falha ao baixar o vídeo da URL.")
+                        return
+                    progress.progress(40, text="Vídeo baixado. Removendo rastro 'Lavf' e limpando VendorID...")
+                else:
+                    st.warning("Por favor, faça upload de um arquivo ou forneça uma URL.")
+                    return
                 
                 # Obter altitude da cidade selecionada
                 altitude = None
@@ -169,4 +205,4 @@ def render_metadados_pro():
                     st.error("❌ Falha na camuflagem.")
             finally:
                 if os.path.exists(temp_in): os.remove(temp_in)
-                # O temp_out deve ser limpo depois ou gerenciado pelo Streamlit
+                if os.path.exists(temp_out): os.remove(temp_out) # Garantir que o arquivo de saída também seja limpo se não for baixado
