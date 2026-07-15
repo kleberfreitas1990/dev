@@ -25,10 +25,26 @@ TERMOS_PRINT = [
 
 # Termos extraídos do Mercado Livre Trends
 TERMOS_ML = [
-    "Apple Watch", "Ar Condicionado Inverter", "Bicicletas", "Cafeteira", 
-    "Fone De Ouvido Bluetooth", "Geladeira Frost Free", "Guarda Roupa Casal", 
-    "Iphone 16 Pro Max", "Nintendo Switch", "Notebook Dell", "Poco X5 Pro", 
-    "Ps5", "Redmi Note 12", "Samsung S23", "Smartwatch", "Xbox Series X"
+    "Acessórios para Celulares",
+    "Peças para Celular",
+    "Componentes para PC",
+    "Impressão",
+    "Acessórios para Notebook",
+    "Conectividade e Redes",
+    "Software",
+    "Computadores",
+    "Tablets e Acessórios",
+    "Acessórios para Câmeras",
+    "Câmeras",
+    "Filmadoras",
+    "Acessórios para Áudio e Vídeo",
+    "Áudio Portátil e Acessórios",
+    "Componentes Eletrônicos",
+    "Equipamento para DJs",
+    "Som Automotivo",
+    "Drones e Acessórios",
+    "Acessórios para TV",
+    "Fones de Ouvido",
 ]
 
 # ============================================================
