@@ -19,3 +19,4 @@ gunicorn==21.2.0
 # pytrends já incluso acima
 
 # Force rebuild v6.0 - Google Trends + Shopee Live - 14/07/2026
+yt-dlp
