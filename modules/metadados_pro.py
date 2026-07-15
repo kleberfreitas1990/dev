@@ -143,15 +143,74 @@ def limpar_e_injetar_metadados_ffmpeg(input_path, output_path, dispositivo, coor
         st.error(f"Erro: {str(e)}")
         return False
 
+def processar_video_completo(input_source, is_url, dispositivo, usar_gps, resolucao_alvo, nome_sugerido):
+    """Encapsula o fluxo completo de download e higienização"""
+    progress = st.progress(0, text="Iniciando processamento...")
+    temp_in = f"raw_{random.randint(100,999)}.mp4"
+    temp_out = nome_sugerido
+    
+    try:
+        if not is_url:
+            with open(temp_in, "wb") as f:
+                f.write(input_source.getbuffer())
+            progress.progress(20, text="Arquivo local carregado...")
+        else:
+            progress.progress(20, text="Baixando vídeo da URL...")
+            if any(domain in input_source for domain in ['tiktok.com', 'instagram.com', 'youtube.com', 'youtu.be', 'twitter.com', 'x.com']):
+                sucesso_download = baixar_video_yt_dlp(input_source, temp_in)
+            else:
+                sucesso_download = baixar_video_de_url_direta(input_source, temp_in)
+            
+            if not sucesso_download:
+                st.error("❌ Falha ao baixar o vídeo da URL.")
+                return False
+            progress.progress(40, text="Vídeo baixado. Iniciando camuflagem...")
+
+        # Coordenadas e Altitude
+        altitude = None
+        if usar_gps:
+            cidade_escolhida = st.session_state.get("select_cidade_gps")
+            if cidade_escolhida:
+                loc_info = next((l for l in LOCALIZACOES_REAIS if l["cidade"] == cidade_escolhida), None)
+                if loc_info and "alt" in loc_info:
+                    altitude = loc_info["alt"]
+            coordenadas = (-23.5505 + random.uniform(-0.01, 0.01), -46.6333 + random.uniform(-0.01, 0.01))
+        else:
+            coordenadas = None
+
+        if limpar_e_injetar_metadados_ffmpeg(temp_in, temp_out, dispositivo, coordenadas, altitude, resolucao_alvo):
+            progress.progress(100, text="✅ Processamento concluído!")
+            st.balloons()
+            
+            with open(temp_out, "rb") as f:
+                st.download_button(
+                    label=f"📥 Baixar {nome_sugerido}",
+                    data=f.read(),
+                    file_name=nome_sugerido,
+                    mime="video/mp4",
+                    use_container_width=True
+                )
+            return True
+        else:
+            st.error("❌ Falha na camuflagem.")
+            return False
+    finally:
+        if os.path.exists(temp_in): os.remove(temp_in)
+        if os.path.exists(temp_out): os.remove(temp_out)
+
 def render_metadados_pro():
     st.markdown("# 🎬 Metadata Pro - Camuflagem Profunda")
     st.caption("Remoção total de rastros digitais (Lavf, FFmpeg) e injeção de hardware nativo.")
     
+    # Inicializar estado para URL se não existir
+    if "last_processed_url" not in st.session_state:
+        st.session_state.last_processed_url = ""
+
     with st.container(border=True):
         modo_entrada = st.radio("Escolha a fonte do vídeo:", ["Upload de Arquivo", "URL de Vídeo"], horizontal=True)
 
         uploaded_file = None
-        video_url = None
+        video_url = ""
 
         if modo_entrada == "Upload de Arquivo":
             uploaded_file = st.file_uploader("Upload do vídeo", type=["mp4", "mov"], key="up_meta_v64")
@@ -171,66 +230,18 @@ def render_metadados_pro():
             st.info(f"📁 Fonte: `{nome_original}`")
             st.success(f"🛡️ Novo Nome: `{nome_sugerido}`")
 
+        resolucao_alvo = PERFIS_CAMERA[st.session_state.get("select_perfil_camera")]["resolucao"] if st.session_state.get("select_perfil_camera") else None
+
+        # Gatilho Automático para URL
+        if video_url and video_url != st.session_state.last_processed_url:
+            st.session_state.last_processed_url = video_url
+            processar_video_completo(video_url, True, dispositivo, usar_gps, resolucao_alvo, nome_sugerido)
+        
+        # Botão Manual (sempre disponível para re-processar ou para Upload)
         if st.button("🚀 Executar Camuflagem Profunda", type="primary", use_container_width=True):
-            progress = st.progress(0, text="Iniciando camuflagem...")
-            
-            temp_in = f"raw_{random.randint(100,999)}.mp4"
-            temp_out = nome_sugerido # Usa o nome real de câmera
-            
-            try:
-                if uploaded_file:
-                    with open(temp_in, "wb") as f:
-                        f.write(uploaded_file.getbuffer())
-                    progress.progress(20, text="Arquivo local carregado...")
-                elif video_url:
-                    progress.progress(20, text="Baixando vídeo da URL...")
-                    # Detectar se é uma URL de rede social ou link direto
-                    if any(domain in video_url for domain in ['tiktok.com', 'instagram.com', 'youtube.com', 'youtu.be', 'twitter.com', 'x.com']):
-                        sucesso_download = baixar_video_yt_dlp(video_url, temp_in)
-                    else:
-                        sucesso_download = baixar_video_de_url_direta(video_url, temp_in)
-                        
-                    if not sucesso_download:
-                        st.error("❌ Falha ao baixar o vídeo da URL.")
-                        return
-                    progress.progress(40, text="Vídeo baixado. Removendo rastro 'Lavf' e limpando VendorID...")
-                else:
-                    st.warning("Por favor, faça upload de um arquivo ou forneça uma URL.")
-                    return
-                
-                # Obter altitude da cidade selecionada
-                altitude = None
-                if usar_gps:
-                    # Precisa importar LOCALIZACOES_REAIS do app.py
-                    # from app import LOCALIZACOES_REAIS # Já importado globalmente
-
-
-                    cidade_escolhida = st.session_state.get("select_cidade_gps")
-                    if cidade_escolhida:
-                        loc_info = next((l for l in LOCALIZACOES_REAIS if l["cidade"] == cidade_escolhida), None)
-                        if loc_info and "alt" in loc_info:
-                            altitude = loc_info["alt"]
-                    coordenadas = (-23.5505 + random.uniform(-0.01, 0.01), -46.6333 + random.uniform(-0.01, 0.01))
-                else:
-                    coordenadas = None
-
-                # Obter resolução alvo do perfil selecionado
-                resolucao_alvo = PERFIS_CAMERA[st.session_state.get("select_perfil_camera")]["resolucao"] if st.session_state.get("select_perfil_camera") else None
-
-                if limpar_e_injetar_metadados_ffmpeg(temp_in, temp_out, dispositivo, coordenadas, altitude, resolucao_alvo):
-                    progress.progress(100, text="✅ Camuflagem concluída! Rastro Lavf removido.")
-                    st.balloons()
-                    
-                    with open(temp_out, "rb") as f:
-                        st.download_button(
-                            label=f"📥 Baixar {nome_sugerido}",
-                            data=f,
-                            file_name=nome_sugerido,
-                            mime="video/mp4",
-                            use_container_width=True
-                        )
-                else:
-                    st.error("❌ Falha na camuflagem.")
-            finally:
-                if os.path.exists(temp_in): os.remove(temp_in)
-                if os.path.exists(temp_out): os.remove(temp_out) # Garantir que o arquivo de saída também seja limpo se não for baixado
+            if uploaded_file:
+                processar_video_completo(uploaded_file, False, dispositivo, usar_gps, resolucao_alvo, nome_sugerido)
+            elif video_url:
+                processar_video_completo(video_url, True, dispositivo, usar_gps, resolucao_alvo, nome_sugerido)
+            else:
+                st.warning("Por favor, forneça um vídeo.")
