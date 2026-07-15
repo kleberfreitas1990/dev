@@ -21,15 +21,23 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install requests beautifulsoup4
+          pip install requests beautifulsoup4 selenium webdriver-manager
 
-      - name: Run update script
+      - name: Install Chrome
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
+
+      - name: Run ML Trends script
         run: python atualizar_ml_trends.py
+
+      - name: Run Shopee Scraping script
+        run: python scraping_shopee_v2.py
 
       - name: Commit and push changes
         run: |
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
-          git add modules/produtos_dinamicos.py
-          git commit -m "auto: Atualização automática de tendências do Mercado Livre" || exit 0
+          git add modules/produtos_dinamicos.py shopee_trends.json
+          git commit -m "auto: Atualização automática Shopee + ML Trends" || exit 0
           git push
