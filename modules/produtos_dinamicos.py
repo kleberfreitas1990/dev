@@ -8,22 +8,8 @@ from typing import Any, Dict
 logger = logging.getLogger(__name__)
 
 # ============================================================
-# TERMOS REAIS DO PRINT E MERCADO LIVRE
+# TERMOS REAIS DO MERCADO LIVRE (Extraídos via automação)
 # ============================================================
-TERMOS_PRINT = [
-    "Tapete", "100 Pacotes de Figurinhas da Copa", "iPhone 17", "R36S",
-    "Lembrancinha Dia dos Pais", "Caixa Organizadora", "Teclado Mecânico",
-    "chopp", "Caixa Cacau Show Branca", "Cinta Modeladora", "Controle PS4",
-    "Moto Elétrica", "Vestido", "Air Fryer 16L", "Bicicleta Elétrica",
-    "Lingerie", "Penteadeira", "Tablet", "Figurinha Legend",
-    "Armário Multiuso Organizador", "Bicicleta Spinning Ergométrica Semi Profissional",
-    "Body Bebê Reborn", "Micro Motor", "Balcão de Pia de Cozinha 160 cm",
-    "Bateria Zetta 70Ah", "Bicicleta Infantil Aro 20 Athor Bliss", "Cabo Sill",
-    "Bicicleta Aro 29 GT Print MX7 24V", "Bicicleta Camaleão GTA",
-    "Bicicleta Infantil Aro 29 Menino GTS",
-]
-
-# Termos extraídos do Mercado Livre Trends
 TERMOS_ML = [
     "Acessórios para Celulares",
     "Peças para Celular",
@@ -48,7 +34,7 @@ TERMOS_ML = [
 ]
 
 # ============================================================
-# ARQUIVO DE CACHE DE PRODUTOS
+# ARQUIVOS DE CACHE DE PRODUTOS
 # ============================================================
 ARQUIVO_PRODUTOS_CACHE = "produtos_cache_v48.json"
 ARQUIVO_SHOPEE_CACHE = "shopee_trends.json"
@@ -75,47 +61,36 @@ def _ler_cache_produtos() -> Dict[str, Any]:
 
 def obter_produtos_dinamicos(forcar_atualizacao: bool = False) -> Dict[str, Any]:
     """
-    Obtém produtos priorizando os termos injetados do print.
-
-    O parâmetro ``forcar_atualizacao`` é mantido no contrato público para
-    compatibilidade com as telas e rotinas de automação existentes.
+    Obtém produtos priorizando as fontes reais (Amazon, Shopee, ML).
+    Removemos a dependência de listas estáticas de 'achadinhos'.
     """
     produtos: Dict[str, Any] = {}
 
-    mapa_categorias = {
-        "iPhone 17": "Eletrônicos",
-        "R36S": "Games",
-        "Teclado Mecânico": "Eletrônicos",
-        "Controle PS4": "Games",
-        "Tablet": "Eletrônicos",
-        "Air Fryer 16L": "Cozinha",
-        "Bicicleta Elétrica": "Esportes",
-        "Tapete": "Casa",
-        "Caixa Organizadora": "Casa",
-        "Lembrancinha Dia dos Pais": "Sazonal",
-        "Vestido": "Moda",
-        "Lingerie": "Moda",
-    }
+    # 1. PRIORIDADE MÁXIMA: Amazon Bestsellers (Dados Reais)
+    if os.path.exists(CAMINHO_AMAZON_CACHE):
+        try:
+            with open(CAMINHO_AMAZON_CACHE, "r", encoding="utf-8") as f:
+                dados_amazon = json.load(f)
+                if isinstance(dados_amazon, dict):
+                    for nome, dados in dados_amazon.items():
+                        if nome not in produtos:
+                            produtos[nome] = dados
+        except Exception as e:
+            logger.warning("Falha ao carregar tendências da Amazon: %s", e)
 
-    for termo in TERMOS_PRINT:
-        categoria = mapa_categorias.get(termo, "Geral")
-        produtos[termo] = {
-            "pins": random.randint(15000, 45000),
-            "pins_historico": random.randint(10000, 30000),
-            "crescimento": random.randint(50, 200),
-            "views_tiktok": round(random.uniform(15.0, 95.0), 1),
-            "resultados_ml": random.randint(50000, 150000),
-            "buscas_mes": random.randint(45000, 95000),
-            "buscas_historico": random.randint(20000, 40000),
-            "categoria": categoria,
-            "evento": "Viral Real-Time",
-            "variacao": round(random.uniform(40.0, 95.0), 1),
-            "tendencia": "🔥 Explosão",
-            "score": random.randint(9, 10),
-            "fonte": "Shopee Live",
-        }
+    # 2. SEGUNDA PRIORIDADE: Shopee Real-Time (Dados Reais)
+    if os.path.exists(CAMINHO_SHOPEE_CACHE):
+        try:
+            with open(CAMINHO_SHOPEE_CACHE, "r", encoding="utf-8") as f:
+                dados_shopee = json.load(f)
+                if isinstance(dados_shopee, dict):
+                    for nome, dados in dados_shopee.items():
+                        if nome not in produtos:
+                            produtos[nome] = dados
+        except Exception as e:
+            logger.warning("Falha ao carregar tendências da Shopee: %s", e)
 
-    # Injeta termos do Mercado Livre
+    # 3. TERCEIRA PRIORIDADE: Mercado Livre Trends
     for termo in TERMOS_ML:
         if termo not in produtos:
             produtos[termo] = {
@@ -134,31 +109,7 @@ def obter_produtos_dinamicos(forcar_atualizacao: bool = False) -> Dict[str, Any]
                 "fonte": "Mercado Livre Trends",
             }
 
-    # Injeta termos reais da Shopee (Selenium)
-    if os.path.exists(CAMINHO_SHOPEE_CACHE):
-        try:
-            with open(CAMINHO_SHOPEE_CACHE, "r", encoding="utf-8") as f:
-                dados_shopee = json.load(f)
-                if isinstance(dados_shopee, dict):
-                    for nome, dados in dados_shopee.items():
-                        if nome not in produtos:
-                            produtos[nome] = dados
-        except Exception as e:
-            logger.warning("Falha ao carregar tendências da Shopee: %s", e)
-
-    # Injeta termos reais da Amazon (Selenium)
-    if os.path.exists(CAMINHO_AMAZON_CACHE):
-        try:
-            with open(CAMINHO_AMAZON_CACHE, "r", encoding="utf-8") as f:
-                dados_amazon = json.load(f)
-                if isinstance(dados_amazon, dict):
-                    for nome, dados in dados_amazon.items():
-                        if nome not in produtos:
-                            produtos[nome] = dados
-        except Exception as e:
-            logger.warning("Falha ao carregar tendências da Amazon: %s", e)
-
-    # Mantém produtos adicionais persistidos no cache, quando disponíveis.
+    # 4. Fallback: Cache de produtos v48 (se existir e não for antigo)
     cache = _ler_cache_produtos()
     cache_produtos = cache.get("produtos", {}) if isinstance(cache, dict) else {}
     if isinstance(cache_produtos, dict):

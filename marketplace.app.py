@@ -11,7 +11,7 @@ import os
 # ============================================================
 # VERSÃO DO SISTEMA
 # ============================================================
-VERSAO_SISTEMA = "v6.5 - Hot Grid Injection"
+VERSAO_SISTEMA = "v7.1 - Multi-Source Discovery"
 
 # ============================================================
 # CONFIGURAÇÃO DE LOGGING
