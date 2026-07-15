@@ -4,6 +4,7 @@ import subprocess
 import random
 import time
 from datetime import datetime, timedelta
+from app import PERFIS_CAMERA, LOCALIZACOES_REAIS # Importar para acessar resoluções e altitudes
 
 def gerar_nome_arquivo_real(dispositivo, extensao=".mp4"):
     """Gera um nome de arquivo idêntico ao de uma câmera real"""
@@ -13,7 +14,7 @@ def gerar_nome_arquivo_real(dispositivo, extensao=".mp4"):
     else:
         return f"VID_{datetime.now().strftime('%Y%m%d')}_{num}{extensao}"
 
-def limpar_e_injetar_metadados_ffmpeg(input_path, output_path, dispositivo, coordenadas=None):
+def limpar_e_injetar_metadados_ffmpeg(input_path, output_path, dispositivo, coordenadas=None, altitude=None, resolucao_alvo=None):
     """
     Camuflagem Profunda:
     - Remove o rastro 'Lavf' (Software Encoder)
@@ -41,7 +42,12 @@ def limpar_e_injetar_metadados_ffmpeg(input_path, output_path, dispositivo, coor
             encoder = "OMX.SEC.AVC.Encoder"
             vendor = "samsung"
 
-        data_retro = datetime.now() - timedelta(days=random.randint(1, 15), minutes=random.randint(1, 500))
+        # Jitter de data/hora mais orgânico
+        dias_atras = random.randint(1, 90) # Até 3 meses atrás
+        horas_atras = random.randint(0, 23)
+        minutos_atras = random.randint(0, 59)
+        segundos_atras = random.randint(0, 59)
+        data_retro = datetime.now() - timedelta(days=dias_atras, hours=horas_atras, minutes=minutos_atras, seconds=segundos_atras)
         creation_time = data_retro.strftime("%Y-%m-%dT%H:%M:%S.000000Z")
 
         # 2. Comando FFmpeg com flags de camuflagem
@@ -49,7 +55,6 @@ def limpar_e_injetar_metadados_ffmpeg(input_path, output_path, dispositivo, coor
         # -flags:v +bitexact -flags:a +bitexact: Garante que streams não tenham marcas
         cmd = [
             'ffmpeg', '-i', input_path,
-            '-c', 'copy',
             '-map_metadata', '-1',           # Limpa TUDO primeiro
             '-fflags', '+bitexact',          # REMOVE RASTRO LAVF (CRÍTICO)
             '-flags:v', '+bitexact',
@@ -65,12 +70,30 @@ def limpar_e_injetar_metadados_ffmpeg(input_path, output_path, dispositivo, coor
             '-metadata:s:v', f'vendor_id={vendor}',
             '-metadata:s:a', f'handler_name=SoundHandler',
             '-metadata:s:a', f'vendor_id={vendor}',
+            '-c:v', 'libx264',               # Re-encodar vídeo com H.264
+            '-preset', 'medium',             # Qualidade média para equilíbrio
+            '-crf', '23',                    # Constant Rate Factor para VBR (Variable Bitrate)
+            '-c:a', 'aac',                   # Re-encodar áudio com AAC
+            '-b:a', '128k',                  # Bitrate de áudio
         ]
+        if resolucao_alvo:
+            # Exemplo: '1920x1080' ou '3840x2160'
+            # Inverte para formato vertical se for celular
+            width, height = map(int, resolucao_alvo.split('x'))
+            if width > height:
+                width, height = height, width # Força vertical (ex: 1080x1920)
+            cmd.extend(['-vf', f'scale={width}:{height}']) # Redimensiona para resolução nativa
 
         if coordenadas:
             lat, lon = coordenadas
             iso6709 = f"{lat:+.4f}{lon:+.4f}/"
-            cmd.extend(['-metadata', f'location={iso6709}'])
+            cmd.extend([
+                '-metadata', f'location={iso6709}',
+                '-metadata', f'location-eng={iso6709}',
+                '-metadata', f'com.apple.quicktime.location.ISO6709={iso6709}',
+            ])
+            if altitude is not None:
+                cmd.extend(['-metadata', f'location_alt={altitude:.0f}']) # Injeta altitude
 
         cmd.extend(['-y', output_path])
 
@@ -111,9 +134,26 @@ def render_metadados_pro():
                 
                 progress.progress(40, text="Removendo rastro 'Lavf' e limpando VendorID...")
                 
-                coordenadas = (-23.5505 + random.uniform(-0.01, 0.01), -46.6333 + random.uniform(-0.01, 0.01)) if usar_gps else None
-                
-                if limpar_e_injetar_metadados_ffmpeg(temp_in, temp_out, dispositivo, coordenadas):
+                # Obter altitude da cidade selecionada
+                altitude = None
+                if usar_gps:
+                    # Precisa importar LOCALIZACOES_REAIS do app.py
+                    # from app import LOCALIZACOES_REAIS # Já importado globalmente
+
+
+                    cidade_escolhida = st.session_state.get("select_cidade_gps")
+                    if cidade_escolhida:
+                        loc_info = next((l for l in LOCALIZACOES_REAIS if l["cidade"] == cidade_escolhida), None)
+                        if loc_info and "alt" in loc_info:
+                            altitude = loc_info["alt"]
+                    coordenadas = (-23.5505 + random.uniform(-0.01, 0.01), -46.6333 + random.uniform(-0.01, 0.01))
+                else:
+                    coordenadas = None
+
+                # Obter resolução alvo do perfil selecionado
+                resolucao_alvo = PERFIS_CAMERA[st.session_state.get("select_perfil_camera")]["resolucao"] if st.session_state.get("select_perfil_camera") else None
+
+                if limpar_e_injetar_metadados_ffmpeg(temp_in, temp_out, dispositivo, coordenadas, altitude, resolucao_alvo):
                     progress.progress(100, text="✅ Camuflagem concluída! Rastro Lavf removido.")
                     st.balloons()
                     

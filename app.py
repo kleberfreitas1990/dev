@@ -138,16 +138,16 @@ PERFIS_CAMERA = {
 # COORDENADAS REAIS PARA INJEÇÃO DE GPS
 # ============================================================
 LOCALIZACOES_REAIS = [
-    {"cidade": "São Paulo, SP", "lat": -23.5505, "lon": -46.6333},
-    {"cidade": "Rio de Janeiro, RJ", "lat": -22.9068, "lon": -43.1729},
-    {"cidade": "Belo Horizonte, MG", "lat": -19.9167, "lon": -43.9345},
-    {"cidade": "Curitiba, PR", "lat": -25.4284, "lon": -49.2733},
-    {"cidade": "Porto Alegre, RS", "lat": -30.0346, "lon": -51.2177},
-    {"cidade": "Salvador, BA", "lat": -12.9714, "lon": -38.5014},
-    {"cidade": "Fortaleza, CE", "lat": -3.7172, "lon": -38.5433},
-    {"cidade": "Recife, PE", "lat": -8.0476, "lon": -34.8770},
-    {"cidade": "Manaus, AM", "lat": -3.1190, "lon": -60.0217},
-    {"cidade": "Brasília, DF", "lat": -15.7801, "lon": -47.9292},
+    {"cidade": "São Paulo, SP", "lat": -23.5505, "lon": -46.6333, "alt": 760},
+    {"cidade": "Rio de Janeiro, RJ", "lat": -22.9068, "lon": -43.1729, "alt": 20},
+    {"cidade": "Belo Horizonte, MG", "lat": -19.9167, "lon": -43.9345, "alt": 850},
+    {"cidade": "Curitiba, PR", "lat": -25.4284, "lon": -49.2733, "alt": 930},
+    {"cidade": "Porto Alegre, RS", "lat": -30.0346, "lon": -51.2177, "alt": 10},
+    {"cidade": "Salvador, BA", "lat": -12.9714, "lon": -38.5014, "alt": 50},
+    {"cidade": "Fortaleza, CE", "lat": -3.7172, "lon": -38.5433, "alt": 20},
+    {"cidade": "Recife, PE", "lat": -8.0476, "lon": -34.8770, "alt": 10},
+    {"cidade": "Manaus, AM", "lat": -3.1190, "lon": -60.0217, "alt": 90},
+    {"cidade": "Brasília, DF", "lat": -15.7801, "lon": -47.9292, "alt": 1170},
 ]
 
 # ============================================================
