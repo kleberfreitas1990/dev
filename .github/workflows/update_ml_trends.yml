@@ -34,10 +34,13 @@ jobs:
       - name: Run Shopee Scraping script
         run: python scraping_shopee_v2.py
 
+      - name: Run Amazon Scraping script
+        run: python scraping_amazon.py
+
       - name: Commit and push changes
         run: |
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
-          git add modules/produtos_dinamicos.py shopee_trends.json
-          git commit -m "auto: Atualização automática Shopee + ML Trends" || exit 0
+          git add modules/produtos_dinamicos.py shopee_trends.json amazon_trends.json modules/grade_descoberta.py
+          git commit -m "auto: Atualização automática Shopee + ML + Amazon Trends" || exit 0
           git push

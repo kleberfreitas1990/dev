@@ -52,9 +52,11 @@ TERMOS_ML = [
 # ============================================================
 ARQUIVO_PRODUTOS_CACHE = "produtos_cache_v48.json"
 ARQUIVO_SHOPEE_CACHE = "shopee_trends.json"
+ARQUIVO_AMAZON_CACHE = "amazon_trends.json"
 DIRETORIO_RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CAMINHO_PRODUTOS_CACHE = os.path.join(DIRETORIO_RAIZ, ARQUIVO_PRODUTOS_CACHE)
 CAMINHO_SHOPEE_CACHE = os.path.join(DIRETORIO_RAIZ, ARQUIVO_SHOPEE_CACHE)
+CAMINHO_AMAZON_CACHE = os.path.join(DIRETORIO_RAIZ, ARQUIVO_AMAZON_CACHE)
 
 
 def _ler_cache_produtos() -> Dict[str, Any]:
@@ -143,6 +145,18 @@ def obter_produtos_dinamicos(forcar_atualizacao: bool = False) -> Dict[str, Any]
                             produtos[nome] = dados
         except Exception as e:
             logger.warning("Falha ao carregar tendências da Shopee: %s", e)
+
+    # Injeta termos reais da Amazon (Selenium)
+    if os.path.exists(CAMINHO_AMAZON_CACHE):
+        try:
+            with open(CAMINHO_AMAZON_CACHE, "r", encoding="utf-8") as f:
+                dados_amazon = json.load(f)
+                if isinstance(dados_amazon, dict):
+                    for nome, dados in dados_amazon.items():
+                        if nome not in produtos:
+                            produtos[nome] = dados
+        except Exception as e:
+            logger.warning("Falha ao carregar tendências da Amazon: %s", e)
 
     # Mantém produtos adicionais persistidos no cache, quando disponíveis.
     cache = _ler_cache_produtos()

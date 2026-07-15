@@ -241,20 +241,39 @@ def descobrir_produtos_grade(categoria: str = None, quantidade: int = 10) -> Lis
     produtos = []
     termos_usados = []
     
-    # 1. PRIORIDADE MÁXIMA: DADOS REAIS DO MERCADO LIVRE (JULHO 2026)
-    produtos_ml_reais = obter_produtos_marketplace_v49()
+    # 1. PRIORIDADE MÁXIMA: DADOS REAIS MULTI-FONTE (ML, SHOPEE, AMAZON)
+    dados_dinamicos = obter_produtos_marketplace_v49()
+    
+    # Mistura as fontes para uma grade variada
+    fontes_prioritarias = ["Amazon Bestsellers", "Shopee Real-Time Scraping", "Mercado Livre Trends"]
+    
+    for fonte in fontes_prioritarias:
+        itens_fonte = [t for t, d in dados_dinamicos.items() if d.get("fonte") == fonte]
+        for termo in itens_fonte[:5]: # Pega os top 5 de cada fonte
+            if termo not in termos_usados and len(produtos) < quantidade:
+                termos_usados.append(termo)
+                dados = dados_dinamicos.get(termo, {})
+                produtos.append({
+                    "produto": termo,
+                    "fonte": dados.get("fonte", "Real-Time"),
+                    "categoria": dados.get("categoria", "Marketplace"),
+                    "score": dados.get("score", 10),
+                    "motivo": f"✨ {dados.get('evento', 'Produto em alta performance nas vendas')}",
+                    "indicadores": obter_indicadores_horario(termo)
+                })
+
+    # Fallback para TERMOS_ML se ainda houver espaço
     for termo in TERMOS_ML:
         if termo not in termos_usados and len(produtos) < quantidade:
             termos_usados.append(termo)
-            dados_reais = produtos_ml_reais.get(termo, {})
-            indicadores = obter_indicadores_horario(termo)
+            dados = dados_dinamicos.get(termo, {})
             produtos.append({
                 "produto": termo,
-                "fonte": "ml_trends_real",
+                "fonte": "Mercado Livre",
                 "categoria": "Marketplace",
-                "score": dados_reais.get("score", random.randint(9, 10)),
-                "motivo": f"🔥 {dados_reais.get('evento', 'Tendência real identificada no Mercado Livre Brasil')}",
-                "indicadores": indicadores
+                "score": dados.get("score", 9),
+                "motivo": "📈 Alta busca orgânica no Mercado Livre",
+                "indicadores": obter_indicadores_horario(termo)
             })
 
     # 2. SEGUNDA PRIORIDADE: PRODUTOS DE MARKETPLACE (GRADE LEGADA)
