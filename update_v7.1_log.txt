@@ -1,0 +1,1 @@
+Atualização v7.1 - Multi-Source Discovery validada em Wed Jul 15 19:40:08 UTC 2026. Automação GitHub Actions e Metadados Pro confirmados.
