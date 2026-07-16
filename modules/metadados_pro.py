@@ -77,7 +77,7 @@ def baixar_video_de_url_direta(url: str, output_path: str) -> bool:
 
 
 def baixar_video_yt_dlp(url: str, output_path: str) -> bool:
-    """Descarrega um vídeo de uma plataforma suportada através de yt-dlp."""
+    """Descarrega um vídeo de uma plataforma suportada através de yt-dlp com headers de browser."""
     try:
         opcoes = {
             "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
@@ -86,6 +86,14 @@ def baixar_video_yt_dlp(url: str, output_path: str) -> bool:
             "quiet": True,
             "no_warnings": True,
             "merge_output_format": "mp4",
+            "http_headers": {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+                "Accept-Language": "en-US,en;q=0.9",
+                "Sec-Fetch-Mode": "navigate",
+            },
+            # Tentar extrair cookies do browser se possível (comum em ambientes locais)
+            # "cookiesfrombrowser": ("chrome",), 
         }
         with yt_dlp.YoutubeDL(opcoes) as ydl:
             ydl.download([url])
