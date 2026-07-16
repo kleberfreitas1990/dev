@@ -11,7 +11,7 @@ import os
 # ============================================================
 # VERSÃO DO SISTEMA
 # ============================================================
-VERSAO_SISTEMA = "v7.1 - Multi-Source Discovery"
+VERSAO_SISTEMA = "v7.6 - Manual Metadata Cleanup"
 
 # ============================================================
 # CONFIGURAÇÃO DE LOGGING
