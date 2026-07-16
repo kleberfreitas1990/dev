@@ -11,7 +11,7 @@ import os
 # ============================================================
 # VERSÃO DO SISTEMA
 # ============================================================
-VERSAO_SISTEMA = "v8.3 - Compatibility & Fallback"
+VERSAO_SISTEMA = "v8.4 - Pipeline Streamlining"
 
 # ============================================================
 # CONFIGURAÇÃO DE LOGGING

@@ -154,17 +154,15 @@ def construir_comando_ffmpeg(
         "-c:v",
         "libx264",
         "-preset",
-        "ultrafast",  # Máxima velocidade de processamento
+        "ultrafast",
         "-crf",
-        "28",         # Ligeiro aumento para compensar o preset rápido e manter fluidez
+        "28",
         "-threads",
-        "0",          # Usar todas as threads disponíveis do CPU
+        "0",
         "-pix_fmt",
         "yuv420p",
         "-c:a",
-        "aac",
-        "-b:a",
-        "128k",
+        "copy",       # Tenta copiar o áudio sem reencodificar para poupar tempo
         "-movflags",
         "+faststart",
     ]
@@ -241,6 +239,18 @@ def limpar_metadados_ffmpeg(
         return False
 
     if resultado.returncode != 0:
+        # Fallback: Se falhar (provavelmente por causa do '-c:a copy' com codec incompatível), tenta reencodificar o áudio
+        if "-c:a copy" in " ".join(comando):
+            comando[comando.index("copy")] = "aac"
+            comando.insert(comando.index("aac") + 1, "-b:a")
+            comando.insert(comando.index("-b:a") + 1, "128k")
+            try:
+                resultado = subprocess.run(comando, capture_output=True, text=True, timeout=900)
+                if resultado.returncode == 0:
+                    return os.path.exists(output_path) and os.path.getsize(output_path) > 0
+            except Exception:
+                pass
+        
         detalhe = (resultado.stderr or "erro desconhecido")[-500:]
         st.error(f"O FFmpeg não concluiu o processamento: {detalhe}")
         return False
