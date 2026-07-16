@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 def executar_atualizacao_automatica():
     """
     Executa a atualização automática de dados se necessário.
-    Verifica se a última atualização foi há mais de 12 horas.
+    Renova as fontes da grelha quando a última execução ocorreu há mais de 2 horas.
     """
     # Inicializa estado se não existir
     if "ultima_atualizacao_auto" not in st.session_state:
@@ -42,10 +42,17 @@ def executar_atualizacao_automatica():
             # No Streamlit, isso só aparece se o script estiver rodando
             
             inicio = time.time()
-            # Força a busca de novos dados (Shopee -> Serper -> Grade)
+            # Renova as fontes e consolida os produtos exibidos pela grelha.
             produtos = obter_produtos_dinamicos(forcar_atualizacao=True)
-            
+
             st.session_state.ultima_atualizacao_auto = agora
+            # A segunda rotina do app usa esta chave; sincronizá-la evita uma
+            # chamada duplicada às mesmas fontes durante o mesmo rerun.
+            st.session_state["ultima_atualizacao_google_shopee"] = agora
+            st.session_state["ultimo_resultado_auto"] = {
+                "produtos": {"total": len(produtos)},
+                "tempo_total": round(time.time() - inicio, 2),
+            }
             
             registrar_busca(
                 nivel="sistema",

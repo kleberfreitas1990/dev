@@ -244,12 +244,17 @@ def descobrir_produtos_grade(categoria: str = None, quantidade: int = 10) -> Lis
     # 1. PRIORIDADE MÁXIMA: DADOS REAIS MULTI-FONTE (ML, SHOPEE, AMAZON)
     dados_dinamicos = obter_produtos_marketplace_v49()
     
-    # Mistura as fontes para uma grade variada
-    fontes_prioritarias = ["Amazon Bestsellers", "Shopee Real-Time Scraping", "Mercado Livre Trends"]
-    
-    for fonte in fontes_prioritarias:
+    # Prioriza a fonte renovada automaticamente, sem perder diversidade.
+    fontes_prioritarias = [
+        ("Shopee Live", 10),
+        ("Amazon Bestsellers", 3),
+        ("Shopee Real-Time Scraping", 3),
+        ("Mercado Livre Trends", 4),
+    ]
+
+    for fonte, limite_fonte in fontes_prioritarias:
         itens_fonte = [t for t, d in dados_dinamicos.items() if d.get("fonte") == fonte]
-        for termo in itens_fonte[:5]: # Pega os top 5 de cada fonte
+        for termo in itens_fonte[:limite_fonte]:
             if termo not in termos_usados and len(produtos) < quantidade:
                 termos_usados.append(termo)
                 dados = dados_dinamicos.get(termo, {})

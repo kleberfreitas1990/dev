@@ -11,7 +11,7 @@ import os
 # ============================================================
 # VERSÃO DO SISTEMA
 # ============================================================
-VERSAO_SISTEMA = "v9.0 - Hardware Mimicry (iPhone Pro)"
+VERSAO_SISTEMA = "v9.1 - Auto Grid Sync + Hardware Mimicry"
 
 # ============================================================
 # CONFIGURAÇÃO DE LOGGING

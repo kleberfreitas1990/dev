@@ -35,9 +35,10 @@ TERMOS_HOT_TRENDS = [
 # ============================================================
 # ARQUIVOS DE CACHE
 # ============================================================
-CACHE_GOOGLE_TRENDS = "google_trends_cache.json"
-CACHE_SHOPEE_LIVE   = "shopee_live_cache.json"
-CACHE_TTL_HORAS     = 6  # Refresca a cada 6 horas
+DIRETORIO_RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CACHE_GOOGLE_TRENDS = os.path.join(DIRETORIO_RAIZ, "google_trends_cache.json")
+CACHE_SHOPEE_LIVE = os.path.join(DIRETORIO_RAIZ, "shopee_live_cache.json")
+CACHE_TTL_HORAS = 6  # Refresca a cada 6 horas
 
 # ============================================================
 # FUNÇÕES DE CACHE
