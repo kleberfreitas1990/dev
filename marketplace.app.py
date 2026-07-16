@@ -11,7 +11,7 @@ import os
 # ============================================================
 # VERSÃO DO SISTEMA
 # ============================================================
-VERSAO_SISTEMA = "v9.5 - Histórico de Tendências"
+VERSAO_SISTEMA = "v9.6 - Antiduplicação Shopee"
 
 # ============================================================
 # CONFIGURAÇÃO DE LOGGING
