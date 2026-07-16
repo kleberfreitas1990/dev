@@ -492,12 +492,56 @@ def calcular_score(produto: str, dados: Dict) -> int:
     
     return max(1, min(score, 10))
 
+def _normalizar_numero(valor, padrao: float = 0.0) -> float:
+    """Converte métricas heterogéneas para número sem interromper o ranking."""
+    if isinstance(valor, (int, float)):
+        return float(valor)
+    if isinstance(valor, str):
+        texto = valor.strip().lower().replace("+", "").replace("%", "")
+        multiplicador = 1000.0 if texto.endswith("k") else 1.0
+        texto = texto.rstrip("k").replace(".", "").replace(",", ".")
+        try:
+            return float(texto) * multiplicador
+        except ValueError:
+            return padrao
+    return padrao
+
+
+def _grupo_fonte(fonte: str) -> str:
+    """Agrupa variações de nomes da mesma origem para diversificar o Top 10."""
+    fonte_lower = (fonte or "").lower()
+    if "mercado livre" in fonte_lower:
+        return "Mercado Livre"
+    if "amazon" in fonte_lower:
+        return "Amazon"
+    if "shopee" in fonte_lower:
+        return "Shopee"
+    if "google" in fonte_lower or "serper" in fonte_lower:
+        return "Google"
+    return fonte or "Outras"
+
+
+def _confianca_fonte(dados: Dict) -> int:
+    """Dá preferência a capturas reais sem esconder os fallbacks disponíveis."""
+    fonte = str(dados.get("fonte", ""))
+    evento = str(dados.get("evento", ""))
+    if "(Real)" in fonte or "Real-Time Scraping" in fonte:
+        return 4
+    if "Amazon Bestsellers" in fonte and "(Trend)" not in evento:
+        return 4
+    if fonte in {"Shopee Live", "Amazon Bestsellers", "Mercado Livre Trends"}:
+        return 2
+    return 1
+
+
 def gerar_top10_produtos(forcar_atualizacao: bool = False) -> List[Dict]:
     """
-    Gera top 10 produtos com dados dinâmicos.
+    Gera um Top 10 dinâmico, com desempate por métricas recentes e diversidade
+    de fontes. Antes, todos os itens Shopee tinham score 10 e a ordenação
+    estável do Python preservava sempre os dez primeiros termos do cache.
     """
     dados_completos = obter_produtos_dinamicos(forcar_atualizacao=forcar_atualizacao)
-    
+
     resultados = []
     for produto, dados in dados_completos.items():
         score = dados.get("score", calcular_score(produto, dados))
@@ -546,10 +590,51 @@ def gerar_top10_produtos(forcar_atualizacao: bool = False) -> List[Dict]:
             "Resultados ML": f"{dados.get('resultados_ml', 0):,}",
             "Variação": f"+{variacao}%",
             "Tendência": dados.get('tendencia', '➡️ Estável'),
-            "PalavraChave": palavra_chave
+            "PalavraChave": palavra_chave,
+            "Atualizado": dados.get("atualizado", "N/A"),
+            "_grupo_fonte": _grupo_fonte(fonte_bruta),
+            "_ranking": (
+                _normalizar_numero(score),
+                _confianca_fonte(dados),
+                _normalizar_numero(dados.get("crescimento", 0)),
+                _normalizar_numero(dados.get("variacao", 0)),
+                _normalizar_numero(dados.get("buscas_mes", 0)),
+            ),
         })
-    
-    return sorted(resultados, key=lambda x: x["Score"], reverse=True)[:10]
+
+    ordenados = sorted(resultados, key=lambda item: item["_ranking"], reverse=True)
+
+    # Evita que uma única fonte ocupe todo o ranking quando vários produtos
+    # empatam no score máximo. O limite mantém o Top 10 útil e comparável.
+    selecionados = []
+    contagem_fontes = {}
+    limite_por_fonte = 4
+    for item in ordenados:
+        grupo = item["_grupo_fonte"]
+        if contagem_fontes.get(grupo, 0) >= limite_por_fonte:
+            continue
+        selecionados.append(item)
+        contagem_fontes[grupo] = contagem_fontes.get(grupo, 0) + 1
+        if len(selecionados) == 10:
+            break
+
+    # Se houver menos de 10 itens por falta de diversidade, completa pela
+    # pontuação geral sem duplicar produtos.
+    if len(selecionados) < 10:
+        nomes = {item["Produto"] for item in selecionados}
+        for item in ordenados:
+            if item["Produto"] in nomes:
+                continue
+            selecionados.append(item)
+            nomes.add(item["Produto"])
+            if len(selecionados) == 10:
+                break
+
+    for item in selecionados:
+        item.pop("_ranking", None)
+        item.pop("_grupo_fonte", None)
+
+    return selecionados
 
 def gerar_sugestoes_diarias(forcar_atualizacao: bool = False) -> List[Dict]:
     """Gera sugestões diárias (top 3)"""

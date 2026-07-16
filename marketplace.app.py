@@ -11,7 +11,7 @@ import os
 # ============================================================
 # VERSÃO DO SISTEMA
 # ============================================================
-VERSAO_SISTEMA = "v9.4 - ML & Amazon Real-Time Scraper + KeyFix"
+VERSAO_SISTEMA = "v9.4.1 - Top 10 Dinâmico + KeyFix Completo"
 
 # ============================================================
 # CONFIGURAÇÃO DE LOGGING

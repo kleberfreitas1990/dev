@@ -139,13 +139,19 @@ def render_sidebar_categorias(key_suffix: str = "") -> str:
     st.sidebar.markdown("---")
 
     # Botão de atualização rápida
-    if st.sidebar.button("🔄 Atualizar Fontes", use_container_width=True, key="sidebar_btn_atualizar"):
+    if st.sidebar.button(
+        "🔄 Atualizar Fontes",
+        use_container_width=True,
+        key=f"sidebar_btn_atualizar_{key_suffix}",
+    ):
         with st.sidebar:
             with st.spinner("📡 Atualizando..."):
                 try:
-                    from modules.mercadolivre_scraper import forcar_atualizacao_ml
-                    forcar_atualizacao_ml()
-                    st.success("✅ ML atualizado!")
+                    produtos_atualizados = obter_produtos_dinamicos(forcar_atualizacao=True)
+                    st.session_state["ultima_atualizacao_auto"] = datetime.now()
+                    st.session_state["ultima_atualizacao_google_shopee"] = datetime.now()
+                    st.success(f"✅ {len(produtos_atualizados)} produtos atualizados!")
+                    st.rerun()
                 except Exception as e:
                     st.error(f"❌ Erro: {e}")
 
@@ -173,17 +179,21 @@ def render_grade_descoberta(key_suffix: str = "main"):
             "📦 Quantidade de produtos",
             options=[10, 15, 20, 25, 30],
             value=20,
-            key="grade_quantidade_slider",
+            key=f"grade_quantidade_slider_{key_suffix}",
         )
     with col_ctrl2:
         fonte_filtro = st.selectbox(
             "📶 Filtrar por Fonte",
             ["Todas as Fontes", "Shopee Live", "Amazon Bestsellers", "Mercado Livre Trends", "Shopee Real-Time Scraping"],
-            key="grade_fonte_filtro",
+            key=f"grade_fonte_filtro_{key_suffix}",
         )
     with col_ctrl3:
         st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("🔄", help="Recarregar grade", key="grade_btn_reload"):
+        if st.button(
+            "🔄",
+            help="Recarregar grade",
+            key=f"grade_btn_reload_{key_suffix}",
+        ):
             st.rerun()
 
     # ============================================================
@@ -588,7 +598,8 @@ def render_dashboard():
         colunas_top10 = [
             "Produto", "Fonte", "Categoria", "Evento",
             "Potencial", "Score", "Pins", "Crescimento",
-            "Views TikTok", "Buscas no Mês", "Resultados ML", "Tendência"
+            "Views TikTok", "Buscas no Mês", "Resultados ML", "Tendência",
+            "Atualizado",
         ]
         df_top10 = df_top10[colunas_top10]
 
@@ -635,6 +646,7 @@ def render_dashboard():
                 "Buscas no Mês": st.column_config.TextColumn("Buscas/Mês", width="small"),
                 "Resultados ML": st.column_config.TextColumn("Resultados ML", width="small"),
                 "Tendência": st.column_config.TextColumn("Tendência", width="small"),
+                "Atualizado": st.column_config.TextColumn("Atualizado", width="small"),
             },
         )
     

@@ -80,17 +80,17 @@ def capturar_bestsellers_amazon(forcar: bool = False) -> Dict[str, Any]:
 
     logger.info("Iniciando raspagem real da Amazon Brasil Bestsellers...")
     url = "https://www.amazon.com.br/gp/bestsellers"
-    
+    produtos_dict: Dict[str, Any] = {}
+
     try:
         resp = requests.get(url, headers=HEADERS_AMAZON, timeout=TIMEOUT_REQUEST)
         if resp.status_code != 200:
-            logger.warning(f"Amazon retornou status {resp.status_code}")
-            return {}
+            logger.warning("Amazon retornou status %d; acionando fallback.", resp.status_code)
+            raise requests.HTTPError(f"Amazon HTTP {resp.status_code}", response=resp)
 
         soup = BeautifulSoup(resp.text, "html.parser")
         
         # Seletores comuns para títulos de produtos na página de bestsellers
-        produtos_dict = {}
         itens = soup.select(".zg-grid-general-faceout, [id^='post-'], .p13n-sc-uncoverable-faceout")
         
         if not itens:

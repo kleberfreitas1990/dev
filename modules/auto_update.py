@@ -91,14 +91,24 @@ def executar_atualizacao_google_shopee(forcar: bool = False, intervalo_horas: in
     inicio = time.time()
 
     try:
-        from modules.google_shopee_trends import forcar_atualizacao_completa
-        from modules.mercadolivre_scraper import forcar_atualizacao_ml
-        
-        # Atualiza ambas as fontes
-        resultado_gs = forcar_atualizacao_completa()
-        resultado_ml = forcar_atualizacao_ml()
-        
-        resultado = {**resultado_gs, "mercadolivre": len(resultado_ml)}
+        from modules.produtos_dinamicos import obter_produtos_dinamicos
+        from modules.google_shopee_trends import obter_status_cache
+        from modules.mercadolivre_scraper import obter_status_cache_ml
+        from modules.amazon_scraper import obter_amazon_trends_cache
+
+        # O pipeline central renova todas as fontes que alimentam o Top 10.
+        produtos = obter_produtos_dinamicos(forcar_atualizacao=True)
+        status_gs = obter_status_cache()
+        status_ml = obter_status_cache_ml()
+        dados_amazon = obter_amazon_trends_cache()
+
+        resultado = {
+            "google_trends": {"total": status_gs.get("google_trends", {}).get("total", 0)},
+            "shopee": {"total": status_gs.get("shopee", {}).get("total", 0)},
+            "mercadolivre": status_ml.get("total", 0),
+            "amazon": len(dados_amazon),
+            "produtos": len(produtos),
+        }
 
         st.session_state["ultima_atualizacao_google_shopee"] = datetime.now()
         st.session_state["ultimo_resultado_auto"] = resultado
@@ -226,7 +236,7 @@ def render_painel_atualizacao_automatica():
         st.markdown("### 🚀 Ações Manuais")
 
         if st.button("🔄 Forçar Atualização Agora", type="primary", use_container_width=True, key="btn_forcar_auto"):
-            with st.spinner("🔄 Atualizando dados do Google Trends e Shopee..."):
+            with st.spinner("🔄 Atualizando Google, Shopee, Mercado Livre e Amazon..."):
                 executou = executar_atualizacao_google_shopee(forcar=True)
                 if executou:
                     st.success("✅ Dados atualizados com sucesso!")
