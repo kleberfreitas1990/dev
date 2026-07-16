@@ -147,29 +147,35 @@ def construir_comando_ffmpeg(
         "-loglevel",
         "error",
         "-i", input_path,
-        # Limpeza radical de metadados
+        # v9.7: Limpeza e Disfarce de Encoder
         "-map_metadata", "-1",
         "-map_chapters", "-1",
+        "-fflags", "+bitexact",
+        "-flags:v", "+bitexact",
+        "-flags:a", "+bitexact",
 
-        # Reencodificação Profunda (libx264 com preset lento para melhor compressão/mudança de hash)
+        # Reencodificação Profunda
         "-c:v", "libx264",
         "-preset", "medium", 
         "-crf", "20",
         "-vf", filter_complex,
         "-pix_fmt", "yuv420p",
-        # Áudio reencodificado para limpar rastro Apple/Lavc
+        # Áudio reencodificado
         "-c:a", "aac",
         "-b:a", "128k",
         "-ar", "44100",
-        # Injeção de novos metadados de "Câmera"
+        # Injeção de metadados simulando hardware nativo
         "-metadata", f"creation_time={creation_time}",
+        "-metadata", "encoder=Camera",
+        "-metadata:s:v", "encoder=Camera",
+        "-metadata:s:a", "encoder=Camera",
         "-metadata:s:v", "handler_name=VideoHandler",
         "-metadata:s:a", "handler_name=SoundHandler",
         "-metadata", "make=Apple",
         "-metadata", "model=iPhone 15 Pro",
         "-metadata", "software=iOS 17.5.1",
-        "-metadata:g", "make=Apple",
-        "-metadata:g", "model=iPhone 15 Pro",
+        # Força o container a esconder o rastro do Lavf
+        "-brand", "mp42",
         "-movflags", "+faststart",
     ]
 

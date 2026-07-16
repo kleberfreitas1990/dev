@@ -11,7 +11,7 @@ import os
 # ============================================================
 # VERSÃO DO SISTEMA
 # ============================================================
-VERSAO_SISTEMA = "v9.6 - Antiduplicação Shopee"
+VERSAO_SISTEMA = "v9.7 - Disfarce de Encoder"
 
 # ============================================================
 # CONFIGURAÇÃO DE LOGGING
