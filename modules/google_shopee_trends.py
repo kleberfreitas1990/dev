@@ -20,16 +20,15 @@ logger = logging.getLogger(__name__)
 # DADOS REAIS EXTRAÍDOS DO PRINT DO USUÁRIO (Prioridade Máxima)
 # ============================================================
 TERMOS_HOT_TRENDS = [
-    "Tapete", "100 Pacotes de Figurinhas da Copa", "iPhone 17", "R36S", 
-    "Lembrancinha Dia dos Pais", "Caixa Organizadora", "Teclado Mecânico", 
-    "chopp", "Caixa Cacau Show Branca", "Cinta Modeladora", "Controle PS4", 
-    "Moto Elétrica", "Vestido", "Air Fryer 16L", "Bicicleta Elétrica", 
-    "Lingerie", "Penteadeira", "Tablet", "Figurinha Legend", 
-    "Armário Multiuso Organizador", "Bicicleta Spinning Ergométrica Semi Profissional", 
-    "Body Bebê Reborn", "Micro Motor", "Balcão de Pia de Cozinha 160 cm", 
-    "Bateria Zetta 70Ah", "Bicicleta Infantil Aro 20 Athor Bliss", "Cabo Sill", 
-    "Bicicleta Aro 29 GT Print MX7 24V", "Bicicleta Camaleão GTA", 
-    "Bicicleta Infantil Aro 29 Menino GTS"
+    "Papel de Parede", "Prateleira", "Nintendo Switch Desbloqueado", "Tênis",
+    "Cueca Transparente", "Nintendo 3DS", "Tablet", "Mochila",
+    "Caixa Organizadora", "Arma de Gel", "Acabamento Monocomando", "Kindle",
+    "Squishy", "Balcão de Pia de Cozinha 160 cm", "PlayStation 2", "Sex Shop",
+    "Mouse Pad", "Tapete", "Bloqueador de Sinal Bluetooth", "Bebê Reborn",
+    "Ar Condicionado Vix 12000 BTUs Inverter 220V", "Armário de Cozinha Itatiaia 10 Peças",
+    "BBBPARTS", "Kpatos Pneus", "Ar-Condicionado de Janela Springer",
+    "Aquecedor LZ 1600DE", "Bomba de Teste de Arrefecimento Planatc",
+    "Armário de Cozinha Madesa", "Bicicleta Ergométrica Bak", "Bateria de Lítio Felicity"
 ]
 
 # ============================================================
