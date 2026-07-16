@@ -11,7 +11,7 @@ import os
 # ============================================================
 # VERSÃO DO SISTEMA
 # ============================================================
-VERSAO_SISTEMA = "v8.8 - Forensic Deep Clean"
+VERSAO_SISTEMA = "v8.9 - Camera Pattern Naming"
 
 # ============================================================
 # CONFIGURAÇÃO DE LOGGING

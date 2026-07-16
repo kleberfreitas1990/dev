@@ -43,10 +43,19 @@ REDES_SUPORTADAS = (
 
 
 def gerar_nome_arquivo_limpo(extensao: str = ".mp4") -> str:
-    """Gera um nome neutro, sem alegar origem num dispositivo específico."""
-    instante = datetime.now().strftime("%Y%m%d_%H%M%S")
-    sufixo = random.randint(1000, 9999)
-    return f"video_limpo_{instante}_{sufixo}{extensao}"
+    """Gera um nome que simula o padrão de uma câmara real (Apple, Android, Sony)."""
+    agora = datetime.now()
+    padroes = [
+        # Padrão Apple (iPhone)
+        lambda: f"IMG_{random.randint(1000, 9999)}.MP4",
+        # Padrão Android / Samsung
+        lambda: f"VID_{agora.strftime('%Y%m%d_%H%M%S')}.mp4",
+        # Padrão Sony / Nikon
+        lambda: f"DSC_{random.randint(1000, 9999)}.MP4",
+        # Padrão genérico de câmara
+        lambda: f"CIMG{random.randint(1000, 9999)}.mp4",
+    ]
+    return random.choice(padroes)()
 
 
 def validar_url_video(url: str) -> bool:
