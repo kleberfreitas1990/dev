@@ -154,6 +154,14 @@ def _atualizar_fontes_automaticas() -> None:
     except Exception as erro:
         logger.warning("Falha ao atualizar fontes Mercado Livre: %s", erro)
 
+    # Atualiza Amazon Real-Time (v9.4)
+    try:
+        from modules.amazon_scraper import capturar_bestsellers_amazon
+        capturar_bestsellers_amazon(forcar=True)
+        logger.info("Cache Amazon atualizado com sucesso.")
+    except Exception as erro:
+        logger.warning("Falha ao atualizar fontes Amazon: %s", erro)
+
 
 def obter_produtos_dinamicos(forcar_atualizacao: bool = False) -> Dict[str, Any]:
     """Obtém produtos das fontes automáticas e aplica fallbacks compatíveis."""
@@ -166,17 +174,18 @@ def obter_produtos_dinamicos(forcar_atualizacao: bool = False) -> Dict[str, Any]
     for nome, dados in _carregar_shopee_live().items():
         produtos[nome] = dados
 
-    # 2. Amazon Bestsellers (Dados Reais)
-    if os.path.exists(CAMINHO_AMAZON_CACHE):
-        try:
-            with open(CAMINHO_AMAZON_CACHE, "r", encoding="utf-8") as f:
-                dados_amazon = json.load(f)
-                if isinstance(dados_amazon, dict):
-                    for nome, dados in dados_amazon.items():
-                        if nome not in produtos:
-                            produtos[nome] = dados
-        except Exception as e:
-            logger.warning("Falha ao carregar tendências da Amazon: %s", e)
+    # 2. Amazon Bestsellers (Dados Reais v9.4)
+    try:
+        from modules.amazon_scraper import capturar_bestsellers_amazon
+        dados_amazon = capturar_bestsellers_amazon(forcar=forcar_atualizacao)
+        if isinstance(dados_amazon, dict):
+            for nome, dados in dados_amazon.items():
+                if nome not in produtos:
+                    produtos[nome] = dados
+            if dados_amazon:
+                logger.info("Amazon real: %d produtos carregados.", len(dados_amazon))
+    except Exception as e:
+        logger.warning("Falha ao carregar tendências reais da Amazon: %s", e)
 
     # 3. Shopee Real-Time legado (Dados Reais)
     if os.path.exists(CAMINHO_SHOPEE_CACHE):

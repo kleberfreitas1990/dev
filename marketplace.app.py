@@ -11,7 +11,7 @@ import os
 # ============================================================
 # VERSÃO DO SISTEMA
 # ============================================================
-VERSAO_SISTEMA = "v9.3 - ML Real-Time Scraper + Dynamic Sidebar + Score Viz"
+VERSAO_SISTEMA = "v9.4 - ML & Amazon Real-Time Scraper + KeyFix"
 
 # ============================================================
 # CONFIGURAÇÃO DE LOGGING
@@ -149,6 +149,7 @@ tab1, tab_meta, tab_auto, tab_new, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab
 # TAB 1: DASHBOARD
 # ============================================================
 with tab1:
+    # No dashboard, passamos uma chave específica para evitar duplicidade
     render_dashboard()
 
 # ============================================================
@@ -331,7 +332,8 @@ with tab2:
             else:
                 st.error("❌ Não foi possível capturar dados em tempo real.")
     
-    render_grade_descoberta()
+    # Na aba de sugestões, usamos a chave 'sugestoes'
+    render_grade_descoberta(key_suffix="sugestoes")
 
 # ============================================================
 # TAB 6: CALENDÁRIO

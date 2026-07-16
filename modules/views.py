@@ -51,7 +51,7 @@ def render_status_usuario():
 # ============================================================
 # SIDEBAR DE CATEGORIAS DINÂMICAS
 # ============================================================
-def render_sidebar_categorias() -> str:
+def render_sidebar_categorias(key_suffix: str = "") -> str:
     """
     Renderiza a barra lateral com categorias dinâmicas extraídas dos dados reais.
     Retorna a categoria selecionada pelo usuário (ou 'Todas' para sem filtro).
@@ -89,12 +89,12 @@ def render_sidebar_categorias() -> str:
     except Exception:
         pass
 
-    # Selectbox de categorias
+    # Selectbox de categorias com chave única
     categoria_sel = st.sidebar.selectbox(
         "Categoria",
         opcoes,
         index=0,
-        key="sidebar_categoria_filtro",
+        key=f"sidebar_categoria_filtro_{key_suffix}",
         label_visibility="collapsed",
     )
 
@@ -155,7 +155,7 @@ def render_sidebar_categorias() -> str:
 # ============================================================
 # GRADE DE DESCOBERTA - SOMENTE TABELA
 # ============================================================
-def render_grade_descoberta():
+def render_grade_descoberta(key_suffix: str = "main"):
     """
     Renderiza a grade de descoberta de produtos em formato de tabela,
     com suporte a filtro de categoria via sidebar dinâmica.
@@ -163,8 +163,8 @@ def render_grade_descoberta():
     st.markdown("## 🎯 Grade de Descoberta de Produtos")
     st.caption("Produtos em tendência descobertos automaticamente — Dados reais ML, Shopee, Amazon e Google Trends")
 
-    # Sidebar de categorias dinâmicas
-    categoria_filtro = render_sidebar_categorias()
+    # Sidebar de categorias dinâmicas com chave única
+    categoria_filtro = render_sidebar_categorias(key_suffix=key_suffix)
 
     # Controles de quantidade e fonte
     col_ctrl1, col_ctrl2, col_ctrl3 = st.columns([2, 2, 1])
@@ -574,7 +574,7 @@ def render_dashboard():
     # ============================================================
     # GRADE DE DESCOBERTA (TABELA)
     # ============================================================
-    render_grade_descoberta()
+    render_grade_descoberta(key_suffix="dashboard")
 
     st.markdown("---")
 
