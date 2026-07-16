@@ -11,7 +11,7 @@ import os
 # ============================================================
 # VERSÃO DO SISTEMA
 # ============================================================
-VERSAO_SISTEMA = "v8.5 - Pure Metadata Injection"
+VERSAO_SISTEMA = "v8.6 - Turbo Download Engine"
 
 # ============================================================
 # CONFIGURAÇÃO DE LOGGING
