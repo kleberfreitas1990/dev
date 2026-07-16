@@ -11,7 +11,7 @@ import os
 # ============================================================
 # VERSÃO DO SISTEMA
 # ============================================================
-VERSAO_SISTEMA = "v8.2 - Bot-Level Speed"
+VERSAO_SISTEMA = "v8.3 - Compatibility & Fallback"
 
 # ============================================================
 # CONFIGURAÇÃO DE LOGGING
