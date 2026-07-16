@@ -160,10 +160,20 @@ def construir_comando_ffmpeg(
         "-crf", "20",
         "-vf", filter_complex,
         "-pix_fmt", "yuv420p",
-        # Áudio reencodificado
+        # Áudio reencodificado com Morphing (v9.8)
         "-c:a", "aac",
         "-b:a", "128k",
         "-ar", "44100",
+    ]
+
+    if antidup_config.get("audio_morph"):
+        # Aplica rubberband para pitch e atempo para ajuste fino de tempo
+        # rubberband=pitch=X:tempo=Y
+        audio_filters = [f"rubberband=pitch={antidup_config['pitch']}", f"atempo={antidup_config['tempo']}"]
+        comando.extend(["-af", ",".join(audio_filters)])
+
+    comando.extend([
+
         # Injeção de metadados simulando hardware nativo
         "-metadata", f"creation_time={creation_time}",
         "-metadata", "encoder=Camera",
@@ -177,7 +187,7 @@ def construir_comando_ffmpeg(
         # Força o container a esconder o rastro do Lavf
         "-brand", "mp42",
         "-movflags", "+faststart",
-    ]
+    ])
 
     if coordenadas:
         latitude, longitude = coordenadas
@@ -232,14 +242,19 @@ def render_metadados_pro():
         return
 
     # Painel de Antiduplicação
-    with st.expander("🛡️ Configurações Antiduplicação", expanded=True):
+    with st.expander("🛡️ Configurações Antiduplicação v9.8", expanded=True):
         col1, col2 = st.columns(2)
         with col1:
-            zoom_val = st.slider("Micro Zoom (Imperceptível)", 1.0, 1.05, 1.01, format="%.2f")
+            st.markdown("**Visual**")
+            zoom_val = st.slider("Micro Zoom", 1.0, 1.05, 1.01, format="%.2f")
             hflip = st.checkbox("Inversão Horizontal (Espelhar)", value=False)
-        with col2:
             ajuste_cor = st.checkbox("Micro-ajuste de cor/brilho", value=True)
             fps_mod = st.selectbox("Variação de FPS", [29.97, 30.01, 60.01], index=1)
+        with col2:
+            st.markdown("**Sonoro (Audio Morphing)**")
+            audio_morph = st.checkbox("Ativar Proteção Sonora", value=True, help="Altera levemente o tom e tempo para quebrar o rastro de áudio.")
+            pitch_val = st.slider("Ajuste de Tom (Pitch)", 0.98, 1.02, 1.005, format="%.3f", disabled=not audio_morph)
+            tempo_val = st.slider("Ajuste de Tempo", 0.99, 1.01, 1.001, format="%.3f", disabled=not audio_morph)
 
     antidup_config = {
         "zoom": zoom_val,
@@ -248,6 +263,9 @@ def render_metadados_pro():
         "saturacao": 1.05 if ajuste_cor else 1.0,
         "hflip": hflip,
         "fps": fps_mod,
+        "audio_morph": audio_morph,
+        "pitch": pitch_val,
+        "tempo": tempo_val,
     }
 
     if st.button("🚀 Processar e Gerar Original", type="primary", use_container_width=True):

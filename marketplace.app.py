@@ -11,7 +11,7 @@ import os
 # ============================================================
 # VERSÃO DO SISTEMA
 # ============================================================
-VERSAO_SISTEMA = "v9.7 - Disfarce de Encoder"
+VERSAO_SISTEMA = "v9.8 - Proteção Sonora"
 
 # ============================================================
 # CONFIGURAÇÃO DE LOGGING
