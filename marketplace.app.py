@@ -11,7 +11,7 @@ import os
 # ============================================================
 # VERSÃO DO SISTEMA
 # ============================================================
-VERSAO_SISTEMA = "v8.1 - Fast Download Strategy"
+VERSAO_SISTEMA = "v8.2 - Bot-Level Speed"
 
 # ============================================================
 # CONFIGURAÇÃO DE LOGGING
