@@ -163,15 +163,27 @@ def construir_comando_ffmpeg(
         "-metadata",
         f"creation_time={creation_time}",
         "-metadata:s:v",
-        "handler_name=VideoHandler",
+        "handler_name=Core Media Video",
         "-metadata:s:a",
-        "handler_name=SoundHandler",
+        "handler_name=Core Media Audio",
         "-c:v",
-        "copy",
+        "libx264",            # Voltamos a encodar para injetar qualidade e esconder o rasto do TikTok
+        "-preset",
+        "ultrafast",
+        "-crf",
+        "18",                 # Qualidade visualmente sem perdas (quase nativa)
+        "-maxrate",
+        "25M",                # Bitrate de nível iPhone
+        "-bufsize",
+        "50M",
+        "-pix_fmt",
+        "yuv420p",
         "-c:a",
-        "copy",
-        "-dn",                # Remover streams de dados (GPS escondido)
-        "-sn",                # Remover legendas (metadados escondidos)
+        "aac",
+        "-b:a",
+        "192k",
+        "-dn",
+        "-sn",
         "-map_metadata",
         "-1",
         "-movflags",
@@ -189,12 +201,15 @@ def construir_comando_ffmpeg(
             iso6709 = f"{latitude:+.4f}{longitude:+.4f}{float(altitude):+.0f}CRS/"
         comando.extend(
             [
-                "-metadata",
-                f"location={iso6709}",
-                "-metadata",
-                f"location-eng={iso6709}",
+                # Usar apenas a tag nativa da Apple para evitar duplicação suspeita
                 "-metadata",
                 f"com.apple.quicktime.location.ISO6709={iso6709}",
+                "-metadata",
+                "make=Apple",
+                "-metadata",
+                "model=iPhone 15 Pro",
+                "-metadata",
+                "encoder=HEVC", # Disfarce de codec
             ]
         )
 

@@ -11,7 +11,7 @@ import os
 # ============================================================
 # VERSÃO DO SISTEMA
 # ============================================================
-VERSAO_SISTEMA = "v8.9 - Camera Pattern Naming"
+VERSAO_SISTEMA = "v9.0 - Hardware Mimicry (iPhone Pro)"
 
 # ============================================================
 # CONFIGURAÇÃO DE LOGGING
