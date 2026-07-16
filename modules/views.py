@@ -445,7 +445,8 @@ def render_dashboard():
     
     # Forçar dados v5.0 - Sincronizado com a busca real
     from modules.produtos_dinamicos import obter_produtos_marketplace_v49
-    produtos_top_base = obter_produtos_marketplace_v49()
+    # Na v9.3, garantimos que o cache seja lido corretamente
+    produtos_top_base = obter_produtos_marketplace_v49(forcar_atualizacao=False)
     
     # Converter para formato de lista para o Top 10
     produtos_top = []
@@ -542,38 +543,29 @@ def render_dashboard():
                 else:
                     st.info("📊 Aguardando dados...")
 
-        # LINHA 3: RANKING DE CRESCIMENTO PERCENTUAL (TOP 5)
+        # LINHA 3: RANKING DE CRESCIMENTO PERCENTUAL (TOP 5) — COMPACTO
         st.markdown("---")
-        st.markdown("### 📈 Ranking de Crescimento Percentual — Top 5")
-        st.caption("Produtos com maior crescimento percentual real nas últimas 24h")
+        st.markdown("### 📈 Top 5 Crescimento Real")
+        
         top5_cresc = sorted(
             produtos_top,
             key=lambda x: float(x.get("Crescimento", "+0%").replace("+", "").replace("%", "")),
             reverse=True,
         )[:5]
+        
+        # Exibição compacta em colunas horizontais
+        cols_cresc = st.columns(5)
         for i, prod in enumerate(top5_cresc):
-            cresc = float(prod.get("Crescimento", "+0%").replace("+", "").replace("%", ""))
-            score_p = prod.get("Score", 0)
-            nome_p = prod.get("Produto", "N/A")
-            fonte_p = prod.get("Fonte", "")
-            cat_p = prod.get("Categoria", "")
-            # Badge de posição
-            medalha = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"][i]
-            col_rank, col_bar, col_meta = st.columns([1, 5, 2])
-            with col_rank:
-                st.markdown(f"### {medalha}")
-            with col_bar:
-                progresso = min(cresc / 200.0, 1.0)  # Normaliza até 200%
-                st.progress(
-                    progresso,
-                    text=f"**{nome_p}** — {cat_p} | {fonte_p}",
-                )
-            with col_meta:
-                st.metric(
-                    label="Crescimento",
-                    value=f"+{cresc:.0f}%",
-                    delta=f"Score {score_p}/10",
-                )
+            with cols_cresc[i]:
+                cresc = float(prod.get("Crescimento", "+0%").replace("+", "").replace("%", ""))
+                score_p = prod.get("Score", 0)
+                nome_p = prod.get("Produto", "N/A")
+                medalha = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"][i]
+                
+                with st.container(border=True):
+                    st.markdown(f"**{medalha} {nome_p[:15]}...**")
+                    st.metric("Crescimento", f"+{cresc:.0f}%", delta=f"⭐ {score_p}")
+                    st.progress(min(cresc / 200.0, 1.0))
     else:
         st.info("📊 Buscando dados de mercado...")
 

@@ -14,6 +14,8 @@ A aplicação foi significativamente expandida com raspagem real do Mercado Livr
 
 3. **Sidebar de Categorias Dinâmicas (`render_sidebar_categorias`):** Nova função em `modules/views.py` que extrai categorias reais dos dados dinâmicos, exibe contagem de produtos por categoria, mostra o status de validade das fontes (ML, Google, Shopee) e oferece botão de actualização rápida.
 
+4. **Ranking de Crescimento Compacto:** O ranking "Top 5 Crescimento Real" foi redesenhado para ocupar menos espaço vertical, utilizando colunas horizontais (`st.columns(5)`) com cards individuais contendo o nome, métrica de crescimento e barra de progresso.
+
 4. **Filtros na Grade de Descoberta:** A função `render_grade_descoberta` foi expandida com `select_slider` de quantidade (10–30), `selectbox` de fonte e integração com a sidebar de categorias.
 
 5. **Visualização de Scores e Crescimento:**
@@ -38,9 +40,10 @@ A aplicação foi significativamente expandida com raspagem real do Mercado Livr
 
 ## Validação da v9.3
 
-- `modules/mercadolivre_scraper.py`: 25 produtos capturados (real + fallback), cache válido com timestamp.
-- `obter_produtos_dinamicos`: 80 produtos totais — 30 Shopee Live, 25 ML Real, 17 ML Fallback, 5 Amazon, 3 Shopee.
-- `gerar_top10_produtos`: fontes correctas (Amazon, Shopee, Mercado Livre ✅).
+- `modules/mercadolivre_scraper.py`: 40 produtos reais capturados, cache válido com timestamp.
+- `obter_produtos_dinamicos`: ~95 produtos totais com integração real do ML.
+- `auto_update.py`: Ciclo automático agora inclui explicitamente a renovação do cache ML.
+- `views.py`: Layout do ranking de crescimento compactado em 5 colunas.
 - Todas as validações de ficheiro passaram.
 
 ## Próximos Passos Sugeridos

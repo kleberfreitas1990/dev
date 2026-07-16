@@ -92,7 +92,13 @@ def executar_atualizacao_google_shopee(forcar: bool = False, intervalo_horas: in
 
     try:
         from modules.google_shopee_trends import forcar_atualizacao_completa
-        resultado = forcar_atualizacao_completa()
+        from modules.mercadolivre_scraper import forcar_atualizacao_ml
+        
+        # Atualiza ambas as fontes
+        resultado_gs = forcar_atualizacao_completa()
+        resultado_ml = forcar_atualizacao_ml()
+        
+        resultado = {**resultado_gs, "mercadolivre": len(resultado_ml)}
 
         st.session_state["ultima_atualizacao_google_shopee"] = datetime.now()
         st.session_state["ultimo_resultado_auto"] = resultado
