@@ -152,28 +152,15 @@ def construir_comando_ffmpeg(
         "-metadata:s:a",
         "handler_name=SoundHandler",
         "-c:v",
-        "libx264",
-        "-preset",
-        "ultrafast",
-        "-crf",
-        "28",
-        "-threads",
-        "0",
-        "-pix_fmt",
-        "yuv420p",
+        "copy",       # Stream Copy: Não mexe nos pixels do vídeo
         "-c:a",
-        "copy",       # Tenta copiar o áudio sem reencodificar para poupar tempo
+        "copy",       # Stream Copy: Não mexe no áudio
         "-movflags",
         "+faststart",
     ]
 
-    if resolucao_alvo:
-        largura, altura = map(int, resolucao_alvo.lower().split("x"))
-        filtro = (
-            f"scale={largura}:{altura}:force_original_aspect_ratio=decrease,"
-            f"pad={largura}:{altura}:(ow-iw)/2:(oh-ih)/2"
-        )
-        comando.extend(["-vf", filtro])
+    # Resolução agora é sempre a original via 'copy', sem filtros de vídeo
+    pass
 
     if coordenadas:
         latitude, longitude = coordenadas
@@ -239,18 +226,6 @@ def limpar_metadados_ffmpeg(
         return False
 
     if resultado.returncode != 0:
-        # Fallback: Se falhar (provavelmente por causa do '-c:a copy' com codec incompatível), tenta reencodificar o áudio
-        if "-c:a copy" in " ".join(comando):
-            comando[comando.index("copy")] = "aac"
-            comando.insert(comando.index("aac") + 1, "-b:a")
-            comando.insert(comando.index("-b:a") + 1, "128k")
-            try:
-                resultado = subprocess.run(comando, capture_output=True, text=True, timeout=900)
-                if resultado.returncode == 0:
-                    return os.path.exists(output_path) and os.path.getsize(output_path) > 0
-            except Exception:
-                pass
-        
         detalhe = (resultado.stderr or "erro desconhecido")[-500:]
         st.error(f"O FFmpeg não concluiu o processamento: {detalhe}")
         return False

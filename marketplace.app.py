@@ -11,7 +11,7 @@ import os
 # ============================================================
 # VERSÃO DO SISTEMA
 # ============================================================
-VERSAO_SISTEMA = "v8.4 - Pipeline Streamlining"
+VERSAO_SISTEMA = "v8.5 - Pure Metadata Injection"
 
 # ============================================================
 # CONFIGURAÇÃO DE LOGGING
