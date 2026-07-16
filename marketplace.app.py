@@ -11,7 +11,7 @@ import os
 # ============================================================
 # VERSÃO DO SISTEMA
 # ============================================================
-VERSAO_SISTEMA = "v9.4.1 - Top 10 Dinâmico + KeyFix Completo"
+VERSAO_SISTEMA = "v9.4.2 - Top 10 Dinâmico + Botão Shopee"
 
 # ============================================================
 # CONFIGURAÇÃO DE LOGGING

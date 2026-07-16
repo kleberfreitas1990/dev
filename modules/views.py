@@ -252,9 +252,13 @@ def render_grade_descoberta(key_suffix: str = "main"):
         horario = indicadores.get("horario", "10h-12h") if indicadores else "10h-12h"
         intensidade = indicadores.get("porcentagem", 50) if indicadores else 50
 
+        # Link de busca na Shopee
+        link_shopee = f"https://shopee.com.br/search?keyword={quote(produto)}"
+
         dados_tabela.append({
             "Produto": produto,
             "Categoria": cat_item,
+            "Link Shopee": link_shopee,
             "Fonte": fonte_item,
             "Score": score,
             "Status": status,
@@ -275,6 +279,13 @@ def render_grade_descoberta(key_suffix: str = "main"):
         column_config={
             "Produto": st.column_config.TextColumn("Produto", width="medium"),
             "Categoria": st.column_config.TextColumn("Categoria", width="small"),
+            "Link Shopee": st.column_config.LinkColumn(
+                "🛒 Shopee",
+                help="Buscar produto na Shopee",
+                validate="^https://shopee\\.com\\.br/.*",
+                display_text="Buscar",
+                width="small",
+            ),
             "Fonte": st.column_config.TextColumn("Fonte", width="small"),
             "Score": st.column_config.ProgressColumn(
                 "Score",
