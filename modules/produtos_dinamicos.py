@@ -139,12 +139,20 @@ def _carregar_shopee_live() -> Dict[str, Any]:
 
 def _atualizar_fontes_automaticas() -> None:
     """Renova os caches que alimentam a grelha quando a chamada é forçada."""
+    # Atualiza Google Trends + Shopee Live
     try:
         from modules.google_shopee_trends import forcar_atualizacao_completa
-
         forcar_atualizacao_completa()
     except Exception as erro:
-        logger.warning("Falha ao atualizar fontes automáticas: %s", erro)
+        logger.warning("Falha ao atualizar fontes Google/Shopee: %s", erro)
+
+    # Atualiza Mercado Livre Real-Time
+    try:
+        from modules.mercadolivre_scraper import forcar_atualizacao_ml
+        forcar_atualizacao_ml()
+        logger.info("Cache Mercado Livre atualizado com sucesso.")
+    except Exception as erro:
+        logger.warning("Falha ao atualizar fontes Mercado Livre: %s", erro)
 
 
 def obter_produtos_dinamicos(forcar_atualizacao: bool = False) -> Dict[str, Any]:
@@ -201,7 +209,20 @@ def obter_produtos_dinamicos(forcar_atualizacao: bool = False) -> Dict[str, Any]
                 "fonte": "Shopee Live",
             }
 
-    # 5. Mercado Livre Trends
+    # 5. Mercado Livre Trends — Dados reais via scraper (cache de 6h)
+    try:
+        from modules.mercadolivre_scraper import obter_tendencias_ml_cache
+        dados_ml_reais = obter_tendencias_ml_cache()
+        for nome, dados in dados_ml_reais.items():
+            if nome not in produtos:
+                produtos[nome] = dados
+        if dados_ml_reais:
+            logger.info("Mercado Livre real: %d produtos carregados do cache.", len(dados_ml_reais))
+    except Exception as erro:
+        logger.warning("Falha ao carregar dados reais ML, usando fallback: %s", erro)
+        dados_ml_reais = {}
+
+    # 5b. Fallback TERMOS_ML estáticos (apenas para termos ainda ausentes)
     for termo in TERMOS_ML:
         if termo not in produtos:
             produtos[termo] = {

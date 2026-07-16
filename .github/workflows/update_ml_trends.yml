@@ -28,8 +28,18 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y google-chrome-stable
 
-      - name: Run ML Trends script
+      - name: Run ML Trends script (legacy)
         run: python atualizar_ml_trends.py
+
+      - name: Run ML Real-Time Scraper (v9.3)
+        run: |
+          python -c "
+          import sys
+          sys.path.insert(0, '.')
+          from modules.mercadolivre_scraper import forcar_atualizacao_ml
+          result = forcar_atualizacao_ml()
+          print(f'ML Scraper: {len(result)} produtos capturados')
+          "
 
       - name: Run Shopee Scraping script
         run: python scraping_shopee_v2.py
@@ -41,6 +51,6 @@ jobs:
         run: |
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
-          git add modules/produtos_dinamicos.py shopee_trends.json amazon_trends.json modules/grade_descoberta.py amazon_trends.json shopee_trends.json
-          git commit -m "auto: Atualização automática Shopee + ML + Amazon Trends" || exit 0
+          git add modules/produtos_dinamicos.py modules/mercadolivre_scraper.py ml_trends_cache.json shopee_trends.json amazon_trends.json modules/grade_descoberta.py
+          git commit -m "auto: v9.3 — Atualização ML Real-Time + Shopee + Amazon Trends" || exit 0
           git push

@@ -29,8 +29,8 @@ from modules.grade_descoberta import (
     obter_indicadores_horario
 )
 
-# Importa para verificar data do cache
-from modules.produtos_dinamicos import verificar_data_cache
+# Importa para verificar data do cache e dados dinâmicos
+from modules.produtos_dinamicos import verificar_data_cache, obter_produtos_dinamicos
 
 # Tenta importar serper, se falhar usa fallback
 try:
@@ -49,75 +49,215 @@ def render_status_usuario():
     pass
 
 # ============================================================
+# SIDEBAR DE CATEGORIAS DINÂMICAS
+# ============================================================
+def render_sidebar_categorias() -> str:
+    """
+    Renderiza a barra lateral com categorias dinâmicas extraídas dos dados reais.
+    Retorna a categoria selecionada pelo usuário (ou 'Todas' para sem filtro).
+    """
+    st.sidebar.markdown("## 🏷️ Filtrar por Categoria")
+    st.sidebar.caption("Categorias extraídas dos termos em alta")
+
+    # Coleta categorias de todas as fontes ativas
+    try:
+        todos_produtos = obter_produtos_dinamicos(forcar_atualizacao=False)
+        categorias_dinamicas = sorted({
+            dados.get("categoria", "Marketplace")
+            for dados in todos_produtos.values()
+            if isinstance(dados, dict) and dados.get("categoria")
+        })
+    except Exception:
+        categorias_dinamicas = []
+
+    # Complementa com categorias fixas se necessário
+    categorias_fixas = [
+        "Eletrônicos", "Moda", "Casa", "Beleza",
+        "Games", "Livros", "Brinquedos", "Saúde",
+        "Eletrodomésticos", "Veículos", "Marketplace"
+    ]
+    todas_categorias = sorted(set(categorias_dinamicas + categorias_fixas))
+    opcoes = ["Todas as Categorias"] + todas_categorias
+
+    # Contagem de produtos por categoria
+    contagem: dict = {}
+    try:
+        for dados in todos_produtos.values():
+            if isinstance(dados, dict):
+                cat = dados.get("categoria", "Marketplace")
+                contagem[cat] = contagem.get(cat, 0) + 1
+    except Exception:
+        pass
+
+    # Selectbox de categorias
+    categoria_sel = st.sidebar.selectbox(
+        "Categoria",
+        opcoes,
+        index=0,
+        key="sidebar_categoria_filtro",
+        label_visibility="collapsed",
+    )
+
+    # Exibe contagem da categoria selecionada
+    if categoria_sel != "Todas as Categorias":
+        total_cat = contagem.get(categoria_sel, 0)
+        st.sidebar.metric(
+            f"📦 {categoria_sel}",
+            f"{total_cat} produto{'s' if total_cat != 1 else ''}",
+        )
+
+    st.sidebar.markdown("---")
+
+    # Painel de status das fontes
+    st.sidebar.markdown("### 📶 Status das Fontes")
+    try:
+        from modules.mercadolivre_scraper import obter_status_cache_ml
+        status_ml = obter_status_cache_ml()
+        icone_ml = "✅" if status_ml.get("valido") else "⚠️"
+        st.sidebar.markdown(
+            f"{icone_ml} **Mercado Livre** — {status_ml.get('total', 0)} itens  \n"
+            f"<small>{status_ml.get('data_formatada', 'N/A')}</small>",
+            unsafe_allow_html=True,
+        )
+    except Exception:
+        st.sidebar.markdown("⚠️ **Mercado Livre** — indisponível")
+
+    try:
+        from modules.google_shopee_trends import obter_status_cache
+        status_geral = obter_status_cache()
+        s_google = status_geral.get("google_trends", {})
+        s_shopee = status_geral.get("shopee", {})
+        icone_g = "✅" if s_google.get("valido") else "⚠️"
+        icone_s = "✅" if s_shopee.get("valido") else "⚠️"
+        st.sidebar.markdown(
+            f"{icone_g} **Google Trends** — {s_google.get('total', 0)} itens  \n"
+            f"{icone_s} **Shopee** — {s_shopee.get('total', 0)} itens"
+        )
+    except Exception:
+        st.sidebar.markdown("⚠️ **Google/Shopee** — indisponível")
+
+    st.sidebar.markdown("---")
+
+    # Botão de atualização rápida
+    if st.sidebar.button("🔄 Atualizar Fontes", use_container_width=True, key="sidebar_btn_atualizar"):
+        with st.sidebar:
+            with st.spinner("📡 Atualizando..."):
+                try:
+                    from modules.mercadolivre_scraper import forcar_atualizacao_ml
+                    forcar_atualizacao_ml()
+                    st.success("✅ ML atualizado!")
+                except Exception as e:
+                    st.error(f"❌ Erro: {e}")
+
+    return categoria_sel if categoria_sel != "Todas as Categorias" else None
+
+
+# ============================================================
 # GRADE DE DESCOBERTA - SOMENTE TABELA
 # ============================================================
 def render_grade_descoberta():
     """
-    Renderiza a grade de descoberta de produtos em formato de tabela
+    Renderiza a grade de descoberta de produtos em formato de tabela,
+    com suporte a filtro de categoria via sidebar dinâmica.
     """
     st.markdown("## 🎯 Grade de Descoberta de Produtos")
-    st.caption("Produtos em tendência descobertos automaticamente - Análise baseada em dados do Pinterest e Google Trends")
-    
-    # Filtros removidos a pedido do usuário - Fixado em 20 itens
-    quantidade = 20
-    categoria = None
-    
+    st.caption("Produtos em tendência descobertos automaticamente — Dados reais ML, Shopee, Amazon e Google Trends")
+
+    # Sidebar de categorias dinâmicas
+    categoria_filtro = render_sidebar_categorias()
+
+    # Controles de quantidade e fonte
+    col_ctrl1, col_ctrl2, col_ctrl3 = st.columns([2, 2, 1])
+    with col_ctrl1:
+        quantidade = st.select_slider(
+            "📦 Quantidade de produtos",
+            options=[10, 15, 20, 25, 30],
+            value=20,
+            key="grade_quantidade_slider",
+        )
+    with col_ctrl2:
+        fonte_filtro = st.selectbox(
+            "📶 Filtrar por Fonte",
+            ["Todas as Fontes", "Shopee Live", "Amazon Bestsellers", "Mercado Livre Trends", "Shopee Real-Time Scraping"],
+            key="grade_fonte_filtro",
+        )
+    with col_ctrl3:
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("🔄", help="Recarregar grade", key="grade_btn_reload"):
+            st.rerun()
+
     # ============================================================
     # BUSCA PRODUTOS
     # ============================================================
     with st.spinner("🔍 Descobrindo produtos..."):
-        produtos_descobrir = descobrir_produtos_grade(categoria=categoria, quantidade=quantidade)
-    
+        produtos_descobrir = descobrir_produtos_grade(
+            categoria=categoria_filtro,
+            quantidade=quantidade if fonte_filtro == "Todas as Fontes" else quantidade * 2,
+        )
+
+    # Aplica filtro de fonte
+    if fonte_filtro != "Todas as Fontes":
+        produtos_descobrir = [
+            p for p in produtos_descobrir
+            if p.get("fonte", "") == fonte_filtro
+        ][:quantidade]
+
     if not produtos_descobrir:
-        st.info("📭 Nenhum produto encontrado na grade de descoberta.")
+        st.info("💭 Nenhum produto encontrado para os filtros selecionados.")
         return
-    
+
     # ============================================================
     # EXIBE EM TABELA
     # ============================================================
-    st.markdown(f"### 📦 {len(produtos_descobrir)} produtos descobertos")
-    
+    label_cat = f" — Categoria: **{categoria_filtro}**" if categoria_filtro else ""
+    label_fonte = f" | Fonte: **{fonte_filtro}**" if fonte_filtro != "Todas as Fontes" else ""
+    st.markdown(f"### 📦 {len(produtos_descobrir)} produtos descobertos{label_cat}{label_fonte}")
+
     # Cria DataFrame
     dados_tabela = []
     for item in produtos_descobrir:
         produto = item.get("produto", "").capitalize()
         score = item.get("score", 0)
-        categoria = item.get("categoria", "Geral").capitalize()
+        cat_item = item.get("categoria", "Geral").capitalize()
         motivo = item.get("motivo", "📊 Produto em tendência no mercado")
         indicadores = item.get("indicadores", {})
-        
-        # Status de score
-        if score >= 8:
+        fonte_item = item.get("fonte", "")
+
+        # Status de score com badge colorido
+        if score >= 9:
+            status = "🔥 Explosivo"
+        elif score >= 8:
             status = "🔥 Alta"
         elif score >= 6:
             status = "📈 Média"
         else:
             status = "📊 Baixa"
-        
+
         # Palavra-chave e hashtags
         dados_palavra = obter_palavra_chave(produto)
         palavra_chave = dados_palavra.get("palavra", f"{produto} tendência 2026")
         hashtags = dados_palavra.get("hashtags", ["#tendência", "#moda", "#2026"])[:3]
-        
+
         # Horário
         horario = indicadores.get("horario", "10h-12h") if indicadores else "10h-12h"
         intensidade = indicadores.get("porcentagem", 50) if indicadores else 50
-        
+
         dados_tabela.append({
             "Produto": produto,
-            "Categoria": categoria,
-            "Score": f"{score}/10",
+            "Categoria": cat_item,
+            "Fonte": fonte_item,
+            "Score": score,
             "Status": status,
             "Palavra-chave": palavra_chave,
             "Hashtags": " ".join(hashtags),
             "Melhor Horário": horario,
-            "Intensidade": f"{intensidade}%",
-            "Motivo": motivo[:80] + "..."
+            "Intensidade %": intensidade,
+            "Motivo": motivo[:80] + "...",
         })
-    
+
     df = pd.DataFrame(dados_tabela)
-    
-    # Exibe tabela com st.dataframe
+
+    # Exibe tabela com st.dataframe e barras de progresso
     st.dataframe(
         df,
         use_container_width=True,
@@ -125,14 +265,27 @@ def render_grade_descoberta():
         column_config={
             "Produto": st.column_config.TextColumn("Produto", width="medium"),
             "Categoria": st.column_config.TextColumn("Categoria", width="small"),
-            "Score": st.column_config.TextColumn("Score", width="small"),
+            "Fonte": st.column_config.TextColumn("Fonte", width="small"),
+            "Score": st.column_config.ProgressColumn(
+                "Score",
+                min_value=0,
+                max_value=10,
+                format="%d/10",
+                width="small",
+            ),
             "Status": st.column_config.TextColumn("Status", width="small"),
             "Palavra-chave": st.column_config.TextColumn("Palavra-chave", width="large"),
             "Hashtags": st.column_config.TextColumn("Hashtags", width="medium"),
             "Melhor Horário": st.column_config.TextColumn("Melhor Horário", width="small"),
-            "Intensidade": st.column_config.TextColumn("Intensidade", width="small"),
+            "Intensidade %": st.column_config.ProgressColumn(
+                "Intensidade",
+                min_value=0,
+                max_value=100,
+                format="%d%%",
+                width="small",
+            ),
             "Motivo": st.column_config.TextColumn("Motivo", width="large"),
-        }
+        },
     )
 
 # ============================================================
@@ -347,43 +500,151 @@ def render_dashboard():
         with col1:
             m1, m2, m3 = st.columns(3)
             with m1:
-                st.metric(label="🔥 Produto em Alta", value=top1.get("Produto", "N/A") if top1 else "N/A", delta=top1.get("Categoria", "Moda") if top1 else "N/A")
+                st.metric(
+                    label="🔥 Produto em Alta",
+                    value=top1.get("Produto", "N/A") if top1 else "N/A",
+                    delta=top1.get("Categoria", "Moda") if top1 else "N/A",
+                )
             with m2:
-                st.metric(label="📈 Crescimento Médio", value=f"{crescimento_medio:.1f}%", delta=f"{crescimento_medio - 5:.1f}%")
+                delta_crescimento = crescimento_medio - 5
+                st.metric(
+                    label="📈 Crescimento Médio",
+                    value=f"{crescimento_medio:.1f}%",
+                    delta=f"{delta_crescimento:+.1f}% vs base",
+                    delta_color="normal",
+                )
             with m3:
-                st.metric(label="🎯 Categoria em Alta", value=categoria_mais_freq, delta=evento_mais_freq)
-        
+                st.metric(
+                    label="🎯 Categoria em Alta",
+                    value=categoria_mais_freq,
+                    delta=evento_mais_freq,
+                )
+
         with col2:
             with st.container(border=True):
                 st.markdown("### 🎯 Melhor Oportunidade")
                 melhor_score = max(produtos_top, key=lambda x: x.get("Score", 0)) if produtos_top else None
                 if melhor_score:
-                    st.markdown(f"**{melhor_score.get('Produto', 'N/A')}** ⭐ **{melhor_score.get('Score', 0)}/10**")
-                    st.success(f"📈 {melhor_score.get('Crescimento', '+0%')}")
+                    cresc_val = float(
+                        melhor_score.get("Crescimento", "+0%")
+                        .replace("+", "").replace("%", "")
+                    )
+                    score_val = melhor_score.get("Score", 0)
+                    st.markdown(f"**{melhor_score.get('Produto', 'N/A')}**")
+                    st.progress(score_val / 10, text=f"⭐ Score: {score_val}/10")
+                    cor_cresc = "normal" if cresc_val >= 0 else "inverse"
+                    st.metric(
+                        label="Crescimento",
+                        value=f"{cresc_val:.1f}%",
+                        delta=f"{cresc_val - crescimento_medio:+.1f}% vs média",
+                        delta_color=cor_cresc,
+                    )
                 else:
                     st.info("📊 Aguardando dados...")
+
+        # LINHA 3: RANKING DE CRESCIMENTO PERCENTUAL (TOP 5)
+        st.markdown("---")
+        st.markdown("### 📈 Ranking de Crescimento Percentual — Top 5")
+        st.caption("Produtos com maior crescimento percentual real nas últimas 24h")
+        top5_cresc = sorted(
+            produtos_top,
+            key=lambda x: float(x.get("Crescimento", "+0%").replace("+", "").replace("%", "")),
+            reverse=True,
+        )[:5]
+        for i, prod in enumerate(top5_cresc):
+            cresc = float(prod.get("Crescimento", "+0%").replace("+", "").replace("%", ""))
+            score_p = prod.get("Score", 0)
+            nome_p = prod.get("Produto", "N/A")
+            fonte_p = prod.get("Fonte", "")
+            cat_p = prod.get("Categoria", "")
+            # Badge de posição
+            medalha = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"][i]
+            col_rank, col_bar, col_meta = st.columns([1, 5, 2])
+            with col_rank:
+                st.markdown(f"### {medalha}")
+            with col_bar:
+                progresso = min(cresc / 200.0, 1.0)  # Normaliza até 200%
+                st.progress(
+                    progresso,
+                    text=f"**{nome_p}** — {cat_p} | {fonte_p}",
+                )
+            with col_meta:
+                st.metric(
+                    label="Crescimento",
+                    value=f"+{cresc:.0f}%",
+                    delta=f"Score {score_p}/10",
+                )
     else:
         st.info("📊 Buscando dados de mercado...")
 
     st.markdown("---")
-    
+
     # ============================================================
     # GRADE DE DESCOBERTA (TABELA)
     # ============================================================
     render_grade_descoberta()
-    
+
     st.markdown("---")
-    
+
     # ===== TOP 10 =====
     st.markdown("## 🏆 Top 10 Produtos em Tendência")
     st.caption("Ranking completo baseado em score e dados de mercado")
-    
+
     top10 = gerar_top10_produtos(forcar_atualizacao=False)
     if top10:
         df_top10 = pd.DataFrame(top10)
-        colunas_top10 = ["Produto", "Fonte", "Categoria", "Evento", "Potencial", "Score", "Pins", "Crescimento", "Views TikTok", "Buscas no Mês", "Resultados ML", "Tendência"]
+        colunas_top10 = [
+            "Produto", "Fonte", "Categoria", "Evento",
+            "Potencial", "Score", "Pins", "Crescimento",
+            "Views TikTok", "Buscas no Mês", "Resultados ML", "Tendência"
+        ]
         df_top10 = df_top10[colunas_top10]
-        st.dataframe(df_top10, use_container_width=True, hide_index=True)
+
+        # Converte Score para numérico para usar ProgressColumn
+        df_top10["Score Num"] = pd.to_numeric(df_top10["Score"], errors="coerce").fillna(0)
+
+        # Extrai crescimento numérico para ProgressColumn
+        df_top10["Cresc. %"] = (
+            df_top10["Crescimento"]
+            .str.replace("+", "", regex=False)
+            .str.replace("%", "", regex=False)
+            .pipe(pd.to_numeric, errors="coerce")
+            .fillna(0)
+        )
+
+        st.dataframe(
+            df_top10,
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "Produto": st.column_config.TextColumn("Produto", width="medium"),
+                "Fonte": st.column_config.TextColumn("Fonte", width="small"),
+                "Categoria": st.column_config.TextColumn("Categoria", width="small"),
+                "Evento": st.column_config.TextColumn("Evento", width="medium"),
+                "Potencial": st.column_config.TextColumn("Potencial", width="small"),
+                "Score": st.column_config.TextColumn("Score", width="small"),
+                "Score Num": st.column_config.ProgressColumn(
+                    "⭐ Score",
+                    min_value=0,
+                    max_value=10,
+                    format="%d/10",
+                    width="small",
+                ),
+                "Pins": st.column_config.TextColumn("Pins", width="small"),
+                "Crescimento": st.column_config.TextColumn("Crescimento", width="small"),
+                "Cresc. %": st.column_config.ProgressColumn(
+                    "📈 Crescimento",
+                    min_value=0,
+                    max_value=200,
+                    format="+%d%%",
+                    width="small",
+                ),
+                "Views TikTok": st.column_config.TextColumn("Views TikTok", width="small"),
+                "Buscas no Mês": st.column_config.TextColumn("Buscas/Mês", width="small"),
+                "Resultados ML": st.column_config.TextColumn("Resultados ML", width="small"),
+                "Tendência": st.column_config.TextColumn("Tendência", width="small"),
+            },
+        )
     
     st.markdown("---")
     

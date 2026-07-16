@@ -11,7 +11,7 @@ import os
 # ============================================================
 # VERSÃO DO SISTEMA
 # ============================================================
-VERSAO_SISTEMA = "v9.2 - Real-Time Data Injection (ML/AMZ/SHP)"
+VERSAO_SISTEMA = "v9.3 - ML Real-Time Scraper + Dynamic Sidebar + Score Viz"
 
 # ============================================================
 # CONFIGURAÇÃO DE LOGGING

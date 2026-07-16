@@ -521,7 +521,16 @@ def gerar_top10_produtos(forcar_atualizacao: bool = False) -> List[Dict]:
         palavra_chave = dados_palavra.get("palavra", f"{produto}")
         
         fonte_bruta = dados.get("fonte", "shopee")
-        fonte_display = "Google" if fonte_bruta == "serper" else "Shopee"
+        # Mapeamento completo de fontes para exibição
+        _mapa_fontes = {
+            "serper": "Google",
+            "Shopee Live": "Shopee Live",
+            "Shopee Real-Time Scraping": "Shopee",
+            "Amazon Bestsellers": "Amazon",
+            "Mercado Livre Trends": "Mercado Livre",
+            "Mercado Livre Trends (Real)": "Mercado Livre ✅",
+        }
+        fonte_display = _mapa_fontes.get(fonte_bruta, fonte_bruta if fonte_bruta else "Shopee")
         
         resultados.append({
             "Produto": produto.capitalize(),
