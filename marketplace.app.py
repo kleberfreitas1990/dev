@@ -11,7 +11,7 @@ import os
 # ============================================================
 # VERSÃO DO SISTEMA
 # ============================================================
-VERSAO_SISTEMA = "v7.9 - TikTok Download Fix"
+VERSAO_SISTEMA = "v8.0 - High Performance Processing"
 
 # ============================================================
 # CONFIGURAÇÃO DE LOGGING

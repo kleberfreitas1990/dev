@@ -148,9 +148,11 @@ def construir_comando_ffmpeg(
         "-c:v",
         "libx264",
         "-preset",
-        "medium",
+        "ultrafast",  # Máxima velocidade de processamento
         "-crf",
-        "23",
+        "28",         # Ligeiro aumento para compensar o preset rápido e manter fluidez
+        "-threads",
+        "0",          # Usar todas as threads disponíveis do CPU
         "-pix_fmt",
         "yuv420p",
         "-c:a",
