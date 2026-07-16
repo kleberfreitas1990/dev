@@ -11,7 +11,7 @@ import os
 # ============================================================
 # VERSÃO DO SISTEMA
 # ============================================================
-VERSAO_SISTEMA = "v8.6 - Turbo Download Engine"
+VERSAO_SISTEMA = "v8.7 - Stealth Download Fix"
 
 # ============================================================
 # CONFIGURAÇÃO DE LOGGING

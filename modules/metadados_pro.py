@@ -87,23 +87,21 @@ def baixar_video_yt_dlp(url: str, output_path: str) -> bool:
             "no_warnings": True,
             "noprogress": True,
             "no_color": True,
-            "socket_timeout": 30,
+            "socket_timeout": 60,
             "retries": 10,
-            "external_downloader": "aria2c", # Usar aria2c para download multi-threaded
-            "external_downloader_args": [
-                "--min-split-size=1M",
-                "--max-connection-per-server=16",
-                "--split=16",
-                "--max-overall-download-limit=0",
-            ],
+            # Removido aria2c para evitar bloqueios de IP agressivos
             "http_headers": {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
-                "Accept-Language": "en-US,en;q=0.9",
-                "Sec-Fetch-Mode": "navigate",
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+                "Accept": "*/*",
+                "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
+                "Referer": "https://www.tiktok.com/",
+                "Origin": "https://www.tiktok.com/",
             },
-            # Tentar extrair cookies do browser se possível (comum em ambientes locais)
-            # "cookiesfrombrowser": ("chrome",), 
+            "extractor_args": {
+                "tiktok": {
+                    "web_impersonate": "chrome", # Tentar simular Chrome via web
+                }
+            }
         }
         with yt_dlp.YoutubeDL(opcoes) as ydl:
             ydl.download([url])
