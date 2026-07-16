@@ -11,7 +11,7 @@ import os
 # ============================================================
 # VERSÃO DO SISTEMA
 # ============================================================
-VERSAO_SISTEMA = "v9.1 - Auto Grid Sync + Hardware Mimicry"
+VERSAO_SISTEMA = "v9.2 - Real-Time Data Injection (ML/AMZ/SHP)"
 
 # ============================================================
 # CONFIGURAÇÃO DE LOGGING
