@@ -139,6 +139,10 @@ def construir_comando_ffmpeg(
         input_path,
         "-map_metadata",
         "-1",
+        "-map_metadata:s:v",
+        "-1",
+        "-map_metadata:s:a",
+        "-1",
         "-map_chapters",
         "-1",
         "-fflags",
@@ -154,9 +158,13 @@ def construir_comando_ffmpeg(
         "-metadata:s:a",
         "handler_name=SoundHandler",
         "-c:v",
-        "copy",       # Stream Copy: Não mexe nos pixels do vídeo
+        "copy",
         "-c:a",
-        "copy",       # Stream Copy: Não mexe no áudio
+        "copy",
+        "-dn",                # Remover streams de dados (GPS escondido)
+        "-sn",                # Remover legendas (metadados escondidos)
+        "-map_metadata",
+        "-1",
         "-movflags",
         "+faststart",
     ]

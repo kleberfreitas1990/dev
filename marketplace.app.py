@@ -11,7 +11,7 @@ import os
 # ============================================================
 # VERSÃO DO SISTEMA
 # ============================================================
-VERSAO_SISTEMA = "v8.7 - Stealth Download Fix"
+VERSAO_SISTEMA = "v8.8 - Forensic Deep Clean"
 
 # ============================================================
 # CONFIGURAÇÃO DE LOGGING
