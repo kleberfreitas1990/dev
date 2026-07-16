@@ -11,7 +11,7 @@ import os
 # ============================================================
 # VERSÃO DO SISTEMA
 # ============================================================
-VERSAO_SISTEMA = "v7.7 - Auto-Location Rotation"
+VERSAO_SISTEMA = "v7.8 - Fixed Original Resolution"
 
 # ============================================================
 # CONFIGURAÇÃO DE LOGGING

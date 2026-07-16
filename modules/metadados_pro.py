@@ -348,14 +348,10 @@ def render_metadados_pro():
         st.info("Forneça um vídeo. O processamento só começa quando clicar no botão de limpeza.")
         return
 
-    coluna_resolucao, coluna_gps = st.columns(2)
-    with coluna_resolucao:
-        resolucao_nome = st.selectbox(
-            "Resolução de saída",
-            options=list(RESOLUCOES_SAIDA),
-            key="metadata_pro_resolucao",
-        )
-        resolucao_alvo = RESOLUCOES_SAIDA[resolucao_nome]
+    coluna_info, coluna_gps = st.columns(2)
+    with coluna_info:
+        st.info("📺 Resolução: **Proporção Original**")
+        resolucao_alvo = None  # Fixado em manter proporções original
 
     with coluna_gps:
         usar_gps = st.checkbox(
@@ -381,7 +377,7 @@ def render_metadados_pro():
     )
     assinatura_entrada = (
         identidade_fonte,
-        resolucao_alvo,
+        "original", # Resolução agora é sempre original
         usar_gps,
         st.session_state.get("metadata_pro_localizacao_fixa") if usar_gps else None,
     )
