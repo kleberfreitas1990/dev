@@ -11,7 +11,7 @@ import os
 # ============================================================
 # VERSÃO DO SISTEMA
 # ============================================================
-VERSAO_SISTEMA = "v8.0 - High Performance Processing"
+VERSAO_SISTEMA = "v8.1 - Fast Download Strategy"
 
 # ============================================================
 # CONFIGURAÇÃO DE LOGGING
