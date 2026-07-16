@@ -11,7 +11,7 @@ import os
 # ============================================================
 # VERSÃO DO SISTEMA
 # ============================================================
-VERSAO_SISTEMA = "v9.4.4 - Top 10 Dinâmico + Bugfix Import"
+VERSAO_SISTEMA = "v9.5 - Histórico de Tendências"
 
 # ============================================================
 # CONFIGURAÇÃO DE LOGGING
@@ -99,6 +99,7 @@ from modules.calendar import render_calendar
 
 # Importa módulo Metadata Pro
 from modules.metadados_pro import render_metadados_pro
+from modules.historico_tendencias import render_historico_tendencias
 
 # ============================================================
 # LOGIN E AUTENTICAÇÃO
@@ -129,10 +130,11 @@ st.markdown("---")
 # ============================================================
 # TABS (REORGANIZADAS: Metadata Pro em 2º lugar)
 # ============================================================
-tab1, tab_meta, tab_auto, tab_new, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs([
+tab1, tab_meta, tab_auto, tab_hist, tab_new, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs([
     "📊 Dashboard",
     "🎬 Metadata Pro",       # Movido para 2º lugar
     "🔄 Atualização Auto",
+    "📈 Histórico",
     "🔥 Top 20 Google",
     "📌 Sugestões de Produtos",
     "📅 Calendário de Conteúdo",
@@ -168,7 +170,13 @@ with tab_auto:
     render_painel_atualizacao_automatica()
 
 # ============================================================
-# TAB 4: TOP 20 GOOGLE TRENDS + SHOPEE LIVE
+# TAB 4: HISTÓRICO DE TENDÊNCIAS
+# ============================================================
+with tab_hist:
+    render_historico_tendencias()
+
+# ============================================================
+# TAB 5: TOP 20 GOOGLE TRENDS + SHOPEE LIVE
 # ============================================================
 with tab_new:
     st.markdown("## 🔥 Top 20 Google Trends & Shopee")

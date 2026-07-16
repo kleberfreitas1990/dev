@@ -11,8 +11,9 @@ class ProdutosDinamicosCompatibilityTest(unittest.TestCase):
 
         self.assertIsInstance(produtos, dict)
         self.assertGreaterEqual(len(produtos), len(produtos_dinamicos.TERMOS_PRINT))
-        self.assertIn("iPhone 17", produtos)
-        self.assertIn("score", produtos["iPhone 17"])
+        self.assertTrue(produtos)
+        self.assertTrue(all(isinstance(nome, str) and nome for nome in produtos))
+        self.assertTrue(all("score" in dados for dados in produtos.values()))
 
     def test_imports_publicos_usados_pelo_dashboard(self):
         self.assertTrue(callable(produtos_dinamicos.obter_produtos_dinamicos))

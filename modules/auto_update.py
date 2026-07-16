@@ -110,6 +110,27 @@ def executar_atualizacao_google_shopee(forcar: bool = False, intervalo_horas: in
             "produtos": len(produtos),
         }
 
+        # v9.5: registra um snapshot idempotente do Top 10 após a atualização.
+        # Uma falha no histórico não deve invalidar a atualização das fontes.
+        try:
+            from modules.models import gerar_top10_produtos
+            from modules.historico_tendencias import registrar_ciclo
+
+            top10 = gerar_top10_produtos(forcar_atualizacao=False)
+            resultado_historico = registrar_ciclo(top10, origem="atualizacao_automatica")
+            resultado["historico"] = {
+                "registrado": resultado_historico.get("registrado", False),
+                "ciclo_id": resultado_historico.get("ciclo_id"),
+                "motivo": resultado_historico.get("motivo"),
+            }
+        except Exception as erro_historico:
+            logger.warning("Falha ao registrar histórico de tendências: %s", erro_historico)
+            resultado["historico"] = {
+                "registrado": False,
+                "motivo": "erro",
+                "erro": str(erro_historico),
+            }
+
         st.session_state["ultima_atualizacao_google_shopee"] = datetime.now()
         st.session_state["ultimo_resultado_auto"] = resultado
 

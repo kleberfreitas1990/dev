@@ -20,6 +20,9 @@ auto_update_historico.json
 serper_cache.json
 serper_contador.json
 shopee_trends_cache.json
+historico_tendencias.db
+historico_tendencias.db-wal
+historico_tendencias.db-shm
 
 # Logs
 *.log
