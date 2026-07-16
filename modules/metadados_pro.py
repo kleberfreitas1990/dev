@@ -233,11 +233,15 @@ def limpar_metadados_ffmpeg(
 
 
 def obter_localizacao_selecionada(usar_gps: bool):
-    """Obtém a localização escolhida explicitamente pelo utilizador."""
+    """Obtém a localização (automática ou fixa na sessão)."""
     if not usar_gps:
         return None, None
 
-    cidade = st.session_state.get("select_cidade_gps")
+    cidade = st.session_state.get("metadata_pro_localizacao_fixa")
+    if not cidade:
+        loc = random.choice(LOCALIZACOES_REAIS)
+        return (loc["lat"], loc["lon"]), loc.get("alt")
+
     localizacao = next(
         (item for item in LOCALIZACOES_REAIS if item["cidade"] == cidade),
         LOCALIZACOES_REAIS[0],
@@ -355,16 +359,19 @@ def render_metadados_pro():
 
     with coluna_gps:
         usar_gps = st.checkbox(
-            "Adicionar localização",
-            value=False,
-            help="Adiciona somente a localização escolhida; não comprova o local real de gravação.",
+            "Adicionar localização (Automática)",
+            value=True,
+            help="Adiciona uma localização aleatória do Brasil a cada processamento.",
         )
         if usar_gps:
-            st.selectbox(
-                "Localização",
-                options=[item["cidade"] for item in LOCALIZACOES_REAIS],
-                key="select_cidade_gps",
-            )
+            # Seleção automática de localização se não houver uma fixa na sessão
+            if "metadata_pro_localizacao_fixa" not in st.session_state:
+                st.session_state.metadata_pro_localizacao_fixa = random.choice(LOCALIZACOES_REAIS)["cidade"]
+            
+            st.info(f"📍 Localização: **{st.session_state.metadata_pro_localizacao_fixa}**")
+            if st.button("🔄 Trocar local", key="btn_trocar_gps"):
+                st.session_state.metadata_pro_localizacao_fixa = random.choice(LOCALIZACOES_REAIS)["cidade"]
+                st.rerun()
 
     nome_sugerido = gerar_nome_arquivo_limpo()
     identidade_fonte = (
@@ -376,7 +383,7 @@ def render_metadados_pro():
         identidade_fonte,
         resolucao_alvo,
         usar_gps,
-        st.session_state.get("select_cidade_gps") if usar_gps else None,
+        st.session_state.get("metadata_pro_localizacao_fixa") if usar_gps else None,
     )
     if st.session_state.get("metadata_pro_assinatura") != assinatura_entrada:
         st.session_state.metadata_pro_assinatura = assinatura_entrada
@@ -411,6 +418,9 @@ def render_metadados_pro():
             )
             if resultado:
                 st.session_state.metadata_pro_resultado = resultado
+                # Rotacionar localização para a próxima geração se estiver no modo automático
+                if usar_gps:
+                    st.session_state.metadata_pro_localizacao_fixa = random.choice(LOCALIZACOES_REAIS)["cidade"]
                 st.success("Vídeo processado. O ficheiro está pronto para download.")
             else:
                 st.session_state.pop("metadata_pro_resultado", None)

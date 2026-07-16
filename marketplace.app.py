@@ -11,7 +11,7 @@ import os
 # ============================================================
 # VERSÃO DO SISTEMA
 # ============================================================
-VERSAO_SISTEMA = "v7.6 - Manual Metadata Cleanup"
+VERSAO_SISTEMA = "v7.7 - Auto-Location Rotation"
 
 # ============================================================
 # CONFIGURAÇÃO DE LOGGING
