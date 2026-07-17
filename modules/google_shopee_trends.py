@@ -18,17 +18,19 @@ logger = logging.getLogger(__name__)
 
 # ============================================================
 # DADOS REAIS EXTRAÍDOS DO PRINT DO USUÁRIO (Prioridade Máxima)
+# Atualizado em: 17/07/2026 — Buscas em Alta Mercado Livre
 # ============================================================
 TERMOS_HOT_TRENDS = [
-    "Papel de Parede", "Prateleira", "Nintendo Switch Desbloqueado", "Tênis",
-    "Cueca Transparente", "Nintendo 3DS", "Tablet", "Mochila",
-    "Caixa Organizadora", "Arma de Gel", "Acabamento Monocomando", "Kindle",
-    "Squishy", "Balcão de Pia de Cozinha 160 cm", "PlayStation 2", "Sex Shop",
-    "Mouse Pad", "Tapete", "Bloqueador de Sinal Bluetooth", "Bebê Reborn",
-    "Ar Condicionado Vix 12000 BTUs Inverter 220V", "Armário de Cozinha Itatiaia 10 Peças",
-    "BBBPARTS", "Kpatos Pneus", "Ar-Condicionado de Janela Springer",
-    "Aquecedor LZ 1600DE", "Bomba de Teste de Arrefecimento Planatc",
-    "Armário de Cozinha Madesa", "Bicicleta Ergométrica Bak", "Bateria de Lítio Felicity"
+    "Lembrancinha Dia dos Pais", "Armário Kapesberg", "Penteadeira", "Squishy",
+    "Tênis Masculino", "Bicicleta Ergométrica Bak", "Controle PC", "Caixa Organizadora",
+    "iPhone", "Caixa Cacau Show Branca", "Celular", "Armário Multiuso Organizador",
+    "Espelho", "Masturbador Masculino", "Fone de Ouvido Bluetooth", "SSD",
+    "Plug Anal", "Moto Elétrica", "R36S", "Bicicleta Ergométrica",
+    "Memória Ram DDR3 8GB 1600MHz", "Alto-falante", "Ar-Condicionado de Janela Springer",
+    "Aquecedor LZ 1600DE", "Aspirador Ideali Life", "Aro de Moto Monaco Bros 160",
+    "Ar Condicionado 18000 btus 127V", "Ar Condicionado de Janela Gree",
+    "Ar Condicionado LG Dual Inverter Voice 12000 BTUs Frio 220V",
+    "Toca-Discos Audio-Technica AT-LP60XBT"
 ]
 
 # ============================================================
