@@ -101,3 +101,4 @@ if __name__ == "__main__":
     with open(caminho_saida, "w", encoding="utf-8") as f:
         json.dump(dados, f, ensure_ascii=False, indent=2)
     print(f"✅ Finalizado com {len(dados)} produtos.")
+# Force update 18/07/2026 12:15
