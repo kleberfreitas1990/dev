@@ -12,12 +12,12 @@ jobs:
       contents: write # Permite que o bot faça push de volta ao repositório
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.11'
 
       - name: Install dependencies
         run: |
@@ -51,6 +51,6 @@ jobs:
         run: |
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
-          git add modules/produtos_dinamicos.py modules/mercadolivre_scraper.py ml_trends_cache.json shopee_trends.json amazon_trends.json modules/grade_descoberta.py
-          git commit -m "auto: v9.3 — Atualização ML Real-Time + Shopee + Amazon Trends" || exit 0
+          git add modules/produtos_dinamicos.py modules/mercadolivre_scraper.py modules/google_shopee_trends.py ml_trends_cache.json shopee_trends.json amazon_trends.json shopee_live_cache.json
+          git commit -m "auto: v9.8 — Atualização Multi-Fonte (ML + Shopee + Amazon)" || exit 0
           git push
