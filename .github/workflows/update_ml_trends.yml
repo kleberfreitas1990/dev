@@ -21,7 +21,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install requests beautifulsoup4 selenium webdriver-manager
+          pip install --upgrade requests beautifulsoup4 selenium
 
       - name: Install Chrome
         run: |
@@ -47,10 +47,16 @@ jobs:
       - name: Run Amazon Scraping script
         run: python scraping_amazon.py
 
+      - name: Verify refreshed source files
+        run: |
+          test -s ml_trends_cache.json
+          test -s shopee_trends.json
+          test -s amazon_trends.json
+
       - name: Commit and push changes
         run: |
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
-          git add modules/produtos_dinamicos.py modules/mercadolivre_scraper.py modules/google_shopee_trends.py ml_trends_cache.json shopee_trends.json amazon_trends.json shopee_live_cache.json
+          git add .github/workflows/update_ml_trends.yml atualizar_ml_trends.py modules/produtos_dinamicos.py modules/mercadolivre_scraper.py modules/google_shopee_trends.py modules/amazon_scraper.py scraping_shopee_v2.py scraping_amazon.py ml_trends_cache.json shopee_trends.json amazon_trends.json shopee_live_cache.json
           git commit -m "auto: v9.8 — Atualização Multi-Fonte (ML + Shopee + Amazon)" || exit 0
           git push

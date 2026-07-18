@@ -62,20 +62,31 @@ def _inferir_categoria(nome: str) -> str:
             return cat
     return "Geral"
 
+
+def _carregar_cache_amazon() -> Dict[str, Any]:
+    """Lê o último cache íntegro para evitar regressão de dados em falhas transitórias."""
+    if not os.path.exists(CAMINHO_CACHE_AMAZON):
+        return {}
+    try:
+        with open(CAMINHO_CACHE_AMAZON, "r", encoding="utf-8") as arquivo:
+            cache = json.load(arquivo)
+        return cache if isinstance(cache, dict) else {}
+    except (OSError, json.JSONDecodeError, TypeError):
+        return {}
+
 def capturar_bestsellers_amazon(forcar: bool = False) -> Dict[str, Any]:
     """
     Captura os produtos mais vendidos da Amazon Brasil.
     """
-    if not forcar and os.path.exists(CAMINHO_CACHE_AMAZON):
+    cache_anterior = _carregar_cache_amazon()
+    if not forcar and cache_anterior:
         try:
-            with open(CAMINHO_CACHE_AMAZON, "r", encoding="utf-8") as f:
-                cache = json.load(f)
-                # Verifica se o cache é recente (baseado no timestamp se existir, ou data de modificação)
-                mtime = os.path.getmtime(CAMINHO_CACHE_AMAZON)
-                if time.time() - mtime < VALIDADE_CACHE_HORAS * 3600:
-                    logger.info("Usando cache Amazon recente.")
-                    return cache
-        except Exception:
+            # Verifica se o cache é recente pela data de modificação.
+            mtime = os.path.getmtime(CAMINHO_CACHE_AMAZON)
+            if time.time() - mtime < VALIDADE_CACHE_HORAS * 3600:
+                logger.info("Usando cache Amazon recente.")
+                return cache_anterior
+        except OSError:
             pass
 
     logger.info("Iniciando raspagem real da Amazon Brasil Bestsellers...")
@@ -136,7 +147,12 @@ def capturar_bestsellers_amazon(forcar: bool = False) -> Dict[str, Any]:
     except Exception as e:
         logger.error(f"Falha crítica na raspagem Amazon: {e}")
     
-    # Fallback Curado v9.4 (Julho 2026) se a raspagem real falhar
+    # Em falhas transitórias, preserva um cache existente em vez de regredir a dados estáticos.
+    if not produtos_dict and cache_anterior:
+        logger.warning("Amazon indisponível; mantendo %d produtos do último cache íntegro.", len(cache_anterior))
+        return cache_anterior
+
+    # Fallback Curado v9.4 (Julho 2026) apenas quando ainda não existe cache aproveitável.
     if not produtos_dict:
         logger.info("Usando fallback curado Amazon v9.4")
         termos_fallback = [
