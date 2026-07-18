@@ -8,10 +8,40 @@ from typing import Any, Dict
 logger = logging.getLogger(__name__)
 
 # ============================================================
-# TERMOS REAIS DO MERCADO LIVRE (Extraídos via automação)
-# Atualizado em: 17/07/2026 — Buscas em Alta Mercado Livre
+# TERMOS REAIS DO MERCADO LIVRE & SHOPEE (Extraídos via automação)
+# Atualizado em: 18/07/2026 — Buscas em Alta Shopee + ML
 # ============================================================
 TERMOS_PRINT = [
+    "Balcão de Pia de Cozinha 160 cm",
+    "Escova Progressiva Everk",
+    "Ar-Condicionado de Janela Springer",
+    "Luminária",
+    "Sex Shop",
+    "Sacola Personalizada",
+    "Boneca Sexual",
+    "PlayStation 3",
+    "Teclado",
+    "Nintendo Switch Desbloqueado",
+    "Biquíni",
+    "PlayStation 2",
+    "Caixa de Som",
+    "Escrivaninha",
+    "Poltrona",
+    "Lembrancinha Dia dos Pais",
+    "Fone de Ouvido Bluetooth",
+    "Chopeira",
+    "Sofá",
+    "Bicicleta",
+    "Capa de Banco de Carro",
+    "Caixa de Som Pulse 1000W",
+    "Celular Xiaomi Redmi Note 14",
+    "Celular Samsung Galaxy A5",
+    "Celular Homem de Ferro",
+    "Celular Poco X7 Pro 256GB",
+    "Carbureteira",
+    "Carabina 6,35 mm Chumbo",
+    "Capa de Piscina Mor 7200L",
+    "Celular Xiaomi Três Câmeras",
     "Lembrancinha Dia dos Pais",
     "Armário Kapesberg",
     "Penteadeira",
@@ -45,23 +75,26 @@ TERMOS_PRINT = [
 ]
 
 TERMOS_ML = [
-    "Tênis feminino",
-    "Guarda roupa casal",
-    "Fone de ouvido bluetooth",
-    "iPhone 16",
-    "Torneira cozinha",
-    "Jogo de panela",
-    "Cama box casal",
-    "Vaso vietnamita",
-    "SSD de 1TB",
-    "Smartphone Samsung Galaxy",
-    "Liquidificador",
-    "Starlink",
-    "Creatina Growth",
-    "PS5",
-    "Moto elétrica para adultos",
-    "Xiaomi Poco X5 Pro",
-    "Karseell",
+    "Acessórios para Celulares",
+    "Peças para Celular",
+    "Componentes para PC",
+    "Impressão",
+    "Acessórios para Notebook",
+    "Conectividade e Redes",
+    "Software",
+    "Computadores",
+    "Tablets e Acessórios",
+    "Acessórios para Câmeras",
+    "Câmeras",
+    "Filmadoras",
+    "Acessórios para Áudio e Vídeo",
+    "Áudio Portátil e Acessórios",
+    "Componentes Eletrônicos",
+    "Equipamento para DJs",
+    "Som Automotivo",
+    "Drones e Acessórios",
+    "Acessórios para TV",
+    "Fones de Ouvido",
 ]
 
 # ============================================================

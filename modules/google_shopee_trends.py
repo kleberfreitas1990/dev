@@ -18,9 +18,18 @@ logger = logging.getLogger(__name__)
 
 # ============================================================
 # DADOS REAIS EXTRAÍDOS DO PRINT DO USUÁRIO (Prioridade Máxima)
-# Atualizado em: 17/07/2026 — Buscas em Alta Mercado Livre
+# Atualizado em: 18/07/2026 — Buscas em Alta Shopee + ML
 # ============================================================
 TERMOS_HOT_TRENDS = [
+    # Buscas em Alta — Mercado Livre & Shopee (atualizado 18/07/2026)
+    "Balcão de Pia de Cozinha 160 cm", "Escova Progressiva Everk", "Ar-Condicionado de Janela Springer",
+    "Luminária", "Sex Shop", "Sacola Personalizada", "Boneca Sexual", "PlayStation 3",
+    "Teclado", "Nintendo Switch Desbloqueado", "Biquíni", "PlayStation 2", "Caixa de Som",
+    "Escrivaninha", "Poltrona", "Lembrancinha Dia dos Pais", "Fone de Ouvido Bluetooth",
+    "Chopeira", "Sofá", "Bicicleta", "Capa de Banco de Carro", "Caixa de Som Pulse 1000W",
+    "Celular Xiaomi Redmi Note 14", "Celular Samsung Galaxy A5", "Celular Homem de Ferro",
+    "Celular Poco X7 Pro 256GB", "Carbureteira", "Carabina 6,35 mm Chumbo",
+    "Capa de Piscina Mor 7200L", "Celular Xiaomi Três Câmeras",
     "Lembrancinha Dia dos Pais", "Armário Kapesberg", "Penteadeira", "Squishy",
     "Tênis Masculino", "Bicicleta Ergométrica Bak", "Controle PC", "Caixa Organizadora",
     "iPhone", "Caixa Cacau Show Branca", "Celular", "Armário Multiuso Organizador",
