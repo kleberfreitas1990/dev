@@ -1,3 +1,4 @@
+import math
 import streamlit as st
 import pandas as pd
 import random
@@ -40,6 +41,23 @@ except ImportError:
     SERPER_DISPONIVEL = False
     def buscar_produtos_serper(termo, limite=5):
         return []
+
+def _normalizar_score_exibicao(valor) -> float:
+    """Converte pontuações externas para a escala segura de 0 a 10."""
+    try:
+        score = float(valor)
+    except (TypeError, ValueError):
+        return 0.0
+
+    if not math.isfinite(score):
+        return 0.0
+    return max(0.0, min(score, 10.0))
+
+
+def _formatar_score(score: float) -> str:
+    """Exibe inteiros sem casas decimais, mantendo precisão quando necessária."""
+    return f"{score:g}"
+
 
 # ============================================================
 # STATUS DO USUÁRIO (REMOVIDO)
@@ -227,7 +245,7 @@ def render_grade_descoberta(key_suffix: str = "main"):
     dados_tabela = []
     for item in produtos_descobrir:
         produto = item.get("produto", "").capitalize()
-        score = item.get("score", 0)
+        score = _normalizar_score_exibicao(item.get("score", 0))
         cat_item = item.get("categoria", "Geral").capitalize()
         motivo = item.get("motivo", "📊 Produto em tendência no mercado")
         indicadores = item.get("indicadores", {})
@@ -477,7 +495,7 @@ def render_dashboard():
         item["Crescimento"] = f"+{dados.get('crescimento', 0)}%"
         item["Categoria"] = dados.get("categoria", "Geral")
         item["Evento"] = dados.get("evento", "Tendência")
-        item["Score"] = dados.get("score", 0)
+        item["Score"] = _normalizar_score_exibicao(dados.get("score", 0))
         item["Fonte"] = dados.get("fonte", "Shopee")
         produtos_top.append(item)
     
@@ -551,9 +569,12 @@ def render_dashboard():
                         melhor_score.get("Crescimento", "+0%")
                         .replace("+", "").replace("%", "")
                     )
-                    score_val = melhor_score.get("Score", 0)
+                    score_val = _normalizar_score_exibicao(melhor_score.get("Score", 0))
                     st.markdown(f"**{melhor_score.get('Produto', 'N/A')}**")
-                    st.progress(score_val / 10, text=f"⭐ Score: {score_val}/10")
+                    st.progress(
+                        score_val / 10.0,
+                        text=f"⭐ Score: {_formatar_score(score_val)}/10",
+                    )
                     cor_cresc = "normal" if cresc_val >= 0 else "inverse"
                     st.metric(
                         label="Crescimento",
@@ -586,7 +607,7 @@ def render_dashboard():
                 with st.container(border=True):
                     st.markdown(f"**{medalha} {nome_p[:15]}...**")
                     st.metric("Crescimento", f"+{cresc:.0f}%", delta=f"⭐ {score_p}")
-                    st.progress(min(cresc / 200.0, 1.0))
+                    st.progress(max(0.0, min(cresc / 200.0, 1.0)))
     else:
         st.info("📊 Buscando dados de mercado...")
 
@@ -615,7 +636,11 @@ def render_dashboard():
         df_top10 = df_top10[colunas_top10]
 
         # Converte Score para numérico para usar ProgressColumn
-        df_top10["Score Num"] = pd.to_numeric(df_top10["Score"], errors="coerce").fillna(0)
+        df_top10["Score Num"] = (
+            pd.to_numeric(df_top10["Score"], errors="coerce")
+            .fillna(0)
+            .clip(lower=0, upper=10)
+        )
 
         # Extrai crescimento numérico para ProgressColumn
         df_top10["Cresc. %"] = (
