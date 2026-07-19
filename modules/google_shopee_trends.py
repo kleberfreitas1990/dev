@@ -21,25 +21,19 @@ logger = logging.getLogger(__name__)
 # Atualizado em: 18/07/2026 — Buscas em Alta Shopee + ML
 # ============================================================
 TERMOS_HOT_TRENDS = [
-    # Buscas em Alta — Mercado Livre & Shopee (atualizado 18/07/2026)
-    "Balcão de Pia de Cozinha 160 cm", "Escova Progressiva Everk", "Ar-Condicionado de Janela Springer",
-    "Luminária", "Sex Shop", "Sacola Personalizada", "Boneca Sexual", "PlayStation 3",
-    "Teclado", "Nintendo Switch Desbloqueado", "Biquíni", "PlayStation 2", "Caixa de Som",
-    "Escrivaninha", "Poltrona", "Lembrancinha Dia dos Pais", "Fone de Ouvido Bluetooth",
-    "Chopeira", "Sofá", "Bicicleta", "Capa de Banco de Carro", "Caixa de Som Pulse 1000W",
-    "Celular Xiaomi Redmi Note 14", "Celular Samsung Galaxy A5", "Celular Homem de Ferro",
-    "Celular Poco X7 Pro 256GB", "Carbureteira", "Carabina 6,35 mm Chumbo",
-    "Capa de Piscina Mor 7200L", "Celular Xiaomi Três Câmeras",
-    "Lembrancinha Dia dos Pais", "Armário Kapesberg", "Penteadeira", "Squishy",
-    "Tênis Masculino", "Bicicleta Ergométrica Bak", "Controle PC", "Caixa Organizadora",
-    "iPhone", "Caixa Cacau Show Branca", "Celular", "Armário Multiuso Organizador",
-    "Espelho", "Masturbador Masculino", "Fone de Ouvido Bluetooth", "SSD",
-    "Plug Anal", "Moto Elétrica", "R36S", "Bicicleta Ergométrica",
-    "Memória Ram DDR3 8GB 1600MHz", "Alto-falante", "Ar-Condicionado de Janela Springer",
-    "Aquecedor LZ 1600DE", "Aspirador Ideali Life", "Aro de Moto Monaco Bros 160",
-    "Ar Condicionado 18000 btus 127V", "Ar Condicionado de Janela Gree",
-    "Ar Condicionado LG Dual Inverter Voice 12000 BTUs Frio 220V",
-    "Toca-Discos Audio-Technica AT-LP60XBT"
+    # Buscas em Alta Shopee — Atualizado em Tempo Real (18/07/2026)
+    "Controle PS4", "Nintendo Switch Desbloqueado", "Café Orfeu 1Kg", "Espelho",
+    "Impressora 3D", "Sapateira", "Armário Kapesberg", "PC Gamer", "Capinha iPhone 16",
+    "Photocard", "Aquecedor LZ 1600DE", "Nintendo 3DS", "Fone de Ouvido", "Plug Anal",
+    "Sofá", "Decoração", "Moto Elétrica Scooter", "Lembrancinha Dia dos Pais",
+    "Poltrona", "Projetor", "Celular iPhone Novo", "Power Bank Pineng",
+    "Câmera Babá Eletrônica Tarktark", "Carro Infantil Elétrico",
+    "Carro Infantil Elétrico Jipe", "Celular Xiaomi 1T", "Celular Resistente",
+    "Carenagem de Moto Factor 150", "Capinha de Celular", "Celular Xiaomi M7 Pro",
+    # Complementares ML & Google (Julho 2026)
+    "Balcão de Pia de Cozinha 160 cm", "Escova Progressiva Everk",
+    "Ar-Condicionado de Janela Springer", "Sacola Personalizada", "Teclado",
+    "Biquíni", "Caixa de Som", "Escrivaninha", "Chopeira",
 ]
 
 # ============================================================

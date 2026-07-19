@@ -1,0 +1,357 @@
+{
+  "timestamp": "2026-07-19T08:27:44.831140",
+  "data": "2026-07-19",
+  "dados": [
+    {
+      "termo": "Controle PS4",
+      "interesse": 100,
+      "interesse_atual": 98,
+      "variacao": "+231%",
+      "categoria": "Buscas em Alta (Live)",
+      "fonte": "Google Trends (Hot)",
+      "atualizado": "19/07/2026 08:27"
+    },
+    {
+      "termo": "Nintendo Switch Desbloqueado",
+      "interesse": 98,
+      "interesse_atual": 94,
+      "variacao": "+294%",
+      "categoria": "Buscas em Alta (Live)",
+      "fonte": "Google Trends (Hot)",
+      "atualizado": "19/07/2026 08:27"
+    },
+    {
+      "termo": "Café Orfeu 1Kg",
+      "interesse": 93,
+      "interesse_atual": 98,
+      "variacao": "+483%",
+      "categoria": "Buscas em Alta (Live)",
+      "fonte": "Google Trends (Hot)",
+      "atualizado": "19/07/2026 08:27"
+    },
+    {
+      "termo": "Espelho",
+      "interesse": 93,
+      "interesse_atual": 90,
+      "variacao": "+643%",
+      "categoria": "Buscas em Alta (Live)",
+      "fonte": "Google Trends (Hot)",
+      "atualizado": "19/07/2026 08:27"
+    },
+    {
+      "termo": "Impressora 3D",
+      "interesse": 93,
+      "interesse_atual": 94,
+      "variacao": "+733%",
+      "categoria": "Buscas em Alta (Live)",
+      "fonte": "Google Trends (Hot)",
+      "atualizado": "19/07/2026 08:27"
+    },
+    {
+      "termo": "Sapateira",
+      "interesse": 86,
+      "interesse_atual": 95,
+      "variacao": "+472%",
+      "categoria": "Buscas em Alta (Live)",
+      "fonte": "Google Trends (Hot)",
+      "atualizado": "19/07/2026 08:27"
+    },
+    {
+      "termo": "Armário Kapesberg",
+      "interesse": 88,
+      "interesse_atual": 94,
+      "variacao": "+407%",
+      "categoria": "Buscas em Alta (Live)",
+      "fonte": "Google Trends (Hot)",
+      "atualizado": "19/07/2026 08:27"
+    },
+    {
+      "termo": "PC Gamer",
+      "interesse": 91,
+      "interesse_atual": 93,
+      "variacao": "+417%",
+      "categoria": "Buscas em Alta (Live)",
+      "fonte": "Google Trends (Hot)",
+      "atualizado": "19/07/2026 08:27"
+    },
+    {
+      "termo": "Capinha iPhone 16",
+      "interesse": 88,
+      "interesse_atual": 100,
+      "variacao": "+287%",
+      "categoria": "Buscas em Alta (Live)",
+      "fonte": "Google Trends (Hot)",
+      "atualizado": "19/07/2026 08:27"
+    },
+    {
+      "termo": "Photocard",
+      "interesse": 92,
+      "interesse_atual": 92,
+      "variacao": "+207%",
+      "categoria": "Buscas em Alta (Live)",
+      "fonte": "Google Trends (Hot)",
+      "atualizado": "19/07/2026 08:27"
+    },
+    {
+      "termo": "Aquecedor LZ 1600DE",
+      "interesse": 85,
+      "interesse_atual": 100,
+      "variacao": "+560%",
+      "categoria": "Buscas em Alta (Live)",
+      "fonte": "Google Trends (Hot)",
+      "atualizado": "19/07/2026 08:27"
+    },
+    {
+      "termo": "Nintendo 3DS",
+      "interesse": 90,
+      "interesse_atual": 95,
+      "variacao": "+607%",
+      "categoria": "Buscas em Alta (Live)",
+      "fonte": "Google Trends (Hot)",
+      "atualizado": "19/07/2026 08:27"
+    },
+    {
+      "termo": "Fone de Ouvido",
+      "interesse": 91,
+      "interesse_atual": 93,
+      "variacao": "+324%",
+      "categoria": "Buscas em Alta (Live)",
+      "fonte": "Google Trends (Hot)",
+      "atualizado": "19/07/2026 08:27"
+    },
+    {
+      "termo": "Plug Anal",
+      "interesse": 94,
+      "interesse_atual": 99,
+      "variacao": "+641%",
+      "categoria": "Buscas em Alta (Live)",
+      "fonte": "Google Trends (Hot)",
+      "atualizado": "19/07/2026 08:27"
+    },
+    {
+      "termo": "Sofá",
+      "interesse": 92,
+      "interesse_atual": 99,
+      "variacao": "+319%",
+      "categoria": "Buscas em Alta (Live)",
+      "fonte": "Google Trends (Hot)",
+      "atualizado": "19/07/2026 08:27"
+    },
+    {
+      "termo": "Decoração",
+      "interesse": 100,
+      "interesse_atual": 93,
+      "variacao": "+471%",
+      "categoria": "Buscas em Alta (Live)",
+      "fonte": "Google Trends (Hot)",
+      "atualizado": "19/07/2026 08:27"
+    },
+    {
+      "termo": "Moto Elétrica Scooter",
+      "interesse": 89,
+      "interesse_atual": 93,
+      "variacao": "+680%",
+      "categoria": "Buscas em Alta (Live)",
+      "fonte": "Google Trends (Hot)",
+      "atualizado": "19/07/2026 08:27"
+    },
+    {
+      "termo": "Lembrancinha Dia dos Pais",
+      "interesse": 85,
+      "interesse_atual": 95,
+      "variacao": "+499%",
+      "categoria": "Buscas em Alta (Live)",
+      "fonte": "Google Trends (Hot)",
+      "atualizado": "19/07/2026 08:27"
+    },
+    {
+      "termo": "Poltrona",
+      "interesse": 93,
+      "interesse_atual": 93,
+      "variacao": "+394%",
+      "categoria": "Buscas em Alta (Live)",
+      "fonte": "Google Trends (Hot)",
+      "atualizado": "19/07/2026 08:27"
+    },
+    {
+      "termo": "Projetor",
+      "interesse": 91,
+      "interesse_atual": 92,
+      "variacao": "+364%",
+      "categoria": "Buscas em Alta (Live)",
+      "fonte": "Google Trends (Hot)",
+      "atualizado": "19/07/2026 08:27"
+    },
+    {
+      "termo": "Celular iPhone Novo",
+      "interesse": 99,
+      "interesse_atual": 94,
+      "variacao": "+775%",
+      "categoria": "Buscas em Alta (Live)",
+      "fonte": "Google Trends (Hot)",
+      "atualizado": "19/07/2026 08:27"
+    },
+    {
+      "termo": "Power Bank Pineng",
+      "interesse": 85,
+      "interesse_atual": 96,
+      "variacao": "+453%",
+      "categoria": "Buscas em Alta (Live)",
+      "fonte": "Google Trends (Hot)",
+      "atualizado": "19/07/2026 08:27"
+    },
+    {
+      "termo": "Câmera Babá Eletrônica Tarktark",
+      "interesse": 99,
+      "interesse_atual": 100,
+      "variacao": "+645%",
+      "categoria": "Buscas em Alta (Live)",
+      "fonte": "Google Trends (Hot)",
+      "atualizado": "19/07/2026 08:27"
+    },
+    {
+      "termo": "Carro Infantil Elétrico",
+      "interesse": 97,
+      "interesse_atual": 100,
+      "variacao": "+780%",
+      "categoria": "Buscas em Alta (Live)",
+      "fonte": "Google Trends (Hot)",
+      "atualizado": "19/07/2026 08:27"
+    },
+    {
+      "termo": "Carro Infantil Elétrico Jipe",
+      "interesse": 91,
+      "interesse_atual": 98,
+      "variacao": "+446%",
+      "categoria": "Buscas em Alta (Live)",
+      "fonte": "Google Trends (Hot)",
+      "atualizado": "19/07/2026 08:27"
+    },
+    {
+      "termo": "Celular Xiaomi 1T",
+      "interesse": 86,
+      "interesse_atual": 98,
+      "variacao": "+459%",
+      "categoria": "Buscas em Alta (Live)",
+      "fonte": "Google Trends (Hot)",
+      "atualizado": "19/07/2026 08:27"
+    },
+    {
+      "termo": "Celular Resistente",
+      "interesse": 99,
+      "interesse_atual": 98,
+      "variacao": "+234%",
+      "categoria": "Buscas em Alta (Live)",
+      "fonte": "Google Trends (Hot)",
+      "atualizado": "19/07/2026 08:27"
+    },
+    {
+      "termo": "Carenagem de Moto Factor 150",
+      "interesse": 99,
+      "interesse_atual": 97,
+      "variacao": "+560%",
+      "categoria": "Buscas em Alta (Live)",
+      "fonte": "Google Trends (Hot)",
+      "atualizado": "19/07/2026 08:27"
+    },
+    {
+      "termo": "Capinha de Celular",
+      "interesse": 91,
+      "interesse_atual": 90,
+      "variacao": "+776%",
+      "categoria": "Buscas em Alta (Live)",
+      "fonte": "Google Trends (Hot)",
+      "atualizado": "19/07/2026 08:27"
+    },
+    {
+      "termo": "Celular Xiaomi M7 Pro",
+      "interesse": 94,
+      "interesse_atual": 100,
+      "variacao": "+784%",
+      "categoria": "Buscas em Alta (Live)",
+      "fonte": "Google Trends (Hot)",
+      "atualizado": "19/07/2026 08:27"
+    },
+    {
+      "termo": "Balcão de Pia de Cozinha 160 cm",
+      "interesse": 96,
+      "interesse_atual": 98,
+      "variacao": "+419%",
+      "categoria": "Buscas em Alta (Live)",
+      "fonte": "Google Trends (Hot)",
+      "atualizado": "19/07/2026 08:27"
+    },
+    {
+      "termo": "Escova Progressiva Everk",
+      "interesse": 97,
+      "interesse_atual": 95,
+      "variacao": "+189%",
+      "categoria": "Buscas em Alta (Live)",
+      "fonte": "Google Trends (Hot)",
+      "atualizado": "19/07/2026 08:27"
+    },
+    {
+      "termo": "Ar-Condicionado de Janela Springer",
+      "interesse": 88,
+      "interesse_atual": 95,
+      "variacao": "+443%",
+      "categoria": "Buscas em Alta (Live)",
+      "fonte": "Google Trends (Hot)",
+      "atualizado": "19/07/2026 08:27"
+    },
+    {
+      "termo": "Sacola Personalizada",
+      "interesse": 100,
+      "interesse_atual": 99,
+      "variacao": "+300%",
+      "categoria": "Buscas em Alta (Live)",
+      "fonte": "Google Trends (Hot)",
+      "atualizado": "19/07/2026 08:27"
+    },
+    {
+      "termo": "Teclado",
+      "interesse": 100,
+      "interesse_atual": 93,
+      "variacao": "+290%",
+      "categoria": "Buscas em Alta (Live)",
+      "fonte": "Google Trends (Hot)",
+      "atualizado": "19/07/2026 08:27"
+    },
+    {
+      "termo": "Biquíni",
+      "interesse": 89,
+      "interesse_atual": 94,
+      "variacao": "+661%",
+      "categoria": "Buscas em Alta (Live)",
+      "fonte": "Google Trends (Hot)",
+      "atualizado": "19/07/2026 08:27"
+    },
+    {
+      "termo": "Caixa de Som",
+      "interesse": 96,
+      "interesse_atual": 93,
+      "variacao": "+443%",
+      "categoria": "Buscas em Alta (Live)",
+      "fonte": "Google Trends (Hot)",
+      "atualizado": "19/07/2026 08:27"
+    },
+    {
+      "termo": "Escrivaninha",
+      "interesse": 89,
+      "interesse_atual": 93,
+      "variacao": "+800%",
+      "categoria": "Buscas em Alta (Live)",
+      "fonte": "Google Trends (Hot)",
+      "atualizado": "19/07/2026 08:27"
+    },
+    {
+      "termo": "Chopeira",
+      "interesse": 90,
+      "interesse_atual": 100,
+      "variacao": "+337%",
+      "categoria": "Buscas em Alta (Live)",
+      "fonte": "Google Trends (Hot)",
+      "atualizado": "19/07/2026 08:27"
+    }
+  ]
+}
