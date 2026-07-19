@@ -1,39 +1,36 @@
-"""
-Módulo de Raspagem Real — Mercado Livre Brasil
-Versão: v9.3 — ML Real-Time Scraper
-Descrição:
-    Captura tendências reais do Mercado Livre Brasil via múltiplas estratégias:
-    1. Página de tendências oficial (tendencias.mercadolivre.com.br)
-    2. API de sugestões de busca (autocomplete)
-    3. Fallback com termos curados de julho/2026
+"""Coletor oficial de tendências de pesquisa do Mercado Livre Brasil.
 
-    Os dados são persistidos em `ml_trends_cache.json` com validade de 6 horas,
-    evitando requisições excessivas e garantindo disponibilidade offline.
+A coleta aceita somente os links publicados na seção ``Termos mais procurados``
+da página oficial. Não há expansão por autocomplete, nem fallback estático: se a
+fonte não estiver disponível, o módulo preserva apenas um cache já validado da
+mesma página oficial.
 """
+
+from __future__ import annotations
 
 import json
 import logging
 import os
-import random
 import re
-import time
+import unicodedata
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
+from urllib.parse import urlparse
 
 import requests
 from bs4 import BeautifulSoup
 
 logger = logging.getLogger(__name__)
 
-# ============================================================
-# CONFIGURAÇÕES
-# ============================================================
 DIRETORIO_RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ARQUIVO_CACHE_ML = "ml_trends_cache.json"
 CAMINHO_CACHE_ML = os.path.join(DIRETORIO_RAIZ, ARQUIVO_CACHE_ML)
 
+URL_TENDENCIAS_ML = "https://tendencias.mercadolivre.com.br/"
+FONTE_ML = "Mercado Livre Trends"
+ORIGEM_COLETA = "pagina_oficial"
 VALIDADE_CACHE_HORAS = 6
-TIMEOUT_REQUEST = 12
+TIMEOUT_REQUEST = 15
 MAX_TERMOS = 40
 
 HEADERS_PADRAO = {
@@ -46,124 +43,125 @@ HEADERS_PADRAO = {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
 }
 
-# Termos curados como fallback — Mercado Livre Brasil, 17/07/2026 (Buscas em Alta)
-TERMOS_FALLBACK_ML = [
-    "Lembrancinha Dia dos Pais",
-    "Armário Kapesberg",
-    "Penteadeira",
-    "Squishy",
-    "Tênis Masculino",
-    "Bicicleta Ergométrica Bak",
-    "Controle PC",
-    "Caixa Organizadora",
-    "iPhone",
-    "Caixa Cacau Show Branca",
-    "Celular",
-    "Armário Multiuso Organizador",
-    "Espelho",
-    "Masturbador Masculino",
-    "Fone de Ouvido Bluetooth",
-    "SSD",
-    "Plug Anal",
-    "Moto Elétrica",
-    "R36S",
-    "Bicicleta Ergométrica",
-    "Memória Ram DDR3 8GB 1600MHz",
-    "Alto-falante",
-    "Ar-Condicionado de Janela Springer",
-    "Aquecedor LZ 1600DE",
-    "Aspirador Ideali Life",
-    "Aro de Moto Monaco Bros 160",
-    "Ar Condicionado 18000 btus 127V",
-    "Ar Condicionado de Janela Gree",
-    "Ar Condicionado LG Dual Inverter Voice 12000 BTUs Frio 220V",
-    "Toca-Discos Audio-Technica AT-LP60XBT",
-]
-
-# Mapeamento de termos para categorias
+# Taxonomia da grade. A categoria é derivada do termo; a página de tendências
+# do Mercado Livre não publica uma categoria por item na lista de buscas.
 MAPA_CATEGORIAS_ML = {
-    "tênis": "Moda",
-    "sapato": "Moda",
-    "blusa": "Moda",
-    "vestido": "Moda",
-    "calça": "Moda",
-    "jaqueta": "Moda",
-    "guarda roupa": "Casa",
-    "cama box": "Casa",
-    "vaso": "Casa",
-    "torneira": "Casa",
-    "jogo de panela": "Casa",
-    "ventilador": "Casa",
-    "cadeira": "Casa",
+    "apple watch": "Eletrônicos",
+    "smartwatch": "Eletrônicos",
     "iphone": "Eletrônicos",
+    "ipad": "Eletrônicos",
+    "celular": "Eletrônicos",
     "samsung": "Eletrônicos",
     "xiaomi": "Eletrônicos",
+    "motorola": "Eletrônicos",
     "notebook": "Eletrônicos",
-    "smart tv": "Eletrônicos",
+    "computador": "Eletrônicos",
+    "tablet": "Eletrônicos",
+    "monitor": "Eletrônicos",
     "fone": "Eletrônicos",
-    "ssd": "Eletrônicos",
-    "câmera": "Eletrônicos",
-    "impressora": "Eletrônicos",
-    "starlink": "Eletrônicos",
+    "jbl": "Eletrônicos",
+    "xdj": "Eletrônicos",
+    "ar condicionado": "Eletrodomésticos",
+    "microondas": "Eletrodomésticos",
+    "fogao": "Eletrodomésticos",
+    "freezer": "Eletrodomésticos",
+    "geladeira": "Eletrodomésticos",
+    "ventilador": "Eletrodomésticos",
+    "cafeteira": "Casa e Cozinha",
+    "guarda roupa": "Casa e Móveis",
+    "painel para tv": "Casa e Móveis",
+    "penteadeira": "Casa e Móveis",
+    "bicicleta": "Esportes e Fitness",
+    "tenis": "Moda",
+    "ps4": "Games",
     "ps5": "Games",
-    "moto elétrica": "Veículos",
-    "creatina": "Saúde",
-    "air fryer": "Eletrodomésticos",
-    "fritadeira": "Eletrodomésticos",
-    "liquidificador": "Eletrodomésticos",
-    "karseell": "Beleza",
+    "xbox": "Games",
+    "nintendo": "Games",
+    "carro": "Veículos",
 }
 
 
-# ============================================================
-# FUNÇÕES DE CACHE
-# ============================================================
+def _normalizar_texto(valor: str) -> str:
+    """Normaliza texto para comparação, preservando o título original no dado salvo."""
+    sem_acentos = unicodedata.normalize("NFKD", str(valor)).encode("ASCII", "ignore").decode("ASCII")
+    return re.sub(r"\s+", " ", sem_acentos).strip().lower()
 
-def _cache_valido() -> bool:
-    """Verifica se o cache existe e ainda está dentro do prazo de validade."""
-    if not os.path.exists(CAMINHO_CACHE_ML):
-        return False
-    try:
-        with open(CAMINHO_CACHE_ML, "r", encoding="utf-8") as f:
-            dados = json.load(f)
-        timestamp_str = dados.get("timestamp")
-        if not timestamp_str:
-            return False
-        timestamp = datetime.fromisoformat(timestamp_str)
-        return datetime.now() - timestamp < timedelta(hours=VALIDADE_CACHE_HORAS)
-    except (OSError, json.JSONDecodeError, ValueError):
-        return False
+
+def _inferir_categoria(termo: str) -> str:
+    """Classifica o termo na taxonomia da grade sem alegar categoria de origem."""
+    termo_normalizado = _normalizar_texto(termo)
+    for chave, categoria in MAPA_CATEGORIAS_ML.items():
+        if _normalizar_texto(chave) in termo_normalizado:
+            return categoria
+    return "Outros"
 
 
 def _ler_cache() -> Dict[str, Any]:
-    """Lê o cache do Mercado Livre sem interromper a aplicação."""
+    """Lê o cache sem interromper a aplicação em caso de erro de arquivo."""
     if not os.path.exists(CAMINHO_CACHE_ML):
         return {}
     try:
-        with open(CAMINHO_CACHE_ML, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except (OSError, json.JSONDecodeError):
+        with open(CAMINHO_CACHE_ML, "r", encoding="utf-8") as arquivo:
+            dados = json.load(arquivo)
+        return dados if isinstance(dados, dict) else {}
+    except (OSError, json.JSONDecodeError, TypeError):
         return {}
 
 
-def _salvar_cache(dados: Dict[str, Any]) -> bool:
-    """Persiste os dados de tendências ML de forma atômica."""
+def _cache_e_oficial(cache: Dict[str, Any]) -> bool:
+    """Garante que apenas resultados da URL oficial possam ser reutilizados."""
+    return (
+        isinstance(cache.get("produtos"), dict)
+        and cache.get("origem_coleta") == ORIGEM_COLETA
+        and cache.get("url_fonte") == URL_TENDENCIAS_ML
+        and cache.get("status_coleta") == "sucesso"
+    )
+
+
+def _cache_valido() -> bool:
+    """Verifica a validade temporal e a proveniência do cache."""
+    cache = _ler_cache()
+    if not _cache_e_oficial(cache):
+        return False
+
+    try:
+        timestamp = datetime.fromisoformat(str(cache["timestamp"]))
+    except (KeyError, TypeError, ValueError):
+        return False
+
+    return datetime.now() - timestamp < timedelta(hours=VALIDADE_CACHE_HORAS)
+
+
+def _produtos_cache_oficial() -> Dict[str, Any]:
+    """Retorna somente produtos de um cache que passou na validação de origem."""
+    cache = _ler_cache()
+    if _cache_e_oficial(cache):
+        produtos = cache.get("produtos", {})
+        return produtos if isinstance(produtos, dict) else {}
+    return {}
+
+
+def _salvar_cache(produtos: Dict[str, Any]) -> bool:
+    """Persiste um resultado oficial de maneira atômica."""
     payload = {
         "timestamp": datetime.now().isoformat(),
         "data": datetime.now().date().isoformat(),
-        "total": len(dados.get("produtos", {})),
-        "fonte": dados.get("fonte", "ml_scraper"),
-        "produtos": dados.get("produtos", {}),
+        "total": len(produtos),
+        "fonte": FONTE_ML,
+        "url_fonte": URL_TENDENCIAS_ML,
+        "origem_coleta": ORIGEM_COLETA,
+        "status_coleta": "sucesso",
+        "produtos": produtos,
     }
     caminho_tmp = f"{CAMINHO_CACHE_ML}.tmp"
     try:
-        with open(caminho_tmp, "w", encoding="utf-8") as f:
-            json.dump(payload, f, ensure_ascii=False, indent=2)
+        with open(caminho_tmp, "w", encoding="utf-8") as arquivo:
+            json.dump(payload, arquivo, ensure_ascii=False, indent=2)
         os.replace(caminho_tmp, CAMINHO_CACHE_ML)
-        logger.info("Cache ML salvo com %d produtos.", len(dados.get("produtos", {})))
+        logger.info("Cache oficial do Mercado Livre salvo com %d termos.", len(produtos))
         return True
-    except OSError as e:
-        logger.error("Falha ao salvar cache ML: %s", e)
+    except OSError as erro:
+        logger.error("Falha ao salvar cache oficial do Mercado Livre: %s", erro)
         try:
             if os.path.exists(caminho_tmp):
                 os.remove(caminho_tmp)
@@ -172,254 +170,143 @@ def _salvar_cache(dados: Dict[str, Any]) -> bool:
         return False
 
 
-# ============================================================
-# ESTRATÉGIAS DE RASPAGEM
-# ============================================================
+def _eh_link_de_tendencia(href: str) -> bool:
+    """Aceita apenas um link de resultado de busca da lista oficial de tendências."""
+    if not href:
+        return False
 
-def _inferir_categoria(termo: str) -> str:
-    """Infere a categoria de um produto pelo nome."""
-    termo_lower = termo.lower()
-    for chave, categoria in MAPA_CATEGORIAS_ML.items():
-        if chave in termo_lower:
-            return categoria
-    return "Marketplace"
+    url = urlparse(href)
+    dominio = url.netloc.lower()
+    fragmento = url.fragment.lower()
+    if dominio != "lista.mercadolivre.com.br":
+        return False
+    if "menu=categories" in fragmento:
+        return False
+    return bool(url.path and url.path != "/")
 
 
-def _construir_produto(termo: str, posicao: int, fonte: str = "Mercado Livre Trends") -> Dict[str, Any]:
-    """Constrói o dicionário de produto no formato padrão do sistema."""
-    crescimento_base = max(25, 180 - (posicao * 6))
-    variacao_base = max(10, 90 - (posicao * 3))
-    score = 10 if posicao < 5 else (9 if posicao < 10 else (8 if posicao < 15 else 7))
+def _raspar_tendencias_pagina() -> List[str]:
+    """Extrai somente os links da seção oficial ``Termos mais procurados``."""
+    try:
+        resposta = requests.get(URL_TENDENCIAS_ML, headers=HEADERS_PADRAO, timeout=TIMEOUT_REQUEST)
+        resposta.raise_for_status()
+    except requests.RequestException as erro:
+        logger.warning("Falha ao acessar tendências oficiais do Mercado Livre: %s", erro)
+        return []
 
+    soup = BeautifulSoup(resposta.text, "html.parser")
+    secao = soup.select_one("nav[aria-label='Termos mais procurados']")
+    if secao is not None:
+        links = secao.select("a.nav-footer-seo__link[href], a[href]")
+    else:
+        # A classe é própria da lista de tendências e evita os menus de categorias.
+        links = soup.select("a.nav-footer-seo__link[href]")
+
+    termos: List[str] = []
+    for link in links:
+        href = str(link.get("href", "")).strip()
+        termo = link.get_text(" ", strip=True) or str(link.get("aria-label", "")).strip()
+        termo = re.sub(r"\s+", " ", termo).strip()
+        if not _eh_link_de_tendencia(href) or len(termo) < 3:
+            continue
+        if termo not in termos:
+            termos.append(termo)
+        if len(termos) >= MAX_TERMOS:
+            break
+
+    logger.info("Página oficial do Mercado Livre: %d termos validados.", len(termos))
+    return termos
+
+
+def _construir_produto(termo: str, posicao: int) -> Dict[str, Any]:
+    """Monta o schema da grade sem inventar métricas não publicadas pela fonte."""
     return {
-        "pins": random.randint(20000, 80000),
-        "pins_historico": random.randint(12000, 50000),
-        "crescimento": crescimento_base + random.randint(-5, 10),
-        "crescimento_real": True,
-        "views_tiktok": round(random.uniform(15.0, 95.0), 1),
-        "resultados_ml": random.randint(80000, 400000),
-        "buscas_mes": random.randint(40000, 150000),
-        "buscas_historico": random.randint(25000, 80000),
+        "pins": 0,
+        "pins_historico": 0,
+        "crescimento": 0,
+        "crescimento_real": False,
+        "views_tiktok": 0,
+        "resultados_ml": 0,
+        "buscas_mes": 0,
+        "buscas_historico": 0,
         "categoria": _inferir_categoria(termo),
-        "evento": "Tendência Real Mercado Livre",
-        "variacao": variacao_base + round(random.uniform(-3.0, 5.0), 1),
-        "tendencia": "🔥 Em Alta",
-        "score": score,
-        "fonte": fonte,
+        "categoria_origem": "Não informada pela página de tendências",
+        "evento": "Termo mais procurado no Mercado Livre",
+        "variacao": 0,
+        "tendencia": "Em destaque",
+        "score": max(1, MAX_TERMOS - posicao),
+        "fonte": FONTE_ML,
+        "origem_coleta": ORIGEM_COLETA,
+        "url_fonte": URL_TENDENCIAS_ML,
         "posicao_ranking": posicao + 1,
         "atualizado": datetime.now().strftime("%d/%m/%Y %H:%M"),
     }
 
 
-def _raspar_tendencias_pagina() -> List[str]:
-    """
-    Estratégia 1: Raspa a página oficial de tendências do Mercado Livre.
-    URL: https://tendencias.mercadolivre.com.br/
-    """
-    url = "https://tendencias.mercadolivre.com.br/"
-    try:
-        resp = requests.get(url, headers=HEADERS_PADRAO, timeout=TIMEOUT_REQUEST)
-        if resp.status_code != 200:
-            logger.warning("ML Tendências retornou HTTP %d", resp.status_code)
-            return []
-
-        soup = BeautifulSoup(resp.text, "html.parser")
-
-        # Seletores CSS conhecidos da página de tendências ML
-        seletores = [
-            "a[href*='lista.mercadolivre.com.br']",
-            ".trending-searches__item",
-            ".hot-searches__item",
-            "li.trending-item a",
-            "a.trending-searches-link",
-        ]
-
-        termos: List[str] = []
-        for seletor in seletores:
-            elementos = soup.select(seletor)
-            for el in elementos:
-                texto = el.get_text(strip=True)
-                if texto and len(texto) > 2 and texto not in termos:
-                    termos.append(texto)
-            if len(termos) >= MAX_TERMOS:
-                break
-
-        # Fallback: busca qualquer link que aponte para lista.mercadolivre.com.br
-        if not termos:
-            links = soup.find_all("a", href=re.compile(r"lista\.mercadolivre\.com\.br"))
-            for link in links:
-                texto = link.get_text(strip=True)
-                if texto and len(texto) > 2 and texto not in termos:
-                    termos.append(texto)
-                if len(termos) >= MAX_TERMOS:
-                    break
-
-        logger.info("Estratégia 1 (página tendências): %d termos capturados.", len(termos))
-        return termos[:MAX_TERMOS]
-
-    except requests.RequestException as e:
-        logger.warning("Falha na estratégia 1 (página tendências ML): %s", e)
-        return []
-
-
-def _raspar_api_autocomplete(sementes: Optional[List[str]] = None) -> List[str]:
-    """
-    Estratégia 2: Usa a API de autocomplete do Mercado Livre para expandir termos.
-    Endpoint: https://http2.mlstatic.com/resources/sites/MLB/autosuggest?q=<termo>&limit=8
-    """
-    if not sementes:
-        sementes = ["tênis", "celular", "notebook", "geladeira", "televisão"]
-
-    url_base = "https://http2.mlstatic.com/resources/sites/MLB/autosuggest"
-    termos_encontrados: List[str] = []
-
-    for semente in sementes[:5]:
-        try:
-            resp = requests.get(
-                url_base,
-                params={"q": semente, "limit": 8},
-                headers={**HEADERS_PADRAO, "Accept": "application/json"},
-                timeout=8,
-            )
-            if resp.status_code == 200:
-                dados = resp.json()
-                sugestoes = dados.get("suggested_queries", [])
-                for s in sugestoes:
-                    q = s.get("q", "").strip()
-                    if q and q not in termos_encontrados:
-                        termos_encontrados.append(q)
-            time.sleep(0.3)  # Respeita rate-limit
-        except (requests.RequestException, json.JSONDecodeError) as e:
-            logger.debug("Autocomplete ML falhou para '%s': %s", semente, e)
-
-    logger.info("Estratégia 2 (autocomplete API): %d termos capturados.", len(termos_encontrados))
-    return termos_encontrados[:MAX_TERMOS]
-
-
-# ============================================================
-# FUNÇÃO PRINCIPAL DE CAPTURA
-# ============================================================
-
 def capturar_tendencias_ml(forcar: bool = False) -> Dict[str, Any]:
-    """
-    Captura tendências reais do Mercado Livre Brasil.
-
-    Fluxo:
-    1. Verifica cache válido (6 horas) — retorna imediatamente se válido.
-    2. Tenta raspagem da página de tendências oficial.
-    3. Complementa com API de autocomplete se necessário.
-    4. Usa fallback curado se ambas as estratégias falharem.
-    5. Persiste resultado no cache JSON.
-
-    Args:
-        forcar: Se True, ignora o cache e força nova captura.
-
-    Returns:
-        Dicionário {termo: dados_produto} no formato padrão do sistema.
-    """
-    # 1. Cache válido
+    """Captura as tendências da URL oficial ou retorna um cache oficial validado."""
     if not forcar and _cache_valido():
-        cache = _ler_cache()
-        produtos_cache = cache.get("produtos", {})
+        produtos_cache = _produtos_cache_oficial()
         if produtos_cache:
-            logger.info("Cache ML válido — %d produtos carregados.", len(produtos_cache))
+            logger.info("Cache oficial do Mercado Livre válido: %d termos.", len(produtos_cache))
             return produtos_cache
 
-    logger.info("Iniciando captura real de tendências do Mercado Livre...")
-    termos_capturados: List[str] = []
-    fonte_usada = "Mercado Livre Trends"
+    termos = _raspar_tendencias_pagina()
+    if not termos:
+        produtos_cache = _produtos_cache_oficial()
+        if produtos_cache:
+            logger.warning("Página oficial indisponível; preservando %d termos do último cache validado.", len(produtos_cache))
+            return produtos_cache
+        logger.error("Nenhum termo oficial do Mercado Livre foi confirmado; a fonte será omitida da grade.")
+        return {}
 
-    # 2. Estratégia 1: Página de tendências
-    termos_pagina = _raspar_tendencias_pagina()
-    if termos_pagina:
-        termos_capturados.extend(termos_pagina)
-        fonte_usada = "Mercado Livre Trends (Real)"
-
-    # 3. Estratégia 2: Autocomplete API (complementa se necessário)
-    if len(termos_capturados) < 10:
-        sementes = termos_capturados[:3] if termos_capturados else None
-        termos_auto = _raspar_api_autocomplete(sementes)
-        for t in termos_auto:
-            if t not in termos_capturados:
-                termos_capturados.append(t)
-
-    # 4. Fallback curado
-    if len(termos_capturados) < 5:
-        logger.warning("Scraping ML insuficiente (%d termos). Usando fallback curado.", len(termos_capturados))
-        for t in TERMOS_FALLBACK_ML:
-            if t not in termos_capturados:
-                termos_capturados.append(t)
-        fonte_usada = "Mercado Livre Trends"
-
-    # 5. Constrói dicionário de produtos
-    produtos: Dict[str, Any] = {}
-    for posicao, termo in enumerate(termos_capturados[:MAX_TERMOS]):
-        produtos[termo] = _construir_produto(termo, posicao, fonte_usada)
-
-    # 6. Persiste no cache
-    _salvar_cache({"produtos": produtos, "fonte": fonte_usada})
-
-    logger.info("Captura ML concluída: %d produtos | Fonte: %s", len(produtos), fonte_usada)
+    produtos = {termo: _construir_produto(termo, posicao) for posicao, termo in enumerate(termos)}
+    _salvar_cache(produtos)
     return produtos
 
 
 def obter_tendencias_ml_cache() -> Dict[str, Any]:
-    """
-    Retorna tendências ML do cache (sem forçar atualização).
-    Usado pelo pipeline de produtos_dinamicos.py.
-    """
+    """Obtém tendências do cache oficial, atualizando quando necessário."""
     return capturar_tendencias_ml(forcar=False)
 
 
 def forcar_atualizacao_ml() -> Dict[str, Any]:
-    """
-    Força nova captura ignorando o cache.
-    Usado pelo painel de atualização automática.
-    """
+    """Força uma nova leitura da página oficial de tendências."""
     return capturar_tendencias_ml(forcar=True)
 
 
 def obter_status_cache_ml() -> Dict[str, Any]:
-    """
-    Retorna informações sobre o estado atual do cache ML.
-    """
-    if not os.path.exists(CAMINHO_CACHE_ML):
+    """Retorna o estado do cache sem mascarar dados de origem não validada."""
+    cache = _ler_cache()
+    if not _cache_e_oficial(cache):
         return {
             "valido": False,
             "total": 0,
-            "data_formatada": "Nunca atualizado",
+            "data_formatada": "Nenhuma coleta oficial validada",
             "fonte": "N/A",
         }
+
     try:
-        cache = _ler_cache()
-        timestamp_str = cache.get("timestamp", "")
-        timestamp = datetime.fromisoformat(timestamp_str) if timestamp_str else None
-        valido = _cache_valido()
-        data_fmt = timestamp.strftime("%d/%m/%Y %H:%M") if timestamp else "Desconhecido"
-        return {
-            "valido": valido,
-            "total": cache.get("total", len(cache.get("produtos", {}))),
-            "data_formatada": data_fmt,
-            "fonte": cache.get("fonte", "Mercado Livre"),
-        }
-    except (ValueError, KeyError):
-        return {
-            "valido": False,
-            "total": 0,
-            "data_formatada": "Erro ao ler cache",
-            "fonte": "N/A",
-        }
+        timestamp = datetime.fromisoformat(str(cache["timestamp"]))
+        data_formatada = timestamp.strftime("%d/%m/%Y %H:%M")
+    except (KeyError, TypeError, ValueError):
+        data_formatada = "Data inválida"
+
+    return {
+        "valido": _cache_valido(),
+        "total": int(cache.get("total", len(cache.get("produtos", {})))),
+        "data_formatada": data_formatada,
+        "fonte": cache.get("fonte", FONTE_ML),
+    }
 
 
 def obter_categorias_ml() -> List[str]:
-    """
-    Retorna lista de categorias únicas presentes nos dados ML atuais.
-    Usado para popular a barra lateral de filtros.
-    """
-    produtos = obter_tendencias_ml_cache()
-    categorias = sorted({
-        dados.get("categoria", "Marketplace")
-        for dados in produtos.values()
-        if isinstance(dados, dict)
-    })
-    return categorias if categorias else ["Marketplace"]
+    """Retorna categorias presentes nos termos oficiais atualmente disponíveis."""
+    categorias = sorted(
+        {
+            dados.get("categoria", "Outros")
+            for dados in obter_tendencias_ml_cache().values()
+            if isinstance(dados, dict)
+        }
+    )
+    return categorias if categorias else ["Outros"]

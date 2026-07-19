@@ -53,7 +53,7 @@ class GradeAutoUpdateTest(unittest.TestCase):
         self.assertEqual(produtos["Produto Automático"]["fonte"], "Shopee Live")
         self.assertGreaterEqual(produtos["Produto Automático"]["score"], 8)
 
-    @patch("modules.google_shopee_trends.forcar_atualizacao_completa")
+    @patch("modules.produtos_dinamicos._forcar_atualizacao_google_shopee")
     def test_forcar_atualizacao_aciona_fontes_automaticas(self, atualizar):
         atualizar.return_value = {"google_trends": {"total": 1}, "shopee": {"total": 1}}
 

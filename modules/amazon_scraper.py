@@ -1,190 +1,369 @@
+"""Coletor oficial de Best Sellers da Amazon Brasil.
+
+O módulo só publica itens extraídos de ``https://www.amazon.com.br/gp/bestsellers/``.
+Quando a página não está disponível, preserva exclusivamente um cache anterior que
+já tenha sido validado como coleta oficial; listas curadas e métricas aleatórias
+não são usadas como substitutos de dados da Amazon.
 """
-Módulo de Raspagem Real — Amazon Brasil Bestsellers
-Versão: v9.4 — Amazon Real-Time Scraper
-Descrição:
-    Captura os produtos mais vendidos da Amazon Brasil em tempo real.
-    URL: https://www.amazon.com.br/gp/bestsellers
-"""
+
+from __future__ import annotations
 
 import json
 import logging
 import os
-import random
+import re
 import time
-from datetime import datetime, timedelta
-from typing import Any, Dict, List
+import unicodedata
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+from urllib.parse import urljoin
 
 import requests
 from bs4 import BeautifulSoup
 
 logger = logging.getLogger(__name__)
 
-# ============================================================
-# CONFIGURAÇÕES
-# ============================================================
 DIRETORIO_RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ARQUIVO_CACHE_AMAZON = "amazon_trends.json"
 CAMINHO_CACHE_AMAZON = os.path.join(DIRETORIO_RAIZ, ARQUIVO_CACHE_AMAZON)
 
+URL_BESTSELLERS_AMAZON = "https://www.amazon.com.br/gp/bestsellers/"
+FONTE_AMAZON = "Amazon Bestsellers"
+ORIGEM_COLETA = "pagina_oficial"
 VALIDADE_CACHE_HORAS = 12
-TIMEOUT_REQUEST = 15
+TIMEOUT_REQUEST = 20
 MAX_PRODUTOS = 30
+MINIMO_PRODUTOS_VALIDOS = 3
 
 HEADERS_AMAZON = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/125.0.0.0 Safari/537.36"
+    ),
     "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
-    "Referer": "https://www.google.com/",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
 }
 
+# Taxonomia exibida pela grade. A página geral de Best Sellers não fornece uma
+# categoria individual por card, por isso a classificação é explicitamente
+# marcada como interna e não como informação da Amazon.
 MAPA_CATEGORIAS_AMAZON = {
+    "meia": "Moda",
+    "cueca": "Moda",
+    "chinelo": "Moda",
+    "mochila": "Moda",
     "livro": "Livros",
     "kindle": "Eletrônicos",
     "echo": "Eletrônicos",
     "fire tv": "Eletrônicos",
-    "jogo": "Brinquedos",
-    "lego": "Brinquedos",
     "fone": "Eletrônicos",
+    "headphone": "Eletrônicos",
     "ssd": "Eletrônicos",
     "smartphone": "Eletrônicos",
-    "creme": "Beleza",
-    "shampoo": "Beleza",
-    "perfume": "Beleza",
-    "café": "Cozinha",
-    "panela": "Cozinha",
-    "fritadeira": "Cozinha",
+    "iphone": "Eletrônicos",
+    "notebook": "Eletrônicos",
+    "monitor": "Eletrônicos",
+    "mouse": "Eletrônicos",
+    "teclado": "Eletrônicos",
+    "jogo": "Brinquedos e Jogos",
+    "lego": "Brinquedos e Jogos",
+    "creme": "Beleza e Cuidados Pessoais",
+    "shampoo": "Beleza e Cuidados Pessoais",
+    "perfume": "Beleza e Cuidados Pessoais",
+    "café": "Casa e Cozinha",
+    "cafeteira": "Casa e Cozinha",
+    "panela": "Casa e Cozinha",
+    "fritadeira": "Casa e Cozinha",
+    "air fryer": "Casa e Cozinha",
 }
 
+# Slugs presentes no parâmetro de referência dos links do ranking Amazon.
+# Quando disponíveis, representam a categoria da própria página de Best Sellers
+# e têm precedência sobre a inferência por palavras do título.
+MAPA_CATEGORIAS_URL_AMAZON = {
+    "fashion": "Moda",
+    "home": "Casa e Cozinha",
+    "kitchen": "Casa e Cozinha",
+    "electronics": "Eletrônicos",
+    "books": "Livros",
+    "toys": "Brinquedos e Jogos",
+    "beauty": "Beleza e Cuidados Pessoais",
+    "sports": "Esportes e Fitness",
+    "automotive": "Automotivo",
+    "office": "Papelaria e Escritório",
+    "pet-supplies": "Pet Shop",
+}
+
+
+def _normalizar_texto(valor: str) -> str:
+    """Normaliza texto para comparações de categoria."""
+    sem_acentos = unicodedata.normalize("NFKD", str(valor)).encode("ASCII", "ignore").decode("ASCII")
+    return re.sub(r"\s+", " ", sem_acentos).strip().lower()
+
+
 def _inferir_categoria(nome: str) -> str:
-    nome_lower = nome.lower()
-    for chave, cat in MAPA_CATEGORIAS_AMAZON.items():
-        if chave in nome_lower:
-            return cat
-    return "Geral"
+    """Aplica a taxonomia interna da grade sem atribuí-la à fonte oficial."""
+    nome_normalizado = _normalizar_texto(nome)
+    for chave, categoria in MAPA_CATEGORIAS_AMAZON.items():
+        if _normalizar_texto(chave) in nome_normalizado:
+            return categoria
+    return "Outros"
+
+
+def _categoria_da_url_amazon(url_produto: str) -> str:
+    """Extrai a categoria de Best Sellers codificada no link de referência da Amazon."""
+    correspondencia = re.search(r"zg_bs_c_([a-z0-9-]+)_d_", url_produto.lower())
+    if not correspondencia:
+        return ""
+    return MAPA_CATEGORIAS_URL_AMAZON.get(correspondencia.group(1), "")
 
 
 def _carregar_cache_amazon() -> Dict[str, Any]:
-    """Lê o último cache íntegro para evitar regressão de dados em falhas transitórias."""
+    """Lê somente o envelope de cache compatível com a coleta oficial."""
     if not os.path.exists(CAMINHO_CACHE_AMAZON):
         return {}
     try:
         with open(CAMINHO_CACHE_AMAZON, "r", encoding="utf-8") as arquivo:
-            cache = json.load(arquivo)
-        return cache if isinstance(cache, dict) else {}
+            dados = json.load(arquivo)
+        return dados if isinstance(dados, dict) else {}
     except (OSError, json.JSONDecodeError, TypeError):
         return {}
 
-def capturar_bestsellers_amazon(forcar: bool = False) -> Dict[str, Any]:
-    """
-    Captura os produtos mais vendidos da Amazon Brasil.
-    """
-    cache_anterior = _carregar_cache_amazon()
-    if not forcar and cache_anterior:
+
+def _cache_e_oficial(cache: Dict[str, Any]) -> bool:
+    """Valida a proveniência e o formato de um cache antes de reutilizá-lo."""
+    return (
+        isinstance(cache.get("produtos"), dict)
+        and cache.get("origem_coleta") == ORIGEM_COLETA
+        and cache.get("url_fonte") == URL_BESTSELLERS_AMAZON
+        and cache.get("status_coleta") == "sucesso"
+    )
+
+
+def _cache_recente(cache: Dict[str, Any]) -> bool:
+    """Verifica se um cache oficial ainda está dentro do intervalo configurado."""
+    if not _cache_e_oficial(cache):
+        return False
+    try:
+        timestamp = datetime.fromisoformat(str(cache["timestamp"]))
+    except (KeyError, TypeError, ValueError):
+        return False
+    return (datetime.now() - timestamp).total_seconds() < VALIDADE_CACHE_HORAS * 3600
+
+
+def _normalizar_categorias_cache(produtos: Dict[str, Any]) -> Dict[str, Any]:
+    """Atualiza em memória a taxonomia de itens já confirmados pela fonte oficial."""
+    normalizados: Dict[str, Any] = {}
+    for nome, dados in produtos.items():
+        if not isinstance(dados, dict):
+            continue
+        produto = dict(dados)
+        categoria_origem = _categoria_da_url_amazon(str(produto.get("url_produto", "")))
+        produto["categoria"] = categoria_origem or _inferir_categoria(str(nome))
+        produto["categoria_origem"] = categoria_origem or "Não informada na lista geral de Best Sellers"
+        normalizados[str(nome)] = produto
+    return normalizados
+
+
+def _produtos_cache_oficial(cache: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """Retorna produtos oficiais com categorias normalizadas pela rota registrada."""
+    cache = cache if cache is not None else _carregar_cache_amazon()
+    if _cache_e_oficial(cache):
+        produtos = cache.get("produtos", {})
+        if isinstance(produtos, dict):
+            return _normalizar_categorias_cache(produtos)
+    return {}
+
+
+def _salvar_cache(produtos: Dict[str, Any]) -> bool:
+    """Escreve o resultado oficial de maneira atômica."""
+    payload = {
+        "timestamp": datetime.now().isoformat(),
+        "data": datetime.now().date().isoformat(),
+        "total": len(produtos),
+        "fonte": FONTE_AMAZON,
+        "url_fonte": URL_BESTSELLERS_AMAZON,
+        "origem_coleta": ORIGEM_COLETA,
+        "status_coleta": "sucesso",
+        "produtos": produtos,
+    }
+    caminho_tmp = f"{CAMINHO_CACHE_AMAZON}.tmp"
+    try:
+        with open(caminho_tmp, "w", encoding="utf-8") as arquivo:
+            json.dump(payload, arquivo, ensure_ascii=False, indent=2)
+        os.replace(caminho_tmp, CAMINHO_CACHE_AMAZON)
+        logger.info("Cache oficial Amazon salvo com %d produtos.", len(produtos))
+        return True
+    except OSError as erro:
+        logger.error("Falha ao salvar cache oficial Amazon: %s", erro)
         try:
-            # Verifica se o cache é recente pela data de modificação.
-            mtime = os.path.getmtime(CAMINHO_CACHE_AMAZON)
-            if time.time() - mtime < VALIDADE_CACHE_HORAS * 3600:
-                logger.info("Usando cache Amazon recente.")
-                return cache_anterior
+            if os.path.exists(caminho_tmp):
+                os.remove(caminho_tmp)
         except OSError:
             pass
+        return False
 
-    logger.info("Iniciando raspagem real da Amazon Brasil Bestsellers...")
-    url = "https://www.amazon.com.br/gp/bestsellers"
-    produtos_dict: Dict[str, Any] = {}
 
+def _texto_limpo(elemento: Any) -> str:
+    """Extrai e normaliza o texto visível de um elemento HTML."""
+    if elemento is None:
+        return ""
+    return re.sub(r"\s+", " ", elemento.get_text(" ", strip=True)).strip()
+
+
+def _extrair_titulo(card: Any) -> str:
+    """Extrai o título do card, tolerando variações de classes versionadas pela Amazon."""
+    seletor = (
+        ".p13n-sc-truncate, "
+        "[class*='p13n-sc-css-line-clamp-3'], "
+        "[class*='p13n-sc-css-line-clamp-4'], "
+        "[class*='line-clamp-3'], "
+        "[class*='line-clamp-4']"
+    )
+    titulo = _texto_limpo(card.select_one(seletor))
+    if titulo:
+        return titulo
+
+    imagem = card.select_one("img[alt]")
+    return str(imagem.get("alt", "")).strip() if imagem else ""
+
+
+def _extrair_posicao(card: Any, posicao_padrao: int) -> int:
+    """Obtém a posição exibida pela página; usa a ordem do card apenas como contingência."""
+    texto = _texto_limpo(card.select_one(".zg-bdg-text, [class*='zg-bdg-text'], [class*='rank']"))
+    correspondencia = re.search(r"(\d+)", texto)
+    return int(correspondencia.group(1)) if correspondencia else posicao_padrao
+
+
+def _extrair_url_produto(card: Any) -> str:
+    """Obtém o link canônico do produto quando a página o disponibiliza."""
+    link = card.select_one("a[href*='/dp/'], a[href*='/gp/product/']")
+    if link is None:
+        return ""
+    href = str(link.get("href", "")).strip()
+    return urljoin("https://www.amazon.com.br", href) if href else ""
+
+
+def _cards_bestsellers(soup: BeautifulSoup) -> List[Any]:
+    """Localiza cards de produtos sem depender de uma única classe obfuscada."""
+    seletores = [
+        "#zg-ordered-list > li",
+        ".zg-grid-general-faceout",
+        ".p13n-sc-uncoverable-faceout",
+        "[id^='p13n-asin-index-']",
+    ]
+    cards: List[Any] = []
+    for seletor in seletores:
+        for card in soup.select(seletor):
+            if card not in cards:
+                cards.append(card)
+    return cards
+
+
+def _raspar_pagina_oficial() -> Dict[str, Any]:
+    """Consulta a página oficial e devolve somente produtos efetivamente exibidos nela."""
     try:
-        resp = requests.get(url, headers=HEADERS_AMAZON, timeout=TIMEOUT_REQUEST)
-        if resp.status_code != 200:
-            logger.warning("Amazon retornou status %d; acionando fallback.", resp.status_code)
-            raise requests.HTTPError(f"Amazon HTTP {resp.status_code}", response=resp)
+        resposta = requests.get(URL_BESTSELLERS_AMAZON, headers=HEADERS_AMAZON, timeout=TIMEOUT_REQUEST)
+        resposta.raise_for_status()
+    except requests.RequestException as erro:
+        logger.warning("Falha ao acessar Best Sellers oficial da Amazon: %s", erro)
+        return {}
 
-        soup = BeautifulSoup(resp.text, "html.parser")
-        
-        # Seletores comuns para títulos de produtos na página de bestsellers
-        itens = soup.select(".zg-grid-general-faceout, [id^='post-'], .p13n-sc-uncoverable-faceout")
-        
-        if not itens:
-            # Fallback para seletores mais genéricos
-            itens = soup.select(".a-cardui")
+    soup = BeautifulSoup(resposta.text, "html.parser")
+    produtos: Dict[str, Any] = {}
+    for indice, card in enumerate(_cards_bestsellers(soup), start=1):
+        nome = _extrair_titulo(card)
+        if len(nome) < 6 or nome in produtos:
+            continue
 
-        for i, item in enumerate(itens[:MAX_PRODUTOS]):
-            try:
-                # Tenta encontrar o título
-                titulo_el = item.select_one(".p13n-sc-truncate, ._cDE30_p13n-sc-css-line-clamp-3_1pc_u, .p13n-sc-css-line-clamp-3")
-                if not titulo_el:
-                    titulo_el = item.find("div", {"class": "p13n-sc-truncate"})
-                
-                if titulo_el:
-                    nome = titulo_el.get_text(strip=True)
-                    if nome and len(nome) > 5:
-                        score = 10 if i < 5 else (9 if i < 15 else 8)
-                        produtos_dict[nome] = {
-                            "pins": random.randint(30000, 90000),
-                            "pins_historico": random.randint(20000, 60000),
-                            "crescimento": random.randint(40, 150),
-                            "views_tiktok": round(random.uniform(10.0, 99.0), 1),
-                            "resultados_ml": random.randint(50000, 300000),
-                            "buscas_mes": random.randint(40000, 120000),
-                            "buscas_historico": random.randint(30000, 70000),
-                            "categoria": _inferir_categoria(nome),
-                            "evento": "Best Seller Amazon",
-                            "variacao": round(random.uniform(20.0, 80.0), 1),
-                            "tendencia": "🔥 Em Alta",
-                            "score": score,
-                            "fonte": "Amazon Bestsellers",
-                            "atualizado": datetime.now().strftime("%d/%m/%Y %H:%M")
-                        }
-            except Exception as e:
-                logger.debug(f"Erro ao processar item Amazon: {e}")
+        posicao = _extrair_posicao(card, indice)
+        url_produto = _extrair_url_produto(card)
+        categoria_origem = _categoria_da_url_amazon(url_produto)
+        categoria = categoria_origem or _inferir_categoria(nome)
+        produtos[nome] = {
+            "pins": 0,
+            "pins_historico": 0,
+            "crescimento": 0,
+            "crescimento_real": False,
+            "views_tiktok": 0,
+            "resultados_ml": 0,
+            "buscas_mes": 0,
+            "buscas_historico": 0,
+            "categoria": categoria,
+            "categoria_origem": categoria_origem or "Não informada na lista geral de Best Sellers",
+            "evento": "Produto listado em Best Sellers Amazon Brasil",
+            "variacao": 0,
+            "tendencia": "Mais vendido",
+            "score": max(1, MAX_PRODUTOS - posicao + 1),
+            "fonte": FONTE_AMAZON,
+            "origem_coleta": ORIGEM_COLETA,
+            "url_fonte": URL_BESTSELLERS_AMAZON,
+            "url_produto": url_produto,
+            "posicao_ranking": posicao,
+            "atualizado": datetime.now().strftime("%d/%m/%Y %H:%M"),
+        }
+        if len(produtos) >= MAX_PRODUTOS:
+            break
 
-        if produtos_dict:
-            with open(CAMINHO_CACHE_AMAZON, "w", encoding="utf-8") as f:
-                json.dump(produtos_dict, f, ensure_ascii=False, indent=2)
-            logger.info(f"Sucesso: {len(produtos_dict)} produtos Amazon capturados.")
-            return produtos_dict
-        
-    except Exception as e:
-        logger.error(f"Falha crítica na raspagem Amazon: {e}")
-    
-    # Em falhas transitórias, preserva um cache existente em vez de regredir a dados estáticos.
-    if not produtos_dict and cache_anterior:
-        logger.warning("Amazon indisponível; mantendo %d produtos do último cache íntegro.", len(cache_anterior))
-        return cache_anterior
+    if len(produtos) < MINIMO_PRODUTOS_VALIDOS:
+        logger.warning(
+            "A página oficial Amazon retornou apenas %d produtos válidos; resultado descartado.",
+            len(produtos),
+        )
+        return {}
 
-    # Fallback Curado v9.4 (Julho 2026) apenas quando ainda não existe cache aproveitável.
-    if not produtos_dict:
-        logger.info("Usando fallback curado Amazon v9.4")
-        termos_fallback = [
-            "iPhone 16 Pro Max", "PlayStation 5 Slim", "Echo Dot 5ª Geração", 
-            "Kindle Paperwhite 16GB", "Lego Classic Caixa Média", "Fritadeira Air Fryer Mondial",
-            "Fone JBL Tune 510BT", "SSD Kingston 480GB", "Creme CeraVe Hidratante",
-            "Smart TV Samsung 50' 4K", "Notebook Lenovo Ideapad 3", "Cadeira Gamer DT3",
-            "Cafeteira Nespresso Essenza", "Mochila Dell Pro", "Mouse Logitech MX Master 3S"
-        ]
-        for i, nome in enumerate(termos_fallback):
-            score = 10 if i < 5 else 9
-            produtos_dict[nome] = {
-                "pins": random.randint(30000, 90000),
-                "pins_historico": random.randint(20000, 60000),
-                "crescimento": random.randint(40, 150),
-                "views_tiktok": round(random.uniform(10.0, 99.0), 1),
-                "resultados_ml": random.randint(50000, 300000),
-                "buscas_mes": random.randint(40000, 120000),
-                "buscas_historico": random.randint(30000, 70000),
-                "categoria": _inferir_categoria(nome),
-                "evento": "Best Seller Amazon (Trend)",
-                "variacao": round(random.uniform(20.0, 80.0), 1),
-                "tendencia": "🔥 Em Alta",
-                "score": score,
-                "fonte": "Amazon Bestsellers",
-                "atualizado": datetime.now().strftime("%d/%m/%Y %H:%M")
-            }
-        
-        with open(CAMINHO_CACHE_AMAZON, "w", encoding="utf-8") as f:
-            json.dump(produtos_dict, f, ensure_ascii=False, indent=2)
+    logger.info("Página oficial Amazon: %d produtos validados.", len(produtos))
+    return produtos
 
-    return produtos_dict
+
+def capturar_bestsellers_amazon(forcar: bool = False) -> Dict[str, Any]:
+    """Captura a lista oficial ou devolve exclusivamente um cache oficial validado."""
+    cache_anterior = _carregar_cache_amazon()
+    if not forcar and _cache_recente(cache_anterior):
+        produtos_cache = _produtos_cache_oficial(cache_anterior)
+        logger.info("Cache oficial Amazon válido: %d produtos.", len(produtos_cache))
+        return produtos_cache
+
+    produtos = _raspar_pagina_oficial()
+    if produtos:
+        _salvar_cache(produtos)
+        return produtos
+
+    produtos_cache = _produtos_cache_oficial(cache_anterior)
+    if produtos_cache:
+        logger.warning("Amazon indisponível; preservando %d produtos do último cache oficial validado.", len(produtos_cache))
+        return produtos_cache
+
+    logger.error("Nenhum Best Seller oficial da Amazon foi confirmado; a fonte será omitida da grade.")
+    return {}
+
 
 def obter_amazon_trends_cache() -> Dict[str, Any]:
+    """Obtém o cache oficial Amazon e o atualiza quando necessário."""
     return capturar_bestsellers_amazon(forcar=False)
+
+
+def obter_status_cache_amazon() -> Dict[str, Any]:
+    """Expõe o estado do cache oficial para o painel de atualização."""
+    cache = _carregar_cache_amazon()
+    if not _cache_e_oficial(cache):
+        return {
+            "valido": False,
+            "total": 0,
+            "data_formatada": "Nenhuma coleta oficial validada",
+            "fonte": "N/A",
+        }
+
+    try:
+        timestamp = datetime.fromisoformat(str(cache["timestamp"]))
+        data_formatada = timestamp.strftime("%d/%m/%Y %H:%M")
+    except (KeyError, TypeError, ValueError):
+        data_formatada = "Data inválida"
+
+    return {
+        "valido": _cache_recente(cache),
+        "total": int(cache.get("total", len(cache.get("produtos", {})))),
+        "data_formatada": data_formatada,
+        "fonte": cache.get("fonte", FONTE_AMAZON),
+    }

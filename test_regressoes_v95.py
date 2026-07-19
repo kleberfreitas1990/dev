@@ -80,10 +80,11 @@ class Top10RegressionTest(unittest.TestCase):
 
 
 class AmazonFallbackRegressionTest(unittest.TestCase):
-    def test_http_503_aciona_fallback_e_grava_cache(self):
+    def test_http_503_nao_publica_fallback_artificial(self):
         from modules import amazon_scraper
 
         resposta = Mock(status_code=503)
+        resposta.raise_for_status.side_effect = amazon_scraper.requests.HTTPError("HTTP 503")
         with tempfile.TemporaryDirectory() as diretorio:
             cache = os.path.join(diretorio, "amazon_trends.json")
             with patch.object(amazon_scraper, "CAMINHO_CACHE_AMAZON", cache), patch.object(
@@ -91,11 +92,8 @@ class AmazonFallbackRegressionTest(unittest.TestCase):
             ):
                 produtos = amazon_scraper.capturar_bestsellers_amazon(forcar=True)
 
-            self.assertGreaterEqual(len(produtos), 10)
-            self.assertTrue(os.path.exists(cache))
-            with open(cache, "r", encoding="utf-8") as arquivo:
-                persistidos = json.load(arquivo)
-            self.assertEqual(set(produtos), set(persistidos))
+            self.assertEqual(produtos, {})
+            self.assertFalse(os.path.exists(cache))
 
 
 if __name__ == "__main__":

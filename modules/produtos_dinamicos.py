@@ -1,128 +1,28 @@
+"""Pipeline de composição da grade de produtos.
+
+As fontes Mercado Livre e Amazon são adicionadas somente pelos respectivos
+coletores oficiais. Este módulo não cria termos, métricas ou categorias de
+fallback para essas duas fontes.
+"""
+
+from __future__ import annotations
+
 import json
 import logging
 import os
-import random
 from datetime import datetime
 from typing import Any, Dict
 
 logger = logging.getLogger(__name__)
 
-# ============================================================
-# TERMOS REAIS DO MERCADO LIVRE & SHOPEE (Extraídos via automação)
-# Atualizado em: 18/07/2026 — Buscas em Alta Shopee + ML
-# ============================================================
-TERMOS_PRINT = [
-    "Balcão de Pia de Cozinha 160 cm",
-    "Escova Progressiva Everk",
-    "Ar-Condicionado de Janela Springer",
-    "Luminária",
-    "Sex Shop",
-    "Sacola Personalizada",
-    "Boneca Sexual",
-    "PlayStation 3",
-    "Teclado",
-    "Nintendo Switch Desbloqueado",
-    "Biquíni",
-    "PlayStation 2",
-    "Caixa de Som",
-    "Escrivaninha",
-    "Poltrona",
-    "Lembrancinha Dia dos Pais",
-    "Fone de Ouvido Bluetooth",
-    "Chopeira",
-    "Sofá",
-    "Bicicleta",
-    "Capa de Banco de Carro",
-    "Caixa de Som Pulse 1000W",
-    "Celular Xiaomi Redmi Note 14",
-    "Celular Samsung Galaxy A5",
-    "Celular Homem de Ferro",
-    "Celular Poco X7 Pro 256GB",
-    "Carbureteira",
-    "Carabina 6,35 mm Chumbo",
-    "Capa de Piscina Mor 7200L",
-    "Celular Xiaomi Três Câmeras",
-    "Lembrancinha Dia dos Pais",
-    "Armário Kapesberg",
-    "Penteadeira",
-    "Squishy",
-    "Tênis Masculino",
-    "Bicicleta Ergométrica Bak",
-    "Controle PC",
-    "Caixa Organizadora",
-    "iPhone",
-    "Caixa Cacau Show Branca",
-    "Celular",
-    "Armário Multiuso Organizador",
-    "Espelho",
-    "Masturbador Masculino",
-    "Fone de Ouvido Bluetooth",
-    "SSD",
-    "Plug Anal",
-    "Moto Elétrica",
-    "R36S",
-    "Bicicleta Ergométrica",
-    "Memória Ram DDR3 8GB 1600MHz",
-    "Alto-falante",
-    "Ar-Condicionado de Janela Springer",
-    "Aquecedor LZ 1600DE",
-    "Aspirador Ideali Life",
-    "Aro de Moto Monaco Bros 160",
-    "Ar Condicionado 18000 btus 127V",
-    "Ar Condicionado de Janela Gree",
-    "Ar Condicionado LG Dual Inverter Voice 12000 BTUs Frio 220V",
-    "Toca-Discos Audio-Technica AT-LP60XBT",
-]
+# Mantidas vazias somente para compatibilidade com importações legadas. A grade
+# não pode usar listas estáticas como se fossem resultados de fontes oficiais.
+TERMOS_PRINT: tuple[str, ...] = ()
+TERMOS_ML: tuple[str, ...] = ()
 
-TERMOS_ML = [
-    "Acessórios para Celulares",
-    "Peças para Celular",
-    "Componentes para PC",
-    "Impressão",
-    "Acessórios para Notebook",
-    "Conectividade e Redes",
-    "Software",
-    "Computadores",
-    "Tablets e Acessórios",
-    "Acessórios para Câmeras",
-    "Câmeras",
-    "Filmadoras",
-    "Acessórios para Áudio e Vídeo",
-    "Áudio Portátil e Acessórios",
-    "Componentes Eletrônicos",
-    "Equipamento para DJs",
-    "Som Automotivo",
-    "Drones e Acessórios",
-    "Acessórios para TV",
-    "Fones de Ouvido",
-    "Áudio",
-    "Projetores e Telas",
-    "Video Games",
-    "Fliperamas e Arcade",
-    "apple watch",
-    "ar condicionado",
-    "ar condicionado inverter",
-    "bicicletas",
-    "cafeteira",
-    "carros novos",
-    "computador",
-    "fogao 4 boca",
-    "fone de ouvido bluetooth",
-    "freezer vertical",
-    "geladeira frost free",
-    "guarda roupa casal",
-    "guarda roupa solteiro",
-    "ipad",
-    "iphone",
-    "iphone 8 plus",
-]
-
-# ============================================================
-# ARQUIVOS DE CACHE DE PRODUTOS
-# ============================================================
 ARQUIVO_PRODUTOS_CACHE = "produtos_cache_v48.json"
 ARQUIVO_SHOPEE_CACHE = "shopee_trends.json"
-ARQUIVO_AMAZON_CACHE = "amazon_trends.json"
+ARQUIVO_AMAZON_CACHE = "amazon_trends.json"  # Compatibilidade com integrações legadas.
 ARQUIVO_SHOPEE_LIVE_CACHE = "shopee_live_cache.json"
 DIRETORIO_RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CAMINHO_PRODUTOS_CACHE = os.path.join(DIRETORIO_RAIZ, ARQUIVO_PRODUTOS_CACHE)
@@ -132,10 +32,9 @@ CAMINHO_SHOPEE_LIVE_CACHE = os.path.join(DIRETORIO_RAIZ, ARQUIVO_SHOPEE_LIVE_CAC
 
 
 def _ler_cache_produtos() -> Dict[str, Any]:
-    """Lê o cache persistente sem interromper a aplicação em caso de corrupção."""
+    """Lê o cache agregado usado pelo painel, sem o injetar automaticamente na grade."""
     if not os.path.exists(CAMINHO_PRODUTOS_CACHE):
         return {}
-
     try:
         with open(CAMINHO_PRODUTOS_CACHE, "r", encoding="utf-8") as arquivo:
             cache = json.load(arquivo)
@@ -146,7 +45,7 @@ def _ler_cache_produtos() -> Dict[str, Any]:
 
 
 def _carregar_shopee_live() -> Dict[str, Any]:
-    """Converte o cache da atualização automática para o formato da grelha."""
+    """Converte o cache de atualização da Shopee para o schema da grade."""
     if not os.path.exists(CAMINHO_SHOPEE_LIVE_CACHE):
         return {}
 
@@ -177,12 +76,13 @@ def _carregar_shopee_live() -> Dict[str, Any]:
             "resultados_ml": 0,
             "buscas_mes": 0,
             "buscas_historico": 0,
-            "categoria": item.get("categoria", "Marketplace"),
+            "categoria": item.get("categoria", "Outros"),
             "evento": f"{item.get('vendas', 'Em alta')} vendas na Shopee",
             "variacao": max(20, 80 - (posicao * 2)),
-            "tendencia": "🔥 Em Alta",
-            "score": max(8, 10 - (posicao // 10)),
+            "tendencia": "Em alta",
+            "score": max(1, 10 - (posicao // 10)),
             "fonte": "Shopee Live",
+            "origem_coleta": item.get("origem_coleta", "cache_shopee_live"),
             "avaliacao": item.get("avaliacao"),
             "preco": item.get("preco"),
             "atualizado": item.get("atualizado"),
@@ -191,141 +91,104 @@ def _carregar_shopee_live() -> Dict[str, Any]:
     return produtos
 
 
-def _atualizar_fontes_automaticas() -> None:
-    """Renova os caches que alimentam a grelha quando a chamada é forçada."""
-    # Atualiza Google Trends + Shopee Live
+def _carregar_shopee_legacy() -> Dict[str, Any]:
+    """Carrega o cache legado da Shopee sem afetar a proveniência das outras fontes."""
+    if not os.path.exists(CAMINHO_SHOPEE_CACHE):
+        return {}
     try:
-        from modules.google_shopee_trends import forcar_atualizacao_completa
-        forcar_atualizacao_completa()
+        with open(CAMINHO_SHOPEE_CACHE, "r", encoding="utf-8") as arquivo:
+            dados = json.load(arquivo)
+        return dados if isinstance(dados, dict) else {}
+    except (OSError, json.JSONDecodeError, TypeError) as erro:
+        logger.warning("Falha ao carregar tendências da Shopee: %s", erro)
+        return {}
+
+
+def _adicionar_produtos(destino: Dict[str, Any], origem: Dict[str, Any]) -> None:
+    """Acrescenta entradas íntegras, preservando a prioridade da fonte anterior."""
+    for nome, dados in origem.items():
+        nome_limpo = str(nome).strip()
+        if nome_limpo and nome_limpo not in destino and isinstance(dados, dict):
+            destino[nome_limpo] = dados
+
+
+def _forcar_atualizacao_google_shopee() -> Any:
+    """Carrega a integração opcional apenas quando uma atualização é solicitada."""
+    from modules.google_shopee_trends import forcar_atualizacao_completa
+
+    return forcar_atualizacao_completa()
+
+
+def _atualizar_fontes_automaticas() -> None:
+    """Solicita renovação aos coletores, que validam a origem antes de gravar cache."""
+    try:
+        _forcar_atualizacao_google_shopee()
     except Exception as erro:
         logger.warning("Falha ao atualizar fontes Google/Shopee: %s", erro)
 
-    # Atualiza Mercado Livre Real-Time
     try:
         from modules.mercadolivre_scraper import forcar_atualizacao_ml
-        forcar_atualizacao_ml()
-        logger.info("Cache Mercado Livre atualizado com sucesso.")
-    except Exception as erro:
-        logger.warning("Falha ao atualizar fontes Mercado Livre: %s", erro)
 
-    # Atualiza Amazon Real-Time (v9.4)
+        forcar_atualizacao_ml()
+    except Exception as erro:
+        logger.warning("Falha ao atualizar tendências oficiais do Mercado Livre: %s", erro)
+
     try:
         from modules.amazon_scraper import capturar_bestsellers_amazon
+
         capturar_bestsellers_amazon(forcar=True)
-        logger.info("Cache Amazon atualizado com sucesso.")
     except Exception as erro:
-        logger.warning("Falha ao atualizar fontes Amazon: %s", erro)
+        logger.warning("Falha ao atualizar Best Sellers oficiais da Amazon: %s", erro)
 
 
 def obter_produtos_dinamicos(forcar_atualizacao: bool = False) -> Dict[str, Any]:
-    """Obtém produtos das fontes automáticas e aplica fallbacks compatíveis."""
+    """Compõe a grade exclusivamente com dados fornecidos pelos coletores ativos."""
     if forcar_atualizacao:
         _atualizar_fontes_automaticas()
 
     produtos: Dict[str, Any] = {}
 
-    # 1. PRIORIDADE MÁXIMA: atualização automática Shopee Live
-    for nome, dados in _carregar_shopee_live().items():
-        produtos[nome] = dados
+    # A Shopee mantém sua prioridade operacional já existente.
+    _adicionar_produtos(produtos, _carregar_shopee_live())
+    _adicionar_produtos(produtos, _carregar_shopee_legacy())
 
-    # 2. Amazon Bestsellers (Dados Reais v9.4)
-    try:
-        from modules.amazon_scraper import capturar_bestsellers_amazon
-        dados_amazon = capturar_bestsellers_amazon(forcar=forcar_atualizacao)
-        if isinstance(dados_amazon, dict):
-            for nome, dados in dados_amazon.items():
-                if nome not in produtos:
-                    produtos[nome] = dados
-            if dados_amazon:
-                logger.info("Amazon real: %d produtos carregados.", len(dados_amazon))
-    except Exception as e:
-        logger.warning("Falha ao carregar tendências reais da Amazon: %s", e)
-
-    # 3. Shopee Real-Time legado (Dados Reais)
-    if os.path.exists(CAMINHO_SHOPEE_CACHE):
-        try:
-            with open(CAMINHO_SHOPEE_CACHE, "r", encoding="utf-8") as f:
-                dados_shopee = json.load(f)
-                if isinstance(dados_shopee, dict):
-                    for nome, dados in dados_shopee.items():
-                        if nome not in produtos:
-                            produtos[nome] = dados
-        except Exception as e:
-            logger.warning("Falha ao carregar tendências da Shopee: %s", e)
-
-    # 4. Termos de tendências mantidos como fallback quando o cache Live está vazio
-    for posicao, termo in enumerate(TERMOS_PRINT):
-        if termo not in produtos:
-            produtos[termo] = {
-                "pins": 0,
-                "pins_historico": 0,
-                "crescimento": max(35, 160 - (posicao * 3)),
-                "views_tiktok": 0,
-                "resultados_ml": 0,
-                "buscas_mes": 0,
-                "buscas_historico": 0,
-                "categoria": "Marketplace",
-                "evento": "Tendência automática Shopee/Google",
-                "variacao": max(15, 70 - posicao),
-                "tendencia": "🔥 Em Alta",
-                "score": max(8, 10 - (posicao // 10)),
-                "fonte": "Shopee Live",
-            }
-
-    # 5. Mercado Livre Trends — Dados reais via scraper (cache de 6h)
+    # Mercado Livre: somente página oficial ou cache da mesma página já validado.
     try:
         from modules.mercadolivre_scraper import obter_tendencias_ml_cache
-        dados_ml_reais = obter_tendencias_ml_cache()
-        for nome, dados in dados_ml_reais.items():
-            if nome not in produtos:
-                produtos[nome] = dados
-        if dados_ml_reais:
-            logger.info("Mercado Livre real: %d produtos carregados do cache.", len(dados_ml_reais))
+
+        dados_ml = obter_tendencias_ml_cache()
+        _adicionar_produtos(produtos, dados_ml)
+        if dados_ml:
+            logger.info("Mercado Livre oficial: %d termos carregados.", len(dados_ml))
     except Exception as erro:
-        logger.warning("Falha ao carregar dados reais ML, usando fallback: %s", erro)
-        dados_ml_reais = {}
+        logger.warning("Falha ao carregar tendências oficiais do Mercado Livre: %s", erro)
 
-    # 5b. Fallback TERMOS_ML estáticos (apenas para termos ainda ausentes)
-    for termo in TERMOS_ML:
-        if termo not in produtos:
-            produtos[termo] = {
-                "pins": random.randint(20000, 60000),
-                "pins_historico": random.randint(15000, 40000),
-                "crescimento": random.randint(40, 180),
-                "views_tiktok": round(random.uniform(20.0, 99.0), 1),
-                "resultados_ml": random.randint(80000, 300000),
-                "buscas_mes": random.randint(50000, 120000),
-                "buscas_historico": random.randint(30000, 60000),
-                "categoria": "Mercado Livre",
-                "evento": "Tendência Mercado Livre",
-                "variacao": round(random.uniform(30.0, 85.0), 1),
-                "tendencia": "🔥 Em Alta",
-                "score": random.randint(8, 10),
-                "fonte": "Mercado Livre Trends",
-            }
+    # Amazon: somente Best Sellers oficial ou cache da mesma página já validado.
+    try:
+        from modules.amazon_scraper import obter_amazon_trends_cache
 
-    # 6. Fallback: Cache de produtos v48
-    cache = _ler_cache_produtos()
-    cache_produtos = cache.get("produtos", {}) if isinstance(cache, dict) else {}
-    if isinstance(cache_produtos, dict):
-        for nome, dados in cache_produtos.items():
-            if nome not in produtos and isinstance(dados, dict):
-                produtos[nome] = dados
+        dados_amazon = obter_amazon_trends_cache()
+        _adicionar_produtos(produtos, dados_amazon)
+        if dados_amazon:
+            logger.info("Amazon oficial: %d produtos carregados.", len(dados_amazon))
+    except Exception as erro:
+        logger.warning("Falha ao carregar Best Sellers oficiais da Amazon: %s", erro)
 
     return produtos
 
 
 def obter_produtos_marketplace_v49(forcar_atualizacao: bool = False) -> Dict[str, Any]:
-    """Alias legado usado pelas telas v4.9/v5.0 do dashboard."""
+    """Alias legado usado pelas telas existentes do dashboard."""
     return obter_produtos_dinamicos(forcar_atualizacao=forcar_atualizacao)
 
 
-# Fallback estático obrigatório para módulos que importam esta constante.
-PRODUTOS_FALLBACK = obter_produtos_dinamicos()
+# Compatibilidade para módulos que importam esta constante. Não dispara coleta
+# de rede no momento da importação, nem fornece termos artificiais.
+PRODUTOS_FALLBACK: Dict[str, Any] = {}
 
 
 def carregar_cache_produtos() -> Dict[str, Any]:
-    """Retorna o cache persistente no formato esperado pelos módulos existentes."""
+    """Retorna o cache agregado no formato esperado pelas telas administrativas."""
     return _ler_cache_produtos()
 
 
@@ -373,7 +236,7 @@ def verificar_data_cache() -> Dict[str, Any]:
     cache = carregar_cache_produtos()
     if not cache:
         return {
-            "status": "❌ Nenhum cache encontrado",
+            "status": "Nenhum cache encontrado",
             "data": "Nunca",
             "total": 0,
             "cache_existe": False,
@@ -383,7 +246,7 @@ def verificar_data_cache() -> Dict[str, Any]:
     produtos = cache.get("produtos", {})
     total = len(produtos) if isinstance(produtos, dict) else 0
     hoje = datetime.now().date().isoformat()
-    status = "✅ Atualizado hoje" if data_cache == hoje else f"⚠️ Última atualização: {data_cache}"
+    status = "Atualizado hoje" if data_cache == hoje else f"Última atualização: {data_cache}"
 
     return {
         "status": status,

@@ -1,15 +1,16 @@
-name: Update ML Trends
+name: Update Marketplace Trends
 
 on:
   schedule:
-    - cron: '0 */12 * * *' # Executa a cada 12 horas
-  workflow_dispatch: # Permite execução manual
+    - cron: '0 */12 * * *'
+  workflow_dispatch:
 
 jobs:
   update-trends:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # Permite que o bot faça push de volta ao repositório
+      contents: write
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4.2.2
@@ -21,42 +22,59 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install --upgrade requests beautifulsoup4 selenium
+          python -m pip install --upgrade pip
+          python -m pip install requests beautifulsoup4 selenium
 
-      - name: Install Chrome
+      - name: Install Chrome for Shopee collection
         run: |
           sudo apt-get update
           sudo apt-get install -y google-chrome-stable
 
-      - name: Run ML Trends script (legacy)
-        run: python atualizar_ml_trends.py
-
-      - name: Run ML Real-Time Scraper (v9.3)
+      - name: Refresh official Mercado Livre and Amazon sources
         run: |
-          python -c "
-          import sys
-          sys.path.insert(0, '.')
+          python - <<'PY'
+          from modules.amazon_scraper import capturar_bestsellers_amazon
           from modules.mercadolivre_scraper import forcar_atualizacao_ml
-          result = forcar_atualizacao_ml()
-          print(f'ML Scraper: {len(result)} produtos capturados')
-          "
 
-      - name: Run Shopee Scraping script
+          mercado_livre = forcar_atualizacao_ml()
+          amazon = capturar_bestsellers_amazon(forcar=True)
+
+          if not mercado_livre:
+              raise SystemExit("Nenhuma tendência oficial do Mercado Livre foi confirmada.")
+          if not amazon:
+              raise SystemExit("Nenhum Best Seller oficial da Amazon foi confirmado nem existe cache oficial válido.")
+
+          print(f"Mercado Livre oficial: {len(mercado_livre)} termos")
+          print(f"Amazon oficial ou último cache validado: {len(amazon)} produtos")
+          PY
+
+      - name: Refresh Shopee source
         run: python scraping_shopee_v2.py
 
-      - name: Run Amazon Scraping script
-        run: python scraping_amazon.py
-
-      - name: Verify refreshed source files
+      - name: Verify source provenance
         run: |
-          test -s ml_trends_cache.json
+          python - <<'PY'
+          import json
+
+          expected = {
+              "ml_trends_cache.json": "https://tendencias.mercadolivre.com.br/",
+              "amazon_trends.json": "https://www.amazon.com.br/gp/bestsellers/",
+          }
+
+          for path, source_url in expected.items():
+              with open(path, encoding="utf-8") as file:
+                  payload = json.load(file)
+              assert payload.get("url_fonte") == source_url, f"Fonte inválida em {path}"
+              assert payload.get("origem_coleta") == "pagina_oficial", f"Origem inválida em {path}"
+              assert payload.get("status_coleta") == "sucesso", f"Status inválido em {path}"
+              assert isinstance(payload.get("produtos"), dict) and payload["produtos"], f"Sem produtos em {path}"
+          PY
           test -s shopee_trends.json
-          test -s amazon_trends.json
 
       - name: Commit and push changes
         run: |
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
-          git add .github/workflows/update_ml_trends.yml atualizar_ml_trends.py modules/produtos_dinamicos.py modules/mercadolivre_scraper.py modules/google_shopee_trends.py modules/amazon_scraper.py scraping_shopee_v2.py scraping_amazon.py ml_trends_cache.json shopee_trends.json amazon_trends.json
-          git commit -m "auto: v9.8 — Atualização Multi-Fonte (ML + Shopee + Amazon)" || exit 0
+          git add .github/workflows/update_ml_trends.yml atualizar_ml_trends.py scraping_amazon.py modules/mercadolivre_scraper.py modules/amazon_scraper.py modules/produtos_dinamicos.py modules/grade_descoberta.py ml_trends_cache.json shopee_trends.json amazon_trends.json
+          git commit -m "fix: valida fontes oficiais e categorias da grade" || exit 0
           git push

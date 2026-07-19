@@ -7,7 +7,7 @@ import random
 import logging
 from datetime import datetime, timedelta
 from typing import List, Dict
-from modules.produtos_dinamicos import TERMOS_ML, obter_produtos_marketplace_v49
+from modules.produtos_dinamicos import obter_produtos_marketplace_v49
 
 logger = logging.getLogger(__name__)
 
@@ -266,20 +266,6 @@ def descobrir_produtos_grade(categoria: str = None, quantidade: int = 10) -> Lis
                     "motivo": f"✨ {dados.get('evento', 'Produto em alta performance nas vendas')}",
                     "indicadores": obter_indicadores_horario(termo)
                 })
-
-    # Fallback para TERMOS_ML se ainda houver espaço
-    for termo in TERMOS_ML:
-        if termo not in termos_usados and len(produtos) < quantidade:
-            termos_usados.append(termo)
-            dados = dados_dinamicos.get(termo, {})
-            produtos.append({
-                "produto": termo,
-                "fonte": "Mercado Livre",
-                "categoria": "Marketplace",
-                "score": dados.get("score", 9),
-                "motivo": "📈 Alta busca orgânica no Mercado Livre",
-                "indicadores": obter_indicadores_horario(termo)
-            })
 
     # 2. SEGUNDA PRIORIDADE: PRODUTOS DE MARKETPLACE (GRADE LEGADA)
     if len(produtos) < quantidade and "geral" in GRADE_PRODUTOS:
