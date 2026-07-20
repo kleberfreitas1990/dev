@@ -275,7 +275,6 @@ def render_grade_descoberta(key_suffix: str = "main"):
 
         dados_tabela.append({
             "Produto": produto,
-            "Categoria": cat_item,
             "Link Shopee": link_shopee,
             "Fonte": fonte_item,
             "Score": score,
@@ -296,7 +295,6 @@ def render_grade_descoberta(key_suffix: str = "main"):
         hide_index=True,
         column_config={
             "Produto": st.column_config.TextColumn("Produto", width="medium"),
-            "Categoria": st.column_config.TextColumn("Categoria", width="small"),
             "Link Shopee": st.column_config.LinkColumn(
                 "🛒 Shopee",
                 help="Buscar produto na Shopee",
