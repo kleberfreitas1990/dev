@@ -21,19 +21,11 @@ logger = logging.getLogger(__name__)
 # Atualizado em: 18/07/2026 — Buscas em Alta Shopee + ML
 # ============================================================
 TERMOS_HOT_TRENDS = [
-    # Buscas em Alta Shopee — Atualizado em Tempo Real (18/07/2026)
-    "Controle PS4", "Nintendo Switch Desbloqueado", "Café Orfeu 1Kg", "Espelho",
-    "Impressora 3D", "Sapateira", "Armário Kapesberg", "PC Gamer", "Capinha iPhone 16",
-    "Photocard", "Aquecedor LZ 1600DE", "Nintendo 3DS", "Fone de Ouvido", "Plug Anal",
-    "Sofá", "Decoração", "Moto Elétrica Scooter", "Lembrancinha Dia dos Pais",
-    "Poltrona", "Projetor", "Celular iPhone Novo", "Power Bank Pineng",
-    "Câmera Babá Eletrônica Tarktark", "Carro Infantil Elétrico",
-    "Carro Infantil Elétrico Jipe", "Celular Xiaomi 1T", "Celular Resistente",
-    "Carenagem de Moto Factor 150", "Capinha de Celular", "Celular Xiaomi M7 Pro",
-    # Complementares ML & Google (Julho 2026)
-    "Balcão de Pia de Cozinha 160 cm", "Escova Progressiva Everk",
-    "Ar-Condicionado de Janela Springer", "Sacola Personalizada", "Teclado",
-    "Biquíni", "Caixa de Som", "Escrivaninha", "Chopeira",
+    # Atualizado em: 20/07/2026 — Tendências Reais Google Trends
+    "Copa do Mundo 2026", "Sport Recife x Operário", "Ponte Preta x Goiás", "Mirassol x Grêmio",
+    "Criciúma x Vila Nova", "Fortaleza x Novorizontino", "Javier Milei", "Manchester United x Wrexham",
+    "Veruska Donato", "Grande Prêmio da Bélgica", "Fórmula 1", "Carolina Dieckmann",
+    "Filipe Luís", "INSS Salário Mínimo", "Bahia x Chapecoense",
 ]
 
 # ============================================================

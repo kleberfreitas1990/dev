@@ -100,21 +100,21 @@ if __name__ == "__main__":
             termos = list(dict.fromkeys(TERMOS_HOT_TRENDS))[:15]
         except Exception:
             termos = [
-                "Balcão de Pia de Cozinha 160 cm",
-                "Escova Progressiva Everk",
-                "Ar-Condicionado de Janela Springer",
-                "Luminária",
-                "Sacola Personalizada",
-                "Teclado",
-                "Nintendo Switch Desbloqueado",
-                "Biquíni",
-                "Caixa de Som",
-                "Escrivaninha",
-                "Poltrona",
-                "Lembrancinha Dia dos Pais",
-                "Fone de Ouvido Bluetooth",
-                "Chopeira",
-                "Sofá",
+                "Copa do Mundo 2026",
+                "Sport Recife x Operário",
+                "Ponte Preta x Goiás",
+                "Mirassol x Grêmio",
+                "Criciúma x Vila Nova",
+                "Fortaleza x Novorizontino",
+                "Javier Milei",
+                "Manchester United x Wrexham",
+                "Veruska Donato",
+                "Grande Prêmio da Bélgica",
+                "Fórmula 1",
+                "Carolina Dieckmann",
+                "Filipe Luís",
+                "INSS Salário Mínimo",
+                "Bahia x Chapecoense",
             ]
     
     fonte = "Shopee Real-Time Scraping" if coleta_ao_vivo else "Shopee — termos priorizados (fallback)"
