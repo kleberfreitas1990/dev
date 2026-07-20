@@ -1,6 +1,6 @@
 """Coletor oficial de Best Sellers da Amazon Brasil.
 
-O módulo só publica itens extraídos de ``https://www.amazon.com.br/gp/bestsellers/``.
+O módulo só publica itens extraídos de ``https://www.amazon.com.br/gp/bestsellers/`` (com fallback parametrizado para evitar bloqueios de bot-detection).
 Quando a página não está disponível, preserva exclusivamente um cache anterior que
 já tenha sido validado como coleta oficial; listas curadas e métricas aleatórias
 não são usadas como substitutos de dados da Amazon.
@@ -37,12 +37,20 @@ MINIMO_PRODUTOS_VALIDOS = 3
 
 HEADERS_AMAZON = {
     "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
         "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/125.0.0.0 Safari/537.36"
+        "Chrome/120.0.0.0 Safari/537.36"
     ),
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
     "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Encoding": "gzip, deflate, br",
+    "DNT": "1",
+    "Connection": "keep-alive",
+    "Upgrade-Insecure-Requests": "1",
+    "Sec-Fetch-Dest": "document",
+    "Sec-Fetch-Mode": "navigate",
+    "Sec-Fetch-Site": "none",
+    "Sec-Fetch-User": "?1",
 }
 
 # Taxonomia exibida pela grade. A página geral de Best Sellers não fornece uma
@@ -261,13 +269,35 @@ def _cards_bestsellers(soup: BeautifulSoup) -> List[Any]:
     return cards
 
 
+# Lista de URLs da Amazon em ordem de preferência. A Amazon Brasil
+# alterna entre rate-limitar URLs com e sem parâmetros de referência,
+# portanto tentamos ambas antes de desistir.
+_URLS_AMAZON_BESTSELLERS = [
+    "https://www.amazon.com.br/gp/bestsellers/?ref_=zg_bs_nav_0",
+    "https://www.amazon.com.br/gp/bestsellers/",
+]
+
+
+def _obter_resposta_bestsellers() -> Optional[requests.Response]:
+    """Tenta obter uma resposta válida da página de Best Sellers, alternando URLs."""
+    for url in _URLS_AMAZON_BESTSELLERS:
+        try:
+            resposta = requests.get(url, headers=HEADERS_AMAZON, timeout=TIMEOUT_REQUEST)
+            resposta.raise_for_status()
+            if resposta.status_code == 200 and len(resposta.text) >= 10000 and "Something went wrong" not in resposta.text:
+                return resposta
+            logger.warning("Amazon (%s) retornou página de erro; tentando próxima URL...", url)
+        except requests.RequestException as erro:
+            logger.warning("Amazon (%s) falhou: %s; tentando próxima URL...", url, erro)
+            continue
+    return None
+
+
 def _raspar_pagina_oficial() -> Dict[str, Any]:
     """Consulta a página oficial e devolve somente produtos efetivamente exibidos nela."""
-    try:
-        resposta = requests.get(URL_BESTSELLERS_AMAZON, headers=HEADERS_AMAZON, timeout=TIMEOUT_REQUEST)
-        resposta.raise_for_status()
-    except requests.RequestException as erro:
-        logger.warning("Falha ao acessar Best Sellers oficial da Amazon: %s", erro)
+    resposta = _obter_resposta_bestsellers()
+    if resposta is None:
+        logger.warning("Todas as tentativas de acesso à Amazon Best Sellers falharam.")
         return {}
 
     soup = BeautifulSoup(resposta.text, "html.parser")
