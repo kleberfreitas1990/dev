@@ -21,11 +21,15 @@ logger = logging.getLogger(__name__)
 # Atualizado em: 18/07/2026 — Buscas em Alta Shopee + ML
 # ============================================================
 TERMOS_HOT_TRENDS = [
-    # Atualizado em: 20/07/2026 — Tendências Reais Google Trends
-    "Copa do Mundo 2026", "Sport Recife x Operário", "Ponte Preta x Goiás", "Mirassol x Grêmio",
-    "Criciúma x Vila Nova", "Fortaleza x Novorizontino", "Javier Milei", "Manchester United x Wrexham",
-    "Veruska Donato", "Grande Prêmio da Bélgica", "Fórmula 1", "Carolina Dieckmann",
-    "Filipe Luís", "INSS Salário Mínimo", "Bahia x Chapecoense",
+    # Atualizado em: 20/07/2026 — Dados reais da imagem do usuário
+    "100 Pacotes de Figurinhas da Copa", "Sofá", "Dildo", "PlayStation 2",
+    "Carro Infantil Elétrico", "Mouse Pad", "Vibrador Bluetooth", "Sacola Personalizada",
+    "Gabinete", "Chopeira", "Masturbador Masculino", "Kindle",
+    "Carro Infantil Elétrico Jipe", "Plug Anal", "Crocs", "Vibrador Calcinha",
+    "Poco X7 Pro", "Camisa Tailandesa", "Alexa", "Figurinha Copa",
+    "Maquiagem Maybelline Honey", "Headphone Miniso", "Fone de Ouvido Disney", "Fone de Ouvido Disney LF-918",
+    "Kit de Maquiagem Real Techniques", "Caixa de Som Britânia PCX 12500", "Câmera Babá Eletrônica Tarktark", "Celular iPhone Novo",
+    "Taças Oxford", "Carrinho de Controle Remoto 4x4",
 ]
 
 # ============================================================
