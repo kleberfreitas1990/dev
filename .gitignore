@@ -24,6 +24,11 @@ historico_tendencias.db
 historico_tendencias.db-wal
 historico_tendencias.db-shm
 
+# Banco de dados principal SQLite
+minerador.db
+minerador.db-wal
+minerador.db-shm
+
 # Logs
 *.log
 output.log

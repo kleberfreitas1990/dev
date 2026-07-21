@@ -150,14 +150,21 @@ def _cache_e_oficial(cache: Dict[str, Any]) -> bool:
 
 
 def _cache_recente(cache: Dict[str, Any]) -> bool:
-    """Verifica se um cache oficial ainda está dentro do intervalo configurado."""
-    if not _cache_e_oficial(cache):
-        return False
+    """Verifica se um cache oficial ainda está dentro do intervalo configurado (JSON + SQLite fallback)."""
+    if _cache_e_oficial(cache):
+        try:
+            timestamp = datetime.fromisoformat(str(cache["timestamp"]))
+            if (datetime.now() - timestamp).total_seconds() < VALIDADE_CACHE_HORAS * 3600:
+                return True
+        except (KeyError, TypeError, ValueError):
+            pass
+    # Fallback: verifica no SQLite
     try:
-        timestamp = datetime.fromisoformat(str(cache["timestamp"]))
-    except (KeyError, TypeError, ValueError):
-        return False
-    return (datetime.now() - timestamp).total_seconds() < VALIDADE_CACHE_HORAS * 3600
+        from modules.database import amazon_cache_valido
+        return amazon_cache_valido()
+    except Exception:
+        pass
+    return False
 
 
 def _normalizar_categorias_cache(produtos: Dict[str, Any]) -> Dict[str, Any]:
@@ -175,17 +182,24 @@ def _normalizar_categorias_cache(produtos: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def _produtos_cache_oficial(cache: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-    """Retorna produtos oficiais com categorias normalizadas pela rota registrada."""
-    cache = cache if cache is not None else _carregar_cache_amazon()
-    if _cache_e_oficial(cache):
+    """Retorna produtos oficiais com categorias normalizadas (JSON + SQLite fallback)."""
+    if cache is not None and _cache_e_oficial(cache):
         produtos = cache.get("produtos", {})
         if isinstance(produtos, dict):
             return _normalizar_categorias_cache(produtos)
+    # Fallback: tenta o SQLite
+    try:
+        from modules.database import obter_amazon_ciclo_atual
+        db_data = obter_amazon_ciclo_atual()
+        if db_data.get("produtos"):
+            return _normalizar_categorias_cache(db_data["produtos"])
+    except Exception:
+        pass
     return {}
 
 
 def _salvar_cache(produtos: Dict[str, Any]) -> bool:
-    """Escreve o resultado oficial de maneira atômica."""
+    """Escreve o resultado oficial em JSON + SQLite (dual-write)."""
     payload = {
         "timestamp": datetime.now().isoformat(),
         "data": datetime.now().date().isoformat(),
@@ -196,21 +210,33 @@ def _salvar_cache(produtos: Dict[str, Any]) -> bool:
         "status_coleta": "sucesso",
         "produtos": produtos,
     }
+    # JSON (compatibilidade backward)
     caminho_tmp = f"{CAMINHO_CACHE_AMAZON}.tmp"
+    json_ok = False
     try:
         with open(caminho_tmp, "w", encoding="utf-8") as arquivo:
             json.dump(payload, arquivo, ensure_ascii=False, indent=2)
         os.replace(caminho_tmp, CAMINHO_CACHE_AMAZON)
-        logger.info("Cache oficial Amazon salvo com %d produtos.", len(produtos))
-        return True
+        json_ok = True
     except OSError as erro:
-        logger.error("Falha ao salvar cache oficial Amazon: %s", erro)
+        logger.error("Falha ao salvar JSON Amazon: %s", erro)
         try:
             if os.path.exists(caminho_tmp):
                 os.remove(caminho_tmp)
         except OSError:
             pass
-        return False
+    # SQLite
+    db_ok = False
+    try:
+        from modules.database import salvar_amazon_ciclo
+        salvar_amazon_ciclo(produtos)
+        db_ok = True
+    except Exception as db_err:
+        logger.warning(f"Falha ao salvar Amazon no SQLite: {db_err}")
+    if json_ok or db_ok:
+        logger.info("Cache oficial Amazon salvo com %d produtos.", len(produtos))
+        return True
+    return False
 
 
 def _texto_limpo(elemento: Any) -> str:

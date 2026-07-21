@@ -24,7 +24,16 @@ INTERVALO_PADRAO_HORAS = 12  # Intervalo padrão de atualização (12h)
 # FUNÇÕES DE HISTÓRICO
 # ============================================================
 def carregar_historico() -> List[Dict]:
-    """Carrega o histórico de execuções automáticas"""
+    """Carrega o histórico de execuções automáticas (JSON + SQLite fallback)."""
+    # Tenta SQLite primeiro
+    try:
+        from modules.database import obter_historico_auto
+        registros = obter_historico_auto()
+        if registros:
+            return registros
+    except Exception:
+        pass
+    # Fallback JSON
     if not os.path.exists(ARQUIVO_HISTORICO_AUTO):
         return []
     try:
@@ -47,7 +56,8 @@ def salvar_historico(historico: List[Dict]) -> bool:
         return False
 
 def registrar_execucao(tipo: str, sucesso: bool, detalhes: Dict = None, tempo: float = 0.0):
-    """Registra uma execução no histórico"""
+    """Registra uma execução no histórico (JSON + SQLite dual-write)."""
+    # JSON (backward compat)
     historico = carregar_historico()
     entrada = {
         "timestamp": datetime.now().isoformat(),
@@ -59,6 +69,12 @@ def registrar_execucao(tipo: str, sucesso: bool, detalhes: Dict = None, tempo: f
     }
     historico.append(entrada)
     salvar_historico(historico)
+    # SQLite
+    try:
+        from modules.database import registrar_execucao_auto
+        registrar_execucao_auto(tipo=tipo, sucesso=sucesso, detalhes=detalhes, tempo=round(tempo, 2))
+    except Exception as e:
+        logger.warning(f"Falha ao registrar no SQLite: {e}")
 
 # ============================================================
 # LÓGICA DE ATUALIZAÇÃO AUTOMÁTICA

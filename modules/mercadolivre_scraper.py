@@ -119,30 +119,45 @@ def _cache_e_oficial(cache: Dict[str, Any]) -> bool:
 
 
 def _cache_valido() -> bool:
-    """Verifica a validade temporal e a proveniência do cache."""
+    """Verifica a validade temporal e a proveniência do cache (JSON + SQLite fallback)."""
+    # Primeiro tenta o JSON
     cache = _ler_cache()
-    if not _cache_e_oficial(cache):
-        return False
-
+    if _cache_e_oficial(cache):
+        try:
+            timestamp = datetime.fromisoformat(str(cache["timestamp"]))
+            if datetime.now() - timestamp < timedelta(hours=VALIDADE_CACHE_HORAS):
+                return True
+        except (KeyError, TypeError, ValueError):
+            pass
+    # Fallback: verifica no SQLite
     try:
-        timestamp = datetime.fromisoformat(str(cache["timestamp"]))
-    except (KeyError, TypeError, ValueError):
-        return False
-
-    return datetime.now() - timestamp < timedelta(hours=VALIDADE_CACHE_HORAS)
+        from modules.database import ml_cache_valido
+        return ml_cache_valido()
+    except Exception:
+        pass
+    return False
 
 
 def _produtos_cache_oficial() -> Dict[str, Any]:
-    """Retorna somente produtos de um cache que passou na validação de origem."""
+    """Retorna produtos do cache oficial (JSON ou SQLite como fallback)."""
     cache = _ler_cache()
     if _cache_e_oficial(cache):
         produtos = cache.get("produtos", {})
-        return produtos if isinstance(produtos, dict) else {}
+        if isinstance(produtos, dict) and produtos:
+            return produtos
+    # Fallback: tenta o SQLite
+    try:
+        from modules.database import obter_ml_ciclo_atual
+        db_data = obter_ml_ciclo_atual()
+        if db_data.get("produtos"):
+            return db_data["produtos"]
+    except Exception:
+        pass
     return {}
 
 
 def _salvar_cache(produtos: Dict[str, Any]) -> bool:
-    """Persiste um resultado oficial de maneira atômica."""
+    """Persiste um resultado oficial em JSON + SQLite (dual-write)."""
     payload = {
         "timestamp": datetime.now().isoformat(),
         "data": datetime.now().date().isoformat(),
@@ -153,21 +168,33 @@ def _salvar_cache(produtos: Dict[str, Any]) -> bool:
         "status_coleta": "sucesso",
         "produtos": produtos,
     }
+    # JSON (compatibilidade backward)
     caminho_tmp = f"{CAMINHO_CACHE_ML}.tmp"
+    json_ok = False
     try:
         with open(caminho_tmp, "w", encoding="utf-8") as arquivo:
             json.dump(payload, arquivo, ensure_ascii=False, indent=2)
         os.replace(caminho_tmp, CAMINHO_CACHE_ML)
-        logger.info("Cache oficial do Mercado Livre salvo com %d termos.", len(produtos))
-        return True
+        json_ok = True
     except OSError as erro:
-        logger.error("Falha ao salvar cache oficial do Mercado Livre: %s", erro)
+        logger.error("Falha ao salvar JSON do Mercado Livre: %s", erro)
         try:
             if os.path.exists(caminho_tmp):
                 os.remove(caminho_tmp)
         except OSError:
             pass
-        return False
+    # SQLite
+    db_ok = False
+    try:
+        from modules.database import salvar_ml_ciclo
+        salvar_ml_ciclo(produtos)
+        db_ok = True
+    except Exception as db_err:
+        logger.warning(f"Falha ao salvar ML no SQLite: {db_err}")
+    if json_ok or db_ok:
+        logger.info("Cache oficial do Mercado Livre salvo com %d termos.", len(produtos))
+        return True
+    return False
 
 
 def _eh_link_de_tendencia(href: str) -> bool:

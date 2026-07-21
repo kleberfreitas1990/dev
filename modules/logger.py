@@ -31,7 +31,7 @@ def registrar_busca(
     erro: str = ""
 ) -> Dict:
     """
-    Registra uma tentativa de busca no arquivo de logs
+    Registra uma tentativa de busca (JSON + SQLite dual-write).
     """
     
     registro = {
@@ -46,18 +46,23 @@ def registrar_busca(
         "erro": erro if erro else None
     }
     
-    # Carrega logs existentes
+    # JSON (backward compat)
     logs = carregar_logs()
-    
-    # Adiciona novo registro
     logs.append(registro)
-    
-    # Mantém apenas os últimos 1000 registros
     if len(logs) > 1000:
         logs = logs[-1000:]
-    
-    # Salva
     salvar_logs(logs)
+    
+    # SQLite
+    try:
+        from modules.database import registrar_log_busca
+        registrar_log_busca(
+            nivel=nivel, termo=termo, sucesso=sucesso,
+            quantidade=quantidade, tempo_execucao=round(tempo_execucao, 2),
+            detalhes=detalhes, erro=erro
+        )
+    except Exception as e:
+        logger.warning(f"Falha ao registrar log no SQLite: {e}")
     
     return registro
 

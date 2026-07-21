@@ -109,6 +109,16 @@ if not verificar_login():
     st.stop()
 
 # ============================================================
+# INICIALIZAÇÃO DO BANCO DE DADOS
+# ============================================================
+from modules.database import inicializar_db, verificar_db, migrar_jsons_para_db
+if not verificar_db():
+    st.warning("⚠️ Iniciando banco de dados SQLite...")
+    inicializar_db()
+    migrar_jsons_para_db()
+    st.success("✅ Banco de dados SQLite inicializado com sucesso!")
+
+# ============================================================
 # CICLO DE ATUALIZAÇÃO AUTOMÁTICA (executa no início)
 # ============================================================
 executar_atualizacao_automatica()
@@ -468,6 +478,47 @@ with tab10:
     st.markdown("## ⚙️ Painel Administrativo")
     if st.session_state.get("is_admin", False):
         st.success("✅ Acesso administrativo autorizado")
+
+        # Painel do Banco de Dados
+        st.markdown("---")
+        st.markdown("### 💾 Banco de Dados SQLite")
+        from modules.database import obter_status_banco, resetar_tudo
+        status_db = obter_status_banco()
+        col_db1, col_db2, col_db3 = st.columns(3)
+        with col_db1:
+            st.metric("📁 Banco", f"{status_db.get('db_size_kb', 0)} KB", delta="SQLite" if status_db.get("db_existe") else "Não criado")
+        with col_db2:
+            st.metric("📋 Versão Schema", f"v{status_db.get('versao_schema', 0)}")
+        with col_db3:
+            st.metric("📊 ML Cache", f"{status_db.get('ml_ciclos_count', 0)} ciclos")
+
+        col_db4, col_db5, col_db6 = st.columns(3)
+        with col_db4:
+            st.metric("📦 Amazon Cache", f"{status_db.get('amazon_ciclos_count', 0)} ciclos")
+        with col_db5:
+            st.metric("📝 Pedidos", f"{status_db.get('pedreira_pedidos_count', 0)}")
+        with col_db6:
+            st.metric("📈 Histórico", f"{status_db.get('historico_tendencias_count', 0)} registros")
+
+        # Ações do banco
+        with st.expander("🛠️ Ações do Banco de Dados"):
+            if st.button("🧹 Limpar Ciclos Antigos (manter 10)", key="btn_limpar_ciclos"):
+                from modules.database import limpar_ml_cache_antigos, limpar_amazon_cache_antigos
+                ml_rem = limpar_ml_cache_antigos(10)
+                amz_rem = limpar_amazon_cache_antigos(10)
+                st.success(f"✅ Limpo: {ml_rem} ciclos ML + {amz_rem} ciclos Amazon")
+
+            if st.button("🔄 Re-migrar JSONs para SQLite", key="btn_migrar_jsons"):
+                resultado = migrar_jsons_para_db()
+                if resultado:
+                    st.success("✅ JSONs migrados para SQLite!")
+                else:
+                    st.info("ℹ️ Nenhum JSON para migrar.")
+
+            if st.button("⚠️ RESETAR BANCO (apaga todos os dados)", key="btn_reset_db"):
+                st.warning("Clique novamente para confirmar o reset.")
+
+        st.markdown("---")
     else:
         st.warning("⚠️ Esta área é restrita ao administrador do sistema.")
 
