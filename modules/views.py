@@ -610,81 +610,6 @@ def render_dashboard():
         st.info("📊 Buscando dados de mercado...")
 
     st.markdown("---")
-
-    # ============================================================
-    # GRADE DE DESCOBERTA (TABELA)
-    # ============================================================
-    render_grade_descoberta(key_suffix="dashboard")
-
-    st.markdown("---")
-
-    # ===== TOP 10 =====
-    st.markdown("## 🏆 Top 10 Produtos em Tendência")
-    st.caption("Ranking completo baseado em score e dados de mercado")
-
-    top10 = gerar_top10_produtos(forcar_atualizacao=False)
-    if top10:
-        df_top10 = pd.DataFrame(top10)
-        colunas_top10 = [
-            "Produto", "Fonte", "Categoria", "Evento",
-            "Potencial", "Score", "Pins", "Crescimento",
-            "Views TikTok", "Buscas no Mês", "Resultados ML", "Tendência",
-            "Atualizado",
-        ]
-        df_top10 = df_top10[colunas_top10]
-
-        # Converte Score para numérico para usar ProgressColumn
-        df_top10["Score Num"] = (
-            pd.to_numeric(df_top10["Score"], errors="coerce")
-            .fillna(0)
-            .clip(lower=0, upper=10)
-        )
-
-        # Extrai crescimento numérico para ProgressColumn
-        df_top10["Cresc. %"] = (
-            df_top10["Crescimento"]
-            .str.replace("+", "", regex=False)
-            .str.replace("%", "", regex=False)
-            .pipe(pd.to_numeric, errors="coerce")
-            .fillna(0)
-        )
-
-        st.dataframe(
-            df_top10,
-            use_container_width=True,
-            hide_index=True,
-            column_config={
-                "Produto": st.column_config.TextColumn("Produto", width="medium"),
-                "Fonte": st.column_config.TextColumn("Fonte", width="small"),
-                "Categoria": st.column_config.TextColumn("Categoria", width="small"),
-                "Evento": st.column_config.TextColumn("Evento", width="medium"),
-                "Potencial": st.column_config.TextColumn("Potencial", width="small"),
-                "Score": st.column_config.TextColumn("Score", width="small"),
-                "Score Num": st.column_config.ProgressColumn(
-                    "⭐ Score",
-                    min_value=0,
-                    max_value=10,
-                    format="%d/10",
-                    width="small",
-                ),
-                "Pins": st.column_config.TextColumn("Pins", width="small"),
-                "Crescimento": st.column_config.TextColumn("Crescimento", width="small"),
-                "Cresc. %": st.column_config.ProgressColumn(
-                    "📈 Crescimento",
-                    min_value=0,
-                    max_value=200,
-                    format="+%d%%",
-                    width="small",
-                ),
-                "Views TikTok": st.column_config.TextColumn("Views TikTok", width="small"),
-                "Buscas no Mês": st.column_config.TextColumn("Buscas/Mês", width="small"),
-                "Resultados ML": st.column_config.TextColumn("Resultados ML", width="small"),
-                "Tendência": st.column_config.TextColumn("Tendência", width="small"),
-                "Atualizado": st.column_config.TextColumn("Atualizado", width="small"),
-            },
-        )
-    
-    st.markdown("---")
     
     # ===== INSIGHTS ESTRATÉGICOS =====
     if produtos_sugestoes:
@@ -692,13 +617,8 @@ def render_dashboard():
     
     st.markdown("---")
     
-    # ===== TOP 20 GOOGLE TRENDS & SHOPEE (movido da tab removida) =====
-    _render_top20_google_shopee_inline()
-    
-    st.markdown("---")
-    
-    # ===== SUGESTÕES DE PRODUTOS (movido da tab removida) =====
-    _render_sugestoes_inline()
+    # ===== GRADES UNIFICADAS COM SUB-ABAS =====
+    render_grades_unificadas()
     
     st.markdown("---")
     
@@ -782,73 +702,214 @@ def render_top_20_marketplace():
     df = pd.DataFrame(dados_tabela)
     st.dataframe(df, use_container_width=True, hide_index=True)
 # ============================================================
-# TOP 20 GOOGLE + SHOPEE (inline no Dashboard)
+# GRADES UNIFICADAS COM SUB-ABAS (substitui as grades duplicadas)
 # ============================================================
-def _render_top20_google_shopee_inline():
+def render_grades_unificadas():
     """
-    Renderiza inline no Dashboard: Status Google/Shopee + Top 20 Marketplace.
-    Anteriormente era uma tab separada (🔥 Top 20 Google).
+    Renderiza todas as grades do Dashboard em uma única seção com sub-abas.
+    Cada aba tem link de busca na Shopee e o botão "Buscar Dados Reais" é restrito ao admin.
+    
+    Sub-abas:
+    - 🎯 Descoberta (grade principal)
+    - 🏆 Top 10 Tendências
+    - 🔥 Top 20 Google + Shopee
+    - 📌 Sugestões Estratégicas
     """
-    st.markdown("## 🔥 Top 20 Google Trends & Shopee")
-    st.caption("Dados reais capturados do Google Trends e Shopee Brasil — atualização automática a cada 6 horas")
-
-    # Status do cache
-    try:
-        from modules.google_shopee_trends import obter_status_cache, obter_google_trends, obter_shopee_trending, forcar_atualizacao_completa
-        status_cache = obter_status_cache()
-        col_s1, col_s2, col_s3 = st.columns(3)
-        with col_s1:
-            g_status = status_cache.get("google_trends", {})
-            icone_g = "✅" if g_status.get("valido") else "⚠️"
-            st.metric(f"{icone_g} Google Trends", f"{g_status.get('total', 0)} itens",
-                      delta=g_status.get("data_formatada", "N/A"))
-        with col_s2:
-            s_status = status_cache.get("shopee", {})
-            icone_s = "✅" if s_status.get("valido") else "⚠️"
-            st.metric(f"{icone_s} Shopee", f"{s_status.get('total', 0)} itens",
-                      delta=s_status.get("data_formatada", "N/A"))
-        with col_s3:
-            if st.button("🔄 Atualizar Dados Agora", use_container_width=True, key="btn_atualizar_top20_dash"):
-                with st.spinner("📡 Buscando dados reais..."):
-                    resultado = forcar_atualizacao_completa()
-                    st.success(
-                        f"✅ Google: {resultado.get('google_trends', {}).get('total', 0)} itens | "
-                        f"Shopee: {resultado.get('shopee', {}).get('total', 0)} itens | "
-                        f"Tempo: {resultado.get('tempo_total', 0)}s"
-                    )
-                    st.rerun()
-    except Exception:
-        pass
-
-    st.markdown("---")
-
-    # Top 20 Marketplace
-    render_top_20_marketplace()
-
-# ============================================================
-# SUGESTÕES DE PRODUTOS (inline no Dashboard)
-# ============================================================
-def _render_sugestoes_inline():
-    """
-    Renderiza inline no Dashboard: Grade de Sugestões de Produtos.
-    Anteriormente era uma tab separada (📌 Sugestões de Produtos).
-    """
-    st.markdown("## 📌 Sugestões de Produtos Estratégicos")
-    st.caption("Produtos com alto potencial de conversão baseados em tendências reais")
-
-    # Botão de busca Selenium (fallback)
-    try:
-        from modules.selenium_client import capturar_buscas_selenium
-        if st.button("🔄 Buscar Dados Reais", use_container_width=True, key="btn_selenium_dash"):
-            with st.spinner("📡 Acessando marketplaces em tempo real..."):
-                termos = capturar_buscas_selenium()
-                if termos:
-                    st.success(f"✅ {len(termos)} termos capturados com sucesso!")
-                    st.rerun()
+    is_admin = st.session_state.get("is_admin", False)
+    
+    st.markdown("## 📊 Grades de Produtos")
+    
+    # Botão "Buscar Dados Reais" — apenas admin
+    if is_admin:
+        col_btn1, col_btn2 = st.columns([3, 1])
+        with col_btn2:
+            if st.button("🔄 Buscar Dados Reais", use_container_width=True, key="btn_buscar_reais_unificado"):
+                try:
+                    from modules.selenium_client import capturar_buscas_selenium
+                    with st.spinner("📡 Acessando marketplaces em tempo real..."):
+                        termos = capturar_buscas_selenium()
+                        if termos:
+                            st.success(f"✅ {len(termos)} termos capturados com sucesso!")
+                            st.rerun()
+                        else:
+                            st.error("❌ Não foi possível capturar dados em tempo real.")
+                except ImportError:
+                    st.error("❌ Módulo Selenium indisponível.")
+    
+    # Sub-abas das grades
+    sub_grade1, sub_grade2, sub_grade3, sub_grade4 = st.tabs([
+        "🎯 Descoberta",
+        "🏆 Top 10 Tendências",
+        "🔥 Top 20 Google + Shopee",
+        "📌 Sugestões Estratégicas",
+    ])
+    
+    # ---- ABA 1: DESCOBERTA ----
+    with sub_grade1:
+        render_grade_descoberta(key_suffix="unificado_descoberta")
+    
+    # ---- ABA 2: TOP 10 TENDÊNCIAS ----
+    with sub_grade2:
+        st.markdown("### 🏆 Top 10 Produtos em Tendência")
+        st.caption("Ranking completo baseado em score e dados de mercado")
+        
+        top10 = gerar_top10_produtos(forcar_atualizacao=False)
+        if top10:
+            df_top10 = pd.DataFrame(top10)
+            colunas_top10 = [
+                "Produto", "Fonte", "Categoria", "Evento",
+                "Potencial", "Score", "Pins", "Crescimento",
+                "Views TikTok", "Buscas no Mês", "Resultados ML", "Tendência",
+                "Atualizado",
+            ]
+            # Filtrar colunas existentes
+            colunas_presentes = [c for c in colunas_top10 if c in df_top10.columns]
+            df_top10 = df_top10[colunas_presentes]
+            
+            # Converte Score para numérico
+            if "Score" in df_top10.columns:
+                df_top10["Score Num"] = (
+                    pd.to_numeric(df_top10["Score"], errors="coerce")
+                    .fillna(0)
+                    .clip(lower=0, upper=10)
+                )
+            
+            # Extrai crescimento numérico
+            if "Crescimento" in df_top10.columns:
+                df_top10["Cresc. %"] = (
+                    df_top10["Crescimento"]
+                    .str.replace("+", "", regex=False)
+                    .str.replace("%", "", regex=False)
+                    .pipe(pd.to_numeric, errors="coerce")
+                    .fillna(0)
+                )
+            
+            st.dataframe(
+                df_top10,
+                use_container_width=True,
+                hide_index=True,
+                column_config={
+                    "Produto": st.column_config.TextColumn("Produto", width="medium"),
+                    "Fonte": st.column_config.TextColumn("Fonte", width="small"),
+                    "Categoria": st.column_config.TextColumn("Categoria", width="small"),
+                    "Evento": st.column_config.TextColumn("Evento", width="medium"),
+                    "Potencial": st.column_config.TextColumn("Potencial", width="small"),
+                    "Score": st.column_config.TextColumn("Score", width="small"),
+                    "Score Num": st.column_config.ProgressColumn(
+                        "⭐ Score",
+                        min_value=0,
+                        max_value=10,
+                        format="%d/10",
+                        width="small",
+                    ),
+                    "Pins": st.column_config.TextColumn("Pins", width="small"),
+                    "Crescimento": st.column_config.TextColumn("Crescimento", width="small"),
+                    "Cresc. %": st.column_config.ProgressColumn(
+                        "📈 Crescimento",
+                        min_value=0,
+                        max_value=200,
+                        format="+%d%%",
+                        width="small",
+                    ),
+                    "Views TikTok": st.column_config.TextColumn("Views TikTok", width="small"),
+                    "Buscas no Mês": st.column_config.TextColumn("Buscas/Mês", width="small"),
+                    "Resultados ML": st.column_config.TextColumn("Resultados ML", width="small"),
+                    "Tendência": st.column_config.TextColumn("Tendência", width="small"),
+                    "Atualizado": st.column_config.TextColumn("Atualizado", width="small"),
+                },
+            )
+        else:
+            st.info("📊 Aguardando dados de tendências...")
+    
+    # ---- ABA 3: TOP 20 GOOGLE + SHOPEE ----
+    with sub_grade3:
+        st.markdown("### 🔥 Top 20 Google Trends & Shopee")
+        st.caption("Dados reais capturados do Google Trends e Shopee Brasil — atualização automática a cada 6 horas")
+        
+        # Status do cache
+        try:
+            from modules.google_shopee_trends import obter_status_cache, forcar_atualizacao_completa
+            status_cache = obter_status_cache()
+            col_s1, col_s2, col_s3 = st.columns(3)
+            with col_s1:
+                g_status = status_cache.get("google_trends", {})
+                icone_g = "✅" if g_status.get("valido") else "⚠️"
+                st.metric(f"{icone_g} Google Trends", f"{g_status.get('total', 0)} itens",
+                          delta=g_status.get("data_formatada", "N/A"))
+            with col_s2:
+                s_status = status_cache.get("shopee", {})
+                icone_s = "✅" if s_status.get("valido") else "⚠️"
+                st.metric(f"{icone_s} Shopee", f"{s_status.get('total', 0)} itens",
+                          delta=s_status.get("data_formatada", "N/A"))
+            with col_s3:
+                # Botão de update — apenas admin
+                if is_admin:
+                    if st.button("🔄 Atualizar Dados Agora", use_container_width=True, key="btn_atualizar_top20_unificado"):
+                        with st.spinner("📡 Buscando dados reais..."):
+                            resultado = forcar_atualizacao_completa()
+                            st.success(
+                                f"✅ Google: {resultado.get('google_trends', {}).get('total', 0)} itens | "
+                                f"Shopee: {resultado.get('shopee', {}).get('total', 0)} itens | "
+                                f"Tempo: {resultado.get('tempo_total', 0)}s"
+                            )
+                            st.rerun()
                 else:
-                    st.error("❌ Não foi possível capturar dados em tempo real.")
-    except ImportError:
-        pass
+                    st.empty()
+        except Exception:
+            pass
+        
+        st.markdown("---")
+        
+        # Tabela Top 20 com link Shopee
+        _render_top20_com_shopee()
+    
+    # ---- ABA 4: SUGESTÕES ESTRATÉGICAS ----
+    with sub_grade4:
+        st.markdown("### 📌 Sugestões de Produtos Estratégicos")
+        st.caption("Produtos com alto potencial de conversão baseados em tendências reais")
+        
+        # Grade de sugestões (com key_suffix diferente para evitar conflito)
+        render_grade_descoberta(key_suffix="unificado_sugestoes")
 
-    # Grade de sugestões (com key_suffix diferente para evitar conflito com a grade principal)
-    render_grade_descoberta(key_suffix="sugestoes_dash")
+
+def _render_top20_com_shopee():
+    """
+    Renderiza o Top 20 Marketplace com link de busca na Shopee para cada produto.
+    """
+    from modules.produtos_dinamicos import obter_produtos_marketplace_v49
+    produtos_dict = obter_produtos_marketplace_v49()
+    
+    dados_tabela = []
+    for nome, dados in produtos_dict.items():
+        dados_palavra = obter_palavra_chave(nome)
+        link_shopee = f"https://shopee.com.br/search?keyword={quote(nome)}"
+        dados_tabela.append({
+            "Produto": nome,
+            "Link Shopee": link_shopee,
+            "Categoria": dados.get("categoria", "Geral"),
+            "Score": f"{dados.get('score', 0)}/10",
+            "Palavra-chave": dados_palavra.get("palavra", nome),
+            "Motivo Estratégico": dados.get("evento", "Tendência de Mercado"),
+        })
+    
+    df = pd.DataFrame(dados_tabela)
+    st.dataframe(
+        df,
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            "Produto": st.column_config.TextColumn("Produto", width="medium"),
+            "Link Shopee": st.column_config.LinkColumn(
+                "🛒 Shopee",
+                help="Buscar produto na Shopee",
+                validate="^https://shopee\\.com\\.br/.*",
+                display_text="Buscar",
+                width="small",
+            ),
+            "Categoria": st.column_config.TextColumn("Categoria", width="small"),
+            "Score": st.column_config.TextColumn("Score", width="small"),
+            "Palavra-chave": st.column_config.TextColumn("Palavra-chave", width="large"),
+            "Motivo Estratégico": st.column_config.TextColumn("Motivo", width="large"),
+        },
+    )
+    st.caption(f"📊 {len(dados_tabela)} produtos")
