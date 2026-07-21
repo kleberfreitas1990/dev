@@ -7,101 +7,81 @@ from typing import List, Dict, Any
 from modules.produtos_dinamicos import obter_produtos_dinamicos, PRODUTOS_FALLBACK
 
 # ============================================================
-# ARQUIVOS DE DADOS (NA RAIZ)
+# ARQUIVOS DE DADOS (NA RAIZ) — compatibilidade
 # ============================================================
 ARQUIVO_APOIADORES = "apoiadores.json"
 
 # ============================================================
-# FUNÇÕES DE APOIADORES
+# FUNÇÕES DE APOIADORES (delegação para database.py com dual-write)
 # ============================================================
 def carregar_apoiadores():
-    """Carrega a lista de apoiadores do arquivo na raiz"""
-    if os.path.exists(ARQUIVO_APOIADORES):
-        try:
-            with open(ARQUIVO_APOIADORES, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        except:
-            pass
-    
-    # Dados padrão
-    apoiadores_padrao = {
-        "mayara": {
-            "nome": "Mayara Veloso",
-            "ordem": 1,
-            "email": "mayara@email.com",
-            "coroinha": "👑",
-            "cor": "#FF6B6B",
-            "data_entrada": "2026-07-01",
-            "royalties_recebidos": 0.0,
-            "repasse_ativo": True,
-            "plano": "Fundadora"
-        },
-        "iago": {
-            "nome": "Iago Coelho",
-            "ordem": 2,
-            "email": "iago@email.com",
-            "coroinha": "👑",
-            "cor": "#4ECDC4",
-            "data_entrada": "2026-07-05",
-            "royalties_recebidos": 0.0,
-            "repasse_ativo": True,
-            "plano": "Apoiador"
+    """Carrega apoiadores do banco SQLite (fallback para JSON)."""
+    try:
+        from modules.database import carregar_apoiadores as _db_load
+        return _db_load()
+    except Exception:
+        # Fallback direto do JSON
+        if os.path.exists(ARQUIVO_APOIADORES):
+            try:
+                with open(ARQUIVO_APOIADORES, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            except:
+                pass
+        # Dados padrão
+        return {
+            "mayara": {
+                "nome": "Mayara Veloso", "ordem": 1, "email": "mayara@email.com",
+                "coroinha": "👑", "cor": "#FF6B6B", "data_entrada": "2026-07-01",
+                "royalties_recebidos": 0.0, "repasse_ativo": True, "plano": "Fundadora"
+            },
+            "iago": {
+                "nome": "Iago Coelho", "ordem": 2, "email": "iago@email.com",
+                "coroinha": "👑", "cor": "#4ECDC4", "data_entrada": "2026-07-05",
+                "royalties_recebidos": 0.0, "repasse_ativo": True, "plano": "Apoiador"
+            }
         }
-    }
-    
-    with open(ARQUIVO_APOIADORES, 'w', encoding='utf-8') as f:
-        json.dump(apoiadores_padrao, f, ensure_ascii=False, indent=2)
-    
-    return apoiadores_padrao
 
 def adicionar_apoiador(nome, email, plano="Apoiador"):
-    """Adiciona um novo apoiador"""
-    apoiadores = carregar_apoiadores()
-    
-    ordem = max([a.get("ordem", 0) for a in apoiadores.values()]) + 1 if apoiadores else 1
-    
-    cores = ["#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7", "#DDA0DD", "#FF8A5C", "#A29BFE"]
-    cor = cores[(ordem - 1) % len(cores)]
-    
-    novo_apoiador = {
-        "nome": nome,
-        "ordem": ordem,
-        "email": email,
-        "coroinha": "👑",
-        "cor": cor,
-        "data_entrada": datetime.now().strftime("%Y-%m-%d"),
-        "royalties_recebidos": 0.0,
-        "repasse_ativo": True,
-        "plano": plano
-    }
-    
-    import uuid
-    id_apoiador = str(uuid.uuid4())[:8]
-    apoiadores[id_apoiador] = novo_apoiador
-    
-    with open(ARQUIVO_APOIADORES, 'w', encoding='utf-8') as f:
-        json.dump(apoiadores, f, ensure_ascii=False, indent=2)
-    
-    return novo_apoiador
+    """Adiciona um novo apoiador (SQLite + JSON)."""
+    try:
+        from modules.database import adicionar_apoiador as _db_add
+        return _db_add(nome, email, plano)
+    except Exception:
+        # Fallback JSON
+        apoiadores = carregar_apoiadores()
+        ordem = max([a.get("ordem", 0) for a in apoiadores.values()]) + 1 if apoiadores else 1
+        cores = ["#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7", "#DDA0DD", "#FF8A5C", "#A29BFE"]
+        cor = cores[(ordem - 1) % len(cores)]
+        import uuid
+        id_apoiador = str(uuid.uuid4())[:8]
+        novo = {
+            "nome": nome, "ordem": ordem, "email": email, "coroinha": "👑", "cor": cor,
+            "data_entrada": datetime.now().strftime("%Y-%m-%d"),
+            "royalties_recebidos": 0.0, "repasse_ativo": True, "plano": plano
+        }
+        apoiadores[id_apoiador] = novo
+        with open(ARQUIVO_APOIADORES, 'w', encoding='utf-8') as f:
+            json.dump(apoiadores, f, ensure_ascii=False, indent=2)
+        return novo
 
 def remover_apoiador(id_apoiador):
-    """Remove um apoiador pelo ID e reorganiza as ordens"""
-    apoiadores = carregar_apoiadores()
-    
-    if id_apoiador not in apoiadores:
-        return False
-    
-    del apoiadores[id_apoiador]
-    
-    ordem = 1
-    for key in sorted(apoiadores.keys(), key=lambda x: apoiadores[x].get("ordem", 999)):
-        apoiadores[key]["ordem"] = ordem
-        ordem += 1
-    
-    with open(ARQUIVO_APOIADORES, 'w', encoding='utf-8') as f:
-        json.dump(apoiadores, f, ensure_ascii=False, indent=2)
-    
-    return True
+    """Remove um apoiador pelo ID (SQLite + JSON)."""
+    try:
+        from modules.database import remover_apoiador as _db_rm
+        return _db_rm(id_apoiador)
+    except Exception:
+        # Fallback JSON
+        apoiadores = carregar_apoiadores()
+        if id_apoiador not in apoiadores:
+            return False
+        del apoiadores[id_apoiador]
+        ordem = 1
+        for key in sorted(apoiadores.keys(), key=lambda x: apoiadores[x].get("ordem", 999)):
+            apoiadores[key]["ordem"] = ordem
+            ordem += 1
+        with open(ARQUIVO_APOIADORES, 'w', encoding='utf-8') as f:
+            json.dump(apoiadores, f, ensure_ascii=False, indent=2)
+        return True
 
 # ============================================================
 # DADOS DE PRODUTOS (DINÂMICOS)

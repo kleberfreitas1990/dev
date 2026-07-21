@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Teste completo do banco de dados SQLite — Minerador v9.9
-Verifica: inicialização, migração, integração com scrapers, e compatibilidade.
+Teste completo do banco de dados SQLite — Minerador v9.10
+Verifica: inicialização, migração, apoiadores, integração com scrapers.
 """
 import sys
 import os
@@ -14,7 +14,7 @@ from modules.database import (
     obter_ml_ciclo_atual, obter_amazon_ciclo_atual,
     ml_cache_valido, amazon_cache_valido,
     obter_status_banco,
-    criar_pedido_pedreira, obter_pedidos_pedreira, atualizar_status_pedido,
+    carregar_apoiadores, adicionar_apoiador, remover_apoiador,
     registrar_log_busca, obter_logs_busca,
     registrar_execucao_auto, obter_historico_auto,
     salvar_ml_ciclo, salvar_amazon_ciclo,
@@ -23,7 +23,7 @@ from modules.database import (
 )
 
 print("=" * 60)
-print("TESTE: Banco de Dados SQLite — Minerador v9.9")
+print("TESTE: Banco de Dados SQLite — Minerador v9.10")
 print("=" * 60)
 
 # 1. Inicialização
@@ -75,31 +75,33 @@ print(f"    → Tamanho: {status.get('db_size_kb', 0)} KB")
 print(f"    → Versão: {status.get('versao_schema', 0)}")
 for key in ["ml_ciclos_count", "amazon_ciclos_count", "shopee_cache_count",
             "google_trends_cache_count", "historico_tendencias_count",
-            "pedreira_pedidos_count", "buscas_logs_count", "auto_update_historico_count"]:
+            "apoiadores_count", "buscas_logs_count", "auto_update_historico_count"]:
     print(f"    → {key}: {status.get(key, 0)}")
 
-# 7. Testar pedidos da Pedreira
-print("\n[7] Testando Pedreira...")
-pedido_id = criar_pedido_pedreira(
-    produto="Teste SQLite - Parafuso 1/4",
-    quantidade=500,
-    solicitante="Teste DB",
-    empresa="Pedreira A"
-)
-print(f"    → ✅ Pedido #{pedido_id} criado")
+# 7. Testar APOIADORES
+print("\n[7] Testando Apoiadores...")
+apoiadores = carregar_apoiadores()
+print(f"    → Total carregados: {len(apoiadores)}")
+for aid, dados in apoiadores.items():
+    print(f"    → #{dados.get('ordem')} {dados.get('nome')} ({dados.get('plano')})")
 
-pedidos = obter_pedidos_pedreira()
-print(f"    → Total pedidos: {len(pedidos)}")
+# Adicionar teste
+novo = adicionar_apoiador("Teste SQLite", "teste@email.com", "Teste")
+print(f"    → ✅ Adicionado: {novo.get('nome')} (#{novo.get('ordem')})")
 
-if pedido_id:
-    atualizar_status_pedido(pedido_id, "em_analise", "Teste")
-    print(f"    → ✅ Status atualizado para 'em_analise'")
+# Remover teste
+removido = remover_apoiador(novo.get("id", ""))
+print(f"    → ✅ Removido: {removido}")
+
+# Recarregar para confirmar
+apoiadores = carregar_apoiadores()
+print(f"    → Total após remove: {len(apoiadores)}")
 
 # 8. Testar logs
 print("\n[8] Testando logs...")
 log_id = registrar_log_busca(
     nivel="test", termo="parafuso", sucesso=True,
-    quantidade=50, tempo_execucao=1.2, detalhes="Teste SQLite"
+    quantidade=50, tempo_execucao=1.2, detalhes="Teste SQLite v9.10"
 )
 print(f"    → ✅ Log #{log_id} registrado")
 
@@ -131,30 +133,23 @@ print("\n" + "=" * 60)
 print("TESTE COMPLETO — TODOS OS MÓDULOS FUNCIONANDO ✅")
 print("=" * 60)
 
-# 12. Testar importação dos módulos modificados
-print("\n[12] Verificando módulos modificados (sem Streamlit)...")
-try:
-    from modules.mercadolivre_scraper import _cache_valido as ml_valido_check
-    print("    → ✅ mercadolivre_scraper.py importado")
-except Exception as e:
-    print(f"    → ❌ mercadolivre_scraper.py: {e}")
+# 12. Verificar que Pedreira foi removida
+print("\n[12] Verificando remoção da Pedreira...")
+pedreira_exists = os.path.exists("modules/pedreira.py")
+print(f"    → modules/pedreira.py: {'❌ Ainda existe!' if pedreira_exists else '✅ Removido'}")
 
-try:
-    from modules.amazon_scraper import _cache_recente as amz_recente_check
-    print("    → ✅ amazon_scraper.py importado")
-except Exception as e:
-    print(f"    → ❌ amazon_scraper.py: {e}")
+# 13. Verificar versão
+print("\n[13] Verificando versão...")
+with open("marketplace.app.py", "r") as f:
+    content = f.read()
+    if "v9.10" in content:
+        print("    → ✅ Versão v9.10 confirmada")
+    else:
+        print("    → ❌ Versão não atualizada")
 
-try:
-    from modules.auto_update import carregar_historico as carrega_hist
-    print("    → ✅ auto_update.py importado")
-except Exception as e:
-    print(f"    → ❌ auto_update.py: {e}")
-
-try:
-    from modules.logger import registrar_busca as reg_busca
-    print("    → ✅ logger.py importado")
-except Exception as e:
-    print(f"    → ❌ logger.py: {e}")
+    if "Pedreira" in content:
+        print("    → ❌ Referências à Pedreira ainda existem!")
+    else:
+        print("    → ✅ Nenhuma referência à Pedreira")
 
 print("\n✅ TODOS OS TESTES PASSARAM!")

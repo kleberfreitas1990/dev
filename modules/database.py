@@ -1,10 +1,10 @@
 """
-Módulo de Banco de Dados SQLite — Minerador de Produtos v9.9
+Módulo de Banco de Dados SQLite — Minerador de Produtos v9.10
 =============================================================
 Substitui os arquivos JSON por um banco relacional para:
 - Caches de tendências (ML, Amazon, Shopee, Google)
 - Histórico de tendências (snapshots do Top 10 ao longo do tempo)
-- Pedidos da Pedreira (fluxo de compras)
+- Apoiadores do projeto
 - Logs de buscas
 - Histórico de atualizações automáticas
 
@@ -33,13 +33,11 @@ logger = logging.getLogger(__name__)
 # ============================================================
 DIRETORIO_RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DB_PATH = os.path.join(DIRETORIO_RAIZ, "minerador.db")
-DB_VERSION = 3  # Bumpar quando houver schema change
+DB_VERSION = 4  # v4: adiciona tabela de apoiadores, remove Pedreira
 
 # ============================================================
 # CONEXÃO THREAD-SAFE
 # ============================================================
-_local = threading_local = None
-
 
 @contextmanager
 def _get_connection():
@@ -172,19 +170,21 @@ CREATE TABLE IF NOT EXISTS historico_tendencias (
     criado_em TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
--- Pedidos da Pedreira
-CREATE TABLE IF NOT EXISTS pedreira_pedidos (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    produto TEXT NOT NULL,
-    quantidade INTEGER DEFAULT 1,
-    solicitante TEXT,
-    atendente TEXT,
-    empresa TEXT DEFAULT 'N/A',
-    status TEXT DEFAULT 'pendente',
-    observacoes TEXT,
-    data_solicitacao TEXT NOT NULL DEFAULT (datetime('now')),
-    data_atualizacao TEXT,
-    criado_em TEXT NOT NULL DEFAULT (datetime('now'))
+-- Apoiadores do projeto
+CREATE TABLE IF NOT EXISTS apoiadores (
+    id TEXT PRIMARY KEY,
+    nome TEXT NOT NULL,
+    ordem INTEGER DEFAULT 999,
+    email TEXT DEFAULT '',
+    coroinha TEXT DEFAULT '👑',
+    cor TEXT DEFAULT '#FF6B6B',
+    data_entrada TEXT,
+    royalties_recebidos REAL DEFAULT 0.0,
+    repasse_ativo INTEGER DEFAULT 1,
+    plano TEXT DEFAULT 'Apoiador',
+    ativo INTEGER DEFAULT 1,
+    criado_em TEXT NOT NULL DEFAULT (datetime('now')),
+    atualizado_em TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
 -- Logs de buscas
@@ -233,7 +233,8 @@ CREATE INDEX IF NOT EXISTS idx_shopee_cache_ciclo ON shopee_cache(ciclo_id);
 CREATE INDEX IF NOT EXISTS idx_google_cache_ciclo ON google_trends_cache(ciclo_id);
 CREATE INDEX IF NOT EXISTS idx_ml_cache_nome ON ml_cache(produto_nome);
 CREATE INDEX IF NOT EXISTS idx_amazon_cache_nome ON amazon_cache(produto_nome);
-CREATE INDEX IF NOT EXISTS idx_pedreira_status ON pedreira_pedidos(status);
+CREATE INDEX IF NOT EXISTS idx_apoiadores_ordem ON apoiadores(ordem);
+CREATE INDEX IF NOT EXISTS idx_apoiadores_ativo ON apoiadores(ativo);
 CREATE INDEX IF NOT EXISTS idx_buscas_termo ON buscas_logs(termo);
 CREATE INDEX IF NOT EXISTS idx_buscas_timestamp ON buscas_logs(timestamp);
 """
@@ -317,7 +318,6 @@ def salvar_ml_ciclo(produtos: Dict[str, Any]) -> str:
 def obter_ml_ciclo_atual() -> Dict[str, Any]:
     """Retorna o último ciclo ML como dict no formato do JSON original."""
     with _get_connection() as conn:
-        # Pega o último ciclo
         cursor = conn.execute(
             "SELECT * FROM ml_ciclos ORDER BY id DESC LIMIT 1"
         )
@@ -325,7 +325,6 @@ def obter_ml_ciclo_atual() -> Dict[str, Any]:
         if not ciclo:
             return {}
 
-        # Pega os produtos do último ciclo
         cursor = conn.execute(
             """SELECT produto_nome, categoria, categoria_origem, evento, tendencia,
                       score, posicao_ranking, atualizado, fonte, origem_coleta, url_fonte
@@ -561,15 +560,6 @@ def obter_shopee_ciclo_atual() -> List[Dict[str, Any]]:
     """Retorna os itens do último ciclo Shopee."""
     with _get_connection() as conn:
         cursor = conn.execute(
-            """SELECT sh.ciclo_id, ac.timestamp
-               FROM shopee_cache sh
-               INNER JOIN (SELECT ciclo_id, MAX(timestamp) as timestamp FROM shopee_cache GROUP BY 1) ac
-               ON sh.ciclo_id = ac.ciclo_id
-               ORDER BY ac.timestamp DESC
-               LIMIT 1"""
-        )
-        # Simplificado: pegar o último ciclo
-        cursor = conn.execute(
             "SELECT ciclo_id FROM shopee_cache ORDER BY id DESC LIMIT 1"
         )
         row = cursor.fetchone()
@@ -687,51 +677,216 @@ def limpar_historico_antigos(max_registros: int = 50) -> int:
 
 
 # ============================================================
-# PEDREIRA — PEDIDOS
+# APOIADORES — CRUD COMPLETO COM DUAL-WRITE
 # ============================================================
-def criar_pedido_pedreira(produto: str, quantidade: int = 1, solicitante: str = "",
-                          empresa: str = "N/A", observacoes: str = "") -> int:
-    """Cria um novo pedido na Pedreira. Retorna o ID."""
-    with _get_connection() as conn:
-        cursor = conn.execute(
-            """INSERT INTO pedreira_pedidos (produto, quantidade, solicitante, empresa, observacoes, status)
-               VALUES (?, ?, ?, ?, ?, 'pendente')""",
-            (produto, quantidade, solicitante, empresa, observacoes),
-        )
-        return cursor.lastrowid
+ARQUIVO_APOIADORES = "apoiadores.json"
 
 
-def obter_pedidos_pedreira(status: Optional[str] = None) -> List[Dict[str, Any]]:
-    """Retorna pedidos, opcionalmente filtrados por status."""
-    with _get_connection() as conn:
-        if status:
+def _salvar_apoiadores_json(apoiadores: Dict) -> None:
+    """Salva apoiadores no arquivo JSON (backward compat)."""
+    try:
+        with open(ARQUIVO_APOIADORES, "w", encoding="utf-8") as f:
+            json.dump(apoiadores, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        logger.warning(f"Falha ao salvar apoiadores.json: {e}")
+
+
+def carregar_apoiadores() -> Dict[str, Any]:
+    """
+    Carrega apoiadores do SQLite (com fallback para JSON).
+    Retorna dict {id: dados}.
+    """
+    # Tenta SQLite primeiro
+    try:
+        with _get_connection() as conn:
             cursor = conn.execute(
-                "SELECT * FROM pedreira_pedidos WHERE status = ? ORDER BY id",
-                (status,),
+                """SELECT id, nome, ordem, email, coroinha, cor,
+                          data_entrada, royalties_recebidos, repasse_ativo, plano
+                   FROM apoiadores
+                   WHERE ativo = 1
+                   ORDER BY ordem"""
             )
-        else:
-            cursor = conn.execute("SELECT * FROM pedreira_pedidos ORDER BY id")
-        return [dict(row) for row in cursor.fetchall()]
+            apoiadores = {}
+            for row in cursor.fetchall():
+                apoiadores[row["id"]] = {
+                    "nome": row["nome"],
+                    "ordem": row["ordem"],
+                    "email": row["email"],
+                    "coroinha": row["coroinha"],
+                    "cor": row["cor"],
+                    "data_entrada": row["data_entrada"],
+                    "royalties_recebidos": row["royalties_recebidos"],
+                    "repasse_ativo": bool(row["repasse_ativo"]),
+                    "plano": row["plano"],
+                }
+            if apoiadores:
+                return apoiadores
+    except Exception:
+        pass
+
+    # Fallback JSON
+    try:
+        if os.path.exists(ARQUIVO_APOIADORES):
+            with open(ARQUIVO_APOIADORES, "r", encoding="utf-8") as f:
+                return json.load(f)
+    except Exception:
+        pass
+
+    # Dados padrão
+    apoiadores_padrao = {
+        "mayara": {
+            "nome": "Mayara Veloso",
+            "ordem": 1,
+            "email": "mayara@email.com",
+            "coroinha": "👑",
+            "cor": "#FF6B6B",
+            "data_entrada": "2026-07-01",
+            "royalties_recebidos": 0.0,
+            "repasse_ativo": True,
+            "plano": "Fundadora"
+        },
+        "iago": {
+            "nome": "Iago Coelho",
+            "ordem": 2,
+            "email": "iago@email.com",
+            "coroinha": "👑",
+            "cor": "#4ECDC4",
+            "data_entrada": "2026-07-05",
+            "royalties_recebidos": 0.0,
+            "repasse_ativo": True,
+            "plano": "Apoiador"
+        }
+    }
+
+    # Migrar padrão para SQLite + JSON
+    try:
+        with _get_connection() as conn:
+            for aid, dados in apoiadores_padrao.items():
+                conn.execute(
+                    """INSERT OR IGNORE INTO apoiadores
+                       (id, nome, ordem, email, coroinha, cor, data_entrada,
+                        royalties_recebidos, repasse_ativo, plano)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    (aid, dados["nome"], dados["ordem"], dados["email"],
+                     dados["coroinha"], dados["cor"], dados["data_entrada"],
+                     dados["royalties_recebidos"],
+                     1 if dados["repasse_ativo"] else 0,
+                     dados["plano"]),
+                )
+    except Exception:
+        pass
+
+    _salvar_apoiadores_json(apoiadores_padrao)
+    return apoiadores_padrao
 
 
-def atualizar_status_pedido(pedido_id: int, novo_status: str,
-                             atendente: str = "") -> bool:
-    """Atualiza o status de um pedido."""
-    with _get_connection() as conn:
-        conn.execute(
-            """UPDATE pedreira_pedidos
-               SET status = ?, data_atualizacao = ?, atendente = ?
-               WHERE id = ?""",
-            (novo_status, datetime.now().isoformat(), atendente, pedido_id),
-        )
+def adicionar_apoiador(nome: str, email: str, plano: str = "Apoiador") -> Dict[str, Any]:
+    """
+    Adiciona um novo apoiador (SQLite + JSON dual-write).
+    Retorna os dados do novo apoiador.
+    """
+    # Determinar ordem
+    apoiadores = carregar_apoiadores()
+    ordem = max((a.get("ordem", 0) for a in apoiadores.values()), default=0) + 1
+
+    cores = ["#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7", "#DDA0DD", "#FF8A5C", "#A29BFE"]
+    cor = cores[(ordem - 1) % len(cores)]
+
+    import uuid
+    id_apoiador = str(uuid.uuid4())[:8]
+
+    novo_apoiador = {
+        "nome": nome,
+        "ordem": ordem,
+        "email": email,
+        "coroinha": "👑",
+        "cor": cor,
+        "data_entrada": datetime.now().strftime("%Y-%m-%d"),
+        "royalties_recebidos": 0.0,
+        "repasse_ativo": True,
+        "plano": plano,
+    }
+
+    # SQLite
+    try:
+        with _get_connection() as conn:
+            conn.execute(
+                """INSERT INTO apoiadores
+                   (id, nome, ordem, email, coroinha, cor, data_entrada,
+                    royalties_recebidos, repasse_ativo, plano)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (id_apoiador, nome, ordem, email, "👑", cor,
+                 novo_apoiador["data_entrada"], 0.0, 1, plano),
+            )
+    except Exception as e:
+        logger.warning(f"Falha ao inserir apoiador no SQLite: {e}")
+
+    # JSON
+    apoiadores[id_apoiador] = novo_apoiador
+    _salvar_apoiadores_json(apoiadores)
+
+    novo_apoiador["id"] = id_apoiador
+    return novo_apoiador
+
+
+def remover_apoiador(id_apoiador: str) -> bool:
+    """
+    Remove um apoiador pelo ID (SQLite + JSON dual-write).
+    Reorganiza as ordens após a remoção.
+    """
+    # SQLite
+    try:
+        with _get_connection() as conn:
+            conn.execute("UPDATE apoiadores SET ativo = 0 WHERE id = ?", (id_apoiador,))
+    except Exception as e:
+        logger.warning(f"Falha ao remover apoiador do SQLite: {e}")
+
+    # JSON
+    apoiadores = carregar_apoiadores()
+    if id_apoiador not in apoiadores:
+        return False
+
+    del apoiadores[id_apoiador]
+
+    ordem = 1
+    for key in sorted(apoiadores.keys(), key=lambda x: apoiadores[x].get("ordem", 999)):
+        apoiadores[key]["ordem"] = ordem
+        # Atualiza ordem no SQLite também
+        try:
+            with _get_connection() as conn:
+                conn.execute("UPDATE apoiadores SET ordem = ? WHERE id = ?", (ordem, key))
+        except Exception:
+            pass
+        ordem += 1
+
+    _salvar_apoiadores_json(apoiadores)
     return True
 
 
-def excluir_pedido_pedreira(pedido_id: int) -> bool:
-    """Remove um pedido da Pedreira."""
-    with _get_connection() as conn:
-        conn.execute("DELETE FROM pedreira_pedidos WHERE id = ?", (pedido_id,))
-    return True
+def atualizar_apoiador(id_apoiador: str, **kwargs) -> bool:
+    """Atualiza campos de um apoiador no banco."""
+    campos_permitidos = {"nome", "email", "cor", "plano", "repasse_ativo", "ordem"}
+    updates = {k: v for k, v in kwargs.items() if k in campos_permitidos}
+    if not updates:
+        return False
+
+    set_clause = ", ".join(f"{k} = ?" for k in updates.keys())
+    set_clause += ", atualizado_em = ?"
+    values = list(updates.values()) + [datetime.now().isoformat(), id_apoiador]
+
+    try:
+        with _get_connection() as conn:
+            conn.execute(f"UPDATE apoiadores SET {set_clause} WHERE id = ?", values)
+        return True
+    except Exception as e:
+        logger.warning(f"Falha ao atualizar apoiador: {e}")
+        return False
+
+
+def listar_apoiadores() -> List[Dict[str, Any]]:
+    """Retorna lista de apoiadores ordenados (SQLite primário, JSON fallback)."""
+    apoiadores = carregar_apoiadores()
+    return sorted(apoiadores.values(), key=lambda x: x.get("ordem", 999))
 
 
 # ============================================================
@@ -764,6 +919,7 @@ def obter_logs_busca(limite: int = 50) -> List[Dict[str, Any]]:
         logs = []
         for row in cursor.fetchall():
             logs.append({
+                "id": row["id"],
                 "timestamp": row["timestamp"],
                 "data_formatada": datetime.fromisoformat(row["timestamp"]).strftime("%d/%m/%Y %H:%M:%S") if row["timestamp"] else "",
                 "nivel": row["nivel"],
@@ -882,7 +1038,7 @@ def obter_status_banco() -> Dict[str, Any]:
         with _get_connection() as conn:
             for tabela in ["ml_ciclos", "amazon_ciclos", "shopee_cache",
                            "google_trends_cache", "historico_tendencias",
-                           "pedreira_pedidos", "buscas_logs", "auto_update_historico"]:
+                           "apoiadores", "buscas_logs", "auto_update_historico"]:
                 try:
                     cursor = conn.execute(f"SELECT COUNT(*) as cnt FROM {tabela}")
                     status[f"{tabela}_count"] = cursor.fetchone()["cnt"]
@@ -958,7 +1114,33 @@ def migrar_jsons_para_db() -> bool:
         except Exception as e:
             logger.warning(f"Falha ao migrar Google: {e}")
 
-    # 5. Produtos Cache (se existir)
+    # 5. Apoiadores
+    apo_path = os.path.join(DIRETORIO_RAIZ, ARQUIVO_APOIADORES)
+    if os.path.exists(apo_path):
+        try:
+            with open(apo_path, "r", encoding="utf-8") as f:
+                apo_data = json.load(f)
+            if apo_data:
+                with _get_connection() as conn:
+                    for aid, dados in apo_data.items():
+                        conn.execute(
+                            """INSERT OR IGNORE INTO apoiadores
+                               (id, nome, ordem, email, coroinha, cor, data_entrada,
+                                royalties_recebidos, repasse_ativo, plano)
+                               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                            (aid, dados.get("nome", ""), dados.get("ordem", 999),
+                             dados.get("email", ""), dados.get("coroinha", "👑"),
+                             dados.get("cor", "#FF6B6B"), dados.get("data_entrada", ""),
+                             dados.get("royalties_recebidos", 0.0),
+                             1 if dados.get("repasse_ativo", True) else 0,
+                             dados.get("plano", "Apoiador")),
+                        )
+                logger.info(f"Apoiadores migrados: {len(apo_data)} registros")
+                migrado = True
+        except Exception as e:
+            logger.warning(f"Falha ao migrar apoiadores: {e}")
+
+    # 6. Produtos Cache (se existir)
     cache_path = os.path.join(DIRETORIO_RAIZ, "produtos_cache_v48.json")
     if os.path.exists(cache_path):
         try:

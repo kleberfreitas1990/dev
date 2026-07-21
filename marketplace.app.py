@@ -11,7 +11,7 @@ import os
 # ============================================================
 # VERSÃO DO SISTEMA
 # ============================================================
-VERSAO_SISTEMA = "v9.9 - Pedreira Flow"
+VERSAO_SISTEMA = "v9.10 - SQLite"
 
 # ============================================================
 # CONFIGURAÇÃO DE LOGGING
@@ -100,7 +100,6 @@ from modules.calendar import render_calendar
 # Importa módulo Metadata Pro
 from modules.metadados_pro import render_metadados_pro
 from modules.historico_tendencias import render_historico_tendencias
-from modules.pedreira import render_pedreira
 
 # ============================================================
 # LOGIN E AUTENTICAÇÃO
@@ -141,10 +140,9 @@ st.markdown("---")
 # ============================================================
 # TABS (REORGANIZADAS: Metadata Pro em 2º lugar)
 # ============================================================
-tab1, tab_meta, tab_pedreira, tab_auto, tab_hist, tab_new, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs([
+tab1, tab_meta, tab_auto, tab_hist, tab_new, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs([
     "📊 Dashboard",
     "🎬 Metadata Pro",
-    "🏗️ Pedreira",           # Nova Aba
     "🔄 Atualização Auto",
     "📈 Histórico",
     "🔥 Top 20 Google",
@@ -174,15 +172,6 @@ with tab_meta:
         render_metadados_pro()
     except Exception as e:
         st.error(f"❌ Erro ao carregar Metadata Pro: {str(e)}")
-
-# ============================================================
-# TAB: PEDREIRA (FLUXO DE PEDIDOS)
-# ============================================================
-with tab_pedreira:
-    try:
-        render_pedreira()
-    except Exception as e:
-        st.error(f"❌ Erro ao carregar Fluxo Pedreira: {str(e)}")
 
 # ============================================================
 # TAB 3: ATUALIZAÇÃO AUTOMÁTICA
@@ -496,7 +485,7 @@ with tab10:
         with col_db4:
             st.metric("📦 Amazon Cache", f"{status_db.get('amazon_ciclos_count', 0)} ciclos")
         with col_db5:
-            st.metric("📝 Pedidos", f"{status_db.get('pedreira_pedidos_count', 0)}")
+            st.metric("👑 Apoiadores", f"{status_db.get('apoiadores_count', 0)}")
         with col_db6:
             st.metric("📈 Histórico", f"{status_db.get('historico_tendencias_count', 0)} registros")
 
