@@ -44,6 +44,9 @@ higienizador_*
 *.swp
 *.swo
 
+# Streamlit Secrets (NUNCA commitar credenciais)
+.streamlit/secrets.toml
+
 # OS
 .DS_Store
 Thumbs.db

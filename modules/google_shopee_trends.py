@@ -124,19 +124,38 @@ def obter_google_trends(forcar_atualizacao: bool = False) -> List[Dict]:
 # ============================================================
 def obter_shopee_trending(forcar_atualizacao: bool = False) -> List[Dict]:
     """
-    Obtém produtos em alta na Shopee, usando os termos do print como base.
+    Obtém produtos em alta na Shopee.
+    
+    PRIORIDADE:
+    1. Cache válido (6h)
+    2. API da Shopee (com rate limiting extremo)
+    3. Fallback: termos hardcoded do print do usuário
     """
     if not forcar_atualizacao and _cache_valido(CACHE_SHOPEE_LIVE):
         dados = _carregar_cache(CACHE_SHOPEE_LIVE)
         if dados:
             return dados
 
-    logger.info("🛒 Gerando tendências Shopee (Baseado no Print)...")
+    # Tentar API da Shopee (com proteção de rate limit)
+    try:
+        from modules.shopee_api import obter_termos_shopee_api, status_api as api_status
+        termos_api = obter_termos_shopee_api()
+        if termos_api and len(termos_api) > 5:
+            logger.info(f"🛒 Shopee: {len(termos_api)} termos via API/cachê")
+            dados = _enriquecer_termos_shopee(termos_api)
+            _salvar_cache(CACHE_SHOPEE_LIVE, dados)
+            return dados
+        else:
+            logger.info("🛒 Shopee API sem dados — usando fallback")
+    except Exception as e:
+        logger.warning(f"🛒 Shopee API indisponível: {e}")
+
+    # Fallback: termos hardcoded do print
+    logger.info("🛒 Gerando tendências Shopee (Fallback — Termos do Print)...")
     
     dados = []
     categorias = ["Casa", "Eletrônicos", "Moda", "Esportes", "Beleza", "Infantil"]
     
-    # Gerar produtos baseados nos termos reais do print
     for termo in TERMOS_HOT_TRENDS:
         vendas_num = random.randint(1, 50)
         vendas_str = f"{vendas_num}.{random.randint(0,9)}k" if vendas_num > 5 else f"{random.randint(500, 999)}+"
@@ -152,6 +171,31 @@ def obter_shopee_trending(forcar_atualizacao: bool = False) -> List[Dict]:
         })
 
     _salvar_cache(CACHE_SHOPEE_LIVE, dados)
+    return dados
+
+
+def _enriquecer_termos_shopee(termos: List[str]) -> List[Dict]:
+    """
+    Enriquece termos com dados simulados (preço, vendas, avaliação).
+    A API da Shopee retorna apenas nomes — precisamos formatar para a grade.
+    """
+    dados = []
+    categorias = ["Casa", "Eletrônicos", "Moda", "Esportes", "Beleza", "Infantil"]
+    
+    for termo in termos:
+        vendas_num = random.randint(1, 50)
+        vendas_str = f"{vendas_num}.{random.randint(0,9)}k" if vendas_num > 5 else f"{random.randint(500, 999)}+"
+        
+        dados.append({
+            "termo": termo,
+            "vendas": vendas_str,
+            "avaliacao": round(random.uniform(4.5, 5.0), 1),
+            "preco": f"R$ {random.randint(19, 1200)},90",
+            "categoria": random.choice(categorias),
+            "fonte": "Shopee API",
+            "atualizado": datetime.now().strftime("%d/%m/%Y %H:%M"),
+        })
+    
     return dados
 
 def obter_status_cache() -> Dict:
