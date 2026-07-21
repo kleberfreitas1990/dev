@@ -692,6 +692,16 @@ def render_dashboard():
     
     st.markdown("---")
     
+    # ===== TOP 20 GOOGLE TRENDS & SHOPEE (movido da tab removida) =====
+    _render_top20_google_shopee_inline()
+    
+    st.markdown("---")
+    
+    # ===== SUGESTÕES DE PRODUTOS (movido da tab removida) =====
+    _render_sugestoes_inline()
+    
+    st.markdown("---")
+    
     # ===== APOIADORES COMPACTOS =====
     render_apoiadores_compactos()
 
@@ -771,3 +781,74 @@ def render_top_20_marketplace():
     
     df = pd.DataFrame(dados_tabela)
     st.dataframe(df, use_container_width=True, hide_index=True)
+# ============================================================
+# TOP 20 GOOGLE + SHOPEE (inline no Dashboard)
+# ============================================================
+def _render_top20_google_shopee_inline():
+    """
+    Renderiza inline no Dashboard: Status Google/Shopee + Top 20 Marketplace.
+    Anteriormente era uma tab separada (🔥 Top 20 Google).
+    """
+    st.markdown("## 🔥 Top 20 Google Trends & Shopee")
+    st.caption("Dados reais capturados do Google Trends e Shopee Brasil — atualização automática a cada 6 horas")
+
+    # Status do cache
+    try:
+        from modules.google_shopee_trends import obter_status_cache, obter_google_trends, obter_shopee_trending, forcar_atualizacao_completa
+        status_cache = obter_status_cache()
+        col_s1, col_s2, col_s3 = st.columns(3)
+        with col_s1:
+            g_status = status_cache.get("google_trends", {})
+            icone_g = "✅" if g_status.get("valido") else "⚠️"
+            st.metric(f"{icone_g} Google Trends", f"{g_status.get('total', 0)} itens",
+                      delta=g_status.get("data_formatada", "N/A"))
+        with col_s2:
+            s_status = status_cache.get("shopee", {})
+            icone_s = "✅" if s_status.get("valido") else "⚠️"
+            st.metric(f"{icone_s} Shopee", f"{s_status.get('total', 0)} itens",
+                      delta=s_status.get("data_formatada", "N/A"))
+        with col_s3:
+            if st.button("🔄 Atualizar Dados Agora", use_container_width=True, key="btn_atualizar_top20_dash"):
+                with st.spinner("📡 Buscando dados reais..."):
+                    resultado = forcar_atualizacao_completa()
+                    st.success(
+                        f"✅ Google: {resultado.get('google_trends', {}).get('total', 0)} itens | "
+                        f"Shopee: {resultado.get('shopee', {}).get('total', 0)} itens | "
+                        f"Tempo: {resultado.get('tempo_total', 0)}s"
+                    )
+                    st.rerun()
+    except Exception:
+        pass
+
+    st.markdown("---")
+
+    # Top 20 Marketplace
+    render_top_20_marketplace()
+
+# ============================================================
+# SUGESTÕES DE PRODUTOS (inline no Dashboard)
+# ============================================================
+def _render_sugestoes_inline():
+    """
+    Renderiza inline no Dashboard: Grade de Sugestões de Produtos.
+    Anteriormente era uma tab separada (📌 Sugestões de Produtos).
+    """
+    st.markdown("## 📌 Sugestões de Produtos Estratégicos")
+    st.caption("Produtos com alto potencial de conversão baseados em tendências reais")
+
+    # Botão de busca Selenium (fallback)
+    try:
+        from modules.selenium_client import capturar_buscas_selenium
+        if st.button("🔄 Buscar Dados Reais", use_container_width=True, key="btn_selenium_dash"):
+            with st.spinner("📡 Acessando marketplaces em tempo real..."):
+                termos = capturar_buscas_selenium()
+                if termos:
+                    st.success(f"✅ {len(termos)} termos capturados com sucesso!")
+                    st.rerun()
+                else:
+                    st.error("❌ Não foi possível capturar dados em tempo real.")
+    except ImportError:
+        pass
+
+    # Grade de sugestões (com key_suffix diferente para evitar conflito com a grade principal)
+    render_grade_descoberta(key_suffix="sugestoes_dash")
