@@ -865,11 +865,13 @@ def render_grades_unificadas():
     
     # ---- ABA 4: SUGESTÕES ESTRATÉGICAS ----
     with sub_grade4:
-        st.markdown("### 📌 Sugestões de Produtos Estratégicos")
-        st.caption("Produtos com alto potencial de conversão baseados em tendências reais")
-        
-        # Grade de sugestões (com key_suffix diferente para evitar conflito)
-        render_grade_descoberta(key_suffix="unificado_sugestoes")
+        try:
+            from modules.sugestao_estrategica import render_sugestao_estrategica
+            render_sugestao_estrategica()
+        except Exception as e:
+            st.error(f"❌ Erro ao carregar Sugestões Estratégicas: {str(e)}")
+            import traceback
+            st.code(traceback.format_exc())
 
 
 def _render_top20_com_shopee():
