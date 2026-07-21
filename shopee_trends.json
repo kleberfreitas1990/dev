@@ -1,37 +1,202 @@
 {
-    "success": true,
-    "data": [
-        "Tênis Masculino",
-        "Chopeira",
-        "Fone de Ouvido Bluetooth",
-        "Alexa",
-        "Sex Doll",
-        "Tênis",
-        "Crocs",
-        "Moto Elétrica Scooter",
-        "Balcão de Pia de Cozinha 160 cm",
-        "Decoração",
-        "Caixa Cacau Show Branca",
-        "Caixa de Som Britânia PCX 12500",
-        "Jibbitz",
-        "Luminária",
-        "Gabinete",
-        "Bola Jabulani",
-        "Masturbador Masculino",
-        "Poltrona",
-        "Camisa Espanha",
-        "Chopp",
-        "Cama Triliche",
-        "Carrinho de Controle Remoto 4x4",
-        "Kettlebell Acte Sports",
-        "Fone de Ouvido Miniso",
-        "Celular Xiaomi 14C 256GB 8GB RAM",
-        "Celular Motorola 60 Pro",
-        "Capacete Norisk Route FF345 Roxo",
-        "Cama Box Viúva D45",
-        "Caixa de Som Boombox 4 Branco",
-        "Celular Xiaomi Redmi 13 4G 256GB 8GB"
-    ],
-    "timestamp": "2026-07-21",
-    "url_fonte": "https://shopee.com.br/ (Fallback v9.10c — termos reais do usuário)"
+  "100 Pacotes de Figurinhas da Copa": {
+    "pins": 90304,
+    "crescimento": 117,
+    "views_tiktok": 59.4,
+    "score": 9,
+    "fonte": "Shopee — termos priorizados (fallback)",
+    "origem_coleta": "fallback",
+    "atualizado": "21/07/2026 13:58",
+    "tendencia": "🔥 Explosão Shopee"
+  },
+  "Sofá": {
+    "pins": 82343,
+    "crescimento": 244,
+    "views_tiktok": 87.9,
+    "score": 9,
+    "fonte": "Shopee — termos priorizados (fallback)",
+    "origem_coleta": "fallback",
+    "atualizado": "21/07/2026 13:58",
+    "tendencia": "🔥 Explosão Shopee"
+  },
+  "Dildo": {
+    "pins": 90859,
+    "crescimento": 156,
+    "views_tiktok": 86.8,
+    "score": 9,
+    "fonte": "Shopee — termos priorizados (fallback)",
+    "origem_coleta": "fallback",
+    "atualizado": "21/07/2026 13:58",
+    "tendencia": "🔥 Explosão Shopee"
+  },
+  "PlayStation 2": {
+    "pins": 82214,
+    "crescimento": 165,
+    "views_tiktok": 75.2,
+    "score": 9,
+    "fonte": "Shopee — termos priorizados (fallback)",
+    "origem_coleta": "fallback",
+    "atualizado": "21/07/2026 13:58",
+    "tendencia": "🔥 Explosão Shopee"
+  },
+  "Carro Infantil Elétrico": {
+    "pins": 92421,
+    "crescimento": 156,
+    "views_tiktok": 76.8,
+    "score": 10,
+    "fonte": "Shopee — termos priorizados (fallback)",
+    "origem_coleta": "fallback",
+    "atualizado": "21/07/2026 13:58",
+    "tendencia": "🔥 Explosão Shopee"
+  },
+  "Mouse Pad": {
+    "pins": 82562,
+    "crescimento": 291,
+    "views_tiktok": 81.1,
+    "score": 10,
+    "fonte": "Shopee — termos priorizados (fallback)",
+    "origem_coleta": "fallback",
+    "atualizado": "21/07/2026 13:58",
+    "tendencia": "🔥 Explosão Shopee"
+  },
+  "Vibrador Bluetooth": {
+    "pins": 42965,
+    "crescimento": 294,
+    "views_tiktok": 73.4,
+    "score": 9,
+    "fonte": "Shopee — termos priorizados (fallback)",
+    "origem_coleta": "fallback",
+    "atualizado": "21/07/2026 13:58",
+    "tendencia": "🔥 Explosão Shopee"
+  },
+  "Sacola Personalizada": {
+    "pins": 76571,
+    "crescimento": 85,
+    "views_tiktok": 70.6,
+    "score": 9,
+    "fonte": "Shopee — termos priorizados (fallback)",
+    "origem_coleta": "fallback",
+    "atualizado": "21/07/2026 13:58",
+    "tendencia": "🔥 Explosão Shopee"
+  },
+  "Gabinete": {
+    "pins": 88487,
+    "crescimento": 253,
+    "views_tiktok": 65.3,
+    "score": 9,
+    "fonte": "Shopee — termos priorizados (fallback)",
+    "origem_coleta": "fallback",
+    "atualizado": "21/07/2026 13:58",
+    "tendencia": "🔥 Explosão Shopee"
+  },
+  "Chopeira": {
+    "pins": 70813,
+    "crescimento": 197,
+    "views_tiktok": 90.8,
+    "score": 10,
+    "fonte": "Shopee — termos priorizados (fallback)",
+    "origem_coleta": "fallback",
+    "atualizado": "21/07/2026 13:58",
+    "tendencia": "🔥 Explosão Shopee"
+  },
+  "Masturbador Masculino": {
+    "pins": 86709,
+    "crescimento": 214,
+    "views_tiktok": 50.0,
+    "score": 10,
+    "fonte": "Shopee — termos priorizados (fallback)",
+    "origem_coleta": "fallback",
+    "atualizado": "21/07/2026 13:58",
+    "tendencia": "🔥 Explosão Shopee"
+  },
+  "Kindle": {
+    "pins": 85198,
+    "crescimento": 275,
+    "views_tiktok": 97.3,
+    "score": 10,
+    "fonte": "Shopee — termos priorizados (fallback)",
+    "origem_coleta": "fallback",
+    "atualizado": "21/07/2026 13:58",
+    "tendencia": "🔥 Explosão Shopee"
+  },
+  "Carro Infantil Elétrico Jipe": {
+    "pins": 85755,
+    "crescimento": 124,
+    "views_tiktok": 81.7,
+    "score": 10,
+    "fonte": "Shopee — termos priorizados (fallback)",
+    "origem_coleta": "fallback",
+    "atualizado": "21/07/2026 13:58",
+    "tendencia": "🔥 Explosão Shopee"
+  },
+  "Plug Anal": {
+    "pins": 49689,
+    "crescimento": 218,
+    "views_tiktok": 57.9,
+    "score": 10,
+    "fonte": "Shopee — termos priorizados (fallback)",
+    "origem_coleta": "fallback",
+    "atualizado": "21/07/2026 13:58",
+    "tendencia": "🔥 Explosão Shopee"
+  },
+  "Crocs": {
+    "pins": 90858,
+    "crescimento": 282,
+    "views_tiktok": 76.5,
+    "score": 10,
+    "fonte": "Shopee — termos priorizados (fallback)",
+    "origem_coleta": "fallback",
+    "atualizado": "21/07/2026 13:58",
+    "tendencia": "🔥 Explosão Shopee"
+  },
+  "Vibrador Calcinha": {
+    "pins": 81006,
+    "crescimento": 197,
+    "views_tiktok": 93.7,
+    "score": 9,
+    "fonte": "Shopee — termos priorizados (fallback)",
+    "origem_coleta": "fallback",
+    "atualizado": "21/07/2026 13:58",
+    "tendencia": "🔥 Explosão Shopee"
+  },
+  "Poco X7 Pro": {
+    "pins": 76153,
+    "crescimento": 292,
+    "views_tiktok": 60.9,
+    "score": 9,
+    "fonte": "Shopee — termos priorizados (fallback)",
+    "origem_coleta": "fallback",
+    "atualizado": "21/07/2026 13:58",
+    "tendencia": "🔥 Explosão Shopee"
+  },
+  "Camisa Tailandesa": {
+    "pins": 46204,
+    "crescimento": 111,
+    "views_tiktok": 98.6,
+    "score": 10,
+    "fonte": "Shopee — termos priorizados (fallback)",
+    "origem_coleta": "fallback",
+    "atualizado": "21/07/2026 13:58",
+    "tendencia": "🔥 Explosão Shopee"
+  },
+  "Alexa": {
+    "pins": 41124,
+    "crescimento": 271,
+    "views_tiktok": 95.2,
+    "score": 10,
+    "fonte": "Shopee — termos priorizados (fallback)",
+    "origem_coleta": "fallback",
+    "atualizado": "21/07/2026 13:58",
+    "tendencia": "🔥 Explosão Shopee"
+  },
+  "Figurinha Copa": {
+    "pins": 71728,
+    "crescimento": 296,
+    "views_tiktok": 51.0,
+    "score": 10,
+    "fonte": "Shopee — termos priorizados (fallback)",
+    "origem_coleta": "fallback",
+    "atualizado": "21/07/2026 13:58",
+    "tendencia": "🔥 Explosão Shopee"
+  }
 }
