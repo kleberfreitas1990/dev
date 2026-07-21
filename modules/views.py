@@ -472,7 +472,7 @@ def render_dashboard():
         st.caption(f"📅 {datetime.now().strftime('%A, %d de %B de %Y - %H:%M')}")
     
     with col_refresh:
-        # Botão removido - Atualização agora é 100% automática a cada 2 horas
+        # Botão removido - Atualização agora é 100% automática a cada 12 horas
         st.empty()
     
     # ============================================================

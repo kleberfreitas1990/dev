@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 # ARQUIVO DE HISTÓRICO DE EXECUÇÕES
 # ============================================================
 ARQUIVO_HISTORICO_AUTO = "auto_update_historico.json"
-INTERVALO_PADRAO_HORAS = 6  # Intervalo padrão de atualização
+INTERVALO_PADRAO_HORAS = 12  # Intervalo padrão de atualização (12h)
 
 # ============================================================
 # FUNÇÕES DE HISTÓRICO
