@@ -20,17 +20,7 @@ logger = logging.getLogger(__name__)
 # DADOS REAIS EXTRAÍDOS DO PRINT DO USUÁRIO (Prioridade Máxima)
 # Atualizado em: 18/07/2026 — Buscas em Alta Shopee + ML
 # ============================================================
-TERMOS_HOT_TRENDS = [
-    # Atualizado em: 20/07/2026 — Dados reais da imagem do usuário
-    "100 Pacotes de Figurinhas da Copa", "Sofá", "Dildo", "PlayStation 2",
-    "Carro Infantil Elétrico", "Mouse Pad", "Vibrador Bluetooth", "Sacola Personalizada",
-    "Gabinete", "Chopeira", "Masturbador Masculino", "Kindle",
-    "Carro Infantil Elétrico Jipe", "Plug Anal", "Crocs", "Vibrador Calcinha",
-    "Poco X7 Pro", "Camisa Tailandesa", "Alexa", "Figurinha Copa",
-    "Maquiagem Maybelline Honey", "Headphone Miniso", "Fone de Ouvido Disney", "Fone de Ouvido Disney LF-918",
-    "Kit de Maquiagem Real Techniques", "Caixa de Som Britânia PCX 12500", "Câmera Babá Eletrônica Tarktark", "Celular iPhone Novo",
-    "Taças Oxford", "Carrinho de Controle Remoto 4x4",
-]
+TERMOS_HOT_TRENDS = ["Tênis Masculino", "Chopeira", "Fone de Ouvido Bluetooth", "Alexa", "Sex Doll", "Tênis", "Crocs", "Moto Elétrica Scooter", "Balcão de Pia de Cozinha 160 cm", "Decoração", "Caixa Cacau Show Branca", "Caixa de Som Britânia PCX 12500", "Jibbitz", "Luminária", "Gabinete", "Bola Jabulani", "Masturbador Masculino", "Poltrona", "Camisa Espanha", "Chopp", "Cama Triliche", "Carrinho de Controle Remoto 4x4", "Kettlebell Acte Sports", "Fone de Ouvido Miniso", "Celular Xiaomi 14C 256GB 8GB RAM", "Celular Motorola 60 Pro", "Capacete Norisk Route FF345 Roxo", "Cama Box Viúva D45", "Caixa de Som Boombox 4 Branco", "Celular Xiaomi Redmi 13 4G 256GB 8GB"]
 
 # ============================================================
 # ARQUIVOS DE CACHE

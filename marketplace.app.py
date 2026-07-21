@@ -11,7 +11,7 @@ import os
 # ============================================================
 # VERSÃO DO SISTEMA
 # ============================================================
-VERSAO_SISTEMA = "v9.8 - Proteção Sonora"
+VERSAO_SISTEMA = "v9.9 - Pedreira Flow"
 
 # ============================================================
 # CONFIGURAÇÃO DE LOGGING
@@ -100,6 +100,7 @@ from modules.calendar import render_calendar
 # Importa módulo Metadata Pro
 from modules.metadados_pro import render_metadados_pro
 from modules.historico_tendencias import render_historico_tendencias
+from modules.pedreira import render_pedreira
 
 # ============================================================
 # LOGIN E AUTENTICAÇÃO
@@ -130,9 +131,10 @@ st.markdown("---")
 # ============================================================
 # TABS (REORGANIZADAS: Metadata Pro em 2º lugar)
 # ============================================================
-tab1, tab_meta, tab_auto, tab_hist, tab_new, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs([
+tab1, tab_meta, tab_pedreira, tab_auto, tab_hist, tab_new, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9, tab10 = st.tabs([
     "📊 Dashboard",
-    "🎬 Metadata Pro",       # Movido para 2º lugar
+    "🎬 Metadata Pro",
+    "🏗️ Pedreira",           # Nova Aba
     "🔄 Atualização Auto",
     "📈 Histórico",
     "🔥 Top 20 Google",
@@ -162,6 +164,15 @@ with tab_meta:
         render_metadados_pro()
     except Exception as e:
         st.error(f"❌ Erro ao carregar Metadata Pro: {str(e)}")
+
+# ============================================================
+# TAB: PEDREIRA (FLUXO DE PEDIDOS)
+# ============================================================
+with tab_pedreira:
+    try:
+        render_pedreira()
+    except Exception as e:
+        st.error(f"❌ Erro ao carregar Fluxo Pedreira: {str(e)}")
 
 # ============================================================
 # TAB 3: ATUALIZAÇÃO AUTOMÁTICA
