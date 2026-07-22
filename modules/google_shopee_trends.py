@@ -179,3 +179,26 @@ def forcar_atualizacao_completa() -> Dict:
         "shopee": {"total": len(s)},
         "tempo_total": round(end - start, 2)
     }
+
+def obter_status_cache() -> Dict:
+    status = {}
+    for nome, arquivo in [("google_trends", CACHE_GOOGLE_TRENDS), ("shopee", CACHE_SHOPEE_LIVE)]:
+        if os.path.exists(arquivo):
+            try:
+                with open(arquivo, "r", encoding="utf-8") as f:
+                    cache = json.load(f)
+                timestamp = cache.get("timestamp")
+                if timestamp:
+                    ts = datetime.fromisoformat(timestamp)
+                    status[nome] = {
+                        "valido": (datetime.now() - ts) < timedelta(hours=CACHE_TTL_HORAS),
+                        "data_formatada": ts.strftime("%d/%m %H:%M"),
+                        "total": len(cache.get("dados", []))
+                    }
+                else:
+                    status[nome] = {"valido": False, "total": 0}
+            except:
+                status[nome] = {"valido": False, "total": 0}
+        else:
+            status[nome] = {"valido": False, "total": 0}
+    return status
