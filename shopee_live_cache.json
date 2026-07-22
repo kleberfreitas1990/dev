@@ -1,357 +1,276 @@
 {
-  "timestamp": "2026-07-19T08:27:44.832061",
-  "data": "2026-07-19",
+  "timestamp": "2026-07-22T10:11:51.173934",
+  "data": "2026-07-22",
   "dados": [
     {
-      "termo": "Controle PS4",
-      "vendas": "15.0k",
+      "termo": "Escrivaninha",
+      "vendas": "16.2k",
       "avaliacao": 4.8,
-      "preco": "R$ 822,90",
-      "categoria": "Beleza",
-      "fonte": "Shopee Live",
-      "atualizado": "19/07/2026 08:27"
-    },
-    {
-      "termo": "Nintendo Switch Desbloqueado",
-      "vendas": "33.4k",
-      "avaliacao": 4.8,
-      "preco": "R$ 101,90",
+      "preco": "R$ 920,90",
       "categoria": "Moda",
       "fonte": "Shopee Live",
-      "atualizado": "19/07/2026 08:27"
+      "atualizado": "22/07/2026 10:11"
     },
     {
-      "termo": "Café Orfeu 1Kg",
-      "vendas": "24.3k",
+      "termo": "Fone de Ouvido Bluetooth",
+      "vendas": "10.8k",
       "avaliacao": 4.9,
-      "preco": "R$ 408,90",
+      "preco": "R$ 349,90",
       "categoria": "Beleza",
       "fonte": "Shopee Live",
-      "atualizado": "19/07/2026 08:27"
+      "atualizado": "22/07/2026 10:11"
     },
     {
-      "termo": "Espelho",
-      "vendas": "41.9k",
-      "avaliacao": 4.7,
-      "preco": "R$ 263,90",
-      "categoria": "Infantil",
+      "termo": "Crocs Relâmpago Mcqueen",
+      "vendas": "21.2k",
+      "avaliacao": 5.0,
+      "preco": "R$ 130,90",
+      "categoria": "Casa",
       "fonte": "Shopee Live",
-      "atualizado": "19/07/2026 08:27"
+      "atualizado": "22/07/2026 10:11"
     },
     {
-      "termo": "Impressora 3D",
-      "vendas": "12.7k",
-      "avaliacao": 4.7,
-      "preco": "R$ 369,90",
+      "termo": "Prateleira",
+      "vendas": "35.2k",
+      "avaliacao": 4.6,
+      "preco": "R$ 213,90",
+      "categoria": "Casa",
+      "fonte": "Shopee Live",
+      "atualizado": "22/07/2026 10:11"
+    },
+    {
+      "termo": "Capacete Norisk Route FF345 Roxo",
+      "vendas": "36.5k",
+      "avaliacao": 4.5,
+      "preco": "R$ 1137,90",
       "categoria": "Esportes",
       "fonte": "Shopee Live",
-      "atualizado": "19/07/2026 08:27"
+      "atualizado": "22/07/2026 10:11"
     },
     {
-      "termo": "Sapateira",
-      "vendas": "16.1k",
-      "avaliacao": 4.9,
-      "preco": "R$ 938,90",
-      "categoria": "Beleza",
+      "termo": "Fone de Ouvido Disney LF-918",
+      "vendas": "22.3k",
+      "avaliacao": 4.7,
+      "preco": "R$ 1050,90",
+      "categoria": "Esportes",
       "fonte": "Shopee Live",
-      "atualizado": "19/07/2026 08:27"
+      "atualizado": "22/07/2026 10:11"
     },
     {
-      "termo": "Armário Kapesberg",
-      "vendas": "47.2k",
-      "avaliacao": 4.8,
-      "preco": "R$ 806,90",
+      "termo": "Penteadeira",
+      "vendas": "43.3k",
+      "avaliacao": 4.6,
+      "preco": "R$ 21,90",
       "categoria": "Eletrônicos",
       "fonte": "Shopee Live",
-      "atualizado": "19/07/2026 08:27"
+      "atualizado": "22/07/2026 10:11"
     },
     {
       "termo": "PC Gamer",
-      "vendas": "820+",
-      "avaliacao": 4.8,
-      "preco": "R$ 465,90",
-      "categoria": "Esportes",
+      "vendas": "44.7k",
+      "avaliacao": 4.7,
+      "preco": "R$ 859,90",
+      "categoria": "Eletrônicos",
       "fonte": "Shopee Live",
-      "atualizado": "19/07/2026 08:27"
+      "atualizado": "22/07/2026 10:11"
     },
     {
-      "termo": "Capinha iPhone 16",
-      "vendas": "9.1k",
-      "avaliacao": 4.9,
-      "preco": "R$ 890,90",
+      "termo": "SSD",
+      "vendas": "23.7k",
+      "avaliacao": 4.6,
+      "preco": "R$ 323,90",
+      "categoria": "Eletrônicos",
+      "fonte": "Shopee Live",
+      "atualizado": "22/07/2026 10:11"
+    },
+    {
+      "termo": "Mochila",
+      "vendas": "49.8k",
+      "avaliacao": 4.7,
+      "preco": "R$ 405,90",
       "categoria": "Beleza",
       "fonte": "Shopee Live",
-      "atualizado": "19/07/2026 08:27"
+      "atualizado": "22/07/2026 10:11"
     },
     {
-      "termo": "Photocard",
-      "vendas": "9.0k",
-      "avaliacao": 4.6,
-      "preco": "R$ 1044,90",
-      "categoria": "Esportes",
-      "fonte": "Shopee Live",
-      "atualizado": "19/07/2026 08:27"
-    },
-    {
-      "termo": "Aquecedor LZ 1600DE",
-      "vendas": "46.2k",
+      "termo": "Squishy",
+      "vendas": "50.6k",
       "avaliacao": 4.7,
-      "preco": "R$ 65,90",
-      "categoria": "Infantil",
-      "fonte": "Shopee Live",
-      "atualizado": "19/07/2026 08:27"
-    },
-    {
-      "termo": "Nintendo 3DS",
-      "vendas": "50.2k",
-      "avaliacao": 4.7,
-      "preco": "R$ 925,90",
-      "categoria": "Beleza",
-      "fonte": "Shopee Live",
-      "atualizado": "19/07/2026 08:27"
-    },
-    {
-      "termo": "Fone de Ouvido",
-      "vendas": "10.3k",
-      "avaliacao": 4.6,
-      "preco": "R$ 1080,90",
-      "categoria": "Moda",
-      "fonte": "Shopee Live",
-      "atualizado": "19/07/2026 08:27"
-    },
-    {
-      "termo": "Plug Anal",
-      "vendas": "12.5k",
-      "avaliacao": 4.7,
-      "preco": "R$ 585,90",
-      "categoria": "Casa",
-      "fonte": "Shopee Live",
-      "atualizado": "19/07/2026 08:27"
-    },
-    {
-      "termo": "Sofá",
-      "vendas": "15.5k",
-      "avaliacao": 4.7,
-      "preco": "R$ 330,90",
+      "preco": "R$ 1069,90",
       "categoria": "Eletrônicos",
       "fonte": "Shopee Live",
-      "atualizado": "19/07/2026 08:27"
-    },
-    {
-      "termo": "Decoração",
-      "vendas": "33.1k",
-      "avaliacao": 4.5,
-      "preco": "R$ 525,90",
-      "categoria": "Infantil",
-      "fonte": "Shopee Live",
-      "atualizado": "19/07/2026 08:27"
-    },
-    {
-      "termo": "Moto Elétrica Scooter",
-      "vendas": "14.5k",
-      "avaliacao": 4.6,
-      "preco": "R$ 937,90",
-      "categoria": "Eletrônicos",
-      "fonte": "Shopee Live",
-      "atualizado": "19/07/2026 08:27"
-    },
-    {
-      "termo": "Lembrancinha Dia dos Pais",
-      "vendas": "583+",
-      "avaliacao": 4.5,
-      "preco": "R$ 666,90",
-      "categoria": "Eletrônicos",
-      "fonte": "Shopee Live",
-      "atualizado": "19/07/2026 08:27"
+      "atualizado": "22/07/2026 10:11"
     },
     {
       "termo": "Poltrona",
-      "vendas": "15.0k",
-      "avaliacao": 4.9,
-      "preco": "R$ 184,90",
-      "categoria": "Esportes",
-      "fonte": "Shopee Live",
-      "atualizado": "19/07/2026 08:27"
-    },
-    {
-      "termo": "Projetor",
-      "vendas": "33.4k",
-      "avaliacao": 4.5,
-      "preco": "R$ 272,90",
-      "categoria": "Infantil",
-      "fonte": "Shopee Live",
-      "atualizado": "19/07/2026 08:27"
-    },
-    {
-      "termo": "Celular iPhone Novo",
-      "vendas": "40.2k",
-      "avaliacao": 4.8,
-      "preco": "R$ 1101,90",
-      "categoria": "Beleza",
-      "fonte": "Shopee Live",
-      "atualizado": "19/07/2026 08:27"
-    },
-    {
-      "termo": "Power Bank Pineng",
-      "vendas": "46.5k",
+      "vendas": "19.8k",
       "avaliacao": 4.6,
-      "preco": "R$ 162,90",
-      "categoria": "Moda",
+      "preco": "R$ 1023,90",
+      "categoria": "Eletrônicos",
       "fonte": "Shopee Live",
-      "atualizado": "19/07/2026 08:27"
+      "atualizado": "22/07/2026 10:11"
     },
     {
       "termo": "Câmera Babá Eletrônica Tarktark",
-      "vendas": "23.2k",
-      "avaliacao": 4.8,
-      "preco": "R$ 95,90",
+      "vendas": "19.0k",
+      "avaliacao": 4.9,
+      "preco": "R$ 401,90",
       "categoria": "Infantil",
       "fonte": "Shopee Live",
-      "atualizado": "19/07/2026 08:27"
+      "atualizado": "22/07/2026 10:11"
     },
     {
-      "termo": "Carro Infantil Elétrico",
-      "vendas": "28.8k",
+      "termo": "Pipa",
+      "vendas": "37.6k",
       "avaliacao": 4.9,
-      "preco": "R$ 330,90",
-      "categoria": "Beleza",
-      "fonte": "Shopee Live",
-      "atualizado": "19/07/2026 08:27"
-    },
-    {
-      "termo": "Carro Infantil Elétrico Jipe",
-      "vendas": "10.0k",
-      "avaliacao": 4.9,
-      "preco": "R$ 439,90",
-      "categoria": "Beleza",
-      "fonte": "Shopee Live",
-      "atualizado": "19/07/2026 08:27"
-    },
-    {
-      "termo": "Celular Xiaomi 1T",
-      "vendas": "14.8k",
-      "avaliacao": 4.7,
-      "preco": "R$ 1095,90",
+      "preco": "R$ 586,90",
       "categoria": "Eletrônicos",
       "fonte": "Shopee Live",
-      "atualizado": "19/07/2026 08:27"
-    },
-    {
-      "termo": "Celular Resistente",
-      "vendas": "30.1k",
-      "avaliacao": 4.6,
-      "preco": "R$ 167,90",
-      "categoria": "Moda",
-      "fonte": "Shopee Live",
-      "atualizado": "19/07/2026 08:27"
-    },
-    {
-      "termo": "Carenagem de Moto Factor 150",
-      "vendas": "49.2k",
-      "avaliacao": 4.6,
-      "preco": "R$ 500,90",
-      "categoria": "Casa",
-      "fonte": "Shopee Live",
-      "atualizado": "19/07/2026 08:27"
-    },
-    {
-      "termo": "Capinha de Celular",
-      "vendas": "50.5k",
-      "avaliacao": 4.8,
-      "preco": "R$ 300,90",
-      "categoria": "Eletrônicos",
-      "fonte": "Shopee Live",
-      "atualizado": "19/07/2026 08:27"
-    },
-    {
-      "termo": "Celular Xiaomi M7 Pro",
-      "vendas": "29.1k",
-      "avaliacao": 4.6,
-      "preco": "R$ 1161,90",
-      "categoria": "Beleza",
-      "fonte": "Shopee Live",
-      "atualizado": "19/07/2026 08:27"
-    },
-    {
-      "termo": "Balcão de Pia de Cozinha 160 cm",
-      "vendas": "716+",
-      "avaliacao": 4.6,
-      "preco": "R$ 287,90",
-      "categoria": "Esportes",
-      "fonte": "Shopee Live",
-      "atualizado": "19/07/2026 08:27"
+      "atualizado": "22/07/2026 10:11"
     },
     {
       "termo": "Escova Progressiva Everk",
-      "vendas": "13.1k",
-      "avaliacao": 4.7,
-      "preco": "R$ 288,90",
-      "categoria": "Eletrônicos",
-      "fonte": "Shopee Live",
-      "atualizado": "19/07/2026 08:27"
-    },
-    {
-      "termo": "Ar-Condicionado de Janela Springer",
-      "vendas": "922+",
-      "avaliacao": 4.6,
-      "preco": "R$ 984,90",
-      "categoria": "Eletrônicos",
-      "fonte": "Shopee Live",
-      "atualizado": "19/07/2026 08:27"
-    },
-    {
-      "termo": "Sacola Personalizada",
-      "vendas": "27.8k",
-      "avaliacao": 4.5,
-      "preco": "R$ 776,90",
-      "categoria": "Moda",
-      "fonte": "Shopee Live",
-      "atualizado": "19/07/2026 08:27"
-    },
-    {
-      "termo": "Teclado",
-      "vendas": "33.7k",
-      "avaliacao": 4.7,
-      "preco": "R$ 758,90",
-      "categoria": "Eletrônicos",
-      "fonte": "Shopee Live",
-      "atualizado": "19/07/2026 08:27"
-    },
-    {
-      "termo": "Biquíni",
-      "vendas": "16.4k",
-      "avaliacao": 4.9,
-      "preco": "R$ 685,90",
-      "categoria": "Moda",
-      "fonte": "Shopee Live",
-      "atualizado": "19/07/2026 08:27"
-    },
-    {
-      "termo": "Caixa de Som",
-      "vendas": "24.5k",
-      "avaliacao": 4.7,
-      "preco": "R$ 639,90",
-      "categoria": "Esportes",
-      "fonte": "Shopee Live",
-      "atualizado": "19/07/2026 08:27"
-    },
-    {
-      "termo": "Escrivaninha",
       "vendas": "18.0k",
       "avaliacao": 4.7,
-      "preco": "R$ 865,90",
-      "categoria": "Moda",
+      "preco": "R$ 664,90",
+      "categoria": "Esportes",
       "fonte": "Shopee Live",
-      "atualizado": "19/07/2026 08:27"
+      "atualizado": "22/07/2026 10:11"
     },
     {
-      "termo": "Chopeira",
-      "vendas": "626+",
+      "termo": "Controle PC",
+      "vendas": "8.8k",
+      "avaliacao": 4.5,
+      "preco": "R$ 649,90",
+      "categoria": "Infantil",
+      "fonte": "Shopee Live",
+      "atualizado": "22/07/2026 10:11"
+    },
+    {
+      "termo": "Armário Kapesberg",
+      "vendas": "16.4k",
+      "avaliacao": 4.7,
+      "preco": "R$ 858,90",
+      "categoria": "Infantil",
+      "fonte": "Shopee Live",
+      "atualizado": "22/07/2026 10:11"
+    },
+    {
+      "termo": "Café Orfeu 1Kg",
+      "vendas": "17.5k",
+      "avaliacao": 4.6,
+      "preco": "R$ 962,90",
+      "categoria": "Esportes",
+      "fonte": "Shopee Live",
+      "atualizado": "22/07/2026 10:11"
+    },
+    {
+      "termo": "100 Pacotes de Figurinhas da Copa",
+      "vendas": "34.3k",
       "avaliacao": 4.8,
-      "preco": "R$ 1060,90",
+      "preco": "R$ 235,90",
+      "categoria": "Moda",
+      "fonte": "Shopee Live",
+      "atualizado": "22/07/2026 10:11"
+    },
+    {
+      "termo": "Moto Elétrica Scooter",
+      "vendas": "646+",
+      "avaliacao": 4.5,
+      "preco": "R$ 1171,90",
+      "categoria": "Moda",
+      "fonte": "Shopee Live",
+      "atualizado": "22/07/2026 10:11"
+    },
+    {
+      "termo": "Caixa de Som Bluetooth JBL",
+      "vendas": "41.3k",
+      "avaliacao": 4.8,
+      "preco": "R$ 709,90",
+      "categoria": "Eletrônicos",
+      "fonte": "Shopee Live",
+      "atualizado": "22/07/2026 10:11"
+    },
+    {
+      "termo": "Celular Xiaomi Redmi 13 4G 256GB 8GB",
+      "vendas": "883+",
+      "avaliacao": 4.7,
+      "preco": "R$ 500,90",
       "categoria": "Casa",
       "fonte": "Shopee Live",
-      "atualizado": "19/07/2026 08:27"
+      "atualizado": "22/07/2026 10:11"
+    },
+    {
+      "termo": "Celular Xiaomi Redmi 15C 256GB 8GB RAM Dual Sim Preto",
+      "vendas": "26.6k",
+      "avaliacao": 4.9,
+      "preco": "R$ 1084,90",
+      "categoria": "Moda",
+      "fonte": "Shopee Live",
+      "atualizado": "22/07/2026 10:11"
+    },
+    {
+      "termo": "Kettlebell Acte Sports",
+      "vendas": "39.4k",
+      "avaliacao": 5.0,
+      "preco": "R$ 850,90",
+      "categoria": "Esportes",
+      "fonte": "Shopee Live",
+      "atualizado": "22/07/2026 10:11"
+    },
+    {
+      "termo": "Carrinho de Controle Remoto 4x4",
+      "vendas": "29.1k",
+      "avaliacao": 4.6,
+      "preco": "R$ 20,90",
+      "categoria": "Casa",
+      "fonte": "Shopee Live",
+      "atualizado": "22/07/2026 10:11"
+    },
+    {
+      "termo": "Caixa de Vela 7 Dias",
+      "vendas": "24.8k",
+      "avaliacao": 4.7,
+      "preco": "R$ 851,90",
+      "categoria": "Beleza",
+      "fonte": "Shopee Live",
+      "atualizado": "22/07/2026 10:11"
+    },
+    {
+      "termo": "Cama Triliche",
+      "vendas": "50.5k",
+      "avaliacao": 4.8,
+      "preco": "R$ 477,90",
+      "categoria": "Beleza",
+      "fonte": "Shopee Live",
+      "atualizado": "22/07/2026 10:11"
+    },
+    {
+      "termo": "Cama Box Viúva D45",
+      "vendas": "48.8k",
+      "avaliacao": 4.8,
+      "preco": "R$ 132,90",
+      "categoria": "Eletrônicos",
+      "fonte": "Shopee Live",
+      "atualizado": "22/07/2026 10:11"
+    },
+    {
+      "termo": "Celular Xiaomi 128 GB",
+      "vendas": "22.1k",
+      "avaliacao": 5.0,
+      "preco": "R$ 429,90",
+      "categoria": "Beleza",
+      "fonte": "Shopee Live",
+      "atualizado": "22/07/2026 10:11"
+    },
+    {
+      "termo": "Caixa de Som Boombox 4 Branco",
+      "vendas": "30.3k",
+      "avaliacao": 4.6,
+      "preco": "R$ 1138,90",
+      "categoria": "Esportes",
+      "fonte": "Shopee Live",
+      "atualizado": "22/07/2026 10:11"
     }
   ]
 }

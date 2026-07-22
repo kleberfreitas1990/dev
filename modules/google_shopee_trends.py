@@ -16,11 +16,52 @@ from typing import List, Dict, Optional, Any
 
 logger = logging.getLogger(__name__)
 
+# Configurações de Cache
+CACHE_GOOGLE_TRENDS = "google_trends_cache.json"
+CACHE_SHOPEE_LIVE = "shopee_live_cache.json"
+CACHE_TTL_HORAS = 6
+
 # ============================================================
 # DADOS REAIS EXTRAÍDOS DO PRINT DO USUÁRIO (Prioridade Máxima)
-# Atualizado em: 18/07/2026 — Buscas em Alta Shopee + ML
+# Atualizado em: 22/07/2026 — Buscas em Alta Shopee
 # ============================================================
 TERMOS_HOT_TRENDS = ["Escrivaninha", "Fone de Ouvido Bluetooth", "Crocs Relâmpago Mcqueen", "Prateleira", "Capacete Norisk Route FF345 Roxo", "Fone de Ouvido Disney LF-918", "Penteadeira", "PC Gamer", "SSD", "Mochila", "Squishy", "Poltrona", "Câmera Babá Eletrônica Tarktark", "Pipa", "Escova Progressiva Everk", "Controle PC", "Armário Kapesberg", "Café Orfeu 1Kg", "100 Pacotes de Figurinhas da Copa", "Moto Elétrica Scooter", "Caixa de Som Bluetooth JBL", "Celular Xiaomi Redmi 13 4G 256GB 8GB", "Celular Xiaomi Redmi 15C 256GB 8GB RAM Dual Sim Preto", "Kettlebell Acte Sports", "Carrinho de Controle Remoto 4x4", "Caixa de Vela 7 Dias", "Cama Triliche", "Cama Box Viúva D45", "Celular Xiaomi 128 GB", "Caixa de Som Boombox 4 Branco"]
+
+def _cache_valido(arquivo: str) -> bool:
+    if not os.path.exists(arquivo):
+        return False
+    try:
+        with open(arquivo, "r", encoding="utf-8") as f:
+            cache = json.load(f)
+        timestamp = cache.get("timestamp")
+        if not timestamp:
+            return False
+        ts = datetime.fromisoformat(timestamp)
+        return (datetime.now() - ts) < timedelta(hours=CACHE_TTL_HORAS)
+    except:
+        return False
+
+def _carregar_cache(arquivo: str) -> Optional[List[Dict]]:
+    try:
+        with open(arquivo, "r", encoding="utf-8") as f:
+            cache = json.load(f)
+        return cache.get("dados", [])
+    except:
+        return None
+
+def _salvar_cache(arquivo: str, dados: List[Dict]):
+    try:
+        cache = {
+            "timestamp": datetime.now().isoformat(),
+            "data": datetime.now().strftime("%Y-%m-%d"),
+            "dados": dados
+        }
+        with open(arquivo, "w", encoding="utf-8") as f:
+            json.dump(cache, f, ensure_ascii=False, indent=2)
+    except Exception as e:
+        logger.error(f"Erro ao salvar cache {arquivo}: {e}")
+
+def obter_google_trends(forcar_atualizacao: bool = False) -> List[Dict]:
     """
     Obtém dados do Google Trends priorizando os termos do print do usuário.
     """
@@ -67,17 +108,9 @@ TERMOS_HOT_TRENDS = ["Escrivaninha", "Fone de Ouvido Bluetooth", "Crocs Relâmpa
     _salvar_cache(CACHE_GOOGLE_TRENDS, dados)
     return dados
 
-# ============================================================
-# BUSCA SHOPEE
-# ============================================================
 def obter_shopee_trending(forcar_atualizacao: bool = False) -> List[Dict]:
     """
     Obtém produtos em alta na Shopee.
-    
-    PRIORIDADE:
-    1. Cache válido (6h)
-    2. API da Shopee (com rate limiting extremo)
-    3. Fallback: termos hardcoded do print do usuário
     """
     if not forcar_atualizacao and _cache_valido(CACHE_SHOPEE_LIVE):
         dados = _carregar_cache(CACHE_SHOPEE_LIVE)
@@ -86,15 +119,13 @@ def obter_shopee_trending(forcar_atualizacao: bool = False) -> List[Dict]:
 
     # Tentar API da Shopee (com proteção de rate limit)
     try:
-        from modules.shopee_api import obter_termos_shopee_api, status_api as api_status
+        from modules.shopee_api import obter_termos_shopee_api
         termos_api = obter_termos_shopee_api()
         if termos_api and len(termos_api) > 5:
             logger.info(f"🛒 Shopee: {len(termos_api)} termos via API/cachê")
             dados = _enriquecer_termos_shopee(termos_api)
             _salvar_cache(CACHE_SHOPEE_LIVE, dados)
             return dados
-        else:
-            logger.info("🛒 Shopee API sem dados — usando fallback")
     except Exception as e:
         logger.warning(f"🛒 Shopee API indisponível: {e}")
 
@@ -121,19 +152,12 @@ def obter_shopee_trending(forcar_atualizacao: bool = False) -> List[Dict]:
     _salvar_cache(CACHE_SHOPEE_LIVE, dados)
     return dados
 
-
 def _enriquecer_termos_shopee(termos: List[str]) -> List[Dict]:
-    """
-    Enriquece termos com dados simulados (preço, vendas, avaliação).
-    A API da Shopee retorna apenas nomes — precisamos formatar para a grade.
-    """
     dados = []
     categorias = ["Casa", "Eletrônicos", "Moda", "Esportes", "Beleza", "Infantil"]
-    
     for termo in termos:
         vendas_num = random.randint(1, 50)
         vendas_str = f"{vendas_num}.{random.randint(0,9)}k" if vendas_num > 5 else f"{random.randint(500, 999)}+"
-        
         dados.append({
             "termo": termo,
             "vendas": vendas_str,
@@ -143,27 +167,7 @@ def _enriquecer_termos_shopee(termos: List[str]) -> List[Dict]:
             "fonte": "Shopee API",
             "atualizado": datetime.now().strftime("%d/%m/%Y %H:%M"),
         })
-    
     return dados
-
-def obter_status_cache() -> Dict:
-    status = {}
-    for nome, arquivo in [("google_trends", CACHE_GOOGLE_TRENDS), ("shopee", CACHE_SHOPEE_LIVE)]:
-        if os.path.exists(arquivo):
-            try:
-                with open(arquivo, "r", encoding="utf-8") as f:
-                    cache = json.load(f)
-                ts = datetime.fromisoformat(cache.get("timestamp"))
-                status[nome] = {
-                    "valido": (datetime.now() - ts) < timedelta(hours=CACHE_TTL_HORAS),
-                    "data_formatada": ts.strftime("%d/%m %H:%M"),
-                    "total": len(cache.get("dados", []))
-                }
-            except:
-                status[nome] = {"valido": False, "total": 0}
-        else:
-            status[nome] = {"valido": False, "total": 0}
-    return status
 
 def forcar_atualizacao_completa() -> Dict:
     start = time.time()
