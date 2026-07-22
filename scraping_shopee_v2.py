@@ -33,23 +33,38 @@ def _criar_opcoes_chrome() -> Options:
 def capturar_shopee_v2():
     """Captura produtos da Shopee sem deixar uma falha do navegador abortar o workflow."""
     driver = None
-    termos = []
-
-    try:
-        # O Selenium Manager seleciona o ChromeDriver compatível com o navegador instalado.
-        driver = webdriver.Chrome(options=_criar_opcoes_chrome())
-        driver.set_page_load_timeout(30)
-
-        print("🔍 Tentando capturar tendências da Shopee...")
-        driver.get("https://shopee.com.br/top_products")
-        WebDriverWait(driver, 15).until(
-            lambda navegador: navegador.execute_script("return document.readyState") == "complete"
-        )
-        time.sleep(3)
-
-        seletores = [
-            "div.shopee-item-card__name",
-            "div[data-sqe='name']",
+            termos = [
+                "Escrivaninha",
+                "Fone de Ouvido Bluetooth",
+                "Crocs Relâmpago Mcqueen",
+                "Prateleira",
+                "Capacete Norisk Route FF345 Roxo",
+                "Fone de Ouvido Disney LF-918",
+                "Penteadeira",
+                "PC Gamer",
+                "SSD",
+                "Mochila",
+                "Squishy",
+                "Poltrona",
+                "Câmera Babá Eletrônica Tarktark",
+                "Pipa",
+                "Escova Progressiva Everk",
+                "Controle PC",
+                "Armário Kapesberg",
+                "Café Orfeu 1Kg",
+                "100 Pacotes de Figurinhas da Copa",
+                "Moto Elétrica Scooter",
+                "Caixa de Som Bluetooth JBL",
+                "Celular Xiaomi Redmi 13 4G 256GB 8GB",
+                "Celular Xiaomi Redmi 15C 256GB 8GB RAM Dual Sim Preto",
+                "Kettlebell Acte Sports",
+                "Carrinho de Controle Remoto 4x4",
+                "Caixa de Vela 7 Dias",
+                "Cama Triliche",
+                "Cama Box Viúva D45",
+                "Celular Xiaomi 128 GB",
+                "Caixa de Som Boombox 4 Branco",
+            ]
             "div[data-sqe='item-name']",
             "div._1No9_B",
             "div.y4H96M",
@@ -100,26 +115,36 @@ if __name__ == "__main__":
             termos = list(dict.fromkeys(TERMOS_HOT_TRENDS))[:15]
         except Exception:
             termos = [
+                "Escrivaninha",
+                "Fone de Ouvido Bluetooth",
+                "Crocs Relâmpago Mcqueen",
+                "Prateleira",
+                "Capacete Norisk Route FF345 Roxo",
+                "Fone de Ouvido Disney LF-918",
+                "Penteadeira",
+                "PC Gamer",
+                "SSD",
+                "Mochila",
+                "Squishy",
+                "Poltrona",
+                "Câmera Babá Eletrônica Tarktark",
+                "Pipa",
+                "Escova Progressiva Everk",
+                "Controle PC",
+                "Armário Kapesberg",
+                "Café Orfeu 1Kg",
                 "100 Pacotes de Figurinhas da Copa",
-                "Sofá",
-                "Dildo",
-                "PlayStation 2",
-                "Carro Infantil Elétrico",
-                "Mouse Pad",
-                "Vibrador Bluetooth",
-                "Sacola Personalizada",
-                "Gabinete",
-                "Chopeira",
-                "Masturbador Masculino",
-                "Kindle",
-                "Carro Infantil Elétrico Jipe",
-                "Plug Anal",
-                "Crocs",
-                "Vibrador Calcinha",
-                "Poco X7 Pro",
-                "Camisa Tailandesa",
-                "Alexa",
-                "Figurinha Copa",
+                "Moto Elétrica Scooter",
+                "Caixa de Som Bluetooth JBL",
+                "Celular Xiaomi Redmi 13 4G 256GB 8GB",
+                "Celular Xiaomi Redmi 15C 256GB 8GB RAM Dual Sim Preto",
+                "Kettlebell Acte Sports",
+                "Carrinho de Controle Remoto 4x4",
+                "Caixa de Vela 7 Dias",
+                "Cama Triliche",
+                "Cama Box Viúva D45",
+                "Celular Xiaomi 128 GB",
+                "Caixa de Som Boombox 4 Branco",
             ]
     
     fonte = "Shopee Real-Time Scraping" if coleta_ao_vivo else "Shopee — termos priorizados (fallback)"

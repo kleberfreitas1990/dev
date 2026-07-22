@@ -20,59 +20,7 @@ logger = logging.getLogger(__name__)
 # DADOS REAIS EXTRAÍDOS DO PRINT DO USUÁRIO (Prioridade Máxima)
 # Atualizado em: 18/07/2026 — Buscas em Alta Shopee + ML
 # ============================================================
-TERMOS_HOT_TRENDS = ["Tênis Masculino", "Chopeira", "Fone de Ouvido Bluetooth", "Alexa", "Sex Doll", "Tênis", "Crocs", "Moto Elétrica Scooter", "Balcão de Pia de Cozinha 160 cm", "Decoração", "Caixa Cacau Show Branca", "Caixa de Som Britânia PCX 12500", "Jibbitz", "Luminária", "Gabinete", "Bola Jabulani", "Masturbador Masculino", "Poltrona", "Camisa Espanha", "Chopp", "Cama Triliche", "Carrinho de Controle Remoto 4x4", "Kettlebell Acte Sports", "Fone de Ouvido Miniso", "Celular Xiaomi 14C 256GB 8GB RAM", "Celular Motorola 60 Pro", "Capacete Norisk Route FF345 Roxo", "Cama Box Viúva D45", "Caixa de Som Boombox 4 Branco", "Celular Xiaomi Redmi 13 4G 256GB 8GB"]
-
-# ============================================================
-# ARQUIVOS DE CACHE
-# ============================================================
-DIRETORIO_RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CACHE_GOOGLE_TRENDS = os.path.join(DIRETORIO_RAIZ, "google_trends_cache.json")
-CACHE_SHOPEE_LIVE = os.path.join(DIRETORIO_RAIZ, "shopee_live_cache.json")
-CACHE_TTL_HORAS = 6  # Refresca a cada 6 horas
-
-# ============================================================
-# FUNÇÕES DE CACHE
-# ============================================================
-def _cache_valido(arquivo: str, ttl_horas: int = CACHE_TTL_HORAS) -> bool:
-    if not os.path.exists(arquivo):
-        return False
-    try:
-        with open(arquivo, "r", encoding="utf-8") as f:
-            dados = json.load(f)
-        ts = dados.get("timestamp")
-        if not ts:
-            return False
-        dt_cache = datetime.fromisoformat(ts)
-        return (datetime.now() - dt_cache) < timedelta(hours=ttl_horas)
-    except Exception:
-        return False
-
-def _salvar_cache(arquivo: str, dados: Any) -> bool:
-    try:
-        payload = {
-            "timestamp": datetime.now().isoformat(),
-            "data": datetime.now().date().isoformat(),
-            "dados": dados
-        }
-        with open(arquivo, "w", encoding="utf-8") as f:
-            json.dump(payload, f, ensure_ascii=False, indent=2)
-        return True
-    except Exception as e:
-        logger.error(f"Erro ao salvar cache {arquivo}: {e}")
-        return False
-
-def _carregar_cache(arquivo: str) -> Optional[Any]:
-    try:
-        with open(arquivo, "r", encoding="utf-8") as f:
-            dados = json.load(f)
-        return dados.get("dados")
-    except Exception:
-        return None
-
-# ============================================================
-# BUSCA GOOGLE TRENDS
-# ============================================================
-def obter_google_trends(forcar_atualizacao: bool = False) -> List[Dict]:
+TERMOS_HOT_TRENDS = ["Escrivaninha", "Fone de Ouvido Bluetooth", "Crocs Relâmpago Mcqueen", "Prateleira", "Capacete Norisk Route FF345 Roxo", "Fone de Ouvido Disney LF-918", "Penteadeira", "PC Gamer", "SSD", "Mochila", "Squishy", "Poltrona", "Câmera Babá Eletrônica Tarktark", "Pipa", "Escova Progressiva Everk", "Controle PC", "Armário Kapesberg", "Café Orfeu 1Kg", "100 Pacotes de Figurinhas da Copa", "Moto Elétrica Scooter", "Caixa de Som Bluetooth JBL", "Celular Xiaomi Redmi 13 4G 256GB 8GB", "Celular Xiaomi Redmi 15C 256GB 8GB RAM Dual Sim Preto", "Kettlebell Acte Sports", "Carrinho de Controle Remoto 4x4", "Caixa de Vela 7 Dias", "Cama Triliche", "Cama Box Viúva D45", "Celular Xiaomi 128 GB", "Caixa de Som Boombox 4 Branco"]
     """
     Obtém dados do Google Trends priorizando os termos do print do usuário.
     """
