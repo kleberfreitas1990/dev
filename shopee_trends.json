@@ -1,302 +1,215 @@
 {
-  "Escrivaninha": {
-    "pins": 53176,
-    "crescimento": 160,
-    "views_tiktok": 62.8,
-    "score": 9,
-    "fonte": "Shopee — termos priorizados (v10)",
-    "origem_coleta": "fallback",
-    "atualizado": "22/07/2026 10:01",
-    "tendencia": "🔥 Explosão Shopee"
-  },
-  "Fone de Ouvido Bluetooth": {
-    "pins": 93974,
-    "crescimento": 177,
-    "views_tiktok": 66.8,
-    "score": 10,
-    "fonte": "Shopee — termos priorizados (v10)",
-    "origem_coleta": "fallback",
-    "atualizado": "22/07/2026 10:01",
-    "tendencia": "🔥 Explosão Shopee"
-  },
-  "Crocs Relâmpago Mcqueen": {
-    "pins": 44563,
-    "crescimento": 248,
-    "views_tiktok": 73.9,
-    "score": 10,
-    "fonte": "Shopee — termos priorizados (v10)",
-    "origem_coleta": "fallback",
-    "atualizado": "22/07/2026 10:01",
-    "tendencia": "🔥 Explosão Shopee"
-  },
-  "Prateleira": {
-    "pins": 78165,
-    "crescimento": 148,
-    "views_tiktok": 61.0,
-    "score": 9,
-    "fonte": "Shopee — termos priorizados (v10)",
-    "origem_coleta": "fallback",
-    "atualizado": "22/07/2026 10:01",
-    "tendencia": "🔥 Explosão Shopee"
-  },
-  "Capacete Norisk Route FF345 Roxo": {
-    "pins": 52070,
-    "crescimento": 237,
-    "views_tiktok": 67.8,
-    "score": 10,
-    "fonte": "Shopee — termos priorizados (v10)",
-    "origem_coleta": "fallback",
-    "atualizado": "22/07/2026 10:01",
-    "tendencia": "🔥 Explosão Shopee"
-  },
-  "Fone de Ouvido Disney LF-918": {
-    "pins": 51997,
-    "crescimento": 222,
-    "views_tiktok": 76.6,
-    "score": 10,
-    "fonte": "Shopee — termos priorizados (v10)",
-    "origem_coleta": "fallback",
-    "atualizado": "22/07/2026 10:01",
-    "tendencia": "🔥 Explosão Shopee"
-  },
-  "Penteadeira": {
-    "pins": 93611,
-    "crescimento": 96,
-    "views_tiktok": 90.0,
-    "score": 8,
-    "fonte": "Shopee — termos priorizados (v10)",
-    "origem_coleta": "fallback",
-    "atualizado": "22/07/2026 10:01",
-    "tendencia": "🔥 Explosão Shopee"
-  },
-  "PC Gamer": {
-    "pins": 47348,
-    "crescimento": 178,
-    "views_tiktok": 78.7,
-    "score": 8,
-    "fonte": "Shopee — termos priorizados (v10)",
-    "origem_coleta": "fallback",
-    "atualizado": "22/07/2026 10:01",
-    "tendencia": "🔥 Explosão Shopee"
-  },
-  "SSD": {
-    "pins": 41175,
-    "crescimento": 292,
-    "views_tiktok": 75.4,
-    "score": 8,
-    "fonte": "Shopee — termos priorizados (v10)",
-    "origem_coleta": "fallback",
-    "atualizado": "22/07/2026 10:01",
-    "tendencia": "🔥 Explosão Shopee"
-  },
-  "Mochila": {
-    "pins": 61131,
-    "crescimento": 199,
-    "views_tiktok": 56.5,
-    "score": 9,
-    "fonte": "Shopee — termos priorizados (v10)",
-    "origem_coleta": "fallback",
-    "atualizado": "22/07/2026 10:01",
-    "tendencia": "🔥 Explosão Shopee"
-  },
-  "Squishy": {
-    "pins": 67156,
-    "crescimento": 251,
-    "views_tiktok": 70.8,
-    "score": 8,
-    "fonte": "Shopee — termos priorizados (v10)",
-    "origem_coleta": "fallback",
-    "atualizado": "22/07/2026 10:01",
-    "tendencia": "🔥 Explosão Shopee"
-  },
-  "Poltrona": {
-    "pins": 57235,
-    "crescimento": 234,
-    "views_tiktok": 88.7,
-    "score": 10,
-    "fonte": "Shopee — termos priorizados (v10)",
-    "origem_coleta": "fallback",
-    "atualizado": "22/07/2026 10:01",
-    "tendencia": "🔥 Explosão Shopee"
-  },
-  "Câmera Babá Eletrônica Tarktark": {
-    "pins": 68533,
-    "crescimento": 234,
-    "views_tiktok": 82.4,
-    "score": 10,
-    "fonte": "Shopee — termos priorizados (v10)",
-    "origem_coleta": "fallback",
-    "atualizado": "22/07/2026 10:01",
-    "tendencia": "🔥 Explosão Shopee"
-  },
-  "Pipa": {
-    "pins": 66537,
-    "crescimento": 162,
-    "views_tiktok": 58.3,
-    "score": 8,
-    "fonte": "Shopee — termos priorizados (v10)",
-    "origem_coleta": "fallback",
-    "atualizado": "22/07/2026 10:01",
-    "tendencia": "🔥 Explosão Shopee"
-  },
-  "Escova Progressiva Everk": {
-    "pins": 57264,
-    "crescimento": 248,
-    "views_tiktok": 63.6,
-    "score": 10,
-    "fonte": "Shopee — termos priorizados (v10)",
-    "origem_coleta": "fallback",
-    "atualizado": "22/07/2026 10:01",
-    "tendencia": "🔥 Explosão Shopee"
-  },
-  "Controle PC": {
-    "pins": 52892,
-    "crescimento": 248,
-    "views_tiktok": 64.1,
-    "score": 9,
-    "fonte": "Shopee — termos priorizados (v10)",
-    "origem_coleta": "fallback",
-    "atualizado": "22/07/2026 10:01",
-    "tendencia": "🔥 Explosão Shopee"
-  },
-  "Armário Kapesberg": {
-    "pins": 60027,
-    "crescimento": 191,
-    "views_tiktok": 64.7,
-    "score": 8,
-    "fonte": "Shopee — termos priorizados (v10)",
-    "origem_coleta": "fallback",
-    "atualizado": "22/07/2026 10:01",
-    "tendencia": "🔥 Explosão Shopee"
-  },
-  "Café Orfeu 1Kg": {
-    "pins": 74273,
-    "crescimento": 250,
-    "views_tiktok": 70.0,
-    "score": 9,
-    "fonte": "Shopee — termos priorizados (v10)",
-    "origem_coleta": "fallback",
-    "atualizado": "22/07/2026 10:01",
-    "tendencia": "🔥 Explosão Shopee"
-  },
-  "100 Pacotes de Figurinhas da Copa": {
-    "pins": 73482,
-    "crescimento": 123,
-    "views_tiktok": 59.1,
-    "score": 9,
-    "fonte": "Shopee — termos priorizados (v10)",
-    "origem_coleta": "fallback",
-    "atualizado": "22/07/2026 10:01",
-    "tendencia": "🔥 Explosão Shopee"
-  },
-  "Moto Elétrica Scooter": {
-    "pins": 45372,
-    "crescimento": 291,
-    "views_tiktok": 60.2,
-    "score": 9,
-    "fonte": "Shopee — termos priorizados (v10)",
-    "origem_coleta": "fallback",
-    "atualizado": "22/07/2026 10:01",
-    "tendencia": "🔥 Explosão Shopee"
-  },
-  "Caixa de Som Bluetooth JBL": {
-    "pins": 41443,
-    "crescimento": 173,
-    "views_tiktok": 88.0,
-    "score": 9,
-    "fonte": "Shopee — termos priorizados (v10)",
-    "origem_coleta": "fallback",
-    "atualizado": "22/07/2026 10:01",
-    "tendencia": "🔥 Explosão Shopee"
-  },
-  "Celular Xiaomi Redmi 13 4G 256GB 8GB": {
-    "pins": 43121,
-    "crescimento": 281,
-    "views_tiktok": 72.5,
-    "score": 8,
-    "fonte": "Shopee — termos priorizados (v10)",
-    "origem_coleta": "fallback",
-    "atualizado": "22/07/2026 10:01",
-    "tendencia": "🔥 Explosão Shopee"
-  },
-  "Celular Xiaomi Redmi 15C 256GB 8GB RAM Dual Sim Preto": {
-    "pins": 54154,
-    "crescimento": 256,
-    "views_tiktok": 75.7,
-    "score": 9,
-    "fonte": "Shopee — termos priorizados (v10)",
-    "origem_coleta": "fallback",
-    "atualizado": "22/07/2026 10:01",
-    "tendencia": "🔥 Explosão Shopee"
-  },
-  "Kettlebell Acte Sports": {
-    "pins": 88806,
-    "crescimento": 116,
-    "views_tiktok": 72.2,
-    "score": 9,
-    "fonte": "Shopee — termos priorizados (v10)",
-    "origem_coleta": "fallback",
-    "atualizado": "22/07/2026 10:01",
-    "tendencia": "🔥 Explosão Shopee"
-  },
-  "Carrinho de Controle Remoto 4x4": {
-    "pins": 43242,
-    "crescimento": 252,
-    "views_tiktok": 65.6,
-    "score": 8,
-    "fonte": "Shopee — termos priorizados (v10)",
-    "origem_coleta": "fallback",
-    "atualizado": "22/07/2026 10:01",
-    "tendencia": "🔥 Explosão Shopee"
-  },
-  "Caixa de Vela 7 Dias": {
-    "pins": 55713,
-    "crescimento": 232,
-    "views_tiktok": 58.4,
-    "score": 8,
-    "fonte": "Shopee — termos priorizados (v10)",
-    "origem_coleta": "fallback",
-    "atualizado": "22/07/2026 10:01",
-    "tendencia": "🔥 Explosão Shopee"
-  },
-  "Cama Triliche": {
-    "pins": 91999,
-    "crescimento": 115,
-    "views_tiktok": 80.1,
-    "score": 10,
-    "fonte": "Shopee — termos priorizados (v10)",
-    "origem_coleta": "fallback",
-    "atualizado": "22/07/2026 10:01",
-    "tendencia": "🔥 Explosão Shopee"
-  },
-  "Cama Box Viúva D45": {
-    "pins": 60540,
-    "crescimento": 278,
-    "views_tiktok": 85.8,
-    "score": 10,
-    "fonte": "Shopee — termos priorizados (v10)",
-    "origem_coleta": "fallback",
-    "atualizado": "22/07/2026 10:01",
-    "tendencia": "🔥 Explosão Shopee"
-  },
-  "Celular Xiaomi 128 GB": {
-    "pins": 72254,
-    "crescimento": 91,
-    "views_tiktok": 55.9,
-    "score": 8,
-    "fonte": "Shopee — termos priorizados (v10)",
-    "origem_coleta": "fallback",
-    "atualizado": "22/07/2026 10:01",
-    "tendencia": "🔥 Explosão Shopee"
-  },
-  "Caixa de Som Boombox 4 Branco": {
-    "pins": 91625,
-    "crescimento": 166,
-    "views_tiktok": 58.9,
-    "score": 9,
-    "fonte": "Shopee — termos priorizados (v10)",
-    "origem_coleta": "fallback",
-    "atualizado": "22/07/2026 10:01",
-    "tendencia": "🔥 Explosão Shopee"
-  }
+  "data": "2026-07-23",
+  "tendencias": [
+    {
+      "termo": "Photocard",
+      "pins": 150,
+      "crescimento": 200,
+      "views_tiktok": 1000,
+      "score": 10
+    },
+    {
+      "termo": "Kettlebell Acte Sports",
+      "pins": 149,
+      "crescimento": 198,
+      "views_tiktok": 2000,
+      "score": 10
+    },
+    {
+      "termo": "Fone de Ouvido Disney LF-918",
+      "pins": 148,
+      "crescimento": 196,
+      "views_tiktok": 3000,
+      "score": 10
+    },
+    {
+      "termo": "Controle PC",
+      "pins": 147,
+      "crescimento": 194,
+      "views_tiktok": 4000,
+      "score": 10
+    },
+    {
+      "termo": "Mouse Pad",
+      "pins": 146,
+      "crescimento": 192,
+      "views_tiktok": 5000,
+      "score": 10
+    },
+    {
+      "termo": "Sofá",
+      "pins": 145,
+      "crescimento": 190,
+      "views_tiktok": 6000,
+      "score": 10
+    },
+    {
+      "termo": "Nintendo 3DS",
+      "pins": 144,
+      "crescimento": 188,
+      "views_tiktok": 7000,
+      "score": 10
+    },
+    {
+      "termo": "Parka",
+      "pins": 143,
+      "crescimento": 186,
+      "views_tiktok": 8000,
+      "score": 10
+    },
+    {
+      "termo": "Sapateira",
+      "pins": 142,
+      "crescimento": 184,
+      "views_tiktok": 9000,
+      "score": 10
+    },
+    {
+      "termo": "Alexa",
+      "pins": 141,
+      "crescimento": 182,
+      "views_tiktok": 10000,
+      "score": 10
+    },
+    {
+      "termo": "Prateleira",
+      "pins": 140,
+      "crescimento": 180,
+      "views_tiktok": 11000,
+      "score": 10
+    },
+    {
+      "termo": "Caixa Organizadora",
+      "pins": 139,
+      "crescimento": 178,
+      "views_tiktok": 12000,
+      "score": 10
+    },
+    {
+      "termo": "Sacola Personalizada",
+      "pins": 138,
+      "crescimento": 176,
+      "views_tiktok": 13000,
+      "score": 10
+    },
+    {
+      "termo": "Decoração",
+      "pins": 137,
+      "crescimento": 174,
+      "views_tiktok": 14000,
+      "score": 10
+    },
+    {
+      "termo": "Poltrona",
+      "pins": 136,
+      "crescimento": 172,
+      "views_tiktok": 15000,
+      "score": 10
+    },
+    {
+      "termo": "Chopp",
+      "pins": 135,
+      "crescimento": 170,
+      "views_tiktok": 16000,
+      "score": 10
+    },
+    {
+      "termo": "Masturbador Masculino",
+      "pins": 134,
+      "crescimento": 168,
+      "views_tiktok": 17000,
+      "score": 10
+    },
+    {
+      "termo": "Chopeira",
+      "pins": 133,
+      "crescimento": 166,
+      "views_tiktok": 18000,
+      "score": 10
+    },
+    {
+      "termo": "Biquíni",
+      "pins": 132,
+      "crescimento": 164,
+      "views_tiktok": 19000,
+      "score": 10
+    },
+    {
+      "termo": "PC Gamer",
+      "pins": 131,
+      "crescimento": 162,
+      "views_tiktok": 20000,
+      "score": 10
+    },
+    {
+      "termo": "Pax Pneus",
+      "pins": 130,
+      "crescimento": 160,
+      "views_tiktok": 21000,
+      "score": 10
+    },
+    {
+      "termo": "Celular LG K61",
+      "pins": 129,
+      "crescimento": 158,
+      "views_tiktok": 22000,
+      "score": 10
+    },
+    {
+      "termo": "Celular Xiaomi Redmi 15C 256GB 8GB RAM Dual Sim Preto",
+      "pins": 128,
+      "crescimento": 156,
+      "views_tiktok": 23000,
+      "score": 10
+    },
+    {
+      "termo": "Auto_Truck",
+      "pins": 127,
+      "crescimento": 154,
+      "views_tiktok": 24000,
+      "score": 10
+    },
+    {
+      "termo": "Celular GT30",
+      "pins": 126,
+      "crescimento": 152,
+      "views_tiktok": 25000,
+      "score": 10
+    },
+    {
+      "termo": "Cama Triliche",
+      "pins": 125,
+      "crescimento": 150,
+      "views_tiktok": 26000,
+      "score": 10
+    },
+    {
+      "termo": "Caixa de Vela 7 Dias",
+      "pins": 124,
+      "crescimento": 148,
+      "views_tiktok": 27000,
+      "score": 10
+    },
+    {
+      "termo": "Caixa de Whisky",
+      "pins": 123,
+      "crescimento": 146,
+      "views_tiktok": 28000,
+      "score": 10
+    },
+    {
+      "termo": "Carabina Spring",
+      "pins": 122,
+      "crescimento": 144,
+      "views_tiktok": 29000,
+      "score": 10
+    },
+    {
+      "termo": "Capacete Norisk Razor Monocolor Fosco",
+      "pins": 121,
+      "crescimento": 142,
+      "views_tiktok": 30000,
+      "score": 10
+    }
+  ]
 }

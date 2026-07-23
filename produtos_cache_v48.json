@@ -1,7 +1,7 @@
 {
-  "data": "2026-07-22",
+  "data": "2026-07-23",
   "produtos": {
-    "Escrivaninha": {
+    "Photocard": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 180,
@@ -9,18 +9,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Moda",
-      "evento": "16.2k vendas na Shopee",
+      "categoria": "Marketplace",
+      "evento": "10.0k vendas na Shopee",
       "variacao": 80,
       "tendencia": "Em alta",
       "score": 10,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 4.8,
-      "preco": "R$ 920,90",
-      "atualizado": "22/07/2026 10:11"
+      "avaliacao": 4.5,
+      "preco": "R$ 50,90",
+      "atualizado": "23/07/2026 10:09"
     },
-    "Fone de Ouvido Bluetooth": {
+    "Kettlebell Acte Sports": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 176,
@@ -28,18 +28,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Beleza",
-      "evento": "10.8k vendas na Shopee",
+      "categoria": "Marketplace",
+      "evento": "11.1k vendas na Shopee",
       "variacao": 78,
       "tendencia": "Em alta",
       "score": 10,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 4.9,
-      "preco": "R$ 349,90",
-      "atualizado": "22/07/2026 10:11"
+      "avaliacao": 4.6,
+      "preco": "R$ 60,90",
+      "atualizado": "23/07/2026 10:09"
     },
-    "Crocs Relâmpago Mcqueen": {
+    "Fone de Ouvido Disney LF-918": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 172,
@@ -47,18 +47,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Casa",
-      "evento": "21.2k vendas na Shopee",
+      "categoria": "Marketplace",
+      "evento": "12.2k vendas na Shopee",
       "variacao": 76,
       "tendencia": "Em alta",
       "score": 10,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 5.0,
-      "preco": "R$ 130,90",
-      "atualizado": "22/07/2026 10:11"
+      "avaliacao": 4.7,
+      "preco": "R$ 70,90",
+      "atualizado": "23/07/2026 10:09"
     },
-    "Prateleira": {
+    "Controle PC": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 168,
@@ -66,18 +66,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Casa",
-      "evento": "35.2k vendas na Shopee",
+      "categoria": "Marketplace",
+      "evento": "13.3k vendas na Shopee",
       "variacao": 74,
       "tendencia": "Em alta",
       "score": 10,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 4.6,
-      "preco": "R$ 213,90",
-      "atualizado": "22/07/2026 10:11"
+      "avaliacao": 4.8,
+      "preco": "R$ 80,90",
+      "atualizado": "23/07/2026 10:09"
     },
-    "Capacete Norisk Route FF345 Roxo": {
+    "Mouse Pad": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 164,
@@ -85,18 +85,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Esportes",
-      "evento": "36.5k vendas na Shopee",
+      "categoria": "Marketplace",
+      "evento": "14.4k vendas na Shopee",
       "variacao": 72,
       "tendencia": "Em alta",
       "score": 10,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 4.5,
-      "preco": "R$ 1137,90",
-      "atualizado": "22/07/2026 10:11"
+      "avaliacao": 4.9,
+      "preco": "R$ 90,90",
+      "atualizado": "23/07/2026 10:09"
     },
-    "Fone de Ouvido Disney LF-918": {
+    "Sofá": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 160,
@@ -104,18 +104,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Esportes",
-      "evento": "22.3k vendas na Shopee",
+      "categoria": "Marketplace",
+      "evento": "15.5k vendas na Shopee",
       "variacao": 70,
       "tendencia": "Em alta",
       "score": 10,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 4.7,
-      "preco": "R$ 1050,90",
-      "atualizado": "22/07/2026 10:11"
+      "avaliacao": 4.5,
+      "preco": "R$ 100,90",
+      "atualizado": "23/07/2026 10:09"
     },
-    "Penteadeira": {
+    "Nintendo 3DS": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 156,
@@ -123,18 +123,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Eletrônicos",
-      "evento": "43.3k vendas na Shopee",
+      "categoria": "Marketplace",
+      "evento": "16.6k vendas na Shopee",
       "variacao": 68,
       "tendencia": "Em alta",
       "score": 10,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
       "avaliacao": 4.6,
-      "preco": "R$ 21,90",
-      "atualizado": "22/07/2026 10:11"
+      "preco": "R$ 110,90",
+      "atualizado": "23/07/2026 10:09"
     },
-    "PC Gamer": {
+    "Parka": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 152,
@@ -142,18 +142,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Eletrônicos",
-      "evento": "44.7k vendas na Shopee",
+      "categoria": "Marketplace",
+      "evento": "17.7k vendas na Shopee",
       "variacao": 66,
       "tendencia": "Em alta",
       "score": 10,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
       "avaliacao": 4.7,
-      "preco": "R$ 859,90",
-      "atualizado": "22/07/2026 10:11"
+      "preco": "R$ 120,90",
+      "atualizado": "23/07/2026 10:09"
     },
-    "SSD": {
+    "Sapateira": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 148,
@@ -161,18 +161,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Eletrônicos",
-      "evento": "23.7k vendas na Shopee",
+      "categoria": "Marketplace",
+      "evento": "18.8k vendas na Shopee",
       "variacao": 64,
       "tendencia": "Em alta",
       "score": 10,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 4.6,
-      "preco": "R$ 323,90",
-      "atualizado": "22/07/2026 10:11"
+      "avaliacao": 4.8,
+      "preco": "R$ 130,90",
+      "atualizado": "23/07/2026 10:09"
     },
-    "Mochila": {
+    "Alexa": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 144,
@@ -180,18 +180,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Beleza",
-      "evento": "49.8k vendas na Shopee",
+      "categoria": "Marketplace",
+      "evento": "19.9k vendas na Shopee",
       "variacao": 62,
       "tendencia": "Em alta",
       "score": 10,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 4.7,
-      "preco": "R$ 405,90",
-      "atualizado": "22/07/2026 10:11"
+      "avaliacao": 4.9,
+      "preco": "R$ 140,90",
+      "atualizado": "23/07/2026 10:09"
     },
-    "Squishy": {
+    "Prateleira": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 140,
@@ -199,18 +199,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Eletrônicos",
-      "evento": "50.6k vendas na Shopee",
+      "categoria": "Marketplace",
+      "evento": "20.10k vendas na Shopee",
       "variacao": 60,
       "tendencia": "Em alta",
       "score": 9,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 4.7,
-      "preco": "R$ 1069,90",
-      "atualizado": "22/07/2026 10:11"
+      "avaliacao": 4.5,
+      "preco": "R$ 150,90",
+      "atualizado": "23/07/2026 10:09"
     },
-    "Poltrona": {
+    "Caixa Organizadora": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 136,
@@ -218,18 +218,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Eletrônicos",
-      "evento": "19.8k vendas na Shopee",
+      "categoria": "Marketplace",
+      "evento": "21.11k vendas na Shopee",
       "variacao": 58,
       "tendencia": "Em alta",
       "score": 9,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
       "avaliacao": 4.6,
-      "preco": "R$ 1023,90",
-      "atualizado": "22/07/2026 10:11"
+      "preco": "R$ 160,90",
+      "atualizado": "23/07/2026 10:09"
     },
-    "Câmera Babá Eletrônica Tarktark": {
+    "Sacola Personalizada": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 132,
@@ -237,18 +237,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Infantil",
-      "evento": "19.0k vendas na Shopee",
+      "categoria": "Marketplace",
+      "evento": "22.12k vendas na Shopee",
       "variacao": 56,
       "tendencia": "Em alta",
       "score": 9,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 4.9,
-      "preco": "R$ 401,90",
-      "atualizado": "22/07/2026 10:11"
+      "avaliacao": 4.7,
+      "preco": "R$ 170,90",
+      "atualizado": "23/07/2026 10:09"
     },
-    "Pipa": {
+    "Decoração": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 128,
@@ -256,18 +256,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Eletrônicos",
-      "evento": "37.6k vendas na Shopee",
+      "categoria": "Marketplace",
+      "evento": "23.13k vendas na Shopee",
       "variacao": 54,
       "tendencia": "Em alta",
       "score": 9,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 4.9,
-      "preco": "R$ 586,90",
-      "atualizado": "22/07/2026 10:11"
+      "avaliacao": 4.8,
+      "preco": "R$ 180,90",
+      "atualizado": "23/07/2026 10:09"
     },
-    "Escova Progressiva Everk": {
+    "Poltrona": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 124,
@@ -275,18 +275,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Esportes",
-      "evento": "18.0k vendas na Shopee",
+      "categoria": "Marketplace",
+      "evento": "24.14k vendas na Shopee",
       "variacao": 52,
       "tendencia": "Em alta",
       "score": 9,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 4.7,
-      "preco": "R$ 664,90",
-      "atualizado": "22/07/2026 10:11"
+      "avaliacao": 4.9,
+      "preco": "R$ 190,90",
+      "atualizado": "23/07/2026 10:09"
     },
-    "Controle PC": {
+    "Chopp": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 120,
@@ -294,18 +294,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Infantil",
-      "evento": "8.8k vendas na Shopee",
+      "categoria": "Marketplace",
+      "evento": "25.15k vendas na Shopee",
       "variacao": 50,
       "tendencia": "Em alta",
       "score": 9,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
       "avaliacao": 4.5,
-      "preco": "R$ 649,90",
-      "atualizado": "22/07/2026 10:11"
+      "preco": "R$ 200,90",
+      "atualizado": "23/07/2026 10:09"
     },
-    "Armário Kapesberg": {
+    "Masturbador Masculino": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 116,
@@ -313,18 +313,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Infantil",
-      "evento": "16.4k vendas na Shopee",
+      "categoria": "Marketplace",
+      "evento": "26.16k vendas na Shopee",
       "variacao": 48,
       "tendencia": "Em alta",
       "score": 9,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 4.7,
-      "preco": "R$ 858,90",
-      "atualizado": "22/07/2026 10:11"
+      "avaliacao": 4.6,
+      "preco": "R$ 210,90",
+      "atualizado": "23/07/2026 10:09"
     },
-    "Café Orfeu 1Kg": {
+    "Chopeira": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 112,
@@ -332,18 +332,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Esportes",
-      "evento": "17.5k vendas na Shopee",
+      "categoria": "Marketplace",
+      "evento": "27.17k vendas na Shopee",
       "variacao": 46,
       "tendencia": "Em alta",
       "score": 9,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 4.6,
-      "preco": "R$ 962,90",
-      "atualizado": "22/07/2026 10:11"
+      "avaliacao": 4.7,
+      "preco": "R$ 220,90",
+      "atualizado": "23/07/2026 10:09"
     },
-    "100 Pacotes de Figurinhas da Copa": {
+    "Biquíni": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 108,
@@ -351,18 +351,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Moda",
-      "evento": "34.3k vendas na Shopee",
+      "categoria": "Marketplace",
+      "evento": "28.18k vendas na Shopee",
       "variacao": 44,
       "tendencia": "Em alta",
       "score": 9,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
       "avaliacao": 4.8,
-      "preco": "R$ 235,90",
-      "atualizado": "22/07/2026 10:11"
+      "preco": "R$ 230,90",
+      "atualizado": "23/07/2026 10:09"
     },
-    "Moto Elétrica Scooter": {
+    "PC Gamer": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 104,
@@ -370,18 +370,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Moda",
-      "evento": "646+ vendas na Shopee",
+      "categoria": "Marketplace",
+      "evento": "29.19k vendas na Shopee",
       "variacao": 42,
       "tendencia": "Em alta",
       "score": 9,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 4.5,
-      "preco": "R$ 1171,90",
-      "atualizado": "22/07/2026 10:11"
+      "avaliacao": 4.9,
+      "preco": "R$ 240,90",
+      "atualizado": "23/07/2026 10:09"
     },
-    "Caixa de Som Bluetooth JBL": {
+    "Pax Pneus": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 100,
@@ -389,18 +389,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Eletrônicos",
-      "evento": "41.3k vendas na Shopee",
+      "categoria": "Marketplace",
+      "evento": "30.20k vendas na Shopee",
       "variacao": 40,
       "tendencia": "Em alta",
       "score": 8,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 4.8,
-      "preco": "R$ 709,90",
-      "atualizado": "22/07/2026 10:11"
+      "avaliacao": 4.5,
+      "preco": "R$ 250,90",
+      "atualizado": "23/07/2026 10:09"
     },
-    "Celular Xiaomi Redmi 13 4G 256GB 8GB": {
+    "Celular LG K61": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 96,
@@ -408,16 +408,16 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Casa",
-      "evento": "883+ vendas na Shopee",
+      "categoria": "Marketplace",
+      "evento": "31.21k vendas na Shopee",
       "variacao": 38,
       "tendencia": "Em alta",
       "score": 8,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 4.7,
-      "preco": "R$ 500,90",
-      "atualizado": "22/07/2026 10:11"
+      "avaliacao": 4.6,
+      "preco": "R$ 260,90",
+      "atualizado": "23/07/2026 10:09"
     },
     "Celular Xiaomi Redmi 15C 256GB 8GB RAM Dual Sim Preto": {
       "pins": 0,
@@ -427,18 +427,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Moda",
-      "evento": "26.6k vendas na Shopee",
+      "categoria": "Marketplace",
+      "evento": "32.22k vendas na Shopee",
       "variacao": 36,
       "tendencia": "Em alta",
       "score": 8,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 4.9,
-      "preco": "R$ 1084,90",
-      "atualizado": "22/07/2026 10:11"
+      "avaliacao": 4.7,
+      "preco": "R$ 270,90",
+      "atualizado": "23/07/2026 10:09"
     },
-    "Kettlebell Acte Sports": {
+    "Auto_Truck": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 88,
@@ -446,18 +446,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Esportes",
-      "evento": "39.4k vendas na Shopee",
+      "categoria": "Marketplace",
+      "evento": "33.23k vendas na Shopee",
       "variacao": 34,
       "tendencia": "Em alta",
       "score": 8,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 5.0,
-      "preco": "R$ 850,90",
-      "atualizado": "22/07/2026 10:11"
+      "avaliacao": 4.8,
+      "preco": "R$ 280,90",
+      "atualizado": "23/07/2026 10:09"
     },
-    "Carrinho de Controle Remoto 4x4": {
+    "Celular GT30": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 84,
@@ -465,18 +465,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Casa",
-      "evento": "29.1k vendas na Shopee",
+      "categoria": "Marketplace",
+      "evento": "34.24k vendas na Shopee",
       "variacao": 32,
       "tendencia": "Em alta",
       "score": 8,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 4.6,
-      "preco": "R$ 20,90",
-      "atualizado": "22/07/2026 10:11"
+      "avaliacao": 4.9,
+      "preco": "R$ 290,90",
+      "atualizado": "23/07/2026 10:09"
     },
-    "Caixa de Vela 7 Dias": {
+    "Cama Triliche": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 80,
@@ -484,18 +484,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Beleza",
-      "evento": "24.8k vendas na Shopee",
+      "categoria": "Marketplace",
+      "evento": "35.25k vendas na Shopee",
       "variacao": 30,
       "tendencia": "Em alta",
       "score": 8,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 4.7,
-      "preco": "R$ 851,90",
-      "atualizado": "22/07/2026 10:11"
+      "avaliacao": 4.5,
+      "preco": "R$ 300,90",
+      "atualizado": "23/07/2026 10:09"
     },
-    "Cama Triliche": {
+    "Caixa de Vela 7 Dias": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 76,
@@ -503,18 +503,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Beleza",
-      "evento": "50.5k vendas na Shopee",
+      "categoria": "Marketplace",
+      "evento": "36.26k vendas na Shopee",
       "variacao": 28,
       "tendencia": "Em alta",
       "score": 8,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 4.8,
-      "preco": "R$ 477,90",
-      "atualizado": "22/07/2026 10:11"
+      "avaliacao": 4.6,
+      "preco": "R$ 310,90",
+      "atualizado": "23/07/2026 10:09"
     },
-    "Cama Box Viúva D45": {
+    "Caixa de Whisky": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 72,
@@ -522,18 +522,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Eletrônicos",
-      "evento": "48.8k vendas na Shopee",
+      "categoria": "Marketplace",
+      "evento": "37.27k vendas na Shopee",
       "variacao": 26,
       "tendencia": "Em alta",
       "score": 8,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 4.8,
-      "preco": "R$ 132,90",
-      "atualizado": "22/07/2026 10:11"
+      "avaliacao": 4.7,
+      "preco": "R$ 320,90",
+      "atualizado": "23/07/2026 10:09"
     },
-    "Celular Xiaomi 128 GB": {
+    "Carabina Spring": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 68,
@@ -541,18 +541,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Beleza",
-      "evento": "22.1k vendas na Shopee",
+      "categoria": "Marketplace",
+      "evento": "38.28k vendas na Shopee",
       "variacao": 24,
       "tendencia": "Em alta",
       "score": 8,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 5.0,
-      "preco": "R$ 429,90",
-      "atualizado": "22/07/2026 10:11"
+      "avaliacao": 4.8,
+      "preco": "R$ 330,90",
+      "atualizado": "23/07/2026 10:09"
     },
-    "Caixa de Som Boombox 4 Branco": {
+    "Capacete Norisk Razor Monocolor Fosco": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 64,
@@ -560,16 +560,16 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Esportes",
-      "evento": "30.3k vendas na Shopee",
+      "categoria": "Marketplace",
+      "evento": "39.29k vendas na Shopee",
       "variacao": 22,
       "tendencia": "Em alta",
       "score": 8,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 4.6,
-      "preco": "R$ 1138,90",
-      "atualizado": "22/07/2026 10:11"
+      "avaliacao": 4.9,
+      "preco": "R$ 340,90",
+      "atualizado": "23/07/2026 10:09"
     },
     "apple watch": {
       "pins": 0,
@@ -590,7 +590,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 1,
-      "atualizado": "22/07/2026 10:11"
+      "atualizado": "23/07/2026 10:09"
     },
     "ar condicionado": {
       "pins": 0,
@@ -611,7 +611,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 2,
-      "atualizado": "22/07/2026 10:11"
+      "atualizado": "23/07/2026 10:09"
     },
     "ar condicionado inverter": {
       "pins": 0,
@@ -632,7 +632,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 3,
-      "atualizado": "22/07/2026 10:11"
+      "atualizado": "23/07/2026 10:09"
     },
     "bicicletas": {
       "pins": 0,
@@ -653,7 +653,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 4,
-      "atualizado": "22/07/2026 10:11"
+      "atualizado": "23/07/2026 10:09"
     },
     "cafeteira": {
       "pins": 0,
@@ -674,7 +674,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 5,
-      "atualizado": "22/07/2026 10:11"
+      "atualizado": "23/07/2026 10:09"
     },
     "carros novos": {
       "pins": 0,
@@ -695,7 +695,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 6,
-      "atualizado": "22/07/2026 10:11"
+      "atualizado": "23/07/2026 10:09"
     },
     "computador": {
       "pins": 0,
@@ -716,7 +716,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 7,
-      "atualizado": "22/07/2026 10:11"
+      "atualizado": "23/07/2026 10:09"
     },
     "fogao 4 boca": {
       "pins": 0,
@@ -737,7 +737,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 8,
-      "atualizado": "22/07/2026 10:11"
+      "atualizado": "23/07/2026 10:09"
     },
     "fone de ouvido bluetooth": {
       "pins": 0,
@@ -758,7 +758,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 9,
-      "atualizado": "22/07/2026 10:11"
+      "atualizado": "23/07/2026 10:09"
     },
     "freezer vertical": {
       "pins": 0,
@@ -779,7 +779,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 10,
-      "atualizado": "22/07/2026 10:11"
+      "atualizado": "23/07/2026 10:09"
     },
     "geladeira frost free": {
       "pins": 0,
@@ -800,7 +800,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 11,
-      "atualizado": "22/07/2026 10:11"
+      "atualizado": "23/07/2026 10:09"
     },
     "guarda roupa casal": {
       "pins": 0,
@@ -821,7 +821,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 12,
-      "atualizado": "22/07/2026 10:11"
+      "atualizado": "23/07/2026 10:09"
     },
     "guarda roupa solteiro": {
       "pins": 0,
@@ -842,7 +842,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 13,
-      "atualizado": "22/07/2026 10:11"
+      "atualizado": "23/07/2026 10:09"
     },
     "ipad": {
       "pins": 0,
@@ -863,7 +863,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 14,
-      "atualizado": "22/07/2026 10:11"
+      "atualizado": "23/07/2026 10:09"
     },
     "iphone": {
       "pins": 0,
@@ -884,7 +884,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 15,
-      "atualizado": "22/07/2026 10:11"
+      "atualizado": "23/07/2026 10:09"
     },
     "iphone 8 plus": {
       "pins": 0,
@@ -905,7 +905,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 16,
-      "atualizado": "22/07/2026 10:11"
+      "atualizado": "23/07/2026 10:09"
     },
     "iphone 11": {
       "pins": 0,
@@ -926,7 +926,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 17,
-      "atualizado": "22/07/2026 10:11"
+      "atualizado": "23/07/2026 10:09"
     },
     "iphone 13": {
       "pins": 0,
@@ -947,7 +947,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 18,
-      "atualizado": "22/07/2026 10:11"
+      "atualizado": "23/07/2026 10:09"
     },
     "iphone 13 pro max": {
       "pins": 0,
@@ -968,7 +968,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 19,
-      "atualizado": "22/07/2026 10:11"
+      "atualizado": "23/07/2026 10:09"
     },
     "iphone 14": {
       "pins": 0,
@@ -989,7 +989,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 20,
-      "atualizado": "22/07/2026 10:11"
+      "atualizado": "23/07/2026 10:09"
     },
     "iphone 14 pro": {
       "pins": 0,
@@ -1010,7 +1010,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 21,
-      "atualizado": "22/07/2026 10:11"
+      "atualizado": "23/07/2026 10:09"
     },
     "iphone 14 pro max": {
       "pins": 0,
@@ -1031,7 +1031,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 22,
-      "atualizado": "22/07/2026 10:11"
+      "atualizado": "23/07/2026 10:09"
     },
     "iphone 15": {
       "pins": 0,
@@ -1052,7 +1052,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 23,
-      "atualizado": "22/07/2026 10:11"
+      "atualizado": "23/07/2026 10:09"
     },
     "iphone 16": {
       "pins": 0,
@@ -1073,7 +1073,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 24,
-      "atualizado": "22/07/2026 10:11"
+      "atualizado": "23/07/2026 10:09"
     },
     "iphone 16 plus": {
       "pins": 0,
@@ -1094,7 +1094,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 25,
-      "atualizado": "22/07/2026 10:11"
+      "atualizado": "23/07/2026 10:09"
     },
     "iphone 16 pro": {
       "pins": 0,
@@ -1115,7 +1115,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 26,
-      "atualizado": "22/07/2026 10:11"
+      "atualizado": "23/07/2026 10:09"
     },
     "iphone 16 pro max": {
       "pins": 0,
@@ -1136,7 +1136,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 27,
-      "atualizado": "22/07/2026 10:11"
+      "atualizado": "23/07/2026 10:09"
     },
     "jbl": {
       "pins": 0,
@@ -1157,7 +1157,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 28,
-      "atualizado": "22/07/2026 10:11"
+      "atualizado": "23/07/2026 10:09"
     },
     "microondas": {
       "pins": 0,
@@ -1178,7 +1178,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 29,
-      "atualizado": "22/07/2026 10:11"
+      "atualizado": "23/07/2026 10:09"
     },
     "monitor": {
       "pins": 0,
@@ -1199,7 +1199,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 30,
-      "atualizado": "22/07/2026 10:11"
+      "atualizado": "23/07/2026 10:09"
     },
     "motorola": {
       "pins": 0,
@@ -1220,7 +1220,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 31,
-      "atualizado": "22/07/2026 10:11"
+      "atualizado": "23/07/2026 10:09"
     },
     "nintendo switch": {
       "pins": 0,
@@ -1241,7 +1241,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 32,
-      "atualizado": "22/07/2026 10:11"
+      "atualizado": "23/07/2026 10:09"
     },
     "notebook": {
       "pins": 0,
@@ -1262,7 +1262,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 33,
-      "atualizado": "22/07/2026 10:11"
+      "atualizado": "23/07/2026 10:09"
     },
     "notebook dell": {
       "pins": 0,
@@ -1283,7 +1283,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 34,
-      "atualizado": "22/07/2026 10:11"
+      "atualizado": "23/07/2026 10:09"
     },
     "painel para tv": {
       "pins": 0,
@@ -1304,7 +1304,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 35,
-      "atualizado": "22/07/2026 10:11"
+      "atualizado": "23/07/2026 10:09"
     },
     "penteadeira": {
       "pins": 0,
@@ -1325,7 +1325,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 36,
-      "atualizado": "22/07/2026 10:11"
+      "atualizado": "23/07/2026 10:09"
     },
     "poco x5 pro": {
       "pins": 0,
@@ -1346,7 +1346,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 37,
-      "atualizado": "22/07/2026 10:11"
+      "atualizado": "23/07/2026 10:09"
     },
     "ps4": {
       "pins": 0,
@@ -1367,7 +1367,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 38,
-      "atualizado": "22/07/2026 10:11"
+      "atualizado": "23/07/2026 10:09"
     },
     "ps5": {
       "pins": 0,
@@ -1388,7 +1388,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 39,
-      "atualizado": "22/07/2026 10:11"
+      "atualizado": "23/07/2026 10:09"
     },
     "redmi note 12": {
       "pins": 0,
@@ -1409,9 +1409,9 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 40,
-      "atualizado": "22/07/2026 10:11"
+      "atualizado": "23/07/2026 10:09"
     },
-    "Mor Life - Colchão Inflável Multiuso King com Fole": {
+    "CAMISETA FLAMENGO NAÇÃO MASCULINA": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 0,
@@ -1420,8 +1420,8 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Outros",
-      "categoria_origem": "Não informada na lista geral de Best Sellers",
+      "categoria": "Moda",
+      "categoria_origem": "Moda",
       "evento": "Produto listado em Best Sellers Amazon Brasil",
       "variacao": 0,
       "tendencia": "Mais vendido",
@@ -1429,163 +1429,9 @@
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/Colchao-Casal-Inflavel-KING-Multiuso/dp/B078P3334J/ref=zg_bs_c_furniture_d_sccl_1/143-9421721-4546131?pd_rd_w=pXxRf&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=M26RNDWHV07P2C0WRX6K&pd_rd_wg=Xj5kY&pd_rd_r=4ddadc2d-0f20-4411-ade1-9a0aed705933&pd_rd_i=B078P3334J&psc=1",
+      "url_produto": "https://www.amazon.com.br/CAMISETA-FLAMENGO-NA%C3%87%C3%83O-MASCULINA-PRETA/dp/B0G6C5VF9P/ref=zg_bs_c_fashion_d_sccl_1/132-3642484-3288123?pd_rd_w=6WOiH&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=PQ2ASWZEGG3DKYEHJQBA&pd_rd_wg=91OhD&pd_rd_r=a9785692-7569-489f-972b-9190e1b79216&pd_rd_i=B0G6C5VF9P&psc=1",
       "posicao_ranking": 1,
-      "atualizado": "22/07/2026 02:50"
-    },
-    "Mesa Portátil Para Notebook Suporte Cama Sofá MA, Cor Aleatório": {
-      "pins": 0,
-      "pins_historico": 0,
-      "crescimento": 0,
-      "crescimento_real": false,
-      "views_tiktok": 0,
-      "resultados_ml": 0,
-      "buscas_mes": 0,
-      "buscas_historico": 0,
-      "categoria": "Eletrônicos",
-      "categoria_origem": "Não informada na lista geral de Best Sellers",
-      "evento": "Produto listado em Best Sellers Amazon Brasil",
-      "variacao": 0,
-      "tendencia": "Mais vendido",
-      "score": 29,
-      "fonte": "Amazon Bestsellers",
-      "origem_coleta": "pagina_oficial",
-      "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/Mesa-Port%C3%A1til-Para-Notebook-Suporte/dp/B09963FWYX/ref=zg_bs_c_furniture_d_sccl_2/143-9421721-4546131?pd_rd_w=pXxRf&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=M26RNDWHV07P2C0WRX6K&pd_rd_wg=Xj5kY&pd_rd_r=4ddadc2d-0f20-4411-ade1-9a0aed705933&pd_rd_i=B09963FWYX&psc=1",
-      "posicao_ranking": 2,
-      "atualizado": "22/07/2026 02:50"
-    },
-    "Suporte Para Notebook E MacBook em Alumínio com Altura Ajustável": {
-      "pins": 0,
-      "pins_historico": 0,
-      "crescimento": 0,
-      "crescimento_real": false,
-      "views_tiktok": 0,
-      "resultados_ml": 0,
-      "buscas_mes": 0,
-      "buscas_historico": 0,
-      "categoria": "Eletrônicos",
-      "categoria_origem": "Não informada na lista geral de Best Sellers",
-      "evento": "Produto listado em Best Sellers Amazon Brasil",
-      "variacao": 0,
-      "tendencia": "Mais vendido",
-      "score": 28,
-      "fonte": "Amazon Bestsellers",
-      "origem_coleta": "pagina_oficial",
-      "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/Suporte-Notebook-MacBook-Alum%C3%ADnio-Ajust%C3%A1vel/dp/B086CB6BXW/ref=zg_bs_c_furniture_d_sccl_3/143-9421721-4546131?pd_rd_w=pXxRf&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=M26RNDWHV07P2C0WRX6K&pd_rd_wg=Xj5kY&pd_rd_r=4ddadc2d-0f20-4411-ade1-9a0aed705933&pd_rd_i=B086CB6BXW&psc=1",
-      "posicao_ranking": 3,
-      "atualizado": "22/07/2026 02:50"
-    },
-    "Cadeira de escritório, design ergonômico com suporte lombar independente, malha respirável e encosto de cabeça ajustável (Preto)": {
-      "pins": 0,
-      "pins_historico": 0,
-      "crescimento": 0,
-      "crescimento_real": false,
-      "views_tiktok": 0,
-      "resultados_ml": 0,
-      "buscas_mes": 0,
-      "buscas_historico": 0,
-      "categoria": "Outros",
-      "categoria_origem": "Não informada na lista geral de Best Sellers",
-      "evento": "Produto listado em Best Sellers Amazon Brasil",
-      "variacao": 0,
-      "tendencia": "Mais vendido",
-      "score": 27,
-      "fonte": "Amazon Bestsellers",
-      "origem_coleta": "pagina_oficial",
-      "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/escrit%C3%B3rio-ergon%C3%B4mico-independente-respir%C3%A1vel-ajust%C3%A1vel%EF%BC%88Preto/dp/B0CG8J3N2H/ref=zg_bs_c_furniture_d_sccl_4/143-9421721-4546131?pd_rd_w=pXxRf&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=M26RNDWHV07P2C0WRX6K&pd_rd_wg=Xj5kY&pd_rd_r=4ddadc2d-0f20-4411-ade1-9a0aed705933&pd_rd_i=B0CG8J3N2H&psc=1",
-      "posicao_ranking": 4,
-      "atualizado": "22/07/2026 02:50"
-    },
-    "Cama Box com Baú Casal + Colchão De Molas Ensacadas - Ortobom - Airtech Springpocket 138x188x72cm": {
-      "pins": 0,
-      "pins_historico": 0,
-      "crescimento": 0,
-      "crescimento_real": false,
-      "views_tiktok": 0,
-      "resultados_ml": 0,
-      "buscas_mes": 0,
-      "buscas_historico": 0,
-      "categoria": "Outros",
-      "categoria_origem": "Não informada na lista geral de Best Sellers",
-      "evento": "Produto listado em Best Sellers Amazon Brasil",
-      "variacao": 0,
-      "tendencia": "Mais vendido",
-      "score": 26,
-      "fonte": "Amazon Bestsellers",
-      "origem_coleta": "pagina_oficial",
-      "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/Cama-Casal-Colch%C3%A3o-Molas-Ensacadas/dp/B089DY771C/ref=zg_bs_c_furniture_d_sccl_5/143-9421721-4546131?pd_rd_w=pXxRf&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=M26RNDWHV07P2C0WRX6K&pd_rd_wg=Xj5kY&pd_rd_r=4ddadc2d-0f20-4411-ade1-9a0aed705933&pd_rd_i=B089DY771C&psc=1",
-      "posicao_ranking": 5,
-      "atualizado": "22/07/2026 02:50"
-    },
-    "Mesa ajustável dobrável, mesa de notebook lateral com ajuste de altura (Nogueira-Flip)": {
-      "pins": 0,
-      "pins_historico": 0,
-      "crescimento": 0,
-      "crescimento_real": false,
-      "views_tiktok": 0,
-      "resultados_ml": 0,
-      "buscas_mes": 0,
-      "buscas_historico": 0,
-      "categoria": "Eletrônicos",
-      "categoria_origem": "Não informada na lista geral de Best Sellers",
-      "evento": "Produto listado em Best Sellers Amazon Brasil",
-      "variacao": 0,
-      "tendencia": "Mais vendido",
-      "score": 25,
-      "fonte": "Amazon Bestsellers",
-      "origem_coleta": "pagina_oficial",
-      "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/ajust%C3%A1vel-dobr%C3%A1vel-notebook-lateral-Nogueira-Flip/dp/B0FF4KZ1ZZ/ref=zg_bs_c_furniture_d_sccl_6/143-9421721-4546131?pd_rd_w=pXxRf&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=M26RNDWHV07P2C0WRX6K&pd_rd_wg=Xj5kY&pd_rd_r=4ddadc2d-0f20-4411-ade1-9a0aed705933&pd_rd_i=B0FF4KZ1ZZ&psc=1",
-      "posicao_ranking": 6,
-      "atualizado": "22/07/2026 02:50"
-    },
-    "Romantic Crown Mochila Feminino Masculino Viagem Expansível para Notebook": {
-      "pins": 0,
-      "pins_historico": 0,
-      "crescimento": 0,
-      "crescimento_real": false,
-      "views_tiktok": 0,
-      "resultados_ml": 0,
-      "buscas_mes": 0,
-      "buscas_historico": 0,
-      "categoria": "Moda",
-      "categoria_origem": "Moda",
-      "evento": "Produto listado em Best Sellers Amazon Brasil",
-      "variacao": 0,
-      "tendencia": "Mais vendido",
-      "score": 24,
-      "fonte": "Amazon Bestsellers",
-      "origem_coleta": "pagina_oficial",
-      "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/Expansivel-Executiva-Masculina-Imperme%C3%A1vel-Refor%C3%A7ada/dp/B0GXTY8SMX/ref=zg_bs_c_fashion_d_sccl_1/143-9421721-4546131?pd_rd_w=K5VXZ&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=M26RNDWHV07P2C0WRX6K&pd_rd_wg=Xj5kY&pd_rd_r=4ddadc2d-0f20-4411-ade1-9a0aed705933&pd_rd_i=B0GXTY8SMX&psc=1",
-      "posicao_ranking": 7,
-      "atualizado": "22/07/2026 02:50"
-    },
-    "Tênis Mizuno Calçado Mizuno Space 6 adulto-unissex": {
-      "pins": 0,
-      "pins_historico": 0,
-      "crescimento": 0,
-      "crescimento_real": false,
-      "views_tiktok": 0,
-      "resultados_ml": 0,
-      "buscas_mes": 0,
-      "buscas_historico": 0,
-      "categoria": "Moda",
-      "categoria_origem": "Moda",
-      "evento": "Produto listado em Best Sellers Amazon Brasil",
-      "variacao": 0,
-      "tendencia": "Mais vendido",
-      "score": 23,
-      "fonte": "Amazon Bestsellers",
-      "origem_coleta": "pagina_oficial",
-      "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/T%C3%AAnis-Mizuno-Space-Chumbo-Tamanho/dp/B0GHSFJBVZ/ref=zg_bs_c_fashion_d_sccl_2/143-9421721-4546131?pd_rd_w=K5VXZ&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=M26RNDWHV07P2C0WRX6K&pd_rd_wg=Xj5kY&pd_rd_r=4ddadc2d-0f20-4411-ade1-9a0aed705933&pd_rd_i=B0GHSFJBVZ&psc=1",
-      "posicao_ranking": 8,
-      "atualizado": "22/07/2026 02:50"
+      "atualizado": "23/07/2026 10:09"
     },
     "Bateria de Lítio CR2032 Cartela com 5 unidades 3v Elgin - Moeda": {
       "pins": 0,
@@ -1601,13 +1447,57 @@
       "evento": "Produto listado em Best Sellers Amazon Brasil",
       "variacao": 0,
       "tendencia": "Mais vendido",
-      "score": 22,
+      "score": 29,
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/ELGIN-Bateria-CR2032-Elgin-82193/dp/B0755PWFSN/ref=zg_bs_c_fashion_d_sccl_3/143-9421721-4546131?pd_rd_w=K5VXZ&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=M26RNDWHV07P2C0WRX6K&pd_rd_wg=Xj5kY&pd_rd_r=4ddadc2d-0f20-4411-ade1-9a0aed705933&pd_rd_i=B0755PWFSN&psc=1",
-      "posicao_ranking": 9,
-      "atualizado": "22/07/2026 02:50"
+      "url_produto": "https://www.amazon.com.br/ELGIN-Bateria-CR2032-Elgin-82193/dp/B0755PWFSN/ref=zg_bs_c_fashion_d_sccl_2/132-3642484-3288123?pd_rd_w=6WOiH&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=PQ2ASWZEGG3DKYEHJQBA&pd_rd_wg=91OhD&pd_rd_r=a9785692-7569-489f-972b-9190e1b79216&pd_rd_i=B0755PWFSN&psc=1",
+      "posicao_ranking": 2,
+      "atualizado": "23/07/2026 10:09"
+    },
+    "Romantic Crown Mochila Feminino Masculino Viagem Expansível para Notebook": {
+      "pins": 0,
+      "pins_historico": 0,
+      "crescimento": 0,
+      "crescimento_real": false,
+      "views_tiktok": 0,
+      "resultados_ml": 0,
+      "buscas_mes": 0,
+      "buscas_historico": 0,
+      "categoria": "Moda",
+      "categoria_origem": "Moda",
+      "evento": "Produto listado em Best Sellers Amazon Brasil",
+      "variacao": 0,
+      "tendencia": "Mais vendido",
+      "score": 28,
+      "fonte": "Amazon Bestsellers",
+      "origem_coleta": "pagina_oficial",
+      "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
+      "url_produto": "https://www.amazon.com.br/Romantic-Feminino-Masculino-Expans%C3%ADvel-Notebook/dp/B0GXTY8SMX/ref=zg_bs_c_fashion_d_sccl_3/132-3642484-3288123?pd_rd_w=6WOiH&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=PQ2ASWZEGG3DKYEHJQBA&pd_rd_wg=91OhD&pd_rd_r=a9785692-7569-489f-972b-9190e1b79216&pd_rd_i=B0GXTY8SMX&psc=1",
+      "posicao_ranking": 3,
+      "atualizado": "23/07/2026 10:09"
+    },
+    "Camiseta Zico Retro BrazilineMasculino": {
+      "pins": 0,
+      "pins_historico": 0,
+      "crescimento": 0,
+      "crescimento_real": false,
+      "views_tiktok": 0,
+      "resultados_ml": 0,
+      "buscas_mes": 0,
+      "buscas_historico": 0,
+      "categoria": "Moda",
+      "categoria_origem": "Moda",
+      "evento": "Produto listado em Best Sellers Amazon Brasil",
+      "variacao": 0,
+      "tendencia": "Mais vendido",
+      "score": 27,
+      "fonte": "Amazon Bestsellers",
+      "origem_coleta": "pagina_oficial",
+      "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
+      "url_produto": "https://www.amazon.com.br/Braziline-Camisa-Flamengo-Zico-Retr%C3%B4/dp/B07NDM6C36/ref=zg_bs_c_fashion_d_sccl_4/132-3642484-3288123?pd_rd_w=6WOiH&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=PQ2ASWZEGG3DKYEHJQBA&pd_rd_wg=91OhD&pd_rd_r=a9785692-7569-489f-972b-9190e1b79216&pd_rd_i=B07NDM6C36&psc=1",
+      "posicao_ranking": 4,
+      "atualizado": "23/07/2026 10:09"
     },
     "Kit 6 Pares Meias Lupo 3245 Cano Médio Algodão - Sortido": {
       "pins": 0,
@@ -1623,13 +1513,13 @@
       "evento": "Produto listado em Best Sellers Amazon Brasil",
       "variacao": 0,
       "tendencia": "Mais vendido",
-      "score": 21,
+      "score": 26,
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/Kit-Esportiva-Casual-Masculina-Original/dp/B07RN15ZSD/ref=zg_bs_c_fashion_d_sccl_4/143-9421721-4546131?pd_rd_w=K5VXZ&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=M26RNDWHV07P2C0WRX6K&pd_rd_wg=Xj5kY&pd_rd_r=4ddadc2d-0f20-4411-ade1-9a0aed705933&pd_rd_i=B07RN15ZSD&psc=1",
-      "posicao_ranking": 10,
-      "atualizado": "22/07/2026 02:50"
+      "url_produto": "https://www.amazon.com.br/Kit-Esportiva-Casual-Masculina-Original/dp/B07RN15ZSD/ref=zg_bs_c_fashion_d_sccl_5/132-3642484-3288123?pd_rd_w=6WOiH&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=PQ2ASWZEGG3DKYEHJQBA&pd_rd_wg=91OhD&pd_rd_r=a9785692-7569-489f-972b-9190e1b79216&pd_rd_i=B07RN15ZSD&psc=1",
+      "posicao_ranking": 5,
+      "atualizado": "23/07/2026 10:09"
     },
     "Chinelo Havaianas Top adulto-unissex": {
       "pins": 0,
@@ -1645,15 +1535,15 @@
       "evento": "Produto listado em Best Sellers Amazon Brasil",
       "variacao": 0,
       "tendencia": "Mais vendido",
-      "score": 20,
+      "score": 25,
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/Havaianas-Top-Branca-39-40/dp/B000YKIXA0/ref=zg_bs_c_fashion_d_sccl_5/143-9421721-4546131?pd_rd_w=K5VXZ&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=M26RNDWHV07P2C0WRX6K&pd_rd_wg=Xj5kY&pd_rd_r=4ddadc2d-0f20-4411-ade1-9a0aed705933&pd_rd_i=B000YKIXA0&psc=1",
-      "posicao_ranking": 11,
-      "atualizado": "22/07/2026 02:50"
+      "url_produto": "https://www.amazon.com.br/Havaianas-Top-Branca-39-40/dp/B000YKIXA0/ref=zg_bs_c_fashion_d_sccl_6/132-3642484-3288123?pd_rd_w=6WOiH&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=PQ2ASWZEGG3DKYEHJQBA&pd_rd_wg=91OhD&pd_rd_r=a9785692-7569-489f-972b-9190e1b79216&pd_rd_i=B000YKIXA0&psc=1",
+      "posicao_ranking": 6,
+      "atualizado": "23/07/2026 10:09"
     },
-    "Kit 6 Pares Meia Cano Médio Alto Atoalhada Esportiva Algodão Masculina Feminina Unissex Adulto Academia Dia a Dia Puma": {
+    "Cadeira de escritório, design ergonômico com suporte lombar independente, malha respirável e encosto de cabeça ajustável (Preto)": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 0,
@@ -1662,8 +1552,118 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Moda",
-      "categoria_origem": "Moda",
+      "categoria": "Outros",
+      "categoria_origem": "Não informada na lista geral de Best Sellers",
+      "evento": "Produto listado em Best Sellers Amazon Brasil",
+      "variacao": 0,
+      "tendencia": "Mais vendido",
+      "score": 24,
+      "fonte": "Amazon Bestsellers",
+      "origem_coleta": "pagina_oficial",
+      "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
+      "url_produto": "https://www.amazon.com.br/escrit%C3%B3rio-ergon%C3%B4mico-independente-respir%C3%A1vel-ajust%C3%A1vel%EF%BC%88Preto/dp/B0CG8J3N2H/ref=zg_bs_c_furniture_d_sccl_1/132-3642484-3288123?pd_rd_w=cfGyG&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=PQ2ASWZEGG3DKYEHJQBA&pd_rd_wg=91OhD&pd_rd_r=a9785692-7569-489f-972b-9190e1b79216&pd_rd_i=B0CG8J3N2H&psc=1",
+      "posicao_ranking": 7,
+      "atualizado": "23/07/2026 10:09"
+    },
+    "Suporte Para Notebook E MacBook em Alumínio com Altura Ajustável": {
+      "pins": 0,
+      "pins_historico": 0,
+      "crescimento": 0,
+      "crescimento_real": false,
+      "views_tiktok": 0,
+      "resultados_ml": 0,
+      "buscas_mes": 0,
+      "buscas_historico": 0,
+      "categoria": "Eletrônicos",
+      "categoria_origem": "Não informada na lista geral de Best Sellers",
+      "evento": "Produto listado em Best Sellers Amazon Brasil",
+      "variacao": 0,
+      "tendencia": "Mais vendido",
+      "score": 23,
+      "fonte": "Amazon Bestsellers",
+      "origem_coleta": "pagina_oficial",
+      "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
+      "url_produto": "https://www.amazon.com.br/Suporte-Notebook-MacBook-Alum%C3%ADnio-Ajust%C3%A1vel/dp/B086CB6BXW/ref=zg_bs_c_furniture_d_sccl_2/132-3642484-3288123?pd_rd_w=cfGyG&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=PQ2ASWZEGG3DKYEHJQBA&pd_rd_wg=91OhD&pd_rd_r=a9785692-7569-489f-972b-9190e1b79216&pd_rd_i=B086CB6BXW&psc=1",
+      "posicao_ranking": 8,
+      "atualizado": "23/07/2026 10:09"
+    },
+    "Mesa Portátil Para Notebook Suporte Cama Sofá MA, Cor Aleatório": {
+      "pins": 0,
+      "pins_historico": 0,
+      "crescimento": 0,
+      "crescimento_real": false,
+      "views_tiktok": 0,
+      "resultados_ml": 0,
+      "buscas_mes": 0,
+      "buscas_historico": 0,
+      "categoria": "Eletrônicos",
+      "categoria_origem": "Não informada na lista geral de Best Sellers",
+      "evento": "Produto listado em Best Sellers Amazon Brasil",
+      "variacao": 0,
+      "tendencia": "Mais vendido",
+      "score": 22,
+      "fonte": "Amazon Bestsellers",
+      "origem_coleta": "pagina_oficial",
+      "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
+      "url_produto": "https://www.amazon.com.br/Mesa-Port%C3%A1til-Para-Notebook-Suporte/dp/B09963FWYX/ref=zg_bs_c_furniture_d_sccl_3/132-3642484-3288123?pd_rd_w=cfGyG&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=PQ2ASWZEGG3DKYEHJQBA&pd_rd_wg=91OhD&pd_rd_r=a9785692-7569-489f-972b-9190e1b79216&pd_rd_i=B09963FWYX&psc=1",
+      "posicao_ranking": 9,
+      "atualizado": "23/07/2026 10:09"
+    },
+    "Mor Life - Colchão Inflável Multiuso King com Fole": {
+      "pins": 0,
+      "pins_historico": 0,
+      "crescimento": 0,
+      "crescimento_real": false,
+      "views_tiktok": 0,
+      "resultados_ml": 0,
+      "buscas_mes": 0,
+      "buscas_historico": 0,
+      "categoria": "Outros",
+      "categoria_origem": "Não informada na lista geral de Best Sellers",
+      "evento": "Produto listado em Best Sellers Amazon Brasil",
+      "variacao": 0,
+      "tendencia": "Mais vendido",
+      "score": 21,
+      "fonte": "Amazon Bestsellers",
+      "origem_coleta": "pagina_oficial",
+      "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
+      "url_produto": "https://www.amazon.com.br/Colchao-Casal-Inflavel-KING-Multiuso/dp/B078P3334J/ref=zg_bs_c_furniture_d_sccl_4/132-3642484-3288123?pd_rd_w=cfGyG&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=PQ2ASWZEGG3DKYEHJQBA&pd_rd_wg=91OhD&pd_rd_r=a9785692-7569-489f-972b-9190e1b79216&pd_rd_i=B078P3334J&psc=1",
+      "posicao_ranking": 10,
+      "atualizado": "23/07/2026 10:09"
+    },
+    "Cadeira Ergonomica Gamer Com Apoio Para Os Pés Branco": {
+      "pins": 0,
+      "pins_historico": 0,
+      "crescimento": 0,
+      "crescimento_real": false,
+      "views_tiktok": 0,
+      "resultados_ml": 0,
+      "buscas_mes": 0,
+      "buscas_historico": 0,
+      "categoria": "Outros",
+      "categoria_origem": "Não informada na lista geral de Best Sellers",
+      "evento": "Produto listado em Best Sellers Amazon Brasil",
+      "variacao": 0,
+      "tendencia": "Mais vendido",
+      "score": 20,
+      "fonte": "Amazon Bestsellers",
+      "origem_coleta": "pagina_oficial",
+      "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
+      "url_produto": "https://www.amazon.com.br/Cadeira-Ergonomica-Gamer-Apoio-Branco/dp/B0CJV2WKQF/ref=zg_bs_c_furniture_d_sccl_5/132-3642484-3288123?pd_rd_w=cfGyG&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=PQ2ASWZEGG3DKYEHJQBA&pd_rd_wg=91OhD&pd_rd_r=a9785692-7569-489f-972b-9190e1b79216&pd_rd_i=B0CJV2WKQF&psc=1",
+      "posicao_ranking": 11,
+      "atualizado": "23/07/2026 10:09"
+    },
+    "Banqueta Plástica Dobrável, Branca, Altura 450 Mm, Vonder": {
+      "pins": 0,
+      "pins_historico": 0,
+      "crescimento": 0,
+      "crescimento_real": false,
+      "views_tiktok": 0,
+      "resultados_ml": 0,
+      "buscas_mes": 0,
+      "buscas_historico": 0,
+      "categoria": "Outros",
+      "categoria_origem": "Não informada na lista geral de Best Sellers",
       "evento": "Produto listado em Best Sellers Amazon Brasil",
       "variacao": 0,
       "tendencia": "Mais vendido",
@@ -1671,141 +1671,9 @@
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/PUMA-Meia-Esportiva-Cano-M%C3%A9dio/dp/B0CC2PXTPG/ref=zg_bs_c_fashion_d_sccl_6/143-9421721-4546131?pd_rd_w=K5VXZ&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=M26RNDWHV07P2C0WRX6K&pd_rd_wg=Xj5kY&pd_rd_r=4ddadc2d-0f20-4411-ade1-9a0aed705933&pd_rd_i=B0CC2PXTPG&psc=1",
+      "url_produto": "https://www.amazon.com.br/Banqueta-Pl%C3%A1stica-Dobr%C3%A1vel-Altura-VDO2556/dp/B078HFQHKX/ref=zg_bs_c_furniture_d_sccl_6/132-3642484-3288123?pd_rd_w=cfGyG&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=PQ2ASWZEGG3DKYEHJQBA&pd_rd_wg=91OhD&pd_rd_r=a9785692-7569-489f-972b-9190e1b79216&pd_rd_i=B078HFQHKX&psc=1",
       "posicao_ranking": 12,
-      "atualizado": "22/07/2026 02:50"
-    },
-    "DAS, Massa para Modelar, Branco, 500g": {
-      "pins": 0,
-      "pins_historico": 0,
-      "crescimento": 0,
-      "crescimento_real": false,
-      "views_tiktok": 0,
-      "resultados_ml": 0,
-      "buscas_mes": 0,
-      "buscas_historico": 0,
-      "categoria": "Brinquedos e Jogos",
-      "categoria_origem": "Brinquedos e Jogos",
-      "evento": "Produto listado em Best Sellers Amazon Brasil",
-      "variacao": 0,
-      "tendencia": "Mais vendido",
-      "score": 18,
-      "fonte": "Amazon Bestsellers",
-      "origem_coleta": "pagina_oficial",
-      "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/DAS-Massa-para-Modelar-Branca/dp/B000J445XA/ref=zg_bs_c_toys_d_sccl_1/143-9421721-4546131?pd_rd_w=x5JIh&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=M26RNDWHV07P2C0WRX6K&pd_rd_wg=Xj5kY&pd_rd_r=4ddadc2d-0f20-4411-ade1-9a0aed705933&pd_rd_i=B000J445XA&psc=1",
-      "posicao_ranking": 13,
-      "atualizado": "22/07/2026 02:50"
-    },
-    "Pais & Filhos | Quebra-Cabeça Viagem Ao Espaço 30 Peças | Brinquedo Educativo 4+ | Coordenação Motora e Raciocínio | Tema Astronauta e Planetas": {
-      "pins": 0,
-      "pins_historico": 0,
-      "crescimento": 0,
-      "crescimento_real": false,
-      "views_tiktok": 0,
-      "resultados_ml": 0,
-      "buscas_mes": 0,
-      "buscas_historico": 0,
-      "categoria": "Brinquedos e Jogos",
-      "categoria_origem": "Brinquedos e Jogos",
-      "evento": "Produto listado em Best Sellers Amazon Brasil",
-      "variacao": 0,
-      "tendencia": "Mais vendido",
-      "score": 17,
-      "fonte": "Amazon Bestsellers",
-      "origem_coleta": "pagina_oficial",
-      "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/Quebra-Cabe%C3%A7a-38-P%C3%A7s-Viagem-Espa%C3%A7o/dp/B0D63FK3R6/ref=zg_bs_c_toys_d_sccl_2/143-9421721-4546131?pd_rd_w=x5JIh&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=M26RNDWHV07P2C0WRX6K&pd_rd_wg=Xj5kY&pd_rd_r=4ddadc2d-0f20-4411-ade1-9a0aed705933&pd_rd_i=B0D63FK3R6&psc=1",
-      "posicao_ranking": 14,
-      "atualizado": "22/07/2026 02:50"
-    },
-    "UNO Original": {
-      "pins": 0,
-      "pins_historico": 0,
-      "crescimento": 0,
-      "crescimento_real": false,
-      "views_tiktok": 0,
-      "resultados_ml": 0,
-      "buscas_mes": 0,
-      "buscas_historico": 0,
-      "categoria": "Brinquedos e Jogos",
-      "categoria_origem": "Brinquedos e Jogos",
-      "evento": "Produto listado em Best Sellers Amazon Brasil",
-      "variacao": 0,
-      "tendencia": "Mais vendido",
-      "score": 16,
-      "fonte": "Amazon Bestsellers",
-      "origem_coleta": "pagina_oficial",
-      "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/Mattel-W2085-UNO-Original/dp/B00CTH0A1Q/ref=zg_bs_c_toys_d_sccl_3/143-9421721-4546131?pd_rd_w=x5JIh&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=M26RNDWHV07P2C0WRX6K&pd_rd_wg=Xj5kY&pd_rd_r=4ddadc2d-0f20-4411-ade1-9a0aed705933&pd_rd_i=B00CTH0A1Q&psc=1",
-      "posicao_ranking": 15,
-      "atualizado": "22/07/2026 02:50"
-    },
-    "Pais & Filhos - Caiu Perdeu, 54 Pçs, idade mínima recomendada - 6 anos": {
-      "pins": 0,
-      "pins_historico": 0,
-      "crescimento": 0,
-      "crescimento_real": false,
-      "views_tiktok": 0,
-      "resultados_ml": 0,
-      "buscas_mes": 0,
-      "buscas_historico": 0,
-      "categoria": "Brinquedos e Jogos",
-      "categoria_origem": "Brinquedos e Jogos",
-      "evento": "Produto listado em Best Sellers Amazon Brasil",
-      "variacao": 0,
-      "tendencia": "Mais vendido",
-      "score": 15,
-      "fonte": "Amazon Bestsellers",
-      "origem_coleta": "pagina_oficial",
-      "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/Jogo-Caiu-Perdeu-Pais-Filhos/dp/B07LHC55HY/ref=zg_bs_c_toys_d_sccl_4/143-9421721-4546131?pd_rd_w=x5JIh&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=M26RNDWHV07P2C0WRX6K&pd_rd_wg=Xj5kY&pd_rd_r=4ddadc2d-0f20-4411-ade1-9a0aed705933&pd_rd_i=B07LHC55HY&psc=1",
-      "posicao_ranking": 16,
-      "atualizado": "22/07/2026 02:50"
-    },
-    "Buba, Chocalho Com Mordedor Coelhinho": {
-      "pins": 0,
-      "pins_historico": 0,
-      "crescimento": 0,
-      "crescimento_real": false,
-      "views_tiktok": 0,
-      "resultados_ml": 0,
-      "buscas_mes": 0,
-      "buscas_historico": 0,
-      "categoria": "Brinquedos e Jogos",
-      "categoria_origem": "Brinquedos e Jogos",
-      "evento": "Produto listado em Best Sellers Amazon Brasil",
-      "variacao": 0,
-      "tendencia": "Mais vendido",
-      "score": 14,
-      "fonte": "Amazon Bestsellers",
-      "origem_coleta": "pagina_oficial",
-      "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/Buba-Chocalho-Com-Mordedor-Coelhinho/dp/B0CRZC7GRL/ref=zg_bs_c_toys_d_sccl_5/143-9421721-4546131?pd_rd_w=x5JIh&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=M26RNDWHV07P2C0WRX6K&pd_rd_wg=Xj5kY&pd_rd_r=4ddadc2d-0f20-4411-ade1-9a0aed705933&pd_rd_i=B0CRZC7GRL&psc=1",
-      "posicao_ranking": 17,
-      "atualizado": "22/07/2026 02:50"
-    },
-    "Pais & Filhos | Jogo da Memória Patrulha Canina com 52 Cartas | Brinquedo Educativo +3 Anos | Desenvolve Memória e Concentração": {
-      "pins": 0,
-      "pins_historico": 0,
-      "crescimento": 0,
-      "crescimento_real": false,
-      "views_tiktok": 0,
-      "resultados_ml": 0,
-      "buscas_mes": 0,
-      "buscas_historico": 0,
-      "categoria": "Brinquedos e Jogos",
-      "categoria_origem": "Brinquedos e Jogos",
-      "evento": "Produto listado em Best Sellers Amazon Brasil",
-      "variacao": 0,
-      "tendencia": "Mais vendido",
-      "score": 13,
-      "fonte": "Amazon Bestsellers",
-      "origem_coleta": "pagina_oficial",
-      "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/Pais-Filhos-792490-Memoria-Patrulha/dp/B0D3VD54HM/ref=zg_bs_c_toys_d_sccl_6/143-9421721-4546131?pd_rd_w=x5JIh&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=M26RNDWHV07P2C0WRX6K&pd_rd_wg=Xj5kY&pd_rd_r=4ddadc2d-0f20-4411-ade1-9a0aed705933&pd_rd_i=B0D3VD54HM&psc=1",
-      "posicao_ranking": 18,
-      "atualizado": "22/07/2026 02:50"
+      "atualizado": "23/07/2026 10:09"
     },
     "Scotch, 3M, Fixa Forte, Fita Dupla Face, Fixação Extrema, 24mm x 2m": {
       "pins": 0,
@@ -1821,13 +1689,13 @@
       "evento": "Produto listado em Best Sellers Amazon Brasil",
       "variacao": 0,
       "tendencia": "Mais vendido",
-      "score": 12,
+      "score": 18,
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/HB004492250-Forte-Espuma-Extrema-Multicolor/dp/B0779BRVVS/ref=zg_bs_c_hi_d_sccl_1/143-9421721-4546131?pd_rd_w=MQe1t&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=M26RNDWHV07P2C0WRX6K&pd_rd_wg=Xj5kY&pd_rd_r=4ddadc2d-0f20-4411-ade1-9a0aed705933&pd_rd_i=B0779BRVVS&psc=1",
-      "posicao_ranking": 19,
-      "atualizado": "22/07/2026 02:50"
+      "url_produto": "https://www.amazon.com.br/HB004492250-Forte-Espuma-Extrema-Multicolor/dp/B0779BRVVS/ref=zg_bs_c_hi_d_sccl_1/132-3642484-3288123?pd_rd_w=24MJN&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=PQ2ASWZEGG3DKYEHJQBA&pd_rd_wg=91OhD&pd_rd_r=a9785692-7569-489f-972b-9190e1b79216&pd_rd_i=B0779BRVVS&psc=1",
+      "posicao_ranking": 13,
+      "atualizado": "23/07/2026 10:09"
     },
     "Aquecedor A Ar, Mondial, Cinza/Branco, 2000W, 220V - A-08": {
       "pins": 0,
@@ -1843,13 +1711,13 @@
       "evento": "Produto listado em Best Sellers Amazon Brasil",
       "variacao": 0,
       "tendencia": "Mais vendido",
-      "score": 11,
+      "score": 17,
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/08-Aquecedor-220V-Mondial-Cinza/dp/B076CF5DFL/ref=zg_bs_c_hi_d_sccl_2/143-9421721-4546131?pd_rd_w=MQe1t&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=M26RNDWHV07P2C0WRX6K&pd_rd_wg=Xj5kY&pd_rd_r=4ddadc2d-0f20-4411-ade1-9a0aed705933&pd_rd_i=B076CF5DFL&psc=1",
-      "posicao_ranking": 20,
-      "atualizado": "22/07/2026 02:50"
+      "url_produto": "https://www.amazon.com.br/08-Aquecedor-220V-Mondial-Cinza/dp/B076CF5DFL/ref=zg_bs_c_hi_d_sccl_2/132-3642484-3288123?pd_rd_w=24MJN&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=PQ2ASWZEGG3DKYEHJQBA&pd_rd_wg=91OhD&pd_rd_r=a9785692-7569-489f-972b-9190e1b79216&pd_rd_i=B076CF5DFL&psc=1",
+      "posicao_ranking": 14,
+      "atualizado": "23/07/2026 10:09"
     },
     "WAP Extratora Portátil Spot Cleaner W3, 3 em 1, Borrifa, Esfrega e Extrai, com Sistema de Autolimpeza, 1450W 127V": {
       "pins": 0,
@@ -1865,35 +1733,13 @@
       "evento": "Produto listado em Best Sellers Amazon Brasil",
       "variacao": 0,
       "tendencia": "Mais vendido",
-      "score": 10,
+      "score": 16,
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/WAP-Extratora-Port%C3%A1til-Cleaner-Pot%C3%AAncia/dp/B0CH3WBKN6/ref=zg_bs_c_hi_d_sccl_3/143-9421721-4546131?pd_rd_w=MQe1t&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=M26RNDWHV07P2C0WRX6K&pd_rd_wg=Xj5kY&pd_rd_r=4ddadc2d-0f20-4411-ade1-9a0aed705933&pd_rd_i=B0CH3WBKN6&psc=1",
-      "posicao_ranking": 21,
-      "atualizado": "22/07/2026 02:50"
-    },
-    "WAP Parafusadeira e Furadeira à Bateria 12V BPF-12K3, Kit de 13 Acessórios e Maleta, Empunhadura Emborrachada, Bivolt": {
-      "pins": 0,
-      "pins_historico": 0,
-      "crescimento": 0,
-      "crescimento_real": false,
-      "views_tiktok": 0,
-      "resultados_ml": 0,
-      "buscas_mes": 0,
-      "buscas_historico": 0,
-      "categoria": "Outros",
-      "categoria_origem": "Não informada na lista geral de Best Sellers",
-      "evento": "Produto listado em Best Sellers Amazon Brasil",
-      "variacao": 0,
-      "tendencia": "Mais vendido",
-      "score": 9,
-      "fonte": "Amazon Bestsellers",
-      "origem_coleta": "pagina_oficial",
-      "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/Parafusadeira-Furadeira-WAP-Carregador-Acess%C3%B3rios/dp/B09V1SM8QB/ref=zg_bs_c_hi_d_sccl_4/143-9421721-4546131?pd_rd_w=MQe1t&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=M26RNDWHV07P2C0WRX6K&pd_rd_wg=Xj5kY&pd_rd_r=4ddadc2d-0f20-4411-ade1-9a0aed705933&pd_rd_i=B09V1SM8QB&psc=1",
-      "posicao_ranking": 22,
-      "atualizado": "22/07/2026 02:50"
+      "url_produto": "https://www.amazon.com.br/WAP-Extratora-Port%C3%A1til-Cleaner-Pot%C3%AAncia/dp/B0CH3WBKN6/ref=zg_bs_c_hi_d_sccl_3/132-3642484-3288123?pd_rd_w=24MJN&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=PQ2ASWZEGG3DKYEHJQBA&pd_rd_wg=91OhD&pd_rd_r=a9785692-7569-489f-972b-9190e1b79216&pd_rd_i=B0CH3WBKN6&psc=1",
+      "posicao_ranking": 15,
+      "atualizado": "23/07/2026 10:09"
     },
     "WD-40 Fórmula Original - Produto Multiusos Aerossol 300ml, 200g - Desengripa, lubrifica e protege contra ferrugem": {
       "pins": 0,
@@ -1909,15 +1755,15 @@
       "evento": "Produto listado em Best Sellers Amazon Brasil",
       "variacao": 0,
       "tendencia": "Mais vendido",
-      "score": 8,
+      "score": 15,
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/Wd-40-Spray-Produto-Multiusos-300/dp/B07CV2JXNH/ref=zg_bs_c_hi_d_sccl_5/143-9421721-4546131?pd_rd_w=MQe1t&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=M26RNDWHV07P2C0WRX6K&pd_rd_wg=Xj5kY&pd_rd_r=4ddadc2d-0f20-4411-ade1-9a0aed705933&pd_rd_i=B07CV2JXNH&psc=1",
-      "posicao_ranking": 23,
-      "atualizado": "22/07/2026 02:50"
+      "url_produto": "https://www.amazon.com.br/Wd-40-Spray-Produto-Multiusos-300/dp/B07CV2JXNH/ref=zg_bs_c_hi_d_sccl_4/132-3642484-3288123?pd_rd_w=24MJN&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=PQ2ASWZEGG3DKYEHJQBA&pd_rd_wg=91OhD&pd_rd_r=a9785692-7569-489f-972b-9190e1b79216&pd_rd_i=B07CV2JXNH&psc=1",
+      "posicao_ranking": 16,
+      "atualizado": "23/07/2026 10:09"
     },
-    "Force Line - Extensão Slim 3 Tomadas Tripolar Bivolt 3 Metros Branco": {
+    "WAP Parafusadeira e Furadeira à Bateria 12V BPF-12K3, Kit de 13 Acessórios e Maleta, Empunhadura Emborrachada, Bivolt": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 0,
@@ -1931,13 +1777,167 @@
       "evento": "Produto listado em Best Sellers Amazon Brasil",
       "variacao": 0,
       "tendencia": "Mais vendido",
+      "score": 14,
+      "fonte": "Amazon Bestsellers",
+      "origem_coleta": "pagina_oficial",
+      "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
+      "url_produto": "https://www.amazon.com.br/Parafusadeira-Furadeira-WAP-Carregador-Acess%C3%B3rios/dp/B09V1SM8QB/ref=zg_bs_c_hi_d_sccl_5/132-3642484-3288123?pd_rd_w=24MJN&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=PQ2ASWZEGG3DKYEHJQBA&pd_rd_wg=91OhD&pd_rd_r=a9785692-7569-489f-972b-9190e1b79216&pd_rd_i=B09V1SM8QB&psc=1",
+      "posicao_ranking": 17,
+      "atualizado": "23/07/2026 10:09"
+    },
+    "Sparta Maleta de ferramentas kit com 129 peças": {
+      "pins": 0,
+      "pins_historico": 0,
+      "crescimento": 0,
+      "crescimento_real": false,
+      "views_tiktok": 0,
+      "resultados_ml": 0,
+      "buscas_mes": 0,
+      "buscas_historico": 0,
+      "categoria": "Outros",
+      "categoria_origem": "Não informada na lista geral de Best Sellers",
+      "evento": "Produto listado em Best Sellers Amazon Brasil",
+      "variacao": 0,
+      "tendencia": "Mais vendido",
+      "score": 13,
+      "fonte": "Amazon Bestsellers",
+      "origem_coleta": "pagina_oficial",
+      "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
+      "url_produto": "https://www.amazon.com.br/Maleta-Ferramentas-Sparta-Kit-13564/dp/B076N2S8FV/ref=zg_bs_c_hi_d_sccl_6/132-3642484-3288123?pd_rd_w=24MJN&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=PQ2ASWZEGG3DKYEHJQBA&pd_rd_wg=91OhD&pd_rd_r=a9785692-7569-489f-972b-9190e1b79216&pd_rd_i=B076N2S8FV&psc=1",
+      "posicao_ranking": 18,
+      "atualizado": "23/07/2026 10:09"
+    },
+    "DAS, Massa para Modelar, Branco, 500g": {
+      "pins": 0,
+      "pins_historico": 0,
+      "crescimento": 0,
+      "crescimento_real": false,
+      "views_tiktok": 0,
+      "resultados_ml": 0,
+      "buscas_mes": 0,
+      "buscas_historico": 0,
+      "categoria": "Brinquedos e Jogos",
+      "categoria_origem": "Brinquedos e Jogos",
+      "evento": "Produto listado em Best Sellers Amazon Brasil",
+      "variacao": 0,
+      "tendencia": "Mais vendido",
+      "score": 12,
+      "fonte": "Amazon Bestsellers",
+      "origem_coleta": "pagina_oficial",
+      "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
+      "url_produto": "https://www.amazon.com.br/DAS-Massa-para-Modelar-Branca/dp/B000J445XA/ref=zg_bs_c_toys_d_sccl_1/132-3642484-3288123?pd_rd_w=VNd4W&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=PQ2ASWZEGG3DKYEHJQBA&pd_rd_wg=91OhD&pd_rd_r=a9785692-7569-489f-972b-9190e1b79216&pd_rd_i=B000J445XA&psc=1",
+      "posicao_ranking": 19,
+      "atualizado": "23/07/2026 10:09"
+    },
+    "Pais & Filhos - Caiu Perdeu, 54 Pçs, idade mínima recomendada - 6 anos": {
+      "pins": 0,
+      "pins_historico": 0,
+      "crescimento": 0,
+      "crescimento_real": false,
+      "views_tiktok": 0,
+      "resultados_ml": 0,
+      "buscas_mes": 0,
+      "buscas_historico": 0,
+      "categoria": "Brinquedos e Jogos",
+      "categoria_origem": "Brinquedos e Jogos",
+      "evento": "Produto listado em Best Sellers Amazon Brasil",
+      "variacao": 0,
+      "tendencia": "Mais vendido",
+      "score": 11,
+      "fonte": "Amazon Bestsellers",
+      "origem_coleta": "pagina_oficial",
+      "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
+      "url_produto": "https://www.amazon.com.br/Jogo-Caiu-Perdeu-Pais-Filhos/dp/B07LHC55HY/ref=zg_bs_c_toys_d_sccl_2/132-3642484-3288123?pd_rd_w=VNd4W&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=PQ2ASWZEGG3DKYEHJQBA&pd_rd_wg=91OhD&pd_rd_r=a9785692-7569-489f-972b-9190e1b79216&pd_rd_i=B07LHC55HY&psc=1",
+      "posicao_ranking": 20,
+      "atualizado": "23/07/2026 10:09"
+    },
+    "Play-Doh, Massinha de Modelar Infantil, Mini Sorveteria Divertida - Conjunto de Brinquedo com Acessórios e 2 Potes - A partir de 3 Anos": {
+      "pins": 0,
+      "pins_historico": 0,
+      "crescimento": 0,
+      "crescimento_real": false,
+      "views_tiktok": 0,
+      "resultados_ml": 0,
+      "buscas_mes": 0,
+      "buscas_historico": 0,
+      "categoria": "Brinquedos e Jogos",
+      "categoria_origem": "Brinquedos e Jogos",
+      "evento": "Produto listado em Best Sellers Amazon Brasil",
+      "variacao": 0,
+      "tendencia": "Mais vendido",
+      "score": 10,
+      "fonte": "Amazon Bestsellers",
+      "origem_coleta": "pagina_oficial",
+      "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
+      "url_produto": "https://www.amazon.com.br/Molelar-Play-Doh-Sorveteria-Divertida-Massinha/dp/B09SVRB79R/ref=zg_bs_c_toys_d_sccl_3/132-3642484-3288123?pd_rd_w=VNd4W&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=PQ2ASWZEGG3DKYEHJQBA&pd_rd_wg=91OhD&pd_rd_r=a9785692-7569-489f-972b-9190e1b79216&pd_rd_i=B09SVRB79R&psc=1",
+      "posicao_ranking": 21,
+      "atualizado": "23/07/2026 10:09"
+    },
+    "UNO Original": {
+      "pins": 0,
+      "pins_historico": 0,
+      "crescimento": 0,
+      "crescimento_real": false,
+      "views_tiktok": 0,
+      "resultados_ml": 0,
+      "buscas_mes": 0,
+      "buscas_historico": 0,
+      "categoria": "Brinquedos e Jogos",
+      "categoria_origem": "Brinquedos e Jogos",
+      "evento": "Produto listado em Best Sellers Amazon Brasil",
+      "variacao": 0,
+      "tendencia": "Mais vendido",
+      "score": 9,
+      "fonte": "Amazon Bestsellers",
+      "origem_coleta": "pagina_oficial",
+      "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
+      "url_produto": "https://www.amazon.com.br/Mattel-W2085-UNO-Original/dp/B00CTH0A1Q/ref=zg_bs_c_toys_d_sccl_4/132-3642484-3288123?pd_rd_w=VNd4W&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=PQ2ASWZEGG3DKYEHJQBA&pd_rd_wg=91OhD&pd_rd_r=a9785692-7569-489f-972b-9190e1b79216&pd_rd_i=B00CTH0A1Q&psc=1",
+      "posicao_ranking": 22,
+      "atualizado": "23/07/2026 10:09"
+    },
+    "Pais & Filhos | Quebra-Cabeça Viagem Ao Espaço 30 Peças | Brinquedo Educativo 4+ | Coordenação Motora e Raciocínio | Tema Astronauta e Planetas": {
+      "pins": 0,
+      "pins_historico": 0,
+      "crescimento": 0,
+      "crescimento_real": false,
+      "views_tiktok": 0,
+      "resultados_ml": 0,
+      "buscas_mes": 0,
+      "buscas_historico": 0,
+      "categoria": "Brinquedos e Jogos",
+      "categoria_origem": "Brinquedos e Jogos",
+      "evento": "Produto listado em Best Sellers Amazon Brasil",
+      "variacao": 0,
+      "tendencia": "Mais vendido",
+      "score": 8,
+      "fonte": "Amazon Bestsellers",
+      "origem_coleta": "pagina_oficial",
+      "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
+      "url_produto": "https://www.amazon.com.br/Quebra-Cabe%C3%A7a-38-P%C3%A7s-Viagem-Espa%C3%A7o/dp/B0D63FK3R6/ref=zg_bs_c_toys_d_sccl_5/132-3642484-3288123?pd_rd_w=VNd4W&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=PQ2ASWZEGG3DKYEHJQBA&pd_rd_wg=91OhD&pd_rd_r=a9785692-7569-489f-972b-9190e1b79216&pd_rd_i=B0D63FK3R6&psc=1",
+      "posicao_ranking": 23,
+      "atualizado": "23/07/2026 10:09"
+    },
+    "PlayStation God of War Ragnarok, 6” Atreus Action Figure with 4 Accessories, The Shapes Collection, for PS5 Fans & Collectors Ages 17+": {
+      "pins": 0,
+      "pins_historico": 0,
+      "crescimento": 0,
+      "crescimento_real": false,
+      "views_tiktok": 0,
+      "resultados_ml": 0,
+      "buscas_mes": 0,
+      "buscas_historico": 0,
+      "categoria": "Brinquedos e Jogos",
+      "categoria_origem": "Brinquedos e Jogos",
+      "evento": "Produto listado em Best Sellers Amazon Brasil",
+      "variacao": 0,
+      "tendencia": "Mais vendido",
       "score": 7,
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/Extens%C3%A3o-Tripolar-Slim-Metros-Branco/dp/B07JN19LDF/ref=zg_bs_c_hi_d_sccl_6/143-9421721-4546131?pd_rd_w=MQe1t&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=M26RNDWHV07P2C0WRX6K&pd_rd_wg=Xj5kY&pd_rd_r=4ddadc2d-0f20-4411-ade1-9a0aed705933&pd_rd_i=B07JN19LDF&psc=1",
+      "url_produto": "https://www.amazon.com.br/PlayStation-Ragnarok-Accessories-Collection-Collectors/dp/B0CT8LWV74/ref=zg_bs_c_toys_d_sccl_6/132-3642484-3288123?pd_rd_w=VNd4W&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=PQ2ASWZEGG3DKYEHJQBA&pd_rd_wg=91OhD&pd_rd_r=a9785692-7569-489f-972b-9190e1b79216&pd_rd_i=B0CT8LWV74&psc=1",
       "posicao_ranking": 24,
-      "atualizado": "22/07/2026 02:50"
+      "atualizado": "23/07/2026 10:09"
     },
     "Kit 5 Faixas Elásticas Elásticos Alongamento Pilates Yoga Exercícios Condicionamento Físico Yoga Saúde Relaxamento Academia Músculos Personal Trainer Thera Band Fitness Mini Bands": {
       "pins": 0,
@@ -1957,11 +1957,11 @@
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/Alongamento-Exerc%C3%ADcios-Condicionamento-Relaxamento-Fisioterapia/dp/B07KQMVYKL/ref=zg_bs_c_sports_d_sccl_1/143-9421721-4546131?pd_rd_w=esUVq&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=M26RNDWHV07P2C0WRX6K&pd_rd_wg=Xj5kY&pd_rd_r=4ddadc2d-0f20-4411-ade1-9a0aed705933&pd_rd_i=B07KQMVYKL&psc=1",
+      "url_produto": "https://www.amazon.com.br/Alongamento-Exerc%C3%ADcios-Condicionamento-Relaxamento-Fisioterapia/dp/B07KQMVYKL/ref=zg_bs_c_sports_d_sccl_1/132-3642484-3288123?pd_rd_w=4YKR5&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=PQ2ASWZEGG3DKYEHJQBA&pd_rd_wg=91OhD&pd_rd_r=a9785692-7569-489f-972b-9190e1b79216&pd_rd_i=B07KQMVYKL&psc=1",
       "posicao_ranking": 25,
-      "atualizado": "22/07/2026 02:50"
+      "atualizado": "23/07/2026 10:09"
     },
-    "Suéter com capuz X Nba Officially Licensed Men's Long Sleeve Pullover Hoodie Fleece Sweatshirt GAME 7Masculino": {
+    "Bike Ergometrica Bicicleta Ergometrica Bike Spinning Silenciosa Vertical Modelo Premium": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 0,
@@ -1979,11 +1979,11 @@
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/Moletom-masculino-oficialmente-licenciado-mesclado/dp/B0DQFCRMDB/ref=zg_bs_c_sports_d_sccl_2/143-9421721-4546131?pd_rd_w=esUVq&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=M26RNDWHV07P2C0WRX6K&pd_rd_wg=Xj5kY&pd_rd_r=4ddadc2d-0f20-4411-ade1-9a0aed705933&pd_rd_i=B0DQFCRMDB&psc=1",
+      "url_produto": "https://www.amazon.com.br/Ergometrica-Bicicleta-Spinning-Silenciosa-Vertical/dp/B0FTNWV5F9/ref=zg_bs_c_sports_d_sccl_2/132-3642484-3288123?pd_rd_w=4YKR5&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=PQ2ASWZEGG3DKYEHJQBA&pd_rd_wg=91OhD&pd_rd_r=a9785692-7569-489f-972b-9190e1b79216&pd_rd_i=B0FTNWV5F9&psc=1",
       "posicao_ranking": 26,
-      "atualizado": "22/07/2026 02:50"
+      "atualizado": "23/07/2026 10:09"
     },
-    "Bike Ergometrica Bicicleta Ergometrica Bike Spinning Silenciosa Vertical Modelo Premium": {
+    "Mini Bola Trionda da Copa do Mundo da FIFA 26™ Adidas": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 0,
@@ -2001,11 +2001,11 @@
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/Ergometrica-Bicicleta-Spinning-Silenciosa-Vertical/dp/B0FTNWV5F9/ref=zg_bs_c_sports_d_sccl_3/143-9421721-4546131?pd_rd_w=esUVq&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=M26RNDWHV07P2C0WRX6K&pd_rd_wg=Xj5kY&pd_rd_r=4ddadc2d-0f20-4411-ade1-9a0aed705933&pd_rd_i=B0FTNWV5F9&psc=1",
+      "url_produto": "https://www.amazon.com.br/Mini-Bola-Trionda-Mundo-Adidas/dp/B0DLHHKFGW/ref=zg_bs_c_sports_d_sccl_3/132-3642484-3288123?pd_rd_w=4YKR5&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=PQ2ASWZEGG3DKYEHJQBA&pd_rd_wg=91OhD&pd_rd_r=a9785692-7569-489f-972b-9190e1b79216&pd_rd_i=B0DLHHKFGW&psc=1",
       "posicao_ranking": 27,
-      "atualizado": "22/07/2026 02:50"
+      "atualizado": "23/07/2026 10:09"
     },
-    "Mor Life - Barraca Luna 5 Pessoas": {
+    "Corda de pular sem emaranhados, cabo de corda de salto rápido com rolamentos de esferas para mulheres, homens e crianças, corda de salto de aço ajustável com alças de espuma para fitness, exercícios em casa e corpo fino": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 0,
@@ -2023,11 +2023,11 @@
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/Barraca-5-Lugares-Luna-9038/dp/B076PM3J79/ref=zg_bs_c_sports_d_sccl_4/143-9421721-4546131?pd_rd_w=esUVq&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=M26RNDWHV07P2C0WRX6K&pd_rd_wg=Xj5kY&pd_rd_r=4ddadc2d-0f20-4411-ade1-9a0aed705933&pd_rd_i=B076PM3J79&psc=1",
+      "url_produto": "https://www.amazon.com.br/velocidade-emaranhamento-rolamentos-mulheres-ajust%C3%A1veis/dp/B09DF9NWC7/ref=zg_bs_c_sports_d_sccl_4/132-3642484-3288123?pd_rd_w=4YKR5&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=PQ2ASWZEGG3DKYEHJQBA&pd_rd_wg=91OhD&pd_rd_r=a9785692-7569-489f-972b-9190e1b79216&pd_rd_i=B09DF9NWC7&psc=1",
       "posicao_ranking": 28,
-      "atualizado": "22/07/2026 02:50"
+      "atualizado": "23/07/2026 10:09"
     },
-    "Corda de pular sem emaranhados, cabo de corda de salto rápido com rolamentos de esferas para mulheres, homens e crianças, corda de salto de aço ajustável com alças de espuma para fitness, exercícios em casa e corpo fino": {
+    "Punch Strap Musculação - Preto - Par - 100% Algodão - Tala Lifting, Power Lifiting, Levantamento De Peso - Unissex": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 0,
@@ -2045,11 +2045,11 @@
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/velocidade-emaranhamento-rolamentos-mulheres-ajust%C3%A1veis/dp/B09DF9NWC7/ref=zg_bs_c_sports_d_sccl_5/143-9421721-4546131?pd_rd_w=esUVq&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=M26RNDWHV07P2C0WRX6K&pd_rd_wg=Xj5kY&pd_rd_r=4ddadc2d-0f20-4411-ade1-9a0aed705933&pd_rd_i=B09DF9NWC7&psc=1",
+      "url_produto": "https://www.amazon.com.br/Strap-Muscula%C3%A7%C3%A3o-Punch-Lifiting-Levantamento/dp/B0CCZNFDPF/ref=zg_bs_c_sports_d_sccl_5/132-3642484-3288123?pd_rd_w=4YKR5&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=PQ2ASWZEGG3DKYEHJQBA&pd_rd_wg=91OhD&pd_rd_r=a9785692-7569-489f-972b-9190e1b79216&pd_rd_i=B0CCZNFDPF&psc=1",
       "posicao_ranking": 29,
-      "atualizado": "22/07/2026 02:50"
+      "atualizado": "23/07/2026 10:09"
     },
-    "Mini Bola Trionda da Copa do Mundo da FIFA 26™ Adidas": {
+    "Garrafa Térmica Inox Parede Dupla Matterhorn 591ml Azul Mônaco Contigo": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 0,
@@ -2067,10 +2067,10 @@
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/Mini-Bola-Trionda-Mundo-Adidas/dp/B0DLHHKFGW/ref=zg_bs_c_sports_d_sccl_6/143-9421721-4546131?pd_rd_w=esUVq&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=M26RNDWHV07P2C0WRX6K&pd_rd_wg=Xj5kY&pd_rd_r=4ddadc2d-0f20-4411-ade1-9a0aed705933&pd_rd_i=B0DLHHKFGW&psc=1",
+      "url_produto": "https://www.amazon.com.br/Garrafa-T%C3%A9rmica-Inox-Parede-Dupla/dp/B07K8XJF9D/ref=zg_bs_c_sports_d_sccl_6/132-3642484-3288123?pd_rd_w=4YKR5&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=PQ2ASWZEGG3DKYEHJQBA&pd_rd_wg=91OhD&pd_rd_r=a9785692-7569-489f-972b-9190e1b79216&pd_rd_i=B07K8XJF9D&psc=1",
       "posicao_ranking": 30,
-      "atualizado": "22/07/2026 02:50"
+      "atualizado": "23/07/2026 10:09"
     }
   },
-  "timestamp": "2026-07-22T10:11:58.563170"
+  "timestamp": "2026-07-23T10:09:21.460950"
 }
