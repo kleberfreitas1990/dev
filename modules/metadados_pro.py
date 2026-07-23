@@ -229,15 +229,10 @@ def render_metadados_pro():
     )
 
     with st.container(border=True):
-        modo_entrada = st.radio("Fonte do vídeo:", ["Upload de Arquivo", "URL de Vídeo"], horizontal=True)
-        uploaded_file = None
-        video_url = ""
-        if modo_entrada == "Upload de Arquivo":
-            uploaded_file = st.file_uploader("Envie o vídeo", type=["mp4", "mov", "mkv"])
-        else:
-            video_url = st.text_input("URL do vídeo (TikTok, Instagram, etc)").strip()
+        uploaded_file = st.file_uploader("Envie o vídeo", type=["mp4", "mov", "mkv"])
+        video_url = "" # Mantido vazio para compatibilidade
 
-    if not (uploaded_file or video_url):
+    if not uploaded_file:
         st.info("Aguardando vídeo para processamento.")
         return
 
@@ -277,14 +272,9 @@ def render_metadados_pro():
             caminho_out = temp_out.name
 
         try:
-            # 1. Download/Carregamento
-            if uploaded_file:
-                with open(caminho_in, "wb") as f:
-                    f.write(uploaded_file.getbuffer())
-            else:
-                progresso.progress(20, text="Baixando vídeo...")
-                if not baixar_video_yt_dlp(video_url, caminho_in):
-                    st.stop()
+            # 1. Carregamento
+            with open(caminho_in, "wb") as f:
+                f.write(uploaded_file.getbuffer())
             
             # 2. Processamento FFmpeg
             progresso.progress(50, text="Aplicando Antiduplicação e Limpando Metadados...")
