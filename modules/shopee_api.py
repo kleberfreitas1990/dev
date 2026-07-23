@@ -411,7 +411,9 @@ def obter_termos_shopee_api():
     if trends_path.exists():
         with open(trends_path, "r") as f:
             data = json.load(f)
-        termos = data.get("data", [])
+        termos = [t.get("termo") for t in data.get("tendencias", []) if isinstance(t, dict)]
+        if not termos:
+            termos = data.get("data", []) # Fallback legível se for lista direta
         if termos:
             logger.info(f"✅ Shopee: usando fallback JSON ({len(termos)} termos)")
             return termos

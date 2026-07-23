@@ -1,276 +1,276 @@
 {
-  "timestamp": "2026-07-23T10:09:07.395651",
+  "timestamp": "2026-07-23T10:12:18.744984",
   "data": "2026-07-23",
   "dados": [
     {
       "termo": "Photocard",
-      "vendas": "10.0k",
-      "avaliacao": 4.5,
-      "preco": "R$ 50,90",
-      "categoria": "Marketplace",
-      "fonte": "Shopee Live",
-      "atualizado": "23/07/2026 10:09"
+      "vendas": "17.3k",
+      "avaliacao": 4.8,
+      "preco": "R$ 658,90",
+      "categoria": "Infantil",
+      "fonte": "Shopee API",
+      "atualizado": "23/07/2026 10:12"
     },
     {
       "termo": "Kettlebell Acte Sports",
-      "vendas": "11.1k",
-      "avaliacao": 4.6,
-      "preco": "R$ 60,90",
-      "categoria": "Marketplace",
-      "fonte": "Shopee Live",
-      "atualizado": "23/07/2026 10:09"
+      "vendas": "46.7k",
+      "avaliacao": 4.5,
+      "preco": "R$ 118,90",
+      "categoria": "Casa",
+      "fonte": "Shopee API",
+      "atualizado": "23/07/2026 10:12"
     },
     {
       "termo": "Fone de Ouvido Disney LF-918",
-      "vendas": "12.2k",
-      "avaliacao": 4.7,
-      "preco": "R$ 70,90",
-      "categoria": "Marketplace",
-      "fonte": "Shopee Live",
-      "atualizado": "23/07/2026 10:09"
+      "vendas": "20.6k",
+      "avaliacao": 4.9,
+      "preco": "R$ 548,90",
+      "categoria": "Eletrônicos",
+      "fonte": "Shopee API",
+      "atualizado": "23/07/2026 10:12"
     },
     {
       "termo": "Controle PC",
-      "vendas": "13.3k",
+      "vendas": "38.4k",
       "avaliacao": 4.8,
-      "preco": "R$ 80,90",
-      "categoria": "Marketplace",
-      "fonte": "Shopee Live",
-      "atualizado": "23/07/2026 10:09"
+      "preco": "R$ 528,90",
+      "categoria": "Infantil",
+      "fonte": "Shopee API",
+      "atualizado": "23/07/2026 10:12"
     },
     {
       "termo": "Mouse Pad",
-      "vendas": "14.4k",
-      "avaliacao": 4.9,
-      "preco": "R$ 90,90",
-      "categoria": "Marketplace",
-      "fonte": "Shopee Live",
-      "atualizado": "23/07/2026 10:09"
+      "vendas": "42.0k",
+      "avaliacao": 4.7,
+      "preco": "R$ 205,90",
+      "categoria": "Moda",
+      "fonte": "Shopee API",
+      "atualizado": "23/07/2026 10:12"
     },
     {
       "termo": "Sofá",
-      "vendas": "15.5k",
-      "avaliacao": 4.5,
-      "preco": "R$ 100,90",
-      "categoria": "Marketplace",
-      "fonte": "Shopee Live",
-      "atualizado": "23/07/2026 10:09"
+      "vendas": "16.3k",
+      "avaliacao": 4.6,
+      "preco": "R$ 609,90",
+      "categoria": "Casa",
+      "fonte": "Shopee API",
+      "atualizado": "23/07/2026 10:12"
     },
     {
       "termo": "Nintendo 3DS",
-      "vendas": "16.6k",
-      "avaliacao": 4.6,
-      "preco": "R$ 110,90",
-      "categoria": "Marketplace",
-      "fonte": "Shopee Live",
-      "atualizado": "23/07/2026 10:09"
+      "vendas": "42.1k",
+      "avaliacao": 4.5,
+      "preco": "R$ 570,90",
+      "categoria": "Esportes",
+      "fonte": "Shopee API",
+      "atualizado": "23/07/2026 10:12"
     },
     {
       "termo": "Parka",
-      "vendas": "17.7k",
-      "avaliacao": 4.7,
-      "preco": "R$ 120,90",
-      "categoria": "Marketplace",
-      "fonte": "Shopee Live",
-      "atualizado": "23/07/2026 10:09"
+      "vendas": "47.7k",
+      "avaliacao": 4.6,
+      "preco": "R$ 878,90",
+      "categoria": "Infantil",
+      "fonte": "Shopee API",
+      "atualizado": "23/07/2026 10:12"
     },
     {
       "termo": "Sapateira",
-      "vendas": "18.8k",
-      "avaliacao": 4.8,
-      "preco": "R$ 130,90",
-      "categoria": "Marketplace",
-      "fonte": "Shopee Live",
-      "atualizado": "23/07/2026 10:09"
+      "vendas": "12.0k",
+      "avaliacao": 4.7,
+      "preco": "R$ 453,90",
+      "categoria": "Casa",
+      "fonte": "Shopee API",
+      "atualizado": "23/07/2026 10:12"
     },
     {
       "termo": "Alexa",
-      "vendas": "19.9k",
-      "avaliacao": 4.9,
-      "preco": "R$ 140,90",
-      "categoria": "Marketplace",
-      "fonte": "Shopee Live",
-      "atualizado": "23/07/2026 10:09"
+      "vendas": "17.4k",
+      "avaliacao": 4.7,
+      "preco": "R$ 987,90",
+      "categoria": "Esportes",
+      "fonte": "Shopee API",
+      "atualizado": "23/07/2026 10:12"
     },
     {
       "termo": "Prateleira",
-      "vendas": "20.10k",
-      "avaliacao": 4.5,
-      "preco": "R$ 150,90",
-      "categoria": "Marketplace",
-      "fonte": "Shopee Live",
-      "atualizado": "23/07/2026 10:09"
+      "vendas": "30.7k",
+      "avaliacao": 5.0,
+      "preco": "R$ 282,90",
+      "categoria": "Moda",
+      "fonte": "Shopee API",
+      "atualizado": "23/07/2026 10:12"
     },
     {
       "termo": "Caixa Organizadora",
-      "vendas": "21.11k",
-      "avaliacao": 4.6,
-      "preco": "R$ 160,90",
-      "categoria": "Marketplace",
-      "fonte": "Shopee Live",
-      "atualizado": "23/07/2026 10:09"
+      "vendas": "27.8k",
+      "avaliacao": 4.8,
+      "preco": "R$ 25,90",
+      "categoria": "Eletrônicos",
+      "fonte": "Shopee API",
+      "atualizado": "23/07/2026 10:12"
     },
     {
       "termo": "Sacola Personalizada",
-      "vendas": "22.12k",
-      "avaliacao": 4.7,
-      "preco": "R$ 170,90",
-      "categoria": "Marketplace",
-      "fonte": "Shopee Live",
-      "atualizado": "23/07/2026 10:09"
+      "vendas": "10.6k",
+      "avaliacao": 4.5,
+      "preco": "R$ 190,90",
+      "categoria": "Beleza",
+      "fonte": "Shopee API",
+      "atualizado": "23/07/2026 10:12"
     },
     {
       "termo": "Decoração",
-      "vendas": "23.13k",
+      "vendas": "9.9k",
       "avaliacao": 4.8,
-      "preco": "R$ 180,90",
-      "categoria": "Marketplace",
-      "fonte": "Shopee Live",
-      "atualizado": "23/07/2026 10:09"
+      "preco": "R$ 248,90",
+      "categoria": "Casa",
+      "fonte": "Shopee API",
+      "atualizado": "23/07/2026 10:12"
     },
     {
       "termo": "Poltrona",
-      "vendas": "24.14k",
-      "avaliacao": 4.9,
-      "preco": "R$ 190,90",
-      "categoria": "Marketplace",
-      "fonte": "Shopee Live",
-      "atualizado": "23/07/2026 10:09"
+      "vendas": "26.5k",
+      "avaliacao": 4.8,
+      "preco": "R$ 332,90",
+      "categoria": "Infantil",
+      "fonte": "Shopee API",
+      "atualizado": "23/07/2026 10:12"
     },
     {
       "termo": "Chopp",
-      "vendas": "25.15k",
-      "avaliacao": 4.5,
-      "preco": "R$ 200,90",
-      "categoria": "Marketplace",
-      "fonte": "Shopee Live",
-      "atualizado": "23/07/2026 10:09"
+      "vendas": "843+",
+      "avaliacao": 4.8,
+      "preco": "R$ 599,90",
+      "categoria": "Beleza",
+      "fonte": "Shopee API",
+      "atualizado": "23/07/2026 10:12"
     },
     {
       "termo": "Masturbador Masculino",
-      "vendas": "26.16k",
-      "avaliacao": 4.6,
-      "preco": "R$ 210,90",
-      "categoria": "Marketplace",
-      "fonte": "Shopee Live",
-      "atualizado": "23/07/2026 10:09"
+      "vendas": "8.4k",
+      "avaliacao": 4.8,
+      "preco": "R$ 268,90",
+      "categoria": "Eletrônicos",
+      "fonte": "Shopee API",
+      "atualizado": "23/07/2026 10:12"
     },
     {
       "termo": "Chopeira",
-      "vendas": "27.17k",
-      "avaliacao": 4.7,
-      "preco": "R$ 220,90",
-      "categoria": "Marketplace",
-      "fonte": "Shopee Live",
-      "atualizado": "23/07/2026 10:09"
+      "vendas": "36.7k",
+      "avaliacao": 4.5,
+      "preco": "R$ 846,90",
+      "categoria": "Casa",
+      "fonte": "Shopee API",
+      "atualizado": "23/07/2026 10:12"
     },
     {
       "termo": "Biquíni",
-      "vendas": "28.18k",
-      "avaliacao": 4.8,
-      "preco": "R$ 230,90",
-      "categoria": "Marketplace",
-      "fonte": "Shopee Live",
-      "atualizado": "23/07/2026 10:09"
+      "vendas": "31.5k",
+      "avaliacao": 4.9,
+      "preco": "R$ 469,90",
+      "categoria": "Esportes",
+      "fonte": "Shopee API",
+      "atualizado": "23/07/2026 10:12"
     },
     {
       "termo": "PC Gamer",
-      "vendas": "29.19k",
+      "vendas": "39.7k",
       "avaliacao": 4.9,
-      "preco": "R$ 240,90",
-      "categoria": "Marketplace",
-      "fonte": "Shopee Live",
-      "atualizado": "23/07/2026 10:09"
+      "preco": "R$ 349,90",
+      "categoria": "Infantil",
+      "fonte": "Shopee API",
+      "atualizado": "23/07/2026 10:12"
     },
     {
       "termo": "Pax Pneus",
-      "vendas": "30.20k",
-      "avaliacao": 4.5,
-      "preco": "R$ 250,90",
-      "categoria": "Marketplace",
-      "fonte": "Shopee Live",
-      "atualizado": "23/07/2026 10:09"
+      "vendas": "36.1k",
+      "avaliacao": 4.8,
+      "preco": "R$ 829,90",
+      "categoria": "Infantil",
+      "fonte": "Shopee API",
+      "atualizado": "23/07/2026 10:12"
     },
     {
       "termo": "Celular LG K61",
-      "vendas": "31.21k",
-      "avaliacao": 4.6,
-      "preco": "R$ 260,90",
-      "categoria": "Marketplace",
-      "fonte": "Shopee Live",
-      "atualizado": "23/07/2026 10:09"
+      "vendas": "894+",
+      "avaliacao": 5.0,
+      "preco": "R$ 457,90",
+      "categoria": "Esportes",
+      "fonte": "Shopee API",
+      "atualizado": "23/07/2026 10:12"
     },
     {
       "termo": "Celular Xiaomi Redmi 15C 256GB 8GB RAM Dual Sim Preto",
-      "vendas": "32.22k",
-      "avaliacao": 4.7,
-      "preco": "R$ 270,90",
-      "categoria": "Marketplace",
-      "fonte": "Shopee Live",
-      "atualizado": "23/07/2026 10:09"
+      "vendas": "23.5k",
+      "avaliacao": 4.8,
+      "preco": "R$ 1107,90",
+      "categoria": "Eletrônicos",
+      "fonte": "Shopee API",
+      "atualizado": "23/07/2026 10:12"
     },
     {
       "termo": "Auto_Truck",
-      "vendas": "33.23k",
+      "vendas": "18.9k",
       "avaliacao": 4.8,
-      "preco": "R$ 280,90",
-      "categoria": "Marketplace",
-      "fonte": "Shopee Live",
-      "atualizado": "23/07/2026 10:09"
+      "preco": "R$ 137,90",
+      "categoria": "Moda",
+      "fonte": "Shopee API",
+      "atualizado": "23/07/2026 10:12"
     },
     {
       "termo": "Celular GT30",
-      "vendas": "34.24k",
-      "avaliacao": 4.9,
-      "preco": "R$ 290,90",
-      "categoria": "Marketplace",
-      "fonte": "Shopee Live",
-      "atualizado": "23/07/2026 10:09"
+      "vendas": "20.2k",
+      "avaliacao": 4.8,
+      "preco": "R$ 358,90",
+      "categoria": "Esportes",
+      "fonte": "Shopee API",
+      "atualizado": "23/07/2026 10:12"
     },
     {
       "termo": "Cama Triliche",
-      "vendas": "35.25k",
-      "avaliacao": 4.5,
-      "preco": "R$ 300,90",
-      "categoria": "Marketplace",
-      "fonte": "Shopee Live",
-      "atualizado": "23/07/2026 10:09"
+      "vendas": "17.7k",
+      "avaliacao": 4.7,
+      "preco": "R$ 88,90",
+      "categoria": "Casa",
+      "fonte": "Shopee API",
+      "atualizado": "23/07/2026 10:12"
     },
     {
       "termo": "Caixa de Vela 7 Dias",
-      "vendas": "36.26k",
-      "avaliacao": 4.6,
-      "preco": "R$ 310,90",
-      "categoria": "Marketplace",
-      "fonte": "Shopee Live",
-      "atualizado": "23/07/2026 10:09"
+      "vendas": "960+",
+      "avaliacao": 4.9,
+      "preco": "R$ 838,90",
+      "categoria": "Beleza",
+      "fonte": "Shopee API",
+      "atualizado": "23/07/2026 10:12"
     },
     {
       "termo": "Caixa de Whisky",
-      "vendas": "37.27k",
-      "avaliacao": 4.7,
-      "preco": "R$ 320,90",
-      "categoria": "Marketplace",
-      "fonte": "Shopee Live",
-      "atualizado": "23/07/2026 10:09"
+      "vendas": "19.5k",
+      "avaliacao": 4.6,
+      "preco": "R$ 128,90",
+      "categoria": "Casa",
+      "fonte": "Shopee API",
+      "atualizado": "23/07/2026 10:12"
     },
     {
       "termo": "Carabina Spring",
-      "vendas": "38.28k",
+      "vendas": "32.0k",
       "avaliacao": 4.8,
-      "preco": "R$ 330,90",
-      "categoria": "Marketplace",
-      "fonte": "Shopee Live",
-      "atualizado": "23/07/2026 10:09"
+      "preco": "R$ 891,90",
+      "categoria": "Beleza",
+      "fonte": "Shopee API",
+      "atualizado": "23/07/2026 10:12"
     },
     {
       "termo": "Capacete Norisk Razor Monocolor Fosco",
-      "vendas": "39.29k",
-      "avaliacao": 4.9,
-      "preco": "R$ 340,90",
-      "categoria": "Marketplace",
-      "fonte": "Shopee Live",
-      "atualizado": "23/07/2026 10:09"
+      "vendas": "17.8k",
+      "avaliacao": 4.8,
+      "preco": "R$ 55,90",
+      "categoria": "Infantil",
+      "fonte": "Shopee API",
+      "atualizado": "23/07/2026 10:12"
     }
   ]
 }
