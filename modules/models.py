@@ -199,6 +199,50 @@ PALAVRAS_CHAVE_CAUDA_LONGA = {
         "palavra": "ar condicionado portátil 12000 BTUs",
         "hashtags": ["#arcondicionado", "#climatizador", "#casa", "#conforto"]
     },
+    "photocard": {
+        "palavra": "photocard kpop original stray kids bts blackpink",
+        "hashtags": ["#photocard", "#kpop", "#straykids", "#bts", "#blackpink"]
+    },
+    "kettlebell": {
+        "palavra": "kettlebell emborrachado acte sports 4kg 6kg 8kg",
+        "hashtags": ["#kettlebell", "#treino", "#crossfit", "#fitness", "#acte"]
+    },
+    "nintendo 3ds": {
+        "palavra": "nintendo 3ds xl seminovo com jogos",
+        "hashtags": ["#nintendo3ds", "#games", "#nintendo", "#retro", "#portatil"]
+    },
+    "alexa": {
+        "palavra": "alexa echo dot 5ª geração com relógio",
+        "hashtags": ["#alexa", "#casainteligente", "#echodot", "#tecnologia", "#amazon"]
+    },
+    "pax pneus": {
+        "palavra": "pax pneus aro 13 14 15 novos",
+        "hashtags": ["#paxpneus", "#pneus", "#carro", "#automotivo", "#oferta"]
+    },
+    "biquíni": {
+        "palavra": "biquíni cintura alta hot pants verão 2026",
+        "hashtags": ["#biquini", "#modapraia", "#verão", "#praia", "#lookpraia"]
+    },
+    "chopp": {
+        "palavra": "copo térmico para chopp com tampa 473ml",
+        "hashtags": ["#chopp", "#cerveja", "#copotermico", "#churrasco"]
+    },
+    "chopeira": {
+        "palavra": "chopeira portatil para lata e garrafa",
+        "hashtags": ["#chopeira", "#cerveja", "#bar", "#festa", "#presente"]
+    },
+    "masturbador": {
+        "palavra": "masturbador masculino realista com vibração",
+        "hashtags": ["#saudesexual", "#bemestar", "#prazer", "#masculino"]
+    },
+    "penteadeira": {
+        "palavra": "penteadeira camarim com espelho e led",
+        "hashtags": ["#penteadeira", "#maquiagem", "#quarto", "#decoração"]
+    },
+    "parka": {
+        "palavra": "parka feminina com capuz forrada inverno",
+        "hashtags": ["#parka", "#modafeminina", "#inverno", "#lookinverno"]
+    },
     "ar condicionado portátil": {
         "palavra": "ar condicionado portátil 12000 BTUs",
         "hashtags": ["#arcondicionado", "#climatizador", "#casa", "#conforto"]

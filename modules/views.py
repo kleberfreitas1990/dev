@@ -885,13 +885,16 @@ def _render_top20_com_shopee():
     for nome, dados in produtos_dict.items():
         dados_palavra = obter_palavra_chave(nome)
         link_shopee = f"https://shopee.com.br/search?keyword={quote(nome)}"
+        # O termo exato pesquisado é o que o usuário quer ver na coluna "Palavra-chave"
+        termo_exato = dados_palavra.get("palavra", nome)
+        
         dados_tabela.append({
             "Produto": nome,
             "Link Shopee": link_shopee,
             "Categoria": dados.get("categoria", "Geral"),
             "Score": f"{dados.get('score', 0)}/10",
-            "Palavra-chave": dados_palavra.get("palavra", nome),
-            "Motivo Estratégico": dados.get("evento", "Tendência de Mercado"),
+            "Busca Exata": termo_exato,
+            "O que estão buscando": dados.get("evento", "Tendência de Mercado"),
         })
     
     df = pd.DataFrame(dados_tabela)
@@ -910,8 +913,8 @@ def _render_top20_com_shopee():
             ),
             "Categoria": st.column_config.TextColumn("Categoria", width="small"),
             "Score": st.column_config.TextColumn("Score", width="small"),
-            "Palavra-chave": st.column_config.TextColumn("Palavra-chave", width="large"),
-            "Motivo Estratégico": st.column_config.TextColumn("Motivo", width="large"),
+            "Busca Exata": st.column_config.TextColumn("Busca Exata", width="large"),
+            "O que estão buscando": st.column_config.TextColumn("O que estão buscando", width="large"),
         },
     )
     st.caption(f"📊 {len(dados_tabela)} produtos")
