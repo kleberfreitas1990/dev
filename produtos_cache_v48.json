@@ -1,7 +1,7 @@
 {
   "data": "2026-07-24",
   "produtos": {
-    "Photocard": {
+    "Sofá": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 180,
@@ -9,18 +9,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Casa",
-      "evento": "11.2k vendas na Shopee",
+      "categoria": "Beleza",
+      "evento": "30.7k vendas na Shopee",
       "variacao": 80,
       "tendencia": "Em alta",
       "score": 10,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
       "avaliacao": 4.7,
-      "preco": "R$ 827,90",
-      "atualizado": "24/07/2026 10:19"
+      "preco": "R$ 614,90",
+      "atualizado": "24/07/2026 10:30"
     },
-    "Kettlebell Acte Sports": {
+    "Arma de Gel": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 176,
@@ -28,18 +28,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Eletrônicos",
-      "evento": "48.5k vendas na Shopee",
+      "categoria": "Casa",
+      "evento": "36.0k vendas na Shopee",
       "variacao": 78,
       "tendencia": "Em alta",
       "score": 10,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
       "avaliacao": 4.8,
-      "preco": "R$ 239,90",
-      "atualizado": "24/07/2026 10:19"
+      "preco": "R$ 120,90",
+      "atualizado": "24/07/2026 10:30"
     },
-    "Fone de Ouvido Disney LF-918": {
+    "chopp": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 172,
@@ -47,18 +47,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Infantil",
-      "evento": "48.0k vendas na Shopee",
+      "categoria": "Beleza",
+      "evento": "13.4k vendas na Shopee",
       "variacao": 76,
       "tendencia": "Em alta",
       "score": 10,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 4.9,
-      "preco": "R$ 1071,90",
-      "atualizado": "24/07/2026 10:19"
+      "avaliacao": 4.5,
+      "preco": "R$ 700,90",
+      "atualizado": "24/07/2026 10:30"
     },
-    "Controle PC": {
+    "Caixa de Vela 7 Dias": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 168,
@@ -66,18 +66,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Beleza",
-      "evento": "31.0k vendas na Shopee",
+      "categoria": "Casa",
+      "evento": "13.5k vendas na Shopee",
       "variacao": 74,
       "tendencia": "Em alta",
       "score": 10,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
       "avaliacao": 4.8,
-      "preco": "R$ 1022,90",
-      "atualizado": "24/07/2026 10:19"
+      "preco": "R$ 147,90",
+      "atualizado": "24/07/2026 10:30"
     },
-    "Mouse Pad": {
+    "Caixa de Som Boombox 4 Branco": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 164,
@@ -85,18 +85,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Casa",
-      "evento": "606+ vendas na Shopee",
+      "categoria": "Esportes",
+      "evento": "19.7k vendas na Shopee",
       "variacao": 72,
       "tendencia": "Em alta",
       "score": 10,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 4.5,
-      "preco": "R$ 306,90",
-      "atualizado": "24/07/2026 10:19"
+      "avaliacao": 4.7,
+      "preco": "R$ 1052,90",
+      "atualizado": "24/07/2026 10:30"
     },
-    "Sofá": {
+    "Parka": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 160,
@@ -105,17 +105,17 @@
       "buscas_mes": 0,
       "buscas_historico": 0,
       "categoria": "Beleza",
-      "evento": "37.7k vendas na Shopee",
+      "evento": "35.0k vendas na Shopee",
       "variacao": 70,
       "tendencia": "Em alta",
       "score": 10,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 4.7,
-      "preco": "R$ 66,90",
-      "atualizado": "24/07/2026 10:19"
+      "avaliacao": 4.8,
+      "preco": "R$ 142,90",
+      "atualizado": "24/07/2026 10:30"
     },
-    "Nintendo 3DS": {
+    "R36S": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 156,
@@ -123,18 +123,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Beleza",
-      "evento": "41.9k vendas na Shopee",
+      "categoria": "Esportes",
+      "evento": "826+ vendas na Shopee",
       "variacao": 68,
       "tendencia": "Em alta",
       "score": 10,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 4.6,
-      "preco": "R$ 173,90",
-      "atualizado": "24/07/2026 10:19"
+      "avaliacao": 4.9,
+      "preco": "R$ 626,90",
+      "atualizado": "24/07/2026 10:30"
     },
-    "Parka": {
+    "Vibrador Bluetooth": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 152,
@@ -143,17 +143,17 @@
       "buscas_mes": 0,
       "buscas_historico": 0,
       "categoria": "Beleza",
-      "evento": "36.2k vendas na Shopee",
+      "evento": "897+ vendas na Shopee",
       "variacao": 66,
       "tendencia": "Em alta",
       "score": 10,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 4.6,
-      "preco": "R$ 564,90",
-      "atualizado": "24/07/2026 10:19"
+      "avaliacao": 4.9,
+      "preco": "R$ 710,90",
+      "atualizado": "24/07/2026 10:30"
     },
-    "Sapateira": {
+    "100 Pacotes de Figurinhas da Copa": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 148,
@@ -161,18 +161,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Casa",
-      "evento": "38.3k vendas na Shopee",
+      "categoria": "Infantil",
+      "evento": "49.9k vendas na Shopee",
       "variacao": 64,
       "tendencia": "Em alta",
       "score": 10,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 4.9,
-      "preco": "R$ 1170,90",
-      "atualizado": "24/07/2026 10:19"
+      "avaliacao": 4.7,
+      "preco": "R$ 365,90",
+      "atualizado": "24/07/2026 10:30"
     },
-    "Alexa": {
+    "iPhone": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 144,
@@ -180,18 +180,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Moda",
-      "evento": "33.2k vendas na Shopee",
+      "categoria": "Infantil",
+      "evento": "48.0k vendas na Shopee",
       "variacao": 62,
       "tendencia": "Em alta",
       "score": 10,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 5.0,
-      "preco": "R$ 1088,90",
-      "atualizado": "24/07/2026 10:19"
+      "avaliacao": 4.6,
+      "preco": "R$ 614,90",
+      "atualizado": "24/07/2026 10:30"
     },
-    "Prateleira": {
+    "Boneca Inflável": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 140,
@@ -199,18 +199,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Eletrônicos",
-      "evento": "46.2k vendas na Shopee",
+      "categoria": "Moda",
+      "evento": "18.1k vendas na Shopee",
       "variacao": 60,
       "tendencia": "Em alta",
       "score": 9,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
       "avaliacao": 4.8,
-      "preco": "R$ 1026,90",
-      "atualizado": "24/07/2026 10:19"
+      "preco": "R$ 352,90",
+      "atualizado": "24/07/2026 10:30"
     },
-    "Caixa Organizadora": {
+    "Sandália": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 136,
@@ -219,17 +219,17 @@
       "buscas_mes": 0,
       "buscas_historico": 0,
       "categoria": "Esportes",
-      "evento": "23.0k vendas na Shopee",
+      "evento": "12.6k vendas na Shopee",
       "variacao": 58,
       "tendencia": "Em alta",
       "score": 9,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 4.6,
-      "preco": "R$ 646,90",
-      "atualizado": "24/07/2026 10:19"
+      "avaliacao": 4.5,
+      "preco": "R$ 683,90",
+      "atualizado": "24/07/2026 10:30"
     },
-    "Sacola Personalizada": {
+    "Fone de Ouvido": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 132,
@@ -237,18 +237,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Casa",
-      "evento": "16.4k vendas na Shopee",
+      "categoria": "Beleza",
+      "evento": "6.6k vendas na Shopee",
       "variacao": 56,
       "tendencia": "Em alta",
       "score": 9,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 4.6,
-      "preco": "R$ 1083,90",
-      "atualizado": "24/07/2026 10:19"
+      "avaliacao": 4.8,
+      "preco": "R$ 372,90",
+      "atualizado": "24/07/2026 10:30"
     },
-    "Decoração": {
+    "Sacola Personalizada": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 128,
@@ -256,18 +256,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Infantil",
-      "evento": "15.3k vendas na Shopee",
+      "categoria": "Beleza",
+      "evento": "47.4k vendas na Shopee",
       "variacao": 54,
       "tendencia": "Em alta",
       "score": 9,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 4.9,
-      "preco": "R$ 334,90",
-      "atualizado": "24/07/2026 10:19"
+      "avaliacao": 4.6,
+      "preco": "R$ 324,90",
+      "atualizado": "24/07/2026 10:30"
     },
-    "Poltrona": {
+    "Sapateira": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 124,
@@ -275,18 +275,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Moda",
-      "evento": "26.3k vendas na Shopee",
+      "categoria": "Casa",
+      "evento": "25.8k vendas na Shopee",
       "variacao": 52,
       "tendencia": "Em alta",
       "score": 9,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
       "avaliacao": 4.6,
-      "preco": "R$ 693,90",
-      "atualizado": "24/07/2026 10:19"
+      "preco": "R$ 564,90",
+      "atualizado": "24/07/2026 10:30"
     },
-    "Chopp": {
+    "Alexa": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 120,
@@ -294,18 +294,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Casa",
-      "evento": "26.5k vendas na Shopee",
+      "categoria": "Moda",
+      "evento": "27.9k vendas na Shopee",
       "variacao": 50,
       "tendencia": "Em alta",
       "score": 9,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 5.0,
-      "preco": "R$ 1034,90",
-      "atualizado": "24/07/2026 10:19"
+      "avaliacao": 4.8,
+      "preco": "R$ 314,90",
+      "atualizado": "24/07/2026 10:30"
     },
-    "Masturbador Masculino": {
+    "Capacete Norisk Route FF345 Roxo": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 116,
@@ -313,18 +313,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Beleza",
-      "evento": "13.0k vendas na Shopee",
+      "categoria": "Casa",
+      "evento": "38.3k vendas na Shopee",
       "variacao": 48,
       "tendencia": "Em alta",
       "score": 9,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
       "avaliacao": 4.6,
-      "preco": "R$ 700,90",
-      "atualizado": "24/07/2026 10:19"
+      "preco": "R$ 1001,90",
+      "atualizado": "24/07/2026 10:30"
     },
-    "Chopeira": {
+    "Boneca Sexual": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 112,
@@ -332,18 +332,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Infantil",
-      "evento": "18.4k vendas na Shopee",
+      "categoria": "Beleza",
+      "evento": "23.9k vendas na Shopee",
       "variacao": 46,
       "tendencia": "Em alta",
       "score": 9,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 4.5,
-      "preco": "R$ 383,90",
-      "atualizado": "24/07/2026 10:19"
+      "avaliacao": 4.7,
+      "preco": "R$ 258,90",
+      "atualizado": "24/07/2026 10:30"
     },
-    "Biquíni": {
+    "Crocs": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 108,
@@ -351,18 +351,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Infantil",
-      "evento": "36.3k vendas na Shopee",
+      "categoria": "Beleza",
+      "evento": "8.5k vendas na Shopee",
       "variacao": 44,
       "tendencia": "Em alta",
       "score": 9,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 4.8,
-      "preco": "R$ 679,90",
-      "atualizado": "24/07/2026 10:19"
+      "avaliacao": 4.6,
+      "preco": "R$ 740,90",
+      "atualizado": "24/07/2026 10:30"
     },
-    "PC Gamer": {
+    "Vibrador": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 104,
@@ -371,17 +371,17 @@
       "buscas_mes": 0,
       "buscas_historico": 0,
       "categoria": "Casa",
-      "evento": "38.5k vendas na Shopee",
+      "evento": "25.3k vendas na Shopee",
       "variacao": 42,
       "tendencia": "Em alta",
       "score": 9,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
       "avaliacao": 4.8,
-      "preco": "R$ 367,90",
-      "atualizado": "24/07/2026 10:19"
+      "preco": "R$ 1196,90",
+      "atualizado": "24/07/2026 10:30"
     },
-    "Pax Pneus": {
+    "Carabina Rossi Sport": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 100,
@@ -389,18 +389,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Moda",
-      "evento": "43.6k vendas na Shopee",
+      "categoria": "Esportes",
+      "evento": "35.2k vendas na Shopee",
       "variacao": 40,
       "tendencia": "Em alta",
       "score": 8,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
       "avaliacao": 4.9,
-      "preco": "R$ 450,90",
-      "atualizado": "24/07/2026 10:19"
+      "preco": "R$ 544,90",
+      "atualizado": "24/07/2026 10:30"
     },
-    "Celular LG K61": {
+    "Faixas Elásticas": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 96,
@@ -408,18 +408,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Beleza",
-      "evento": "20.3k vendas na Shopee",
+      "categoria": "Moda",
+      "evento": "16.9k vendas na Shopee",
       "variacao": 38,
       "tendencia": "Em alta",
       "score": 8,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
       "avaliacao": 4.7,
-      "preco": "R$ 420,90",
-      "atualizado": "24/07/2026 10:19"
+      "preco": "R$ 624,90",
+      "atualizado": "24/07/2026 10:30"
     },
-    "Celular Xiaomi Redmi 15C 256GB 8GB RAM Dual Sim Preto": {
+    "Celular Motorola G54 5G": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 92,
@@ -427,18 +427,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Beleza",
-      "evento": "35.5k vendas na Shopee",
+      "categoria": "Moda",
+      "evento": "29.2k vendas na Shopee",
       "variacao": 36,
       "tendencia": "Em alta",
       "score": 8,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 5.0,
-      "preco": "R$ 42,90",
-      "atualizado": "24/07/2026 10:19"
+      "avaliacao": 4.7,
+      "preco": "R$ 603,90",
+      "atualizado": "24/07/2026 10:30"
     },
-    "Auto_Truck": {
+    "Smart Tv Samsung OLED": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 88,
@@ -446,18 +446,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Beleza",
-      "evento": "16.7k vendas na Shopee",
+      "categoria": "Esportes",
+      "evento": "13.9k vendas na Shopee",
       "variacao": 34,
       "tendencia": "Em alta",
       "score": 8,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 4.7,
-      "preco": "R$ 549,90",
-      "atualizado": "24/07/2026 10:19"
+      "avaliacao": 4.6,
+      "preco": "R$ 158,90",
+      "atualizado": "24/07/2026 10:30"
     },
-    "Celular GT30": {
+    "Camisa Sublimação": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 84,
@@ -465,18 +465,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Moda",
-      "evento": "34.4k vendas na Shopee",
+      "categoria": "Casa",
+      "evento": "20.0k vendas na Shopee",
       "variacao": 32,
       "tendencia": "Em alta",
       "score": 8,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 5.0,
-      "preco": "R$ 401,90",
-      "atualizado": "24/07/2026 10:19"
+      "avaliacao": 4.8,
+      "preco": "R$ 272,90",
+      "atualizado": "24/07/2026 10:30"
     },
-    "Cama Triliche": {
+    "Mesa de Canto Alemão": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 80,
@@ -484,18 +484,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Eletrônicos",
-      "evento": "44.9k vendas na Shopee",
+      "categoria": "Infantil",
+      "evento": "548+ vendas na Shopee",
       "variacao": 30,
       "tendencia": "Em alta",
       "score": 8,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 4.7,
-      "preco": "R$ 112,90",
-      "atualizado": "24/07/2026 10:19"
+      "avaliacao": 5.0,
+      "preco": "R$ 650,90",
+      "atualizado": "24/07/2026 10:30"
     },
-    "Caixa de Vela 7 Dias": {
+    "Celular Galaxy A56 A56": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 76,
@@ -503,18 +503,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Infantil",
-      "evento": "13.3k vendas na Shopee",
+      "categoria": "Esportes",
+      "evento": "48.0k vendas na Shopee",
       "variacao": 28,
       "tendencia": "Em alta",
       "score": 8,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 4.5,
-      "preco": "R$ 337,90",
-      "atualizado": "24/07/2026 10:19"
+      "avaliacao": 4.7,
+      "preco": "R$ 1039,90",
+      "atualizado": "24/07/2026 10:30"
     },
-    "Caixa de Whisky": {
+    "Roda Abdominal": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 72,
@@ -522,18 +522,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Esportes",
-      "evento": "38.7k vendas na Shopee",
+      "categoria": "Beleza",
+      "evento": "18.5k vendas na Shopee",
       "variacao": 26,
       "tendencia": "Em alta",
       "score": 8,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 4.8,
-      "preco": "R$ 923,90",
-      "atualizado": "24/07/2026 10:19"
+      "avaliacao": 4.6,
+      "preco": "R$ 310,90",
+      "atualizado": "24/07/2026 10:30"
     },
-    "Carabina Spring": {
+    "Caixa de Som Pulse Xplosion 2": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 68,
@@ -541,18 +541,18 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Infantil",
-      "evento": "34.4k vendas na Shopee",
+      "categoria": "Esportes",
+      "evento": "31.1k vendas na Shopee",
       "variacao": 24,
       "tendencia": "Em alta",
       "score": 8,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 5.0,
-      "preco": "R$ 879,90",
-      "atualizado": "24/07/2026 10:19"
+      "avaliacao": 4.7,
+      "preco": "R$ 1080,90",
+      "atualizado": "24/07/2026 10:30"
     },
-    "Capacete Norisk Razor Monocolor Fosco": {
+    "Celular Xiaomi X7 Pro": {
       "pins": 0,
       "pins_historico": 0,
       "crescimento": 64,
@@ -560,16 +560,16 @@
       "resultados_ml": 0,
       "buscas_mes": 0,
       "buscas_historico": 0,
-      "categoria": "Eletrônicos",
-      "evento": "927+ vendas na Shopee",
+      "categoria": "Esportes",
+      "evento": "939+ vendas na Shopee",
       "variacao": 22,
       "tendencia": "Em alta",
       "score": 8,
       "fonte": "Shopee Live",
       "origem_coleta": "cache_shopee_live",
-      "avaliacao": 4.9,
-      "preco": "R$ 807,90",
-      "atualizado": "24/07/2026 10:19"
+      "avaliacao": 4.8,
+      "preco": "R$ 1103,90",
+      "atualizado": "24/07/2026 10:30"
     },
     "apple watch": {
       "pins": 0,
@@ -590,7 +590,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 1,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "ar condicionado": {
       "pins": 0,
@@ -611,7 +611,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 2,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "ar condicionado inverter": {
       "pins": 0,
@@ -632,7 +632,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 3,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "bicicletas": {
       "pins": 0,
@@ -653,7 +653,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 4,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "cafeteira": {
       "pins": 0,
@@ -674,7 +674,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 5,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "carros novos": {
       "pins": 0,
@@ -695,7 +695,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 6,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "computador": {
       "pins": 0,
@@ -716,7 +716,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 7,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "fogao 4 boca": {
       "pins": 0,
@@ -737,7 +737,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 8,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "fone de ouvido bluetooth": {
       "pins": 0,
@@ -758,7 +758,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 9,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "freezer vertical": {
       "pins": 0,
@@ -779,7 +779,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 10,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "geladeira frost free": {
       "pins": 0,
@@ -800,7 +800,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 11,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "guarda roupa casal": {
       "pins": 0,
@@ -821,7 +821,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 12,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "guarda roupa solteiro": {
       "pins": 0,
@@ -842,7 +842,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 13,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "ipad": {
       "pins": 0,
@@ -863,7 +863,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 14,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "iphone": {
       "pins": 0,
@@ -884,7 +884,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 15,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "iphone 8 plus": {
       "pins": 0,
@@ -905,7 +905,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 16,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "iphone 11": {
       "pins": 0,
@@ -926,7 +926,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 17,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "iphone 13": {
       "pins": 0,
@@ -947,7 +947,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 18,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "iphone 13 pro max": {
       "pins": 0,
@@ -968,7 +968,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 19,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "iphone 14": {
       "pins": 0,
@@ -989,7 +989,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 20,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "iphone 14 pro": {
       "pins": 0,
@@ -1010,7 +1010,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 21,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "iphone 14 pro max": {
       "pins": 0,
@@ -1031,7 +1031,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 22,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "iphone 15": {
       "pins": 0,
@@ -1052,7 +1052,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 23,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "iphone 16": {
       "pins": 0,
@@ -1073,7 +1073,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 24,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "iphone 16 plus": {
       "pins": 0,
@@ -1094,7 +1094,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 25,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "iphone 16 pro": {
       "pins": 0,
@@ -1115,7 +1115,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 26,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "iphone 16 pro max": {
       "pins": 0,
@@ -1136,7 +1136,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 27,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "jbl": {
       "pins": 0,
@@ -1157,7 +1157,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 28,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "microondas": {
       "pins": 0,
@@ -1178,7 +1178,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 29,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "monitor": {
       "pins": 0,
@@ -1199,7 +1199,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 30,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "motorola": {
       "pins": 0,
@@ -1220,7 +1220,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 31,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "nintendo switch": {
       "pins": 0,
@@ -1241,7 +1241,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 32,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "notebook": {
       "pins": 0,
@@ -1262,7 +1262,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 33,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "notebook dell": {
       "pins": 0,
@@ -1283,7 +1283,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 34,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "painel para tv": {
       "pins": 0,
@@ -1304,7 +1304,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 35,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "penteadeira": {
       "pins": 0,
@@ -1325,7 +1325,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 36,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "poco x5 pro": {
       "pins": 0,
@@ -1346,7 +1346,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 37,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "ps4": {
       "pins": 0,
@@ -1367,7 +1367,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 38,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "ps5": {
       "pins": 0,
@@ -1388,7 +1388,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 39,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "redmi note 12": {
       "pins": 0,
@@ -1409,7 +1409,7 @@
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://tendencias.mercadolivre.com.br/",
       "posicao_ranking": 40,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "DAS, Massa para Modelar, Branco, 1Kg": {
       "pins": 0,
@@ -1429,9 +1429,9 @@
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/Massa-para-Modelar-Das-1Kg/dp/B001GAP4YA/ref=zg_bs_c_toys_d_sccl_1/133-5149308-3139368?pd_rd_w=yiZh3&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=S07SQPZXW14ZPP3SQP0D&pd_rd_wg=Ltiw7&pd_rd_r=042e861c-4d66-4f23-8e85-6e5026f0dead&pd_rd_i=B001GAP4YA&psc=1",
+      "url_produto": "https://www.amazon.com.br/Massa-para-Modelar-Das-1Kg/dp/B001GAP4YA/ref=zg_bs_c_toys_d_sccl_1/146-3669781-0142728?pd_rd_w=RpUm5&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=7M1MXKSMSNQ6PEVS9YSM&pd_rd_wg=onlzz&pd_rd_r=f5ebbe34-e13f-46ba-bb63-91c43af36cf1&pd_rd_i=B001GAP4YA&psc=1",
       "posicao_ranking": 1,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "Pais & Filhos - Caiu Perdeu, 54 Pçs, idade mínima recomendada - 6 anos": {
       "pins": 0,
@@ -1451,9 +1451,9 @@
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/Jogo-Caiu-Perdeu-Pais-Filhos/dp/B07LHC55HY/ref=zg_bs_c_toys_d_sccl_2/133-5149308-3139368?pd_rd_w=yiZh3&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=S07SQPZXW14ZPP3SQP0D&pd_rd_wg=Ltiw7&pd_rd_r=042e861c-4d66-4f23-8e85-6e5026f0dead&pd_rd_i=B07LHC55HY&psc=1",
+      "url_produto": "https://www.amazon.com.br/Jogo-Caiu-Perdeu-Pais-Filhos/dp/B07LHC55HY/ref=zg_bs_c_toys_d_sccl_2/146-3669781-0142728?pd_rd_w=RpUm5&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=7M1MXKSMSNQ6PEVS9YSM&pd_rd_wg=onlzz&pd_rd_r=f5ebbe34-e13f-46ba-bb63-91c43af36cf1&pd_rd_i=B07LHC55HY&psc=1",
       "posicao_ranking": 2,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "Pais & Filhos | Quebra-Cabeça Viagem Ao Espaço 30 Peças | Brinquedo Educativo 4+ | Coordenação Motora e Raciocínio | Tema Astronauta e Planetas": {
       "pins": 0,
@@ -1473,9 +1473,9 @@
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/Quebra-Cabe%C3%A7a-38-P%C3%A7s-Viagem-Espa%C3%A7o/dp/B0D63FK3R6/ref=zg_bs_c_toys_d_sccl_3/133-5149308-3139368?pd_rd_w=yiZh3&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=S07SQPZXW14ZPP3SQP0D&pd_rd_wg=Ltiw7&pd_rd_r=042e861c-4d66-4f23-8e85-6e5026f0dead&pd_rd_i=B0D63FK3R6&psc=1",
+      "url_produto": "https://www.amazon.com.br/Quebra-Cabe%C3%A7a-38-P%C3%A7s-Viagem-Espa%C3%A7o/dp/B0D63FK3R6/ref=zg_bs_c_toys_d_sccl_3/146-3669781-0142728?pd_rd_w=RpUm5&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=7M1MXKSMSNQ6PEVS9YSM&pd_rd_wg=onlzz&pd_rd_r=f5ebbe34-e13f-46ba-bb63-91c43af36cf1&pd_rd_i=B0D63FK3R6&psc=1",
       "posicao_ranking": 3,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "UNO Original": {
       "pins": 0,
@@ -1495,9 +1495,9 @@
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/Mattel-W2085-UNO-Original/dp/B00CTH0A1Q/ref=zg_bs_c_toys_d_sccl_4/133-5149308-3139368?pd_rd_w=yiZh3&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=S07SQPZXW14ZPP3SQP0D&pd_rd_wg=Ltiw7&pd_rd_r=042e861c-4d66-4f23-8e85-6e5026f0dead&pd_rd_i=B00CTH0A1Q&psc=1",
+      "url_produto": "https://www.amazon.com.br/Mattel-W2085-UNO-Original/dp/B00CTH0A1Q/ref=zg_bs_c_toys_d_sccl_4/146-3669781-0142728?pd_rd_w=RpUm5&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=7M1MXKSMSNQ6PEVS9YSM&pd_rd_wg=onlzz&pd_rd_r=f5ebbe34-e13f-46ba-bb63-91c43af36cf1&pd_rd_i=B00CTH0A1Q&psc=1",
       "posicao_ranking": 4,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "Play-Doh, Massinha de Modelar Infantil, Mini Sorveteria Divertida - Conjunto de Brinquedo com Acessórios e 2 Potes - A partir de 3 Anos": {
       "pins": 0,
@@ -1517,9 +1517,9 @@
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/Molelar-Play-Doh-Sorveteria-Divertida-Massinha/dp/B09SVRB79R/ref=zg_bs_c_toys_d_sccl_5/133-5149308-3139368?pd_rd_w=yiZh3&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=S07SQPZXW14ZPP3SQP0D&pd_rd_wg=Ltiw7&pd_rd_r=042e861c-4d66-4f23-8e85-6e5026f0dead&pd_rd_i=B09SVRB79R&psc=1",
+      "url_produto": "https://www.amazon.com.br/Molelar-Play-Doh-Sorveteria-Divertida-Massinha/dp/B09SVRB79R/ref=zg_bs_c_toys_d_sccl_5/146-3669781-0142728?pd_rd_w=RpUm5&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=7M1MXKSMSNQ6PEVS9YSM&pd_rd_wg=onlzz&pd_rd_r=f5ebbe34-e13f-46ba-bb63-91c43af36cf1&pd_rd_i=B09SVRB79R&psc=1",
       "posicao_ranking": 5,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "Buba, Chocalho Com Mordedor Coelhinho": {
       "pins": 0,
@@ -1539,9 +1539,9 @@
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/Buba-Chocalho-Com-Mordedor-Coelhinho/dp/B0CRZC7GRL/ref=zg_bs_c_toys_d_sccl_6/133-5149308-3139368?pd_rd_w=yiZh3&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=S07SQPZXW14ZPP3SQP0D&pd_rd_wg=Ltiw7&pd_rd_r=042e861c-4d66-4f23-8e85-6e5026f0dead&pd_rd_i=B0CRZC7GRL&psc=1",
+      "url_produto": "https://www.amazon.com.br/Buba-Chocalho-Com-Mordedor-Coelhinho/dp/B0CRZC7GRL/ref=zg_bs_c_toys_d_sccl_6/146-3669781-0142728?pd_rd_w=RpUm5&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=7M1MXKSMSNQ6PEVS9YSM&pd_rd_wg=onlzz&pd_rd_r=f5ebbe34-e13f-46ba-bb63-91c43af36cf1&pd_rd_i=B0CRZC7GRL&psc=1",
       "posicao_ranking": 6,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "Bateria de Lítio CR2032 Cartela com 5 unidades 3v Elgin - Moeda": {
       "pins": 0,
@@ -1561,9 +1561,9 @@
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/ELGIN-Bateria-CR2032-Elgin-82193/dp/B0755PWFSN/ref=zg_bs_c_fashion_d_sccl_1/133-5149308-3139368?pd_rd_w=8rMJM&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=S07SQPZXW14ZPP3SQP0D&pd_rd_wg=Ltiw7&pd_rd_r=042e861c-4d66-4f23-8e85-6e5026f0dead&pd_rd_i=B0755PWFSN&psc=1",
+      "url_produto": "https://www.amazon.com.br/ELGIN-Bateria-CR2032-Elgin-82193/dp/B0755PWFSN/ref=zg_bs_c_fashion_d_sccl_1/146-3669781-0142728?pd_rd_w=k2p6i&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=7M1MXKSMSNQ6PEVS9YSM&pd_rd_wg=onlzz&pd_rd_r=f5ebbe34-e13f-46ba-bb63-91c43af36cf1&pd_rd_i=B0755PWFSN&psc=1",
       "posicao_ranking": 7,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "Romantic Crown Mochila Feminino Masculino Viagem Expansível para Notebook": {
       "pins": 0,
@@ -1583,9 +1583,9 @@
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/Romantic-Feminino-Masculino-Expans%C3%ADvel-Notebook/dp/B0GXTY8SMX/ref=zg_bs_c_fashion_d_sccl_2/133-5149308-3139368?pd_rd_w=8rMJM&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=S07SQPZXW14ZPP3SQP0D&pd_rd_wg=Ltiw7&pd_rd_r=042e861c-4d66-4f23-8e85-6e5026f0dead&pd_rd_i=B0GXTY8SMX&psc=1",
+      "url_produto": "https://www.amazon.com.br/Romantic-Feminino-Masculino-Expans%C3%ADvel-Notebook/dp/B0GXTY8SMX/ref=zg_bs_c_fashion_d_sccl_2/146-3669781-0142728?pd_rd_w=k2p6i&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=7M1MXKSMSNQ6PEVS9YSM&pd_rd_wg=onlzz&pd_rd_r=f5ebbe34-e13f-46ba-bb63-91c43af36cf1&pd_rd_i=B0GXTY8SMX&psc=1",
       "posicao_ranking": 8,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "Kit 6 Pares Meias Lupo 3245 Cano Médio Algodão - Sortido": {
       "pins": 0,
@@ -1605,9 +1605,9 @@
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/Kit-Esportiva-Casual-Masculina-Original/dp/B07RN15ZSD/ref=zg_bs_c_fashion_d_sccl_3/133-5149308-3139368?pd_rd_w=8rMJM&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=S07SQPZXW14ZPP3SQP0D&pd_rd_wg=Ltiw7&pd_rd_r=042e861c-4d66-4f23-8e85-6e5026f0dead&pd_rd_i=B07RN15ZSD&psc=1",
+      "url_produto": "https://www.amazon.com.br/Kit-Esportiva-Casual-Masculina-Original/dp/B07RN15ZSD/ref=zg_bs_c_fashion_d_sccl_3/146-3669781-0142728?pd_rd_w=k2p6i&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=7M1MXKSMSNQ6PEVS9YSM&pd_rd_wg=onlzz&pd_rd_r=f5ebbe34-e13f-46ba-bb63-91c43af36cf1&pd_rd_i=B07RN15ZSD&psc=1",
       "posicao_ranking": 9,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "Kit 6 Pares Meia Cano Médio Alto Atoalhada Esportiva Algodão Masculina Feminina Unissex Adulto Academia Dia a Dia Puma": {
       "pins": 0,
@@ -1627,9 +1627,9 @@
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/PUMA-Meia-Esportiva-Cano-M%C3%A9dio/dp/B0CC2PXTPG/ref=zg_bs_c_fashion_d_sccl_4/133-5149308-3139368?pd_rd_w=8rMJM&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=S07SQPZXW14ZPP3SQP0D&pd_rd_wg=Ltiw7&pd_rd_r=042e861c-4d66-4f23-8e85-6e5026f0dead&pd_rd_i=B0CC2PXTPG&psc=1",
+      "url_produto": "https://www.amazon.com.br/PUMA-Meia-Esportiva-Cano-M%C3%A9dio/dp/B0CC2PXTPG/ref=zg_bs_c_fashion_d_sccl_4/146-3669781-0142728?pd_rd_w=k2p6i&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=7M1MXKSMSNQ6PEVS9YSM&pd_rd_wg=onlzz&pd_rd_r=f5ebbe34-e13f-46ba-bb63-91c43af36cf1&pd_rd_i=B0CC2PXTPG&psc=1",
       "posicao_ranking": 10,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "Chinelo Havaianas Top adulto-unissex": {
       "pins": 0,
@@ -1649,9 +1649,9 @@
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/Havaianas-Top-Branca-39-40/dp/B000YKIXA0/ref=zg_bs_c_fashion_d_sccl_5/133-5149308-3139368?pd_rd_w=8rMJM&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=S07SQPZXW14ZPP3SQP0D&pd_rd_wg=Ltiw7&pd_rd_r=042e861c-4d66-4f23-8e85-6e5026f0dead&pd_rd_i=B000YKIXA0&psc=1",
+      "url_produto": "https://www.amazon.com.br/Havaianas-Top-Branca-39-40/dp/B000YKIXA0/ref=zg_bs_c_fashion_d_sccl_5/146-3669781-0142728?pd_rd_w=k2p6i&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=7M1MXKSMSNQ6PEVS9YSM&pd_rd_wg=onlzz&pd_rd_r=f5ebbe34-e13f-46ba-bb63-91c43af36cf1&pd_rd_i=B000YKIXA0&psc=1",
       "posicao_ranking": 11,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "Camiseta Zico Retro BrazilineMasculino": {
       "pins": 0,
@@ -1671,9 +1671,9 @@
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/Braziline-Camisa-Flamengo-Zico-Retr%C3%B4/dp/B07NDM6C36/ref=zg_bs_c_fashion_d_sccl_6/133-5149308-3139368?pd_rd_w=8rMJM&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=S07SQPZXW14ZPP3SQP0D&pd_rd_wg=Ltiw7&pd_rd_r=042e861c-4d66-4f23-8e85-6e5026f0dead&pd_rd_i=B07NDM6C36&psc=1",
+      "url_produto": "https://www.amazon.com.br/Braziline-Camisa-Flamengo-Zico-Retr%C3%B4/dp/B07NDM6C36/ref=zg_bs_c_fashion_d_sccl_6/146-3669781-0142728?pd_rd_w=k2p6i&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=7M1MXKSMSNQ6PEVS9YSM&pd_rd_wg=onlzz&pd_rd_r=f5ebbe34-e13f-46ba-bb63-91c43af36cf1&pd_rd_i=B07NDM6C36&psc=1",
       "posicao_ranking": 12,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "CAPACETE ABERTO PRO TORK NEW LIBERTY 3 SOLID PRETO FOSCO TAM. 58": {
       "pins": 0,
@@ -1693,9 +1693,9 @@
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/CAPACETE-ABERTO-LIBERTY-SOLID-PRETO/dp/B079QL33QH/ref=zg_bs_c_automotive_d_sccl_1/133-5149308-3139368?pd_rd_w=B9d9K&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=S07SQPZXW14ZPP3SQP0D&pd_rd_wg=Ltiw7&pd_rd_r=042e861c-4d66-4f23-8e85-6e5026f0dead&pd_rd_i=B079QL33QH&psc=1",
+      "url_produto": "https://www.amazon.com.br/CAPACETE-ABERTO-LIBERTY-SOLID-PRETO/dp/B079QL33QH/ref=zg_bs_c_automotive_d_sccl_1/146-3669781-0142728?pd_rd_w=5IVVS&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=7M1MXKSMSNQ6PEVS9YSM&pd_rd_wg=onlzz&pd_rd_r=f5ebbe34-e13f-46ba-bb63-91c43af36cf1&pd_rd_i=B079QL33QH&psc=1",
       "posicao_ranking": 13,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "CAPACETE FECHADO PRO TORK SPORT MOTO 788 PRETO - BRANCO TAM. 60": {
       "pins": 0,
@@ -1715,9 +1715,9 @@
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/CAPACETE-FECHADO-TORK-SPORT-PRETO/dp/B07X3YB5FJ/ref=zg_bs_c_automotive_d_sccl_2/133-5149308-3139368?pd_rd_w=B9d9K&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=S07SQPZXW14ZPP3SQP0D&pd_rd_wg=Ltiw7&pd_rd_r=042e861c-4d66-4f23-8e85-6e5026f0dead&pd_rd_i=B07X3YB5FJ&psc=1",
+      "url_produto": "https://www.amazon.com.br/CAPACETE-FECHADO-TORK-SPORT-PRETO/dp/B07X3YB5FJ/ref=zg_bs_c_automotive_d_sccl_2/146-3669781-0142728?pd_rd_w=5IVVS&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=7M1MXKSMSNQ6PEVS9YSM&pd_rd_wg=onlzz&pd_rd_r=f5ebbe34-e13f-46ba-bb63-91c43af36cf1&pd_rd_i=B07X3YB5FJ&psc=1",
       "posicao_ranking": 14,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "VONIXX V-MOL, 1.5L": {
       "pins": 0,
@@ -1737,9 +1737,9 @@
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/VONIXX-2050116-V-MOL-1-5L/dp/B0BW4NDV3N/ref=zg_bs_c_automotive_d_sccl_3/133-5149308-3139368?pd_rd_w=B9d9K&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=S07SQPZXW14ZPP3SQP0D&pd_rd_wg=Ltiw7&pd_rd_r=042e861c-4d66-4f23-8e85-6e5026f0dead&pd_rd_i=B0BW4NDV3N&psc=1",
+      "url_produto": "https://www.amazon.com.br/VONIXX-2050116-V-MOL-1-5L/dp/B0BW4NDV3N/ref=zg_bs_c_automotive_d_sccl_3/146-3669781-0142728?pd_rd_w=5IVVS&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=7M1MXKSMSNQ6PEVS9YSM&pd_rd_wg=onlzz&pd_rd_r=f5ebbe34-e13f-46ba-bb63-91c43af36cf1&pd_rd_i=B0BW4NDV3N&psc=1",
       "posicao_ranking": 15,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "WAP Aspirador de Pó Automotivo Car 12V2, Portátil, 420ml, com Recipiente Removível e Filtro Lavável, 180W 12VDC": {
       "pins": 0,
@@ -1759,9 +1759,9 @@
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/WAP-Aspirador-Automotivo-Recipiente-Remov%C3%ADvel/dp/B0CLDRS18S/ref=zg_bs_c_automotive_d_sccl_4/133-5149308-3139368?pd_rd_w=B9d9K&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=S07SQPZXW14ZPP3SQP0D&pd_rd_wg=Ltiw7&pd_rd_r=042e861c-4d66-4f23-8e85-6e5026f0dead&pd_rd_i=B0CLDRS18S&psc=1",
+      "url_produto": "https://www.amazon.com.br/WAP-Aspirador-Automotivo-Recipiente-Remov%C3%ADvel/dp/B0CLDRS18S/ref=zg_bs_c_automotive_d_sccl_4/146-3669781-0142728?pd_rd_w=5IVVS&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=7M1MXKSMSNQ6PEVS9YSM&pd_rd_wg=onlzz&pd_rd_r=f5ebbe34-e13f-46ba-bb63-91c43af36cf1&pd_rd_i=B0CLDRS18S&psc=1",
       "posicao_ranking": 16,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "vonixx V-FLOC 1,5L": {
       "pins": 0,
@@ -1781,9 +1781,9 @@
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/vonixx-2011004-V-FLOC-1-5L/dp/B07YM4MJ3K/ref=zg_bs_c_automotive_d_sccl_5/133-5149308-3139368?pd_rd_w=B9d9K&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=S07SQPZXW14ZPP3SQP0D&pd_rd_wg=Ltiw7&pd_rd_r=042e861c-4d66-4f23-8e85-6e5026f0dead&pd_rd_i=B07YM4MJ3K&psc=1",
+      "url_produto": "https://www.amazon.com.br/vonixx-2011004-V-FLOC-1-5L/dp/B07YM4MJ3K/ref=zg_bs_c_automotive_d_sccl_5/146-3669781-0142728?pd_rd_w=5IVVS&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=7M1MXKSMSNQ6PEVS9YSM&pd_rd_wg=onlzz&pd_rd_r=f5ebbe34-e13f-46ba-bb63-91c43af36cf1&pd_rd_i=B07YM4MJ3K&psc=1",
       "posicao_ranking": 17,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "Veda Porta Rolinho em Couro Sintético – Isolamento Térmico, Acústico, Protege Contra Insetos e Luz – Marron 80cm - Comfort Door": {
       "pins": 0,
@@ -1803,9 +1803,9 @@
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/Veda-Porta-Rolinho-Marrom-80cm/dp/B09N9TNCCB/ref=zg_bs_c_automotive_d_sccl_6/133-5149308-3139368?pd_rd_w=B9d9K&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=S07SQPZXW14ZPP3SQP0D&pd_rd_wg=Ltiw7&pd_rd_r=042e861c-4d66-4f23-8e85-6e5026f0dead&pd_rd_i=B09N9TNCCB&psc=1",
+      "url_produto": "https://www.amazon.com.br/Veda-Porta-Rolinho-Marrom-80cm/dp/B09N9TNCCB/ref=zg_bs_c_automotive_d_sccl_6/146-3669781-0142728?pd_rd_w=5IVVS&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=7M1MXKSMSNQ6PEVS9YSM&pd_rd_wg=onlzz&pd_rd_r=f5ebbe34-e13f-46ba-bb63-91c43af36cf1&pd_rd_i=B09N9TNCCB&psc=1",
       "posicao_ranking": 18,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "Scotch, 3M, Fixa Forte, Fita Dupla Face, Fixação Extrema, 24mm x 2m": {
       "pins": 0,
@@ -1825,9 +1825,9 @@
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/HB004492250-Forte-Espuma-Extrema-Multicolor/dp/B0779BRVVS/ref=zg_bs_c_hi_d_sccl_1/133-5149308-3139368?pd_rd_w=ATj41&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=S07SQPZXW14ZPP3SQP0D&pd_rd_wg=Ltiw7&pd_rd_r=042e861c-4d66-4f23-8e85-6e5026f0dead&pd_rd_i=B0779BRVVS&psc=1",
+      "url_produto": "https://www.amazon.com.br/HB004492250-Forte-Espuma-Extrema-Multicolor/dp/B0779BRVVS/ref=zg_bs_c_hi_d_sccl_1/146-3669781-0142728?pd_rd_w=v5jkN&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=7M1MXKSMSNQ6PEVS9YSM&pd_rd_wg=onlzz&pd_rd_r=f5ebbe34-e13f-46ba-bb63-91c43af36cf1&pd_rd_i=B0779BRVVS&psc=1",
       "posicao_ranking": 19,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "WAP Extratora Portátil Spot Cleaner W3, 3 em 1, Borrifa, Esfrega e Extrai, com Sistema de Autolimpeza, 1450W 127V": {
       "pins": 0,
@@ -1847,9 +1847,9 @@
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/WAP-Extratora-Port%C3%A1til-Cleaner-Pot%C3%AAncia/dp/B0CH3WBKN6/ref=zg_bs_c_hi_d_sccl_2/133-5149308-3139368?pd_rd_w=ATj41&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=S07SQPZXW14ZPP3SQP0D&pd_rd_wg=Ltiw7&pd_rd_r=042e861c-4d66-4f23-8e85-6e5026f0dead&pd_rd_i=B0CH3WBKN6&psc=1",
+      "url_produto": "https://www.amazon.com.br/WAP-Extratora-Port%C3%A1til-Cleaner-Pot%C3%AAncia/dp/B0CH3WBKN6/ref=zg_bs_c_hi_d_sccl_2/146-3669781-0142728?pd_rd_w=v5jkN&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=7M1MXKSMSNQ6PEVS9YSM&pd_rd_wg=onlzz&pd_rd_r=f5ebbe34-e13f-46ba-bb63-91c43af36cf1&pd_rd_i=B0CH3WBKN6&psc=1",
       "posicao_ranking": 20,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "Aquecedor A Ar, Mondial, Cinza/Branco, 2000W, 220V - A-08": {
       "pins": 0,
@@ -1869,9 +1869,9 @@
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/08-Aquecedor-220V-Mondial-Cinza/dp/B076CF5DFL/ref=zg_bs_c_hi_d_sccl_3/133-5149308-3139368?pd_rd_w=ATj41&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=S07SQPZXW14ZPP3SQP0D&pd_rd_wg=Ltiw7&pd_rd_r=042e861c-4d66-4f23-8e85-6e5026f0dead&pd_rd_i=B076CF5DFL&psc=1",
+      "url_produto": "https://www.amazon.com.br/08-Aquecedor-220V-Mondial-Cinza/dp/B076CF5DFL/ref=zg_bs_c_hi_d_sccl_3/146-3669781-0142728?pd_rd_w=v5jkN&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=7M1MXKSMSNQ6PEVS9YSM&pd_rd_wg=onlzz&pd_rd_r=f5ebbe34-e13f-46ba-bb63-91c43af36cf1&pd_rd_i=B076CF5DFL&psc=1",
       "posicao_ranking": 21,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "WD-40 Fórmula Original - Produto Multiusos Aerossol 300ml, 200g - Desengripa, lubrifica e protege contra ferrugem": {
       "pins": 0,
@@ -1891,9 +1891,9 @@
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/Wd-40-Spray-Produto-Multiusos-300/dp/B07CV2JXNH/ref=zg_bs_c_hi_d_sccl_4/133-5149308-3139368?pd_rd_w=ATj41&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=S07SQPZXW14ZPP3SQP0D&pd_rd_wg=Ltiw7&pd_rd_r=042e861c-4d66-4f23-8e85-6e5026f0dead&pd_rd_i=B07CV2JXNH&psc=1",
+      "url_produto": "https://www.amazon.com.br/Wd-40-Spray-Produto-Multiusos-300/dp/B07CV2JXNH/ref=zg_bs_c_hi_d_sccl_4/146-3669781-0142728?pd_rd_w=v5jkN&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=7M1MXKSMSNQ6PEVS9YSM&pd_rd_wg=onlzz&pd_rd_r=f5ebbe34-e13f-46ba-bb63-91c43af36cf1&pd_rd_i=B07CV2JXNH&psc=1",
       "posicao_ranking": 22,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "WAP Parafusadeira e Furadeira à Bateria 12V BPF-12K3, Kit de 13 Acessórios e Maleta, Empunhadura Emborrachada, Bivolt": {
       "pins": 0,
@@ -1913,9 +1913,9 @@
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/Parafusadeira-Furadeira-WAP-Carregador-Acess%C3%B3rios/dp/B09V1SM8QB/ref=zg_bs_c_hi_d_sccl_5/133-5149308-3139368?pd_rd_w=ATj41&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=S07SQPZXW14ZPP3SQP0D&pd_rd_wg=Ltiw7&pd_rd_r=042e861c-4d66-4f23-8e85-6e5026f0dead&pd_rd_i=B09V1SM8QB&psc=1",
+      "url_produto": "https://www.amazon.com.br/Parafusadeira-Furadeira-WAP-Carregador-Acess%C3%B3rios/dp/B09V1SM8QB/ref=zg_bs_c_hi_d_sccl_5/146-3669781-0142728?pd_rd_w=v5jkN&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=7M1MXKSMSNQ6PEVS9YSM&pd_rd_wg=onlzz&pd_rd_r=f5ebbe34-e13f-46ba-bb63-91c43af36cf1&pd_rd_i=B09V1SM8QB&psc=1",
       "posicao_ranking": 23,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "Force Line - Extensão Slim 3 Tomadas Tripolar Bivolt 3 Metros Branco": {
       "pins": 0,
@@ -1935,9 +1935,9 @@
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/Extens%C3%A3o-Tripolar-Slim-Metros-Branco/dp/B07JN19LDF/ref=zg_bs_c_hi_d_sccl_6/133-5149308-3139368?pd_rd_w=ATj41&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=S07SQPZXW14ZPP3SQP0D&pd_rd_wg=Ltiw7&pd_rd_r=042e861c-4d66-4f23-8e85-6e5026f0dead&pd_rd_i=B07JN19LDF&psc=1",
+      "url_produto": "https://www.amazon.com.br/Extens%C3%A3o-Tripolar-Slim-Metros-Branco/dp/B07JN19LDF/ref=zg_bs_c_hi_d_sccl_6/146-3669781-0142728?pd_rd_w=v5jkN&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=7M1MXKSMSNQ6PEVS9YSM&pd_rd_wg=onlzz&pd_rd_r=f5ebbe34-e13f-46ba-bb63-91c43af36cf1&pd_rd_i=B07JN19LDF&psc=1",
       "posicao_ranking": 24,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "Cadeira de escritório, design ergonômico com suporte lombar independente, malha respirável e encosto de cabeça ajustável (Preto)": {
       "pins": 0,
@@ -1957,9 +1957,9 @@
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/escrit%C3%B3rio-ergon%C3%B4mico-independente-respir%C3%A1vel-ajust%C3%A1vel%EF%BC%88Preto/dp/B0CG8J3N2H/ref=zg_bs_c_furniture_d_sccl_1/133-5149308-3139368?pd_rd_w=S4nyC&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=S07SQPZXW14ZPP3SQP0D&pd_rd_wg=Ltiw7&pd_rd_r=042e861c-4d66-4f23-8e85-6e5026f0dead&pd_rd_i=B0CG8J3N2H&psc=1",
+      "url_produto": "https://www.amazon.com.br/escrit%C3%B3rio-ergon%C3%B4mico-independente-respir%C3%A1vel-ajust%C3%A1vel%EF%BC%88Preto/dp/B0CG8J3N2H/ref=zg_bs_c_furniture_d_sccl_1/146-3669781-0142728?pd_rd_w=WRHMH&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=7M1MXKSMSNQ6PEVS9YSM&pd_rd_wg=onlzz&pd_rd_r=f5ebbe34-e13f-46ba-bb63-91c43af36cf1&pd_rd_i=B0CG8J3N2H&psc=1",
       "posicao_ranking": 25,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "Suporte Para Notebook E MacBook em Alumínio com Altura Ajustável": {
       "pins": 0,
@@ -1979,9 +1979,9 @@
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/Suporte-Notebook-MacBook-Alum%C3%ADnio-Ajust%C3%A1vel/dp/B086CB6BXW/ref=zg_bs_c_furniture_d_sccl_2/133-5149308-3139368?pd_rd_w=S4nyC&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=S07SQPZXW14ZPP3SQP0D&pd_rd_wg=Ltiw7&pd_rd_r=042e861c-4d66-4f23-8e85-6e5026f0dead&pd_rd_i=B086CB6BXW&psc=1",
+      "url_produto": "https://www.amazon.com.br/Suporte-Notebook-MacBook-Alum%C3%ADnio-Ajust%C3%A1vel/dp/B086CB6BXW/ref=zg_bs_c_furniture_d_sccl_2/146-3669781-0142728?pd_rd_w=WRHMH&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=7M1MXKSMSNQ6PEVS9YSM&pd_rd_wg=onlzz&pd_rd_r=f5ebbe34-e13f-46ba-bb63-91c43af36cf1&pd_rd_i=B086CB6BXW&psc=1",
       "posicao_ranking": 26,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "Mesa Portátil Para Notebook Suporte Cama Sofá MA, Cor Aleatório": {
       "pins": 0,
@@ -2001,9 +2001,9 @@
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/Mesa-Port%C3%A1til-Para-Notebook-Suporte/dp/B09963FWYX/ref=zg_bs_c_furniture_d_sccl_3/133-5149308-3139368?pd_rd_w=S4nyC&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=S07SQPZXW14ZPP3SQP0D&pd_rd_wg=Ltiw7&pd_rd_r=042e861c-4d66-4f23-8e85-6e5026f0dead&pd_rd_i=B09963FWYX&psc=1",
+      "url_produto": "https://www.amazon.com.br/Mesa-Port%C3%A1til-Para-Notebook-Suporte/dp/B09963FWYX/ref=zg_bs_c_furniture_d_sccl_3/146-3669781-0142728?pd_rd_w=WRHMH&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=7M1MXKSMSNQ6PEVS9YSM&pd_rd_wg=onlzz&pd_rd_r=f5ebbe34-e13f-46ba-bb63-91c43af36cf1&pd_rd_i=B09963FWYX&psc=1",
       "posicao_ranking": 27,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "Mor Life - Colchão Inflável Multiuso King com Fole": {
       "pins": 0,
@@ -2023,9 +2023,9 @@
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/Colchao-Casal-Inflavel-KING-Multiuso/dp/B078P3334J/ref=zg_bs_c_furniture_d_sccl_4/133-5149308-3139368?pd_rd_w=S4nyC&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=S07SQPZXW14ZPP3SQP0D&pd_rd_wg=Ltiw7&pd_rd_r=042e861c-4d66-4f23-8e85-6e5026f0dead&pd_rd_i=B078P3334J&psc=1",
+      "url_produto": "https://www.amazon.com.br/Colchao-Casal-Inflavel-KING-Multiuso/dp/B078P3334J/ref=zg_bs_c_furniture_d_sccl_4/146-3669781-0142728?pd_rd_w=WRHMH&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=7M1MXKSMSNQ6PEVS9YSM&pd_rd_wg=onlzz&pd_rd_r=f5ebbe34-e13f-46ba-bb63-91c43af36cf1&pd_rd_i=B078P3334J&psc=1",
       "posicao_ranking": 28,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "Cadeira de Escritório Suporte Lombar Ergonômico Malha Respirável Mesh Apoio Cabeça Confortavél Art Cadeiras Presidente Premium": {
       "pins": 0,
@@ -2045,9 +2045,9 @@
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/Escrit%C3%B3rio-Ergon%C3%B4mico-Respir%C3%A1vel-Confortav%C3%A9l-Presidente/dp/B0H48834YK/ref=zg_bs_c_furniture_d_sccl_5/133-5149308-3139368?pd_rd_w=S4nyC&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=S07SQPZXW14ZPP3SQP0D&pd_rd_wg=Ltiw7&pd_rd_r=042e861c-4d66-4f23-8e85-6e5026f0dead&pd_rd_i=B0H48834YK&psc=1",
+      "url_produto": "https://www.amazon.com.br/Escrit%C3%B3rio-Ergon%C3%B4mico-Respir%C3%A1vel-Confortav%C3%A9l-Presidente/dp/B0H48834YK/ref=zg_bs_c_furniture_d_sccl_5/146-3669781-0142728?pd_rd_w=WRHMH&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=7M1MXKSMSNQ6PEVS9YSM&pd_rd_wg=onlzz&pd_rd_r=f5ebbe34-e13f-46ba-bb63-91c43af36cf1&pd_rd_i=B0H48834YK&psc=1",
       "posicao_ranking": 29,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "Sanremo - Caixa Organizadora Plástica de 29 Litros, Linha Flex": {
       "pins": 0,
@@ -2067,9 +2067,9 @@
       "fonte": "Amazon Bestsellers",
       "origem_coleta": "pagina_oficial",
       "url_fonte": "https://www.amazon.com.br/gp/bestsellers/",
-      "url_produto": "https://www.amazon.com.br/Sanremo-SR941-Organizador-Transparente/dp/B07C844DL9/ref=zg_bs_c_furniture_d_sccl_6/133-5149308-3139368?pd_rd_w=S4nyC&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=S07SQPZXW14ZPP3SQP0D&pd_rd_wg=Ltiw7&pd_rd_r=042e861c-4d66-4f23-8e85-6e5026f0dead&pd_rd_i=B07C844DL9&psc=1",
+      "url_produto": "https://www.amazon.com.br/Sanremo-SR941-Organizador-Transparente/dp/B07C844DL9/ref=zg_bs_c_furniture_d_sccl_6/146-3669781-0142728?pd_rd_w=WRHMH&content-id=amzn1.sym.550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_p=550666bb-9d24-483d-bc9e-4a297db376ce&pf_rd_r=7M1MXKSMSNQ6PEVS9YSM&pd_rd_wg=onlzz&pd_rd_r=f5ebbe34-e13f-46ba-bb63-91c43af36cf1&pd_rd_i=B07C844DL9&psc=1",
       "posicao_ranking": 30,
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     "Moda Boho Anos 2000": {
       "termo": "Moda Boho Anos 2000",
@@ -2152,5 +2152,5 @@
       "fonte": "Pinterest Trends"
     }
   },
-  "timestamp": "2026-07-24T10:19:44.644053"
+  "timestamp": "2026-07-24T10:30:44.066839"
 }

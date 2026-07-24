@@ -1,276 +1,276 @@
 {
-  "timestamp": "2026-07-24T10:19:34.656454",
+  "timestamp": "2026-07-24T10:30:19.137141",
   "data": "2026-07-24",
   "dados": [
     {
       "termo": "Sofá",
-      "interesse": 95,
-      "interesse_atual": 98,
-      "variacao": "+534%",
+      "interesse": 97,
+      "interesse_atual": 100,
+      "variacao": "+513%",
       "categoria": "Buscas em Alta (Live)",
       "fonte": "Google Trends (Hot)",
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     {
       "termo": "Arma de Gel",
-      "interesse": 97,
-      "interesse_atual": 99,
-      "variacao": "+686%",
+      "interesse": 94,
+      "interesse_atual": 96,
+      "variacao": "+715%",
       "categoria": "Buscas em Alta (Live)",
       "fonte": "Google Trends (Hot)",
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     {
       "termo": "chopp",
-      "interesse": 100,
-      "interesse_atual": 100,
-      "variacao": "+315%",
+      "interesse": 86,
+      "interesse_atual": 90,
+      "variacao": "+341%",
       "categoria": "Buscas em Alta (Live)",
       "fonte": "Google Trends (Hot)",
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     {
       "termo": "Caixa de Vela 7 Dias",
-      "interesse": 100,
-      "interesse_atual": 93,
-      "variacao": "+190%",
+      "interesse": 91,
+      "interesse_atual": 95,
+      "variacao": "+655%",
       "categoria": "Buscas em Alta (Live)",
       "fonte": "Google Trends (Hot)",
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     {
       "termo": "Caixa de Som Boombox 4 Branco",
-      "interesse": 85,
-      "interesse_atual": 100,
-      "variacao": "+174%",
+      "interesse": 94,
+      "interesse_atual": 93,
+      "variacao": "+348%",
       "categoria": "Buscas em Alta (Live)",
       "fonte": "Google Trends (Hot)",
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     {
       "termo": "Parka",
-      "interesse": 89,
-      "interesse_atual": 90,
-      "variacao": "+605%",
+      "interesse": 97,
+      "interesse_atual": 91,
+      "variacao": "+704%",
       "categoria": "Buscas em Alta (Live)",
       "fonte": "Google Trends (Hot)",
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     {
       "termo": "R36S",
-      "interesse": 96,
-      "interesse_atual": 99,
-      "variacao": "+234%",
+      "interesse": 92,
+      "interesse_atual": 100,
+      "variacao": "+733%",
       "categoria": "Buscas em Alta (Live)",
       "fonte": "Google Trends (Hot)",
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     {
       "termo": "Vibrador Bluetooth",
-      "interesse": 97,
-      "interesse_atual": 90,
-      "variacao": "+516%",
+      "interesse": 94,
+      "interesse_atual": 100,
+      "variacao": "+218%",
       "categoria": "Buscas em Alta (Live)",
       "fonte": "Google Trends (Hot)",
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     {
       "termo": "100 Pacotes de Figurinhas da Copa",
-      "interesse": 97,
-      "interesse_atual": 99,
-      "variacao": "+547%",
+      "interesse": 90,
+      "interesse_atual": 96,
+      "variacao": "+597%",
       "categoria": "Buscas em Alta (Live)",
       "fonte": "Google Trends (Hot)",
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     {
       "termo": "iPhone",
-      "interesse": 87,
-      "interesse_atual": 93,
-      "variacao": "+361%",
+      "interesse": 96,
+      "interesse_atual": 94,
+      "variacao": "+304%",
       "categoria": "Buscas em Alta (Live)",
       "fonte": "Google Trends (Hot)",
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     {
       "termo": "Boneca Inflável",
-      "interesse": 87,
-      "interesse_atual": 95,
-      "variacao": "+246%",
+      "interesse": 86,
+      "interesse_atual": 92,
+      "variacao": "+772%",
       "categoria": "Buscas em Alta (Live)",
       "fonte": "Google Trends (Hot)",
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     {
       "termo": "Sandália",
-      "interesse": 93,
+      "interesse": 95,
       "interesse_atual": 98,
-      "variacao": "+571%",
+      "variacao": "+231%",
       "categoria": "Buscas em Alta (Live)",
       "fonte": "Google Trends (Hot)",
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     {
       "termo": "Fone de Ouvido",
-      "interesse": 89,
-      "interesse_atual": 92,
-      "variacao": "+160%",
+      "interesse": 93,
+      "interesse_atual": 100,
+      "variacao": "+421%",
       "categoria": "Buscas em Alta (Live)",
       "fonte": "Google Trends (Hot)",
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     {
       "termo": "Sacola Personalizada",
-      "interesse": 94,
-      "interesse_atual": 93,
-      "variacao": "+391%",
+      "interesse": 95,
+      "interesse_atual": 96,
+      "variacao": "+253%",
       "categoria": "Buscas em Alta (Live)",
       "fonte": "Google Trends (Hot)",
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     {
       "termo": "Sapateira",
-      "interesse": 87,
-      "interesse_atual": 91,
-      "variacao": "+688%",
+      "interesse": 94,
+      "interesse_atual": 94,
+      "variacao": "+567%",
       "categoria": "Buscas em Alta (Live)",
       "fonte": "Google Trends (Hot)",
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     {
       "termo": "Alexa",
-      "interesse": 100,
-      "interesse_atual": 99,
-      "variacao": "+455%",
+      "interesse": 87,
+      "interesse_atual": 98,
+      "variacao": "+602%",
       "categoria": "Buscas em Alta (Live)",
       "fonte": "Google Trends (Hot)",
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     {
       "termo": "Capacete Norisk Route FF345 Roxo",
-      "interesse": 85,
-      "interesse_atual": 93,
-      "variacao": "+586%",
+      "interesse": 86,
+      "interesse_atual": 91,
+      "variacao": "+585%",
       "categoria": "Buscas em Alta (Live)",
       "fonte": "Google Trends (Hot)",
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     {
       "termo": "Boneca Sexual",
-      "interesse": 93,
-      "interesse_atual": 91,
-      "variacao": "+447%",
+      "interesse": 96,
+      "interesse_atual": 96,
+      "variacao": "+619%",
       "categoria": "Buscas em Alta (Live)",
       "fonte": "Google Trends (Hot)",
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     {
       "termo": "Crocs",
-      "interesse": 90,
-      "interesse_atual": 98,
-      "variacao": "+214%",
+      "interesse": 85,
+      "interesse_atual": 96,
+      "variacao": "+225%",
       "categoria": "Buscas em Alta (Live)",
       "fonte": "Google Trends (Hot)",
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     {
       "termo": "Vibrador",
-      "interesse": 94,
-      "interesse_atual": 90,
-      "variacao": "+315%",
+      "interesse": 97,
+      "interesse_atual": 100,
+      "variacao": "+546%",
       "categoria": "Buscas em Alta (Live)",
       "fonte": "Google Trends (Hot)",
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     {
       "termo": "Carabina Rossi Sport",
-      "interesse": 90,
-      "interesse_atual": 90,
-      "variacao": "+473%",
+      "interesse": 94,
+      "interesse_atual": 100,
+      "variacao": "+584%",
       "categoria": "Buscas em Alta (Live)",
       "fonte": "Google Trends (Hot)",
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     {
       "termo": "Faixas Elásticas",
-      "interesse": 91,
-      "interesse_atual": 95,
-      "variacao": "+393%",
+      "interesse": 97,
+      "interesse_atual": 97,
+      "variacao": "+681%",
       "categoria": "Buscas em Alta (Live)",
       "fonte": "Google Trends (Hot)",
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     {
       "termo": "Celular Motorola G54 5G",
-      "interesse": 91,
-      "interesse_atual": 100,
-      "variacao": "+639%",
+      "interesse": 87,
+      "interesse_atual": 93,
+      "variacao": "+630%",
       "categoria": "Buscas em Alta (Live)",
       "fonte": "Google Trends (Hot)",
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     {
       "termo": "Smart Tv Samsung OLED",
-      "interesse": 85,
-      "interesse_atual": 100,
-      "variacao": "+399%",
+      "interesse": 86,
+      "interesse_atual": 97,
+      "variacao": "+279%",
       "categoria": "Buscas em Alta (Live)",
       "fonte": "Google Trends (Hot)",
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     {
       "termo": "Camisa Sublimação",
-      "interesse": 99,
-      "interesse_atual": 93,
-      "variacao": "+609%",
+      "interesse": 86,
+      "interesse_atual": 99,
+      "variacao": "+351%",
       "categoria": "Buscas em Alta (Live)",
       "fonte": "Google Trends (Hot)",
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     {
       "termo": "Mesa de Canto Alemão",
-      "interesse": 87,
-      "interesse_atual": 94,
-      "variacao": "+206%",
+      "interesse": 98,
+      "interesse_atual": 91,
+      "variacao": "+368%",
       "categoria": "Buscas em Alta (Live)",
       "fonte": "Google Trends (Hot)",
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     {
       "termo": "Celular Galaxy A56 A56",
-      "interesse": 90,
-      "interesse_atual": 96,
-      "variacao": "+320%",
+      "interesse": 95,
+      "interesse_atual": 92,
+      "variacao": "+476%",
       "categoria": "Buscas em Alta (Live)",
       "fonte": "Google Trends (Hot)",
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     {
       "termo": "Roda Abdominal",
-      "interesse": 99,
-      "interesse_atual": 94,
-      "variacao": "+459%",
+      "interesse": 94,
+      "interesse_atual": 96,
+      "variacao": "+441%",
       "categoria": "Buscas em Alta (Live)",
       "fonte": "Google Trends (Hot)",
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     {
       "termo": "Caixa de Som Pulse Xplosion 2",
-      "interesse": 91,
-      "interesse_atual": 100,
-      "variacao": "+642%",
+      "interesse": 87,
+      "interesse_atual": 98,
+      "variacao": "+799%",
       "categoria": "Buscas em Alta (Live)",
       "fonte": "Google Trends (Hot)",
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     },
     {
       "termo": "Celular Xiaomi X7 Pro",
-      "interesse": 88,
-      "interesse_atual": 96,
-      "variacao": "+345%",
+      "interesse": 85,
+      "interesse_atual": 100,
+      "variacao": "+335%",
       "categoria": "Buscas em Alta (Live)",
       "fonte": "Google Trends (Hot)",
-      "atualizado": "24/07/2026 10:19"
+      "atualizado": "24/07/2026 10:30"
     }
   ]
 }
