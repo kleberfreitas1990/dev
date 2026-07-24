@@ -222,7 +222,7 @@ def limpar_metadados_ffmpeg(input_path, output_path, coordenadas=None, altitude=
 
 
 def render_metadados_pro():
-    st.markdown("## 🎬 Metadata Pro v9.6 — Antiduplicação Shopee")
+    st.markdown("## 🎬 Metadata Pro v10.0 — Antiduplicação Shopee")
     st.caption(
         "A Shopee pune vídeos duplicados. Esta ferramenta altera a assinatura digital (hash) "
         "e aplica micro-ajustes visuais para que o vídeo seja visto como conteúdo original."
