@@ -1,0 +1,86 @@
+{
+  "timestamp": "2026-07-24T10:19:32.336615",
+  "data": "2026-07-24",
+  "dados": {
+    "Moda Boho Anos 2000": {
+      "termo": "Moda Boho Anos 2000",
+      "score": 9.8,
+      "evento": "Tendência Antecipada: +1.039% de buscas (Pinterest)",
+      "categoria": "Moda Feminina",
+      "palavra_chave": "look boho chic feminino crochê renda",
+      "hashtags": [
+        "#bohochic",
+        "#y2kfashion",
+        "#crochê",
+        "#modafeminina"
+      ],
+      "fonte": "Pinterest Trends"
+    },
+    "Estilo Preppy Vintage": {
+      "termo": "Estilo Preppy Vintage",
+      "score": 9.5,
+      "evento": "Tendência Antecipada: +1.872% de buscas (Pinterest)",
+      "categoria": "Moda Geral",
+      "palavra_chave": "look preppy vintage listras marinho",
+      "hashtags": [
+        "#preppy",
+        "#vintageprep",
+        "#oldmoney",
+        "#modabrasil"
+      ],
+      "fonte": "Pinterest Trends"
+    },
+    "Cores Terrosas (Verde Endro)": {
+      "termo": "Roupas Verde Endro",
+      "score": 9.2,
+      "evento": "Cor do Ano Pinterest 2025/26 (+1.627%)",
+      "categoria": "Moda Geral",
+      "palavra_chave": "calça de linho verde endro masculino feminino",
+      "hashtags": [
+        "#greentrend",
+        "#verdeendro",
+        "#modasustentavel"
+      ],
+      "fonte": "Pinterest Trends"
+    },
+    "Grunge Glam 90s": {
+      "termo": "Moda Grunge Glam 90s",
+      "score": 8.9,
+      "evento": "Tendência Antecipada: +652% de buscas (Pinterest)",
+      "categoria": "Beleza/Moda",
+      "palavra_chave": "look grunge suave feminino maquiagem 90s",
+      "hashtags": [
+        "#grungeglam",
+        "#90saesthetic",
+        "#softgrunge"
+      ],
+      "fonte": "Pinterest Trends"
+    },
+    "Acessórios Vintage (Relógios)": {
+      "termo": "Relógio Vintage Digital/Analógico",
+      "score": 8.7,
+      "evento": "Alta com Homens Gen Z (+82%)",
+      "categoria": "Acessórios",
+      "palavra_chave": "relógio vintage digital masculino luxo",
+      "hashtags": [
+        "#vintagewatch",
+        "#acessoriosmasculinos",
+        "#relogio"
+      ],
+      "fonte": "Pinterest Trends"
+    },
+    "Babydoll Glamour 60s": {
+      "termo": "Vestido Babydoll 60s",
+      "score": 8.5,
+      "evento": "Tendência Antecipada: +2.514% de buscas",
+      "categoria": "Moda Feminina",
+      "palavra_chave": "vestido babydoll 60s festa vintage",
+      "hashtags": [
+        "#60sfashion",
+        "#babydoll",
+        "#vintagefashion"
+      ],
+      "fonte": "Pinterest Trends"
+    }
+  }
+}

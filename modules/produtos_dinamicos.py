@@ -174,6 +174,16 @@ def obter_produtos_dinamicos(forcar_atualizacao: bool = False) -> Dict[str, Any]
     except Exception as erro:
         logger.warning("Falha ao carregar Best Sellers oficiais da Amazon: %s", erro)
 
+    # Pinterest: Tendências antecipadas de Moda
+    try:
+        from modules.pinterest_trends import obter_pinterest_trends_cache
+        dados_pinterest = obter_pinterest_trends_cache()
+        _adicionar_produtos(produtos, dados_pinterest)
+        if dados_pinterest:
+            logger.info("Pinterest Trends: %d tendências carregadas.", len(dados_pinterest))
+    except Exception as erro:
+        logger.warning("Falha ao carregar tendências do Pinterest: %s", erro)
+
     return produtos
 
 
