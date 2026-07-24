@@ -25,7 +25,7 @@ CACHE_TTL_HORAS = 6
 # DADOS REAIS EXTRAÍDOS DO PRINT DO USUÁRIO (Prioridade Máxima)
 # Atualizado em: 22/07/2026 — Buscas em Alta Shopee
 # ============================================================
-TERMOS_HOT_TRENDS = ["Escrivaninha", "Fone de Ouvido Bluetooth", "Crocs Relâmpago Mcqueen", "Prateleira", "Capacete Norisk Route FF345 Roxo", "Fone de Ouvido Disney LF-918", "Penteadeira", "PC Gamer", "SSD", "Mochila", "Squishy", "Poltrona", "Câmera Babá Eletrônica Tarktark", "Pipa", "Escova Progressiva Everk", "Controle PC", "Armário Kapesberg", "Café Orfeu 1Kg", "100 Pacotes de Figurinhas da Copa", "Moto Elétrica Scooter", "Caixa de Som Bluetooth JBL", "Celular Xiaomi Redmi 13 4G 256GB 8GB", "Celular Xiaomi Redmi 15C 256GB 8GB RAM Dual Sim Preto", "Kettlebell Acte Sports", "Carrinho de Controle Remoto 4x4", "Caixa de Vela 7 Dias", "Cama Triliche", "Cama Box Viúva D45", "Celular Xiaomi 128 GB", "Caixa de Som Boombox 4 Branco"]
+TERMOS_HOT_TRENDS = ["Sofá", "Arma de Gel", "chopp", "Caixa de Vela 7 Dias", "Caixa de Som Boombox 4 Branco", "Parka", "R36S", "Vibrador Bluetooth", "100 Pacotes de Figurinhas da Copa", "iPhone", "Boneca Inflável", "Sandália", "Fone de Ouvido", "Sacola Personalizada", "Sapateira", "Alexa", "Capacete Norisk Route FF345 Roxo", "Boneca Sexual", "Crocs", "Vibrador", "Carabina Rossi Sport", "Faixas Elásticas", "Celular Motorola G54 5G", "Smart Tv Samsung OLED", "Camisa Sublimação", "Mesa de Canto Alemão", "Celular Galaxy A56 A56", "Roda Abdominal", "Caixa de Som Pulse Xplosion 2", "Celular Xiaomi X7 Pro"]
 
 def _cache_valido(arquivo: str) -> bool:
     if not os.path.exists(arquivo):
