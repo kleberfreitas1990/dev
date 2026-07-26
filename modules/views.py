@@ -33,6 +33,9 @@ from modules.grade_descoberta import (
 # Importa para verificar data do cache e dados dinâmicos
 from modules.produtos_dinamicos import verificar_data_cache, obter_produtos_dinamicos
 
+# Importa Tendências de Moda Feminina via SerpApi
+from modules.tendencias_moda_serpapi import render_tendencias_moda_dashboard
+
 # Tenta importar serper, se falhar usa fallback
 try:
     from modules.serper import buscar_produtos_serper
@@ -614,6 +617,14 @@ def render_dashboard():
     # ===== INSIGHTS ESTRATÉGICOS =====
     if produtos_sugestoes:
         render_insights_estrategicos(produtos_sugestoes)
+    
+    st.markdown("---")
+    
+    # ===== TENDÊNCIAS DE MODA FEMININA (SERPAPI) =====
+    try:
+        render_tendencias_moda_dashboard()
+    except Exception as e:
+        st.warning(f"⚠️ Tendências de Moda indisponíveis: {str(e)[:100]}")
     
     st.markdown("---")
     

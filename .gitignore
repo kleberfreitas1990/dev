@@ -16,6 +16,7 @@ ENV/
 # Caches de dados (regenerados automaticamente)
 google_trends_cache.json
 shopee_live_cache.json
+moda_trends_serpapi_cache.json
 auto_update_historico.json
 serper_cache.json
 serper_contador.json
