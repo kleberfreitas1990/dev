@@ -25,7 +25,17 @@ CACHE_TTL_HORAS = 6
 # DADOS REAIS EXTRAÍDOS DO PRINT DO USUÁRIO (Prioridade Máxima)
 # Atualizado em: 22/07/2026 — Buscas em Alta Shopee
 # ============================================================
-TERMOS_HOT_TRENDS = ["Sofá", "Arma de Gel", "chopp", "Caixa de Vela 7 Dias", "Caixa de Som Boombox 4 Branco", "Parka", "R36S", "Vibrador Bluetooth", "100 Pacotes de Figurinhas da Copa", "iPhone", "Boneca Inflável", "Sandália", "Fone de Ouvido", "Sacola Personalizada", "Sapateira", "Alexa", "Capacete Norisk Route FF345 Roxo", "Boneca Sexual", "Crocs", "Vibrador", "Carabina Rossi Sport", "Faixas Elásticas", "Celular Motorola G54 5G", "Smart Tv Samsung OLED", "Camisa Sublimação", "Mesa de Canto Alemão", "Celular Galaxy A56 A56", "Roda Abdominal", "Caixa de Som Pulse Xplosion 2", "Celular Xiaomi X7 Pro"]
+TERMOS_HOT_TRENDS = [
+    "Poltrona", "Figurinhas Copa", "Linha Indonesia Samurai", "Caixa Organizadora", 
+    "Prateleira", "Roda Abdominal", "Lego", "Kettlebell Acte Sports", 
+    "Escova Progressiva Everk", "Tablet", "Crocs Relâmpago Mcqueen", "Faixas Elásticas", 
+    "Bloqueador de Sinal Bluetooth", "Espelho", "Papel de Parede", "Tênis Masculino", 
+    "Caixa de Vela 7 Dias", "Fone de Ouvido Disney LF-918", "Dildo", "Vibrador Calcinha", 
+    "Câmera 4 Lentes Wi-Fi", "Smart Tv Samsung OLED", "Toca-Discos Audio-Technica AT-LP60XBT", 
+    "Celular Redmi 15C 256GB", "Celular Xiaomi Redmi Note 14 4G 256GB", "Saco de Pancada Venum", 
+    "Sunga Speedo", "Celular Samsung A14 5G 128 GB", "Caixa de Som JBL PartyBox Encore Essential 100W", 
+    "Celular Xiaomi 14"
+]
 
 def _cache_valido(arquivo: str) -> bool:
     if not os.path.exists(arquivo):

@@ -12,10 +12,41 @@ import json
 import os
 import logging
 import time
+import requests
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 
 logger = logging.getLogger(__name__)
+
+def buscar_sugestoes_pinterest(termo):
+    """Busca sugestões de busca em tempo real no Pinterest."""
+    url = f"https://pinterest.com"
+    params = {
+        "source_url": f"/search/pins/?q={termo}",
+        "data": f'{{"options":{{"term":"{termo}","pin_scope":"pins"}}}}'
+    }
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "X-Requested-With": "XMLHttpRequest"
+    }
+    
+    try:
+        response = requests.get(url, params=params, headers=headers, timeout=10)
+        if response.status_code == 200:
+            try:
+                dados = response.json()
+                sugestoes = dados.get('resource_response', {}).get('data', [])
+                # Extrai os termos sugeridos
+                termos = []
+                for sug in sugestoes:
+                    if isinstance(sug, dict) and sug.get('term'):
+                        termos.append(sug.get('term'))
+                return termos[:3]
+            except:
+                return []
+    except Exception as e:
+        logger.error(f"Erro ao acessar Pinterest para o termo '{termo}': {e}")
+    return []
 
 # ============================================================
 # CONFIGURAÇÕES
@@ -192,6 +223,10 @@ def obter_tendencias_moda_serpapi(forcar_atualizacao: bool = False) -> List[Dict
                     variacao_str = f"{variacao:.1f}%"
                     dica = f"Termo em declínio ({int_2026} vs {int_2025}). Conteúdo de transição."
 
+                # Busca sugestões do Pinterest em tempo real
+                ideias_pinterest = buscar_sugestoes_pinterest(termo)
+                ideias_formatadas = ", ".join(ideias_pinterest) if ideias_pinterest else "Nenhuma sugestão recente"
+
                 dados_finais.append({
                     "termo": termo,
                     "interesse_2025": int_2025,
@@ -200,6 +235,7 @@ def obter_tendencias_moda_serpapi(forcar_atualizacao: bool = False) -> List[Dict
                     "variacao": variacao_str,
                     "variacao_num": variacao,
                     "dica_conteudo": dica,
+                    "pinterest_sugestoes": ideias_formatadas,
                     "categoria": "Moda Feminina",
                     "fonte": "Google Trends (SerpApi)",
                     "atualizado": datetime.now().strftime("%d/%m/%Y %H:%M"),
@@ -379,10 +415,10 @@ def render_tendencias_moda_dashboard():
     st.markdown("### 📋 Relatório Completo")
 
     # Formata a tabela para exibição
-    df_display = df[["termo", "interesse_2025", "interesse_2026", "status", "variacao", "dica_conteudo"]].copy()
+    df_display = df[["termo", "interesse_2025", "interesse_2026", "status", "variacao", "pinterest_sugestoes", "dica_conteudo"]].copy()
     df_display.columns = [
         "Tendência", "Interesse 2025", "Interesse 2026",
-        "Status", "Variação", "Estratégia de Conteúdo"
+        "Status", "Variação", "Buscas Pinterest (HOJE)", "Estratégia de Conteúdo"
     ]
 
     # Colora status
