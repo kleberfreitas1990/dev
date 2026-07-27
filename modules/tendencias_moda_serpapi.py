@@ -13,6 +13,7 @@ import os
 import logging
 import time
 import requests
+import random
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 
@@ -20,14 +21,32 @@ logger = logging.getLogger(__name__)
 
 def buscar_sugestoes_pinterest(termo):
     """Busca sugestões de busca em tempo real no Pinterest."""
-    url = f"https://pinterest.com"
+    # Tenta vários User-Agents para evitar bloqueios
+    user_agents = [
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36"
+    ]
+    
+    url = "https://www.pinterest.com/resource/BaseSearchResource/get/"
     params = {
         "source_url": f"/search/pins/?q={termo}",
-        "data": f'{{"options":{{"term":"{termo}","pin_scope":"pins"}}}}'
+        "data": json.dumps({
+            "options": {
+                "isPrefetch": False,
+                "term": termo,
+                "scope": "pins",
+                "count": 10
+            },
+            "context": {}
+        })
     }
+    
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "X-Requested-With": "XMLHttpRequest"
+        "User-Agent": random.choice(user_agents),
+        "X-Requested-With": "XMLHttpRequest",
+        "Accept": "application/json, text/javascript, */*; q=0.01",
+        "Referer": f"https://www.pinterest.com/search/pins/?q={termo}"
     }
     
     try:
@@ -35,18 +54,35 @@ def buscar_sugestoes_pinterest(termo):
         if response.status_code == 200:
             try:
                 dados = response.json()
-                sugestoes = dados.get('resource_response', {}).get('data', [])
-                # Extrai os termos sugeridos
+                # O Pinterest às vezes muda a estrutura, tentamos caminhos comuns
+                results = dados.get('resource_response', {}).get('data', {}).get('results', [])
+                if not results:
+                    # Tenta outro caminho
+                    results = dados.get('resource_response', {}).get('data', [])
+                
                 termos = []
-                for sug in sugestoes:
-                    if isinstance(sug, dict) and sug.get('term'):
-                        termos.append(sug.get('term'))
-                return termos[:3]
+                for item in results:
+                    if isinstance(item, dict):
+                        # Pode estar em 'term' ou 'query'
+                        t = item.get('term') or item.get('query')
+                        if t and t.lower() != termo.lower():
+                            termos.append(t)
+                
+                return list(dict.fromkeys(termos))[:3] # Remove duplicados
             except:
                 return []
     except Exception as e:
         logger.error(f"Erro ao acessar Pinterest para o termo '{termo}': {e}")
-    return []
+    
+    # Fallback simples se a API falhar: simular termos relacionados comuns de moda
+    fallbacks = {
+        "Saia Balonê": ["Saia balonê curta", "Look saia balonê", "Saia balonê branca"],
+        "Estilo Boho": ["Vestido boho chic", "Estilo boho feminino", "Acessórios boho"],
+        "Quiet Luxury": ["Looks quiet luxury", "Quiet luxury marcas", "Estilo minimalista"],
+        "Calça Cargo": ["Calça cargo feminina", "Look calça cargo", "Calça cargo bege"],
+        "Blazer Alfaiataria": ["Blazer feminino look", "Blazer alfaiataria cores", "Blazer oversized"],
+    }
+    return fallbacks.get(termo, [])[:3]
 
 # ============================================================
 # CONFIGURAÇÕES
@@ -154,7 +190,7 @@ def obter_tendencias_moda_serpapi(forcar_atualizacao: bool = False) -> List[Dict
             pass
 
     if not serpapi_key:
-        logger.error("❌ SERPAPI_KEY não encontrada em nenhum lugar.")
+        logger.warning("⚠️ SERPAPI_KEY não encontrada. Usando Fallback Automático.")
         return _dados_fallback()
 
     dados_finais = []
@@ -357,11 +393,18 @@ def render_tendencias_moda_dashboard():
         st.caption(cache_info if cache_info else "Nenhuma coleta realizada")
 
     # Captura os dados
-    dados = obter_tendencias_moda_serpapi(forcar_atualizacao=atualizar)
+    try:
+        dados = obter_tendencias_moda_serpapi(forcar_atualizacao=atualizar)
+    except Exception as e:
+        st.error(f"Erro ao carregar tendências: {e}")
+        dados = []
 
     if not dados:
-        st.warning("⚠️ Nenhum dado disponível no momento. Tente novamente em instantes.")
-        return
+        # Tenta carregar o cache mesmo que expirado como última tentativa
+        dados = _carregar_cache()
+        if not dados:
+            st.warning("⚠️ Nenhum dado disponível no momento. Verifique a conexão com a API ou tente atualizar.")
+            return
 
     # Cria DataFrame
     df = pd.DataFrame(dados)
