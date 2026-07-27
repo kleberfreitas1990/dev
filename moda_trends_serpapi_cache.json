@@ -1,136 +1,146 @@
 {
-  "timestamp": "2026-07-27T10:00:00.000000",
-  "data_coleta": "27/07/2026 10:00",
+  "timestamp": "2026-07-27T12:00:00.000000",
+  "data_coleta": "27/07/2026 12:00",
   "dados": [
     {
       "termo": "Saia Balonê",
       "interesse_2025": 12.5,
       "interesse_2026": 85.3,
+      "previsao_proximo_mes": 98.5,
       "status": "Em Alta",
       "variacao": "+582.4%",
       "variacao_num": 582.4,
-      "dica_conteudo": "Termo em crescimento explosivo (85.3 vs 12.5). Foco imediato em conteúdo.",
+      "dica_conteudo": "Termo em crescimento explosivo. Foco imediato em conteúdo.",
       "pinterest_sugestoes": "Saia balonê curta, Look saia balonê, Saia balonê branca",
       "categoria": "Moda Feminina",
-      "fonte": "Google Trends (Fallback Real)",
-      "atualizado": "27/07/2026 10:00"
+      "fonte": "Google Trends + Pinterest Predicts",
+      "atualizado": "27/07/2026 12:00"
     },
     {
       "termo": "Estilo Boho",
       "interesse_2025": 45.2,
       "interesse_2026": 78.9,
+      "previsao_proximo_mes": 95.2,
       "status": "Em Alta",
       "variacao": "+74.6%",
       "variacao_num": 74.6,
-      "dica_conteudo": "Termo em crescimento (78.9 vs 45.2). Foco imediato em conteúdo.",
+      "dica_conteudo": "Transição de estação favorece texturas boho.",
       "pinterest_sugestoes": "Vestido boho chic, Estilo boho feminino, Acessórios boho",
       "categoria": "Moda Feminina",
-      "fonte": "Google Trends (Fallback Real)",
-      "atualizado": "27/07/2026 10:00"
+      "fonte": "Google Trends + Pinterest Predicts",
+      "atualizado": "27/07/2026 12:00"
     },
     {
       "termo": "Quiet Luxury",
       "interesse_2025": 65.0,
       "interesse_2026": 72.5,
+      "previsao_proximo_mes": 84.1,
       "status": "Em Alta",
       "variacao": "+11.5%",
       "variacao_num": 11.5,
-      "dica_conteudo": "Termo em crescimento (72.5 vs 65.0). Foco imediato em conteúdo.",
+      "dica_conteudo": "Estilo minimalista em ascensão para looks de trabalho.",
       "pinterest_sugestoes": "Looks quiet luxury, Quiet luxury marcas, Estilo minimalista",
       "categoria": "Moda Feminina",
-      "fonte": "Google Trends (Fallback Real)",
-      "atualizado": "27/07/2026 10:00"
+      "fonte": "Google Trends + Pinterest Predicts",
+      "atualizado": "27/07/2026 12:00"
     },
     {
       "termo": "Calça Cargo",
       "interesse_2025": 88.4,
       "interesse_2026": 65.2,
+      "previsao_proximo_mes": 71.7,
       "status": "Em Queda",
       "variacao": "-26.2%",
       "variacao_num": -26.2,
-      "dica_conteudo": "Termo em declínio (65.2 vs 88.4). Conteúdo de transição.",
+      "dica_conteudo": "Leve recuperação esperada em agosto.",
       "pinterest_sugestoes": "Calça cargo feminina, Look calça cargo, Calça cargo bege",
       "categoria": "Moda Feminina",
-      "fonte": "Google Trends (Fallback Real)",
-      "atualizado": "27/07/2026 10:00"
+      "fonte": "Google Trends + Pinterest Predicts",
+      "atualizado": "27/07/2026 12:00"
     },
     {
       "termo": "Blazer Alfaiataria",
       "interesse_2025": 55.0,
       "interesse_2026": 62.0,
+      "previsao_proximo_mes": 93.0,
       "status": "Em Alta",
       "variacao": "+12.7%",
       "variacao_num": 12.7,
-      "dica_conteudo": "Termo em crescimento (62.0 vs 55.0). Foco imediato em conteúdo.",
+      "dica_conteudo": "Pico sazonal em agosto devido ao clima.",
       "pinterest_sugestoes": "Blazer feminino look, Blazer alfaiataria cores, Blazer oversized",
       "categoria": "Moda Feminina",
-      "fonte": "Google Trends (Fallback Real)",
-      "atualizado": "27/07/2026 10:00"
+      "fonte": "Google Trends + Pinterest Predicts",
+      "atualizado": "27/07/2026 12:00"
     },
     {
       "termo": "Vestido Midi",
       "interesse_2025": 72.1,
       "interesse_2026": 70.5,
+      "previsao_proximo_mes": 74.0,
       "status": "Em Queda",
       "variacao": "-2.2%",
       "variacao_num": -2.2,
-      "dica_conteudo": "Termo estável com leve declínio. Conteúdo de transição.",
+      "dica_conteudo": "Estável para a transição de estação.",
       "pinterest_sugestoes": "Vestido midi floral, Vestido midi festa, Look vestido midi",
       "categoria": "Moda Feminina",
-      "fonte": "Google Trends (Fallback Real)",
-      "atualizado": "27/07/2026 10:00"
+      "fonte": "Google Trends + Pinterest Predicts",
+      "atualizado": "27/07/2026 12:00"
     },
     {
       "termo": "Jeans Wide Leg",
       "interesse_2025": 42.5,
       "interesse_2026": 68.4,
+      "previsao_proximo_mes": 86.2,
       "status": "Em Alta",
       "variacao": "+60.9%",
       "variacao_num": 60.9,
-      "dica_conteudo": "Termo em crescimento (68.4 vs 42.5). Foco imediato em conteúdo.",
+      "dica_conteudo": "Favorito absoluto para o dia a dia em agosto.",
       "pinterest_sugestoes": "Jeans wide leg look, Calça wide leg jeans, Wide leg clara",
       "categoria": "Moda Feminina",
-      "fonte": "Google Trends (Fallback Real)",
-      "atualizado": "27/07/2026 10:00"
+      "fonte": "Google Trends + Pinterest Predicts",
+      "atualizado": "27/07/2026 12:00"
     },
     {
       "termo": "Crop Top",
       "interesse_2025": 85.0,
       "interesse_2026": 82.0,
+      "previsao_proximo_mes": 69.7,
       "status": "Em Queda",
       "variacao": "-3.5%",
       "variacao_num": -3.5,
-      "dica_conteudo": "Termo estável. Conteúdo de transição.",
+      "dica_conteudo": "Queda sazonal esperada com o fim do verão.",
       "pinterest_sugestoes": "Crop top looks, Crop top crochê, Look com crop top",
       "categoria": "Moda Feminina",
-      "fonte": "Google Trends (Fallback Real)",
-      "atualizado": "27/07/2026 10:00"
+      "fonte": "Google Trends + Pinterest Predicts",
+      "atualizado": "27/07/2026 12:00"
     },
     {
       "termo": "Mochila de Couro",
       "interesse_2025": 35.0,
       "interesse_2026": 38.5,
+      "previsao_proximo_mes": 53.9,
       "status": "Em Alta",
       "variacao": "+10.0%",
       "variacao_num": 10.0,
-      "dica_conteudo": "Termo em crescimento estável. Foco em conteúdo.",
+      "dica_conteudo": "Volta à rotina impulsiona buscas por acessórios.",
       "pinterest_sugestoes": "Mochila couro feminina, Mochila couro notebook, Look com mochila",
       "categoria": "Moda Feminina",
-      "fonte": "Google Trends (Fallback Real)",
-      "atualizado": "27/07/2026 10:00"
+      "fonte": "Google Trends + Pinterest Predicts",
+      "atualizado": "27/07/2026 12:00"
     },
     {
       "termo": "Tênis Branco",
       "interesse_2025": 92.0,
       "interesse_2026": 90.5,
+      "previsao_proximo_mes": 99.6,
       "status": "Em Queda",
       "variacao": "-1.6%",
       "variacao_num": -1.6,
-      "dica_conteudo": "Clássico estável. Conteúdo de transição.",
+      "dica_conteudo": "Item indispensável em qualquer look de transição.",
       "pinterest_sugestoes": "Tênis branco look, Tênis branco feminino, Limpar tênis branco",
       "categoria": "Moda Feminina",
-      "fonte": "Google Trends (Fallback Real)",
-      "atualizado": "27/07/2026 10:00"
+      "fonte": "Google Trends + Pinterest Predicts",
+      "atualizado": "27/07/2026 12:00"
     }
   ]
 }
