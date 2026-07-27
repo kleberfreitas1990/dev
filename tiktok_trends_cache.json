@@ -1,0 +1,125 @@
+{
+  "timestamp": "2026-07-27T12:00:00.000000",
+  "dados": [
+    {
+      "termo": "Mini Projetor Portátil",
+      "categoria": "Tech",
+      "interesse_2025": 45,
+      "interesse_2026": 92,
+      "status": "🚀 Viral",
+      "variacao": "+104.4%",
+      "variacao_num": 104.4,
+      "dica_conteudo": "Unboxing e review de 'cinema em casa'",
+      "fonte": "TikTok Creative Center + Research",
+      "atualizado": "27/07/2026 12:00"
+    },
+    {
+      "termo": "Gloss Volumizador",
+      "categoria": "Beleza",
+      "interesse_2025": 30,
+      "interesse_2026": 88,
+      "status": "🚀 Viral",
+      "variacao": "+193.3%",
+      "variacao_num": 193.3,
+      "dica_conteudo": "Vídeos de 'antes e depois' sem cortes",
+      "fonte": "TikTok Creative Center + Research",
+      "atualizado": "27/07/2026 12:00"
+    },
+    {
+      "termo": "Sacola Tote Bag",
+      "categoria": "Moda",
+      "interesse_2025": 60,
+      "interesse_2026": 95,
+      "status": "🚀 Viral",
+      "variacao": "+58.3%",
+      "variacao_num": 58.3,
+      "dica_conteudo": "O que tem na minha bolsa (versão faculdade)",
+      "fonte": "TikTok Creative Center + Research",
+      "atualizado": "27/07/2026 12:00"
+    },
+    {
+      "termo": "Carregador Magnético",
+      "categoria": "Tech",
+      "interesse_2025": 25,
+      "interesse_2026": 89,
+      "status": "🚀 Viral",
+      "variacao": "+256.0%",
+      "variacao_num": 256.0,
+      "dica_conteudo": "Demonstração de praticidade no dia a dia",
+      "fonte": "TikTok Creative Center + Research",
+      "atualizado": "27/07/2026 12:00"
+    },
+    {
+      "termo": "Luz de Leitura Clip",
+      "categoria": "Lifestyle",
+      "interesse_2025": 20,
+      "interesse_2026": 85,
+      "status": "🚀 Viral",
+      "variacao": "+325.0%",
+      "variacao_num": 325.0,
+      "dica_conteudo": "Vibes de 'leitura noturna' e estética",
+      "fonte": "TikTok Creative Center + Research",
+      "atualizado": "27/07/2026 12:00"
+    },
+    {
+      "termo": "Fone Noise Cancelling",
+      "categoria": "Tech",
+      "interesse_2025": 55,
+      "interesse_2026": 82,
+      "status": "📈 Em Alta",
+      "variacao": "+49.1%",
+      "variacao_num": 49.1,
+      "dica_conteudo": "Conteúdo de 'estude comigo' ou 'foco'",
+      "fonte": "TikTok Creative Center + Research",
+      "atualizado": "27/07/2026 12:00"
+    },
+    {
+      "termo": "Skincare Minimalista",
+      "categoria": "Beleza",
+      "interesse_2025": 40,
+      "interesse_2026": 78,
+      "status": "📈 Em Alta",
+      "variacao": "+95.0%",
+      "variacao_num": 95.0,
+      "dica_conteudo": "Rotina de 3 passos rápida",
+      "fonte": "TikTok Creative Center + Research",
+      "atualizado": "27/07/2026 12:00"
+    },
+    {
+      "termo": "Organizador Acrílico",
+      "categoria": "Casa",
+      "interesse_2025": 65,
+      "interesse_2026": 75,
+      "status": "📈 Em Alta",
+      "variacao": "+15.4%",
+      "variacao_num": 15.4,
+      "dica_conteudo": "ASMR de organização e limpeza",
+      "fonte": "TikTok Creative Center + Research",
+      "atualizado": "27/07/2026 12:00"
+    },
+    {
+      "termo": "Copo Stanley",
+      "categoria": "Lifestyle",
+      "interesse_2025": 95,
+      "interesse_2026": 60,
+      "status": "📉 Flopando",
+      "variacao": "-36.8%",
+      "variacao_num": -36.8,
+      "dica_conteudo": "Customização e teste de temperatura",
+      "fonte": "TikTok Creative Center + Research",
+      "atualizado": "27/07/2026 12:00"
+    },
+    {
+      "termo": "Velas Esculturais",
+      "categoria": "Casa",
+      "interesse_2025": 50,
+      "interesse_2026": 42,
+      "status": "📉 Flopando",
+      "variacao": "-16.0%",
+      "variacao_num": -16.0,
+      "dica_conteudo": "Decoração estética para o quarto",
+      "fonte": "TikTok Creative Center + Research",
+      "atualizado": "27/07/2026 12:00"
+    }
+  ]
+}

@@ -35,6 +35,7 @@ from modules.produtos_dinamicos import verificar_data_cache, obter_produtos_dina
 
 # Importa Tendências de Moda Feminina via SerpApi
 from modules.tendencias_moda_serpapi import render_tendencias_moda_dashboard
+from modules.tiktok_trends import render_tiktok_dashboard
 
 # Tenta importar serper, se falhar usa fallback
 try:
@@ -625,6 +626,14 @@ def render_dashboard():
         render_tendencias_moda_dashboard()
     except Exception as e:
         st.warning(f"⚠️ Tendências de Moda indisponíveis: {str(e)[:100]}")
+    
+    st.markdown("---")
+
+    # ===== TENDÊNCIAS TIKTOK =====
+    try:
+        render_tiktok_dashboard()
+    except Exception as e:
+        st.warning(f"⚠️ Tendências TikTok indisponíveis: {str(e)[:100]}")
     
     st.markdown("---")
     
