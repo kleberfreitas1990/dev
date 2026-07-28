@@ -23,18 +23,18 @@ CACHE_TTL_HORAS = 6
 
 # ============================================================
 # DADOS REAIS EXTRAÍDOS DO PRINT DO USUÁRIO (Prioridade Máxima)
-# Atualizado em: 22/07/2026 — Buscas em Alta Shopee
+# Atualizado em: 28/07/2026 — Buscas em Alta Shopee
 # ============================================================
 TERMOS_HOT_TRENDS = [
-    "Poltrona", "Figurinhas Copa", "Linha Indonesia Samurai", "Caixa Organizadora", 
-    "Prateleira", "Roda Abdominal", "Lego", "Kettlebell Acte Sports", 
-    "Escova Progressiva Everk", "Tablet", "Crocs Relâmpago Mcqueen", "Faixas Elásticas", 
-    "Bloqueador de Sinal Bluetooth", "Espelho", "Papel de Parede", "Tênis Masculino", 
-    "Caixa de Vela 7 Dias", "Fone de Ouvido Disney LF-918", "Dildo", "Vibrador Calcinha", 
-    "Câmera 4 Lentes Wi-Fi", "Smart Tv Samsung OLED", "Toca-Discos Audio-Technica AT-LP60XBT", 
-    "Celular Redmi 15C 256GB", "Celular Xiaomi Redmi Note 14 4G 256GB", "Saco de Pancada Venum", 
-    "Sunga Speedo", "Celular Samsung A14 5G 128 GB", "Caixa de Som JBL PartyBox Encore Essential 100W", 
-    "Celular Xiaomi 14"
+    "Masturbador Masculino", "Crocs", "Sofá", "Kit Presente Dia dos Pais",
+    "Escova Progressiva Everk", "Kettlebell Acte Sports", "Pipa", "Poltrona",
+    "Cueca Renda", "Alexa", "Arma de Gel",
+    "Caixa de Som JBL PartyBox Encore Essential 100W", "Capacete", "Nintendo 3DS",
+    "Figurinha Copa", "100 Pacotes de Figurinhas da Copa", "Chopp", "Dildo",
+    "Airsoft", "Kindle", "Caixa de Som Philco Extreme 600W Bluetooth",
+    "Armazenador de Energia", "Luminária Roda de Carroça", "Casaco Brilho",
+    "Imã Esmalte", "Sandália Tira Fina", "Corretivo Franciny Ehlke",
+    "Air Fryer Forno", "Ar Condicionado Midea Inverter Ecomaster", "Magnesio Pro"
 ]
 
 def _cache_valido(arquivo: str) -> bool:

@@ -83,6 +83,8 @@ from modules.calendar import render_calendar
 # Importa módulo Metadata Pro
 from modules.metadados_pro import render_metadados_pro
 from modules.historico_tendencias import render_historico_tendencias
+# Importa módulo de crescimento TikTok
+from modules.tiktok_crescimento import render_tiktok_crescimento
 
 # ============================================================
 # LOGIN E AUTENTICAÇÃO
@@ -123,11 +125,12 @@ st.markdown("---")
 # ============================================================
 # TABS (REORGANIZADAS: Metadata Pro em 2º lugar)
 # ============================================================
-tab1, tab_meta, tab_auto, tab_hist, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs([
+tab1, tab_meta, tab_auto, tab_hist, tab_tiktok_cresc, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs([
     "📊 Dashboard",
     "🎬 Metadata Pro",
     "🔄 Atualização Auto",
     "📈 Histórico",
+    "📈 TikTok Crescimento",
     "📅 Calendário de Conteúdo",
     "🎬 Criar Vídeo IA",
     "🤖 Criar Conteúdo",
@@ -167,7 +170,16 @@ with tab_hist:
     render_historico_tendencias()
 
 # ============================================================
-# TAB 5: CALENDÁRIO
+# TAB 5: TIKTOK CRESCIMENTO — PRÓXIMO MÊS
+# ============================================================
+with tab_tiktok_cresc:
+    try:
+        render_tiktok_crescimento()
+    except Exception as e:
+        st.error(f"❌ Erro ao carregar TikTok Crescimento: {str(e)}")
+
+# ============================================================
+# TAB 6: CALENDÁRIO
 # ============================================================
 with tab2:
     render_calendar()
