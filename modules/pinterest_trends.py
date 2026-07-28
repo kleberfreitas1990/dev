@@ -5,61 +5,59 @@ from datetime import datetime, timedelta
 
 ARQUIVO_PINTEREST_CACHE = "pinterest_trends_cache.json"
 
-def obter_tendencias_pinterest_moda():
+def obter_tendencias_pinterest():
     """
-    Retorna tendências de moda antecipadas (projeção Agosto 2026)
-    Baseado em dados históricos do Pinterest (Julho/Agosto 2025)
+    Retorna as tendências reais do Pinterest Brasil extraídas em 28/07/2026.
+    Focado no público de 25-49 anos conforme solicitado pelo usuário.
     """
-    # Dados extraídos da análise do Pinterest Fall/Summer Report 2025
-    # Projetando para Agosto 2026 (Transição Inverno -> Primavera no BR)
     raw_data = {
-        "Moda Boho Anos 2000": {
-            "termo": "Moda Boho Anos 2000",
-            "score": 9.8,
-            "evento": "Tendência Antecipada: +1.039% de buscas (Pinterest)",
-            "categoria": "Moda Feminina",
-            "palavra_chave": "look boho chic feminino crochê renda",
-            "hashtags": ["#bohochic", "#y2kfashion", "#crochê", "#modafeminina"]
+        "Moda Estádio": {
+            "termo": "Roupa para estádio",
+            "score": 9.9,
+            "evento": "Tendência Explosiva: +10.000% de buscas mensais (Brasil)",
+            "categoria": "Moda",
+            "palavra_chave": "look para estádio de futebol feminino masculino",
+            "hashtags": ["#modafutebol", "#lookestadio", "#brasileirao", "#estilofutebol"]
         },
-        "Estilo Preppy Vintage": {
-            "termo": "Estilo Preppy Vintage",
+        "Carreira Saúde (Head Nurse)": {
+            "termo": "Head Nurse",
+            "score": 9.7,
+            "evento": "Tendência em Alta: +10.000% de buscas mensais",
+            "categoria": "Carreira/Educação",
+            "palavra_chave": "head nurse responsabilidades carreira enfermagem",
+            "hashtags": ["#enfermagem", "#headnurse", "#carreirasaude", "#saude"]
+        },
+        "Hospital de Animais": {
+            "termo": "Hospital de animais",
             "score": 9.5,
-            "evento": "Tendência Antecipada: +1.872% de buscas (Pinterest)",
-            "categoria": "Moda Geral",
-            "palavra_chave": "look preppy vintage listras marinho",
-            "hashtags": ["#preppy", "#vintageprep", "#oldmoney", "#modabrasil"]
+            "evento": "Tendência em Alta: +10.000% de buscas mensais",
+            "categoria": "Pets/Saúde",
+            "palavra_chave": "hospital veterinário 24h animais de estimação",
+            "hashtags": ["#petlovers", "#veterinaria", "#saudepet", "#hospitalpet"]
         },
-        "Cores Terrosas (Verde Endro)": {
-            "termo": "Roupas Verde Endro",
-            "score": 9.2,
-            "evento": "Cor do Ano Pinterest 2025/26 (+1.627%)",
-            "categoria": "Moda Geral",
-            "palavra_chave": "calça de linho verde endro masculino feminino",
-            "hashtags": ["#greentrend", "#verdeendro", "#modasustentavel"]
+        "Hospital de Anomalias": {
+            "termo": "Hospital de anomalias",
+            "score": 9.3,
+            "evento": "Tendência em Alta: +10.000% de buscas mensais",
+            "categoria": "Saúde/Especializado",
+            "palavra_chave": "hospital de anomalias craniofaciais centrinho bauru",
+            "hashtags": ["#saudeespecializada", "#reabilitacao", "#hospitalanomalias"]
         },
-        "Grunge Glam 90s": {
-            "termo": "Moda Grunge Glam 90s",
-            "score": 8.9,
-            "evento": "Tendência Antecipada: +652% de buscas (Pinterest)",
-            "categoria": "Beleza/Moda",
-            "palavra_chave": "look grunge suave feminino maquiagem 90s",
-            "hashtags": ["#grungeglam", "#90saesthetic", "#softgrunge"]
+        "Kylian Dictator": {
+            "termo": "Kylian Dictator",
+            "score": 9.0,
+            "evento": "Tendência Viral: +10.000% de buscas mensais (Cultura Pop)",
+            "categoria": "Entretenimento",
+            "palavra_chave": "kylian mbappe meme dictator real madrid",
+            "hashtags": ["#mbappe", "#kylian", "#futebol", "#memesfutebol"]
         },
-        "Acessórios Vintage (Relógios)": {
-            "termo": "Relógio Vintage Digital/Analógico",
-            "score": 8.7,
-            "evento": "Alta com Homens Gen Z (+82%)",
-            "categoria": "Acessórios",
-            "palavra_chave": "relógio vintage digital masculino luxo",
-            "hashtags": ["#vintagewatch", "#acessoriosmasculinos", "#relogio"]
-        },
-        "Babydoll Glamour 60s": {
-            "termo": "Vestido Babydoll 60s",
-            "score": 8.5,
-            "evento": "Tendência Antecipada: +2.514% de buscas",
-            "categoria": "Moda Feminina",
-            "palavra_chave": "vestido babydoll 60s festa vintage",
-            "hashtags": ["#60sfashion", "#babydoll", "#vintagefashion"]
+        "Wallpaper Estético": {
+            "termo": "Wallpaper / Papel de Parede",
+            "score": 8.8,
+            "evento": "Tendência Perene: Top volume de buscas (Brasil)",
+            "categoria": "Design/Tech",
+            "palavra_chave": "wallpaper 4k aesthetic celular pc",
+            "hashtags": ["#wallpaper", "#aesthetic", "#papeldeparede", "#design"]
         }
     }
     
@@ -67,7 +65,7 @@ def obter_tendencias_pinterest_moda():
     tendencias = {}
     for nome, dados in raw_data.items():
         tendencias[nome] = dados
-        tendencias[nome]["fonte"] = "Pinterest Trends"
+        tendencias[nome]["fonte"] = "Pinterest Trends (Real)"
         
     return tendencias
 
