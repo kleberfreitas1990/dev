@@ -1,89 +1,90 @@
 {
-  "timestamp": "2026-07-28T12:27:47.141720",
+  "timestamp": "2026-07-28T12:31:25.094570",
   "data": "2026-07-28",
   "dados": {
     "Moda Estádio": {
       "termo": "Roupa para estádio",
       "score": 9.9,
-      "evento": "Tendência Explosiva: +10.000% de buscas mensais (Brasil)",
-      "categoria": "Moda",
-      "palavra_chave": "look para estádio de futebol feminino masculino",
+      "evento": "Tendência Explosiva: +10.000% de buscas (Brasil)",
+      "categoria": "Moda Feminina",
+      "palavra_chave": "look para estádio de futebol feminino inspiração",
       "hashtags": [
         "#modafutebol",
         "#lookestadio",
-        "#brasileirao",
+        "#feminino",
         "#estilofutebol"
       ],
-      "fonte": "Pinterest Trends (Real)"
+      "fonte": "Pinterest Trends (Moda Feminina)"
     },
-    "Carreira Saúde (Head Nurse)": {
-      "termo": "Head Nurse",
+    "Unhas Elegantes": {
+      "termo": "Uñas elegantes y sencillas",
       "score": 9.7,
-      "evento": "Tendência em Alta: +10.000% de buscas mensais",
-      "categoria": "Carreira/Educação",
-      "palavra_chave": "head nurse responsabilidades carreira enfermagem",
+      "evento": "Alta Demanda: Público 25-49 anos",
+      "categoria": "Beleza/Moda",
+      "palavra_chave": "unhas elegantes e simples tendências 2026",
       "hashtags": [
-        "#enfermagem",
-        "#headnurse",
-        "#carreirasaude",
-        "#saude"
+        "#unhas",
+        "#nailart",
+        "#elegancia",
+        "#belezafeminina"
       ],
-      "fonte": "Pinterest Trends (Real)"
+      "fonte": "Pinterest Trends (Moda Feminina)"
     },
-    "Hospital de Animais": {
-      "termo": "Hospital de animais",
+    "Penteados Tendência": {
+      "termo": "Peinados (Penteados)",
       "score": 9.5,
-      "evento": "Tendência em Alta: +10.000% de buscas mensais",
-      "categoria": "Pets/Saúde",
-      "palavra_chave": "hospital veterinário 24h animais de estimação",
+      "evento": "Top Volume: Tendência em crescimento (Brasil)",
+      "categoria": "Beleza/Moda",
+      "palavra_chave": "penteados femininos modernos 2026",
       "hashtags": [
-        "#petlovers",
-        "#veterinaria",
-        "#saudepet",
-        "#hospitalpet"
+        "#penteados",
+        "#cabelos",
+        "#tendenciascabelo",
+        "#hairinspo"
       ],
-      "fonte": "Pinterest Trends (Real)"
+      "fonte": "Pinterest Trends (Moda Feminina)"
     },
-    "Hospital de Anomalias": {
-      "termo": "Hospital de anomalias",
+    "Design de Unhas": {
+      "termo": "Diseños de uñas",
       "score": 9.3,
-      "evento": "Tendência em Alta: +10.000% de buscas mensais",
-      "categoria": "Saúde/Especializado",
-      "palavra_chave": "hospital de anomalias craniofaciais centrinho bauru",
+      "evento": "Alta Busca: Categoria Moda Feminina",
+      "categoria": "Beleza/Moda",
+      "palavra_chave": "design de unhas decoradas modernas",
       "hashtags": [
-        "#saudeespecializada",
-        "#reabilitacao",
-        "#hospitalanomalias"
+        "#naildesign",
+        "#unhasdecoradas",
+        "#beleza",
+        "#moda"
       ],
-      "fonte": "Pinterest Trends (Real)"
+      "fonte": "Pinterest Trends (Moda Feminina)"
+    },
+    "Unhas Amendoadas": {
+      "termo": "Uñas almendradas",
+      "score": 9.1,
+      "evento": "Tendência Específica: Formato em alta no Brasil",
+      "categoria": "Beleza/Moda",
+      "palavra_chave": "unhas amendoadas decoradas inspiração",
+      "hashtags": [
+        "#unhasamendoadas",
+        "#almondnails",
+        "#estilo",
+        "#beleza"
+      ],
+      "fonte": "Pinterest Trends (Moda Feminina)"
     },
     "Kylian Dictator": {
-      "termo": "Kylian Dictator",
-      "score": 9.0,
-      "evento": "Tendência Viral: +10.000% de buscas mensais (Cultura Pop)",
-      "categoria": "Entretenimento",
-      "palavra_chave": "kylian mbappe meme dictator real madrid",
+      "termo": "Kylian Dictator (Cultura Pop)",
+      "score": 8.9,
+      "evento": "Viral: +10.000% (Influência no Estilo)",
+      "categoria": "Entretenimento/Moda",
+      "palavra_chave": "mbappe meme style cultura pop 2026",
       "hashtags": [
         "#mbappe",
-        "#kylian",
-        "#futebol",
-        "#memesfutebol"
+        "#culturapop",
+        "#tendenciaviral",
+        "#estilo"
       ],
-      "fonte": "Pinterest Trends (Real)"
-    },
-    "Wallpaper Estético": {
-      "termo": "Wallpaper / Papel de Parede",
-      "score": 8.8,
-      "evento": "Tendência Perene: Top volume de buscas (Brasil)",
-      "categoria": "Design/Tech",
-      "palavra_chave": "wallpaper 4k aesthetic celular pc",
-      "hashtags": [
-        "#wallpaper",
-        "#aesthetic",
-        "#papeldeparede",
-        "#design"
-      ],
-      "fonte": "Pinterest Trends (Real)"
+      "fonte": "Pinterest Trends (Moda Feminina)"
     }
   }
 }
