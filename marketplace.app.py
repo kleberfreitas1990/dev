@@ -96,11 +96,18 @@ if not verificar_login():
 # INICIALIZAÇÃO DO BANCO DE DADOS
 # ============================================================
 from modules.database import inicializar_db, verificar_db, migrar_jsons_para_db
+from modules.sync_db import forcar_sincronizacao_json_to_db
+
 if not verificar_db():
     st.warning("⚠️ Iniciando banco de dados SQLite...")
     inicializar_db()
     migrar_jsons_para_db()
     st.success("✅ Banco de dados SQLite inicializado com sucesso!")
+
+# Sincronização forçada para garantir dados novos no SQLite
+if 'sync_real_time' not in st.session_state:
+    forcar_sincronizacao_json_to_db()
+    st.session_state['sync_real_time'] = True
 
 # ============================================================
 # CICLO DE ATUALIZAÇÃO AUTOMÁTICA (executa no início)
