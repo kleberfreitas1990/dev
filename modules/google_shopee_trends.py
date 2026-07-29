@@ -26,15 +26,12 @@ CACHE_TTL_HORAS = 6
 # Atualizado em: 28/07/2026 — Buscas em Alta Shopee
 # ============================================================
 TERMOS_HOT_TRENDS = [
-    "Masturbador Masculino", "Crocs", "Sofá", "Kit Presente Dia dos Pais",
-    "Escova Progressiva Everk", "Kettlebell Acte Sports", "Pipa", "Poltrona",
-    "Cueca Renda", "Alexa", "Arma de Gel",
-    "Caixa de Som JBL PartyBox Encore Essential 100W", "Capacete", "Nintendo 3DS",
-    "Figurinha Copa", "100 Pacotes de Figurinhas da Copa", "Chopp", "Dildo",
-    "Airsoft", "Kindle", "Caixa de Som Philco Extreme 600W Bluetooth",
-    "Armazenador de Energia", "Luminária Roda de Carroça", "Casaco Brilho",
-    "Imã Esmalte", "Sandália Tira Fina", "Corretivo Franciny Ehlke",
-    "Air Fryer Forno", "Ar Condicionado Midea Inverter Ecomaster", "Magnesio Pro"
+    "Magnesio Pro", "Chaveiro", "Vibrador", "Sapateira", "Mouse Pad",
+    "Capinha iPhone 16", "Camisa Tailandesa", "PS5", "Controle PS4", "Bloqueador de Sinal Bluetooth",
+    "Antena Starlink", "Tênis Masculino", "bloqueador de sinal bluetooth", "Lego", "Papel de Parede",
+    "Tapete Sala", "Spray de Pimenta", "SSD", "Moto Elétrica Scooter", "Dildo",
+    "Celular Samsung 4GB RAM", "Pochete Tática", "Jogo de Travessa Vidro", "Jogo de Pincel", "Cadeirinha Litet All Stage 2 0",
+    "Caixa de Som Philco Extreme 600W Bluetooth", "Descanso de Talher Cerâmica", "Air Fryer Forno", "Armazenador de Energia", "Corretivo Franciny Ehlke"
 ]
 
 def _cache_valido(arquivo: str) -> bool:
