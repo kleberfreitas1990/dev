@@ -39,39 +39,38 @@ USER_AGENTS = [
 
 # ============================================================
 # TERMOS REAIS DA SHOPEE (FALLBACK)
-# Atualizado em: 28/07/2026 — Buscas em Alta Shopee (Print do Usuário)
+# Atualizado em: 30/07/2026 — Buscas em Alta Shopee (Print do Usuário)
 # ============================================================
 TERMOS_REAIS_SHOPEE = [
-    "Magnesio Pro",
-    "Chaveiro",
-    "Vibrador",
-    "Sapateira",
-    "Mouse Pad",
+    "Roda Abdominal",
+    "Linha Indonesia Samurai",
+    "Espelho",
     "Capinha iPhone 16",
-    "Camisa Tailandesa",
-    "PS5",
-    "Controle PS4",
-    "Bloqueador de Sinal Bluetooth",
-    "Antena Starlink",
-    "Tênis Masculino",
-    "bloqueador de sinal bluetooth",
-    "Lego",
-    "Papel de Parede",
-    "Tapete Sala",
-    "Spray de Pimenta",
-    "SSD",
-    "Moto Elétrica Scooter",
-    "Dildo",
-    "Celular Samsung 4GB RAM",
-    "Pochete Tática",
-    "Jogo de Travessa Vidro",
-    "Jogo de Pincel",
-    "Cadeirinha Litet All Stage 2 0",
-    "Caixa de Som Philco Extreme 600W Bluetooth",
-    "Descanso de Talher Cerâmica",
-    "Air Fryer Forno",
+    "Capa Kindle",
+    "Crocs",
+    "Retroid Pocket 5",
+    "Prateleira",
     "Armazenador de Energia",
-    "Corretivo Franciny Ehlke"
+    "Alexa",
+    "Boneca Inflável",
+    "Crocs Relâmpago Mcqueen",
+    "Controle PS",
+    "Boneca Sexual",
+    "Moto Elétrica Scooter",
+    "Spray de Pimenta",
+    "Bloqueador de Sinal Bluetooth",
+    "Figurinha Copa",
+    "Tênis Feminino",
+    "Grave 15 Polegadas",
+    "Cadeirinha Litet All Stage 2 0",
+    "Booster Pokemon Black And White 6 - Dragões Enaltecidos",
+    "Sandália Tira Fina",
+    "Caixa de Som Philco Extreme 600W Bluetooth",
+    "Ar Condicionado Midea Inverter Ecomaster",
+    "Nincho Quarto",
+    "Meia Solado Emborrachado",
+    "Vertix Professional",
+    "Jogo de Travessa Vidro"
 ]
 
 # ============================================================
