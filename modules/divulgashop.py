@@ -3,13 +3,14 @@ divulgashop.py — Aba "Divulga Shop" para o Marketplace
 ======================================================
 Fluxo simplificado:
 1. Cole o link do produto Shopee
-2. Gera mensagem formatada (foto + nome + preço + link)
-3. Compartilhe direto no WhatsApp/Telegram/Instagram
+2. Sistema extrai nome, preço, foto automaticamente
+3. Gera mensagem formatada igual ao Divulgador Inteligente
+4. Botões para compartilhar no WhatsApp / Telegram / Instagram
 
-Estilo: igual ao bot Divulgador Inteligente do Telegram
+Estilo: idêntico ao bot Divulgador Inteligente do Telegram
 
 Autor: Engenheiro de Software Sênior
-Versão: 3.0.0
+Versão: 4.0.0
 """
 
 import streamlit as st
@@ -81,7 +82,7 @@ def _extrair_ids(url: str):
     if match:
         return int(match.group(1)), int(match.group(2))
 
-    # -i.{shop_id}.{item_id}
+    # /produto-i.{shop_id}.{item_id}
     match = re.search(r'-(?:i\.|product\.)(\d+)\.(\d+)', path)
     if match:
         return int(match.group(1)), int(match.group(2))
@@ -97,7 +98,7 @@ def _extrair_ids(url: str):
 
 
 # ============================================================
-# BUSCAR DADOS DO PRODUTO VIA API
+# BUSCAR DADOS DO PRODUTO VIA API SHOPEE PARTNER
 # ============================================================
 def _buscar_produto_api(shop_id: int, item_id: int) -> dict:
     """Busca dados do produto via API Shopee Open Platform."""
@@ -141,9 +142,10 @@ def _extrair_via_scraping(url: str) -> dict:
 
     try:
         headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
             "Accept": "text/html,application/xhtml+xml,*/*",
             "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8",
+            "Accept-Encoding": "gzip, deflate, br",
         }
         resp = requests.get(url, headers=headers, timeout=10, allow_redirects=True)
 
@@ -165,7 +167,7 @@ def _extrair_via_scraping(url: str) -> dict:
         if og_desc:
             resultado["descricao"] = og_desc.group(1)
 
-        # Preço
+        # Preço - busca R$ no HTML
         preco_match = re.search(r'(?:R\$\s*)(\d+[.,]\d{2})', html)
         if preco_match:
             resultado["preco"] = f"R$ {preco_match.group(1)}"
@@ -185,19 +187,62 @@ def _extrair_via_scraping(url: str) -> dict:
 
 
 # ============================================================
+# BUSCAR VIA API INTERNA DA SHOPEE (V4)
+# ============================================================
+def _buscar_via_api_interna(shop_id: int, item_id: int) -> dict:
+    """Usa a API interna v4 da Shopee que o próprio site usa."""
+    resultado = {}
+    try:
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+            "Accept": "application/json, text/plain, */*",
+            "Accept-Language": "pt-BR,pt;q=0.9",
+            "Referer": f"https://shopee.com.br/product/{shop_id}/{item_id}",
+            "Origin": "https://shopee.com.br",
+            "af-ac-enc-dat": "null",
+            "x-api-source": "pc",
+            "x-shopee-language": "pt-BR",
+            "x-shopee-clienttype": "web",
+            "x-requested-with": "XMLHttpRequest",
+        }
+        url = f"https://shopee.com.br/api/v4/item/get?itemid={item_id}&shopid={shop_id}"
+        resp = requests.get(url, headers=headers, timeout=10)
+        if resp.status_code == 200:
+            data = resp.json()
+            item = data.get("data", {}).get("item", {})
+            if item:
+                resultado["nome"] = item.get("name", "")
+                price = item.get("price", 0)
+                if price:
+                    valor = price / 100000
+                    resultado["preco"] = f"R$ {valor:.2f}"
+                images = item.get("images", [])
+                if images:
+                    img = images[0]
+                    if isinstance(img, str):
+                        resultado["foto"] = f"https://cf.shopee.com.br/file/{img}"
+                    elif isinstance(img, dict):
+                        resultado["foto"] = img.get("url", "")
+    except Exception as e:
+        logger.error(f"API interna falhou: {e}")
+    return resultado
+
+
+# ============================================================
 # FUNÇÃO PRINCIPAL: EXTRAIR DADOS DO PRODUTO
 # ============================================================
 def extrair_dados_produto(url: str) -> dict:
     """
     Extrai dados do produto Shopee pela URL.
+    Estratégias: API Parceira → API Interna → Scraping → Dados básicos
     Retorna: {nome, preco, descricao, foto, link}
     """
-    # Cache 2 min
+    # Cache 5 min
     cache = _ler_json(CACHE_PATH)
     if cache.get(url) and cache.get("timestamp"):
         try:
             cache_time = datetime.fromisoformat(cache["timestamp"])
-            if datetime.now() - cache_time < timedelta(minutes=2):
+            if datetime.now() - cache_time < timedelta(minutes=5):
                 return cache[url]
         except Exception:
             pass
@@ -212,7 +257,7 @@ def extrair_dados_produto(url: str) -> dict:
         "link": url,
     }
 
-    # Tentar API primeiro
+    # Tentar API Parceira
     if shop_id and item_id:
         api_data = _buscar_produto_api(shop_id, item_id)
         if api_data:
@@ -240,18 +285,19 @@ def extrair_dados_produto(url: str) -> dict:
             if images:
                 produto["foto"] = images[0] if isinstance(images[0], str) else images[0].get("url", "")
 
-            # Cache
-            cache[url] = produto
-            cache["timestamp"] = datetime.now().isoformat()
-            _salvar_json(CACHE_PATH, cache)
-
-            return produto
+    # Se API falhou, tentar API interna v4
+    if shop_id and item_id and not produto["nome"]:
+        interno = _buscar_via_api_interna(shop_id, item_id)
+        for key, val in interno.items():
+            if val and not produto.get(key):
+                produto[key] = val
 
     # Fallback scraping
-    scraping = _extrair_via_scraping(url)
-    for key, val in scraping.items():
-        if val and not produto.get(key):
-            produto[key] = val
+    if not produto["nome"]:
+        scraping = _extrair_via_scraping(url)
+        for key, val in scraping.items():
+            if val and not produto.get(key):
+                produto[key] = val
 
     # Cache
     cache[url] = produto
@@ -268,14 +314,16 @@ def gerar_mensagem(produto: dict) -> str:
     """
     Gera mensagem formatada no estilo do Divulgador Inteligente:
     🛍️ Nome do Produto
+
     💸por R$ 99,90 🚨🚨
+
     👉Link p/ comprar: https://...
+
     _*Promoção sujeita a alteração a qualquer momento*_
     """
     nome = produto.get("nome", "Produto Shopee")
-    preco = produto.get("preco", "")
+    preco = produto.get("preco", "Preço especial")
     link = produto.get("link", "")
-    foto = produto.get("foto", "")
 
     # Limpar nome (truncar se muito longo)
     if len(nome) > 80:
@@ -293,9 +341,9 @@ _*Promoção sujeita a alteração a qualquer momento*_"""
 
 
 # ============================================================
-# FAVORITOS
+# SALVAR FAVORITO
 # ============================================================
-def salvar_favorito(produto: dict, mensagem: str, plataforma: str):
+def salvar_favorito(produto: dict, mensagem: str):
     cache = _ler_json(CACHE_PATH)
     favoritos = cache.get("favoritos", [])
     favoritos.insert(0, {
@@ -304,7 +352,6 @@ def salvar_favorito(produto: dict, mensagem: str, plataforma: str):
         "foto": produto.get("foto", ""),
         "link": produto.get("link", ""),
         "mensagem": mensagem,
-        "plataforma": plataforma,
         "salvo_em": datetime.now().isoformat()
     })
     cache["favoritos"] = favoritos[:20]
@@ -341,7 +388,7 @@ def render_divulga_shop():
 
             st.session_state["ds_produto"] = produto
             st.session_state["ds_mensagem"] = gerar_mensagem(produto)
-            st.success(f"✅ Produto encontrado: {produto.get('nome', 'Produto')}")
+            st.success(f"✅ Produto: {produto.get('nome', 'Produto encontrado')}")
 
     # ── EXIBIR RESULTADO ──
     if "ds_produto" in st.session_state and "ds_mensagem" in st.session_state:
@@ -365,8 +412,6 @@ def render_divulga_shop():
                 st.markdown(f"### 💰 {produto['preco']}")
             if produto.get("loja"):
                 st.markdown(f"**Loja:** {produto['loja']}")
-            if produto.get("link"):
-                st.markdown(f"**Link:** [{produto.get('nome', 'Ver produto')[:40]}...]({produto['link']})")
 
         # ── MENSAGEM GERADA ──
         st.markdown("---")
@@ -375,39 +420,42 @@ def render_divulga_shop():
         st.text_area(
             "Mensagem:",
             value=mensagem,
-            height=200,
+            height=180,
             key="ds_preview",
             label_visibility="collapsed"
         )
 
-        # ── AÇÕES ──
-        col_a1, col_a2, col_a3 = st.columns(3)
-
-        with col_a1:
-            st.markdown("#### 💬 WhatsApp")
-            if st.button("📤 Compartilhar no WhatsApp", use_container_width=True, key="ds_whats"):
-                # Abrir WhatsApp Web com a mensagem pré-preenchida
-                texto_codificado = mensagem.replace(" ", "%20").replace("\n", "%0A")
-                link_wa = f"https://web.whatsapp.com/send?text={texto_codificado}"
-                st.markdown(f"[📤 Abrir WhatsApp Web]({link_wa})")
-                st.success("Clique no link acima para compartilhar no WhatsApp!")
-
-        with col_a2:
-            st.markdown("#### 📨 Telegram")
-            if st.button("📤 Compartilhar no Telegram", use_container_width=True, key="ds_tele"):
-                texto_codificado = mensagem.replace(" ", "%20").replace("\n", "%0A")
-                link_tg = f"https://t.me/share/url?url={produto.get('link', '')}&text={texto_codificado}"
-                st.markdown(f"[📤 Abrir Telegram]({link_tg})")
-                st.success("Clique no link acima para compartilhar no Telegram!")
-
-        with col_a3:
-            st.markdown("#### 📸 Instagram")
-            if st.button("📤 Preparar para Instagram", use_container_width=True, key="ds_insta"):
-                st.info("📋 Copie a mensagem acima e cole no Instagram Stories ou DM")
-
-        # ── COPIAR + DOWNLOAD + FAVORITO ──
+        # ── BOTÕES DE COMPARTILHAMENTO ──
         st.markdown("---")
-        col_b1, col_b2, col_b3 = st.columns(3)
+        st.markdown("### 📤 Compartilhar")
+
+        col_w, col_t, col_i = st.columns(3)
+
+        with col_w:
+            st.markdown("**💬 WhatsApp**")
+            texto_codificado = mensagem.replace(" ", "%20").replace("\n", "%0A")
+            link_wa = f"https://web.whatsapp.com/send?text={texto_codificado}"
+            if st.button("📤 Abrir WhatsApp", use_container_width=True, key="ds_wa"):
+                st.js(f'window.open("{link_wa}", "_blank")')
+                st.success("WhatsApp aberto!")
+
+        with col_t:
+            st.markdown("**📨 Telegram**")
+            texto_codificado = mensagem.replace(" ", "%20").replace("\n", "%0A")
+            link_tg = f"https://t.me/share/url?url={produto.get('link', '')}&text={texto_codificado}"
+            if st.button("📤 Abrir Telegram", use_container_width=True, key="ds_tg"):
+                st.js(f'window.open("{link_tg}", "_blank")')
+                st.success("Telegram aberto!")
+
+        with col_i:
+            st.markdown("**📸 Instagram**")
+            if st.button("📋 Copiar para Instagram", use_container_width=True, key="ds_ig"):
+                st.code(mensagem, language="text")
+                st.info("Copie o texto acima e cole no Instagram")
+
+        # ── AÇÕES ADICIONAIS ──
+        st.markdown("---")
+        col_b1, col_b2 = st.columns(2)
 
         with col_b1:
             st.download_button(
@@ -420,15 +468,10 @@ def render_divulga_shop():
             )
 
         with col_b2:
-            if st.button("🔄 Gerar Novamente", use_container_width=True, key="ds_novo"):
+            if st.button("🔄 Novo Produto", use_container_width=True, key="ds_novo"):
                 st.session_state.pop("ds_produto", None)
                 st.session_state.pop("ds_mensagem", None)
                 st.rerun()
-
-        with col_b3:
-            if st.button("💾 Salvar Favorito", use_container_width=True, key="ds_fav"):
-                salvar_favorito(produto, mensagem, "Divulga Shop")
-                st.success("✅ Salvo nos favoritos!")
 
     # ── FAVORITOS ──
     st.markdown("---")
