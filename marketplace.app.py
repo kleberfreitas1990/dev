@@ -80,11 +80,9 @@ from modules.auto_update import (
 # Importa módulo de calendário
 from modules.calendar import render_calendar
 
-# Importa módulo Metadata Pro
+# Importa módulo Metadados Pro
 from modules.metadados_pro import render_metadados_pro
-from modules.historico_tendencias import render_historico_tendencias
-# Importa módulo de crescimento TikTok
-from modules.tiktok_crescimento import render_tiktok_crescimento
+
 # Importa módulo Divulga Shop
 from modules.divulgashop import render_divulga_shop
 
@@ -132,15 +130,13 @@ render_status_usuario()
 st.markdown("---")
 
 # ============================================================
-# TABS (REORGANIZADAS: Metadata Pro em 2º lugar)
+# TABS (REORGANIZADAS)
 # ============================================================
-tab1, tab_meta, tab_auto, tab_hist, tab_tiktok_cresc, tab_divulga, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs([
+tab1, tab_meta, tab_divulga, tab_auto, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs([
     "📊 Dashboard",
-    "🎬 Metadata Pro",
-    "🔄 Atualização Auto",
-    "📈 Histórico",
-    "📈 TikTok Crescimento",
+    "🎬 Metadados Pro",
     "🛒 Divulga Shop",
+    "🔄 Atualização Auto",
     "📅 Calendário de Conteúdo",
     "🎬 Criar Vídeo IA",
     "🤖 Criar Conteúdo",
@@ -159,37 +155,16 @@ with tab1:
     render_dashboard()
 
 # ============================================================
-# TAB 2: METADATA PRO (NOVA POSIÇÃO)
+# TAB 2: METADADOS PRO
 # ============================================================
 with tab_meta:
     try:
         render_metadados_pro()
     except Exception as e:
-        st.error(f"❌ Erro ao carregar Metadata Pro: {str(e)}")
+        st.error(f"❌ Erro ao carregar Metadados Pro: {str(e)}")
 
 # ============================================================
-# TAB 3: ATUALIZAÇÃO AUTOMÁTICA
-# ============================================================
-with tab_auto:
-    render_painel_atualizacao_automatica()
-
-# ============================================================
-# TAB 4: HISTÓRICO DE TENDÊNCIAS
-# ============================================================
-with tab_hist:
-    render_historico_tendencias()
-
-# ============================================================
-# TAB 5: TIKTOK CRESCIMENTO — PRÓXIMO MÊS
-# ============================================================
-with tab_tiktok_cresc:
-    try:
-        render_tiktok_crescimento()
-    except Exception as e:
-        st.error(f"❌ Erro ao carregar TikTok Crescimento: {str(e)}")
-
-# ============================================================
-# TAB 6: DIVULGA SHOP
+# TAB 3: DIVULGA SHOP
 # ============================================================
 with tab_divulga:
     try:
@@ -198,7 +173,13 @@ with tab_divulga:
         st.error(f"❌ Erro ao carregar Divulga Shop: {str(e)}")
 
 # ============================================================
-# TAB 7: CALENDÁRIO
+# TAB 4: ATUALIZAÇÃO AUTOMÁTICA
+# ============================================================
+with tab_auto:
+    render_painel_atualizacao_automatica()
+
+# ============================================================
+# TAB 5: CALENDÁRIO
 # ============================================================
 with tab2:
     render_calendar()
