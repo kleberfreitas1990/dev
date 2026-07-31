@@ -25,6 +25,8 @@ import requests
 from datetime import datetime, timedelta
 from urllib.parse import urlparse, parse_qs
 
+from modules.selenium_client import extrair_detalhe_produto, obter_url_selenium
+
 logger = logging.getLogger(__name__)
 
 
@@ -34,9 +36,6 @@ logger = logging.getLogger(__name__)
 SHOPEE_APP_ID = "18372330665"
 SHOPEE_SECRET = "YKHI6WJBBXZW2JNCX3IRPMEYJHZKUW6N"
 SHOPEE_BASE_URL = "https://partner.shopeemobile.com"
-
-# Microserviço Selenium para extrair dados do produto
-SCRAPER_URL = os.environ.get("SHOPEE_SCRAPER_URL", "https://selenium-scraper-emnc.onrender.com")
 
 # Cache local
 CACHE_PATH = "divulgashop_cache.json"
@@ -100,35 +99,14 @@ def _extrair_ids(url: str):
 
 
 # ============================================================
-# BUSCAR VIA MICROSERVIÇO SELENIUM
+# BUSCAR VIA SELENIUM (usa módulo existente)
 # ============================================================
 def _buscar_via_scraper(url: str) -> dict:
     """
-    Usa o microserviço Selenium para extrair dados reais do produto.
-    O servidor abre o Chrome real, navega até a página, e extrai os dados.
+    Usa o selenium_client (já configurado no projeto) para extrair dados
+    do produto via servidor Selenium no Render.
     """
-    try:
-        resp = requests.get(
-            f"{SCRAPER_URL}/produto-detalhe",
-            params={"url": url},
-            timeout=30
-        )
-        if resp.status_code == 200:
-            data = resp.json()
-            if data.get("success"):
-                produto_data = data.get("data", {})
-                if produto_data.get("sucesso"):
-                    return {
-                        "nome": produto_data.get("nome", ""),
-                        "preco": produto_data.get("preco", ""),
-                        "foto": produto_data.get("foto", ""),
-                        "loja": produto_data.get("loja", ""),
-                        "descricao": produto_data.get("descricao", ""),
-                        "link": produto_data.get("link", url),
-                    }
-    except Exception as e:
-        logger.error(f"Scraper falhou: {e}")
-    return {}
+    return extrair_detalhe_produto(url)
 
 
 # ============================================================

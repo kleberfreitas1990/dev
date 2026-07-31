@@ -155,6 +155,63 @@ def buscar_produtos_selenium(termo: str, limite: int = 5) -> list:
         logger.error(f"Erro ao buscar produtos: {e}")
         return []
 
+def extrair_detalhe_produto(url: str) -> dict:
+    """
+    Extrai dados detalhados de um produto pela URL.
+    Usa o endpoint /produto-detalhe do servidor Selenium.
+    O servidor abre o Chrome real, navega até a página,
+    e extrai nome, preço, foto, loja, link.
+    """
+    try:
+        url_selenium = obter_url_selenium()
+        logger.info(f"Chamando API Selenium em: {url_selenium}/produto-detalhe")
+        
+        response = requests.get(
+            f"{url_selenium}/produto-detalhe",
+            params={"url": url},
+            timeout=35
+        )
+        
+        if response.status_code == 200:
+            dados = response.json()
+            if dados.get("success") and dados.get("data"):
+                produto_data = dados["data"]
+                if produto_data.get("sucesso"):
+                    logger.info(f"✅ Produto extraído: {produto_data.get('nome', '')[:50]}")
+                    return {
+                        "nome": produto_data.get("nome", ""),
+                        "preco": produto_data.get("preco", ""),
+                        "foto": produto_data.get("foto", ""),
+                        "loja": produto_data.get("loja", ""),
+                        "descricao": produto_data.get("descricao", ""),
+                        "link": produto_data.get("link", url),
+                    }
+            elif dados.get("data"):
+                # Dados parciais — retornar mesmo assim
+                logger.warning(f"⚠️ Dados parciais: {dados['data'].get('nome', 'N/A')[:50]}")
+                return {
+                    "nome": dados["data"].get("nome", ""),
+                    "preco": dados["data"].get("preco", ""),
+                    "foto": dados["data"].get("foto", ""),
+                    "loja": dados["data"].get("loja", ""),
+                    "link": dados["data"].get("link", url),
+                }
+        else:
+            logger.error(f"Erro na API: Status {response.status_code}")
+        
+        return {}
+        
+    except requests.exceptions.Timeout:
+        logger.warning("⏰ Timeout na API Selenium (servidor pode estar dormindo)")
+        return {}
+    except requests.exceptions.ConnectionError:
+        logger.warning("🔌 Erro de conexão com o servidor Selenium")
+        return {}
+    except Exception as e:
+        logger.error(f"❌ Erro ao extrair detalhe do produto: {e}")
+        return {}
+
+
 # ============================================================
 # EXPORTAÇÕES
 # ============================================================
@@ -163,5 +220,6 @@ __all__ = [
     'verificar_status_selenium',
     'capturar_buscas_selenium',
     'capturar_tendencias_selenium',
-    'buscar_produtos_selenium'
+    'buscar_produtos_selenium',
+    'extrair_detalhe_produto'
 ]
