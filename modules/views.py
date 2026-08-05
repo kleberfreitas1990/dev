@@ -505,7 +505,8 @@ def render_dashboard():
     produtos_sugestoes = produtos_top[:5]
     
     if produtos_top:
-        top1 = produtos_top[0] if produtos_top else None
+        # Produto de destaque aleatório a cada refresh
+        top1 = random.choice(produtos_top)
         
         scores = [p.get("Score", 0) for p in produtos_top]
         crescimentos = [float(p.get("Crescimento", "+0%").replace("+", "").replace("%", "")) for p in produtos_top]
