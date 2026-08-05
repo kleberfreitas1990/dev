@@ -514,10 +514,6 @@ def render_dashboard():
         crescimento_medio = sum(crescimentos) / len(crescimentos) if crescimentos else 0
         
         categorias = [p.get("Categoria", "Geral") for p in produtos_top]
-        categoria_mais_freq = max(set(categorias), key=categorias.count) if categorias else "Geral"
-        
-        eventos = [p.get("Evento", "Tendência") for p in produtos_top]
-        evento_mais_freq = max(set(eventos), key=eventos.count) if eventos else "Tendência"
         
         # LINHA 1: MENSAGEM DESTAQUE
         if top1:
@@ -540,7 +536,7 @@ def render_dashboard():
         # LINHA 2: MÉTRICAS + OPORTUNIDADE
         col1, col2 = st.columns([2, 1])
         with col1:
-            m1, m2, m3 = st.columns(3)
+            m1, m2 = st.columns(2)
             with m1:
                 st.metric(
                     label="🔥 Produto em Alta",
@@ -554,12 +550,6 @@ def render_dashboard():
                     value=f"{crescimento_medio:.1f}%",
                     delta=f"{delta_crescimento:+.1f}% vs base",
                     delta_color="normal",
-                )
-            with m3:
-                st.metric(
-                    label="🎯 Categoria em Alta",
-                    value=categoria_mais_freq,
-                    delta=evento_mais_freq,
                 )
 
         with col2:
