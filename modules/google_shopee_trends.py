@@ -26,12 +26,16 @@ CACHE_TTL_HORAS = 6
 # Atualizado em: 28/07/2026 — Buscas em Alta Shopee
 # ============================================================
 TERMOS_HOT_TRENDS = [
-    "Magnesio Pro", "Chaveiro", "Vibrador", "Sapateira", "Mouse Pad",
-    "Capinha iPhone 16", "Camisa Tailandesa", "PS5", "Controle PS4", "Bloqueador de Sinal Bluetooth",
-    "Antena Starlink", "Tênis Masculino", "bloqueador de sinal bluetooth", "Lego", "Papel de Parede",
-    "Tapete Sala", "Spray de Pimenta", "SSD", "Moto Elétrica Scooter", "Dildo",
-    "Celular Samsung 4GB RAM", "Pochete Tática", "Jogo de Travessa Vidro", "Jogo de Pincel", "Cadeirinha Litet All Stage 2 0",
-    "Caixa de Som Philco Extreme 600W Bluetooth", "Descanso de Talher Cerâmica", "Air Fryer Forno", "Armazenador de Energia", "Corretivo Franciny Ehlke"
+    "Tênis", "Rack para TV Até 75 Polegadas", "Tênis Feminino",
+    "Vibrador", "Nintendo Switch Desbloqueado", "Pênis de borracha",
+    "Carabina PCP", "Capacete", "Pote Acrílico 3L",
+    "Descanso de Talher Cerâmica", "Fantasia Paquita", "100 Pacotes de Figurinhas da Copa",
+    "Micro-ondas Panasonic 27 Litros", "Tablet", "Masturbador Masculino",
+    "Treliche Madeira", "Caixa Organizadora", "Mila Rose",
+    "bicicleta elétrica", "Controle PC", "Geladeira 70 cm",
+    "NT 3000", "Janela de Alumínio", "Notebook Apple MacBook Pro",
+    "Geladeira Electrolux IF41S", "Microondas Inox", "Máquina de Lavar Lava e Seca",
+    "Notebook Dell 1TB", "Kit 10 Receptores", "Freezer 2 Portas 220V"
 ]
 
 def _cache_valido(arquivo: str) -> bool:

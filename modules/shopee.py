@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 # ARQUIVO DE CACHE (NA RAIZ)
 # ============================================================
 ARQUIVO_SHOPEE_CACHE = "shopee_trends_cache.json"
+CACHE_VERSION = "v2_05082026"  # Bump quando TERMOS_REAIS_SHOPEE for atualizado
 
 # ============================================================
 # USER AGENTS ROTATIVOS
@@ -216,9 +217,12 @@ def capturar_buscas_shopee_com_cache(ignorar_cache: bool = False) -> List[str]:
                 dados = json.load(f)
                 if validar_cache_dados(dados, "termos"):
                     data_cache = dados.get("data")
-                    if data_cache == hoje:
-                        logger.info(f"Cache da Shopee usado (hoje)")
+                    cache_version = dados.get("version", "")
+                    if data_cache == hoje and cache_version == CACHE_VERSION:
+                        logger.info(f"Cache da Shopee usado (hoje, version {CACHE_VERSION})")
                         return dados.get("termos", [])
+                    else:
+                        logger.info(f"Cache expirado (version={cache_version} != {CACHE_VERSION} ou data={data_cache} != {hoje})")
         except:
             pass
     
@@ -233,7 +237,8 @@ def capturar_buscas_shopee_com_cache(ignorar_cache: bool = False) -> List[str]:
                     "data": hoje,
                     "termos": termos_validados,
                     "timestamp": datetime.now().isoformat(),
-                    "total": len(termos_validados)
+                    "total": len(termos_validados),
+                    "version": CACHE_VERSION
                 }, f, ensure_ascii=False, indent=2)
             logger.info(f"Cache da Shopee atualizado com {len(termos_validados)} termos")
         except:
