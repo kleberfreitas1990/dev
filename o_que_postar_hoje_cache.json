@@ -1,0 +1,332 @@
+{
+  "timestamp": "2026-08-06T11:03:30.846065",
+  "data": "2026-08-06",
+  "dados": {
+    "data": "06/08/2026",
+    "hora_geracao": "11:03",
+    "trends_google": [
+      {
+        "termo": "fortaleza x palmeiras",
+        "volume_buscas": 1000000,
+        "variacao_pct": 1000,
+        "tempo": "há 13 h",
+        "fonte": "Google Trends BR",
+        "atualizado": "06/08/2026 11:03"
+      },
+      {
+        "termo": "fluminense x vasco da gama",
+        "volume_buscas": 1000000,
+        "variacao_pct": 1000,
+        "tempo": "há 11 h",
+        "fonte": "Google Trends BR",
+        "atualizado": "06/08/2026 11:03"
+      },
+      {
+        "termo": "cruzeiro x chapecoense",
+        "volume_buscas": 500000,
+        "variacao_pct": 1000,
+        "tempo": "há 14 h",
+        "fonte": "Google Trends BR",
+        "atualizado": "06/08/2026 11:03"
+      },
+      {
+        "termo": "grêmio x mirassol",
+        "volume_buscas": 500000,
+        "variacao_pct": 1000,
+        "tempo": "há 13 h",
+        "fonte": "Google Trends BR",
+        "atualizado": "06/08/2026 11:03"
+      },
+      {
+        "termo": "alfredo gaspar",
+        "volume_buscas": 100000,
+        "variacao_pct": 1000,
+        "tempo": "há 20 h",
+        "fonte": "Google Trends BR",
+        "atualizado": "06/08/2026 11:03"
+      },
+      {
+        "termo": "mallorca x psg",
+        "volume_buscas": 100000,
+        "variacao_pct": 1000,
+        "tempo": "há 16 h",
+        "fonte": "Google Trends BR",
+        "atualizado": "06/08/2026 11:03"
+      },
+      {
+        "termo": "arsenal x betis",
+        "volume_buscas": 100000,
+        "variacao_pct": 1000,
+        "tempo": "há 17 h",
+        "fonte": "Google Trends BR",
+        "atualizado": "06/08/2026 11:03"
+      },
+      {
+        "termo": "ideb",
+        "volume_buscas": 20000,
+        "variacao_pct": 700,
+        "tempo": "há 20 h",
+        "fonte": "Google Trends BR",
+        "atualizado": "06/08/2026 11:03"
+      },
+      {
+        "termo": "raio",
+        "volume_buscas": 20000,
+        "variacao_pct": 1000,
+        "tempo": "há 19 h",
+        "fonte": "Google Trends BR",
+        "atualizado": "06/08/2026 11:03"
+      },
+      {
+        "termo": "leilão",
+        "volume_buscas": 20000,
+        "variacao_pct": 1000,
+        "tempo": "há 22 h",
+        "fonte": "Google Trends BR",
+        "atualizado": "06/08/2026 11:03"
+      },
+      {
+        "termo": "colisao foguete na lua",
+        "volume_buscas": 10000,
+        "variacao_pct": 700,
+        "tempo": "há 24 h",
+        "fonte": "Google Trends BR",
+        "atualizado": "06/08/2026 11:03"
+      },
+      {
+        "termo": "inter miami x atlético san luis",
+        "volume_buscas": 20000,
+        "variacao_pct": 1000,
+        "tempo": "há 12 h",
+        "fonte": "Google Trends BR",
+        "atualizado": "06/08/2026 11:03"
+      },
+      {
+        "termo": "drama",
+        "volume_buscas": 5000,
+        "variacao_pct": 900,
+        "tempo": "há 13 h",
+        "fonte": "Google Trends BR",
+        "atualizado": "06/08/2026 11:03"
+      },
+      {
+        "termo": "luizianne lins",
+        "volume_buscas": 5000,
+        "variacao_pct": 1000,
+        "tempo": "há 10 h",
+        "fonte": "Google Trends BR",
+        "atualizado": "06/08/2026 11:03"
+      },
+      {
+        "termo": "boca juniors x estudiantes",
+        "volume_buscas": 10000,
+        "variacao_pct": 1000,
+        "tempo": "há 13 h",
+        "fonte": "Google Trends BR",
+        "atualizado": "06/08/2026 11:03"
+      },
+      {
+        "termo": "classificações de inter miami x atlético san luis",
+        "volume_buscas": 10000,
+        "variacao_pct": 1000,
+        "tempo": "há 8 h",
+        "fonte": "Google Trends BR",
+        "atualizado": "06/08/2026 11:03"
+      },
+      {
+        "termo": "selic",
+        "volume_buscas": 20000,
+        "variacao_pct": 500,
+        "tempo": "há 14 h",
+        "fonte": "Google Trends BR",
+        "atualizado": "06/08/2026 11:03"
+      },
+      {
+        "termo": "lotofacil 3754",
+        "volume_buscas": 5000,
+        "variacao_pct": 700,
+        "tempo": "há 11 h",
+        "fonte": "Google Trends BR",
+        "atualizado": "06/08/2026 11:03"
+      },
+      {
+        "termo": "ypiranga futebol clube",
+        "volume_buscas": 2000,
+        "variacao_pct": 1000,
+        "tempo": "há 3 h",
+        "fonte": "Google Trends BR",
+        "atualizado": "06/08/2026 11:03"
+      },
+      {
+        "termo": "fábio luís lula da silva",
+        "volume_buscas": 2000,
+        "variacao_pct": 1000,
+        "tempo": "há 2 h",
+        "fonte": "Google Trends BR",
+        "atualizado": "06/08/2026 11:03"
+      },
+      {
+        "termo": "marco buzzi",
+        "volume_buscas": 1000,
+        "variacao_pct": 700,
+        "tempo": "há 2 h",
+        "fonte": "Google Trends BR",
+        "atualizado": "06/08/2026 11:03"
+      },
+      {
+        "termo": "nauru",
+        "volume_buscas": 2000,
+        "variacao_pct": 200,
+        "tempo": "há 23 h",
+        "fonte": "Google Trends BR",
+        "atualizado": "06/08/2026 11:03"
+      }
+    ],
+    "news_destaques": [
+      {
+        "termo": "Ciclone bomba no Brasil: quais estados serão afetados pelo fenômeno - CNN Brasil",
+        "fonte_nome": "CNN Brasil",
+        "publicado": "Thu, 06 Aug 2026 06:34:11 GMT",
+        "fonte": "Google News BR",
+        "atualizado": "06/08/2026 11:03"
+      },
+      {
+        "termo": "Acusação de estupro, ataques a 'Lulinha' e Arthur Lira: os impactos da escolha de Alfredo Gaspar como vice de Flávio Bolsonaro - BBC",
+        "fonte_nome": "BBC",
+        "publicado": "Wed, 05 Aug 2026 20:43:56 GMT",
+        "fonte": "Google News BR",
+        "atualizado": "06/08/2026 11:03"
+      },
+      {
+        "termo": "Lula diz que ligará para Trump e pedirá reunião na ONU - Poder360",
+        "fonte_nome": "Poder360",
+        "publicado": "Wed, 05 Aug 2026 16:54:58 GMT",
+        "fonte": "Google News BR",
+        "atualizado": "06/08/2026 11:03"
+      },
+      {
+        "termo": "Veja desempenho de todas as escolas do país avaliadas no Ideb, que mede qualidade do ensino - Folha de S.Paulo",
+        "fonte_nome": "Folha de S.Paulo",
+        "publicado": "Wed, 05 Aug 2026 20:40:00 GMT",
+        "fonte": "Google News BR",
+        "atualizado": "06/08/2026 11:03"
+      },
+      {
+        "termo": "Ministros do STJ pretendem faltar ao julgamento de Buzzi - Poder360",
+        "fonte_nome": "Poder360",
+        "publicado": "Wed, 05 Aug 2026 13:38:45 GMT",
+        "fonte": "Google News BR",
+        "atualizado": "06/08/2026 11:03"
+      },
+      {
+        "termo": "A resposta do governo Milei à decisão do Itamaraty de rebaixar a relação diplomática com a Argentina - CartaCapital",
+        "fonte_nome": "CartaCapital",
+        "publicado": "Wed, 05 Aug 2026 14:03:00 GMT",
+        "fonte": "Google News BR",
+        "atualizado": "06/08/2026 11:03"
+      },
+      {
+        "termo": "Daniel Perez: quem é o indicado de Trump para embaixada em Brasília pivô de crise e o que ele disse sobre o Brasil - G1",
+        "fonte_nome": "G1",
+        "publicado": "Wed, 05 Aug 2026 11:46:02 GMT",
+        "fonte": "Google News BR",
+        "atualizado": "06/08/2026 11:03"
+      },
+      {
+        "termo": "‘Quem aqui nunca pediu empréstimo para um amigo?’, perguntou Lula em defesa de Marcola",
+        "fonte_nome": "Estadão",
+        "publicado": "Wed, 05 Aug 2026 22:28:06 GMT",
+        "fonte": "Google News BR",
+        "atualizado": "06/08/2026 11:03"
+      },
+      {
+        "termo": "Em 2° dia de greve na CPTM, veja como estão as linhas nesta quarta (5) - CNN Brasil",
+        "fonte_nome": "CNN Brasil",
+        "publicado": "Wed, 05 Aug 2026 09:15:20 GMT",
+        "fonte": "Google News BR",
+        "atualizado": "06/08/2026 11:03"
+      },
+      {
+        "termo": "Múcio diz que \"abriria o portão\" em caso de invasão dos EUA - Poder360",
+        "fonte_nome": "Poder360",
+        "publicado": "Wed, 05 Aug 2026 01:57:57 GMT",
+        "fonte": "Google News BR",
+        "atualizado": "06/08/2026 11:03"
+      },
+      {
+        "termo": "Unidade de mísseis norte-coreana é mobilizada na Rússia, diz Ucrânia - CNN Brasil",
+        "fonte_nome": "CNN Brasil",
+        "publicado": "Wed, 05 Aug 2026 22:38:33 GMT",
+        "fonte": "Google News BR",
+        "atualizado": "06/08/2026 11:03"
+      },
+      {
+        "termo": "Lula e Alcolumbre se reúnem em jantar promovido por Moraes após mais de 3 meses de distanciamento",
+        "fonte_nome": "Estadão",
+        "publicado": "Thu, 06 Aug 2026 01:16:39 GMT",
+        "fonte": "Google News BR",
+        "atualizado": "06/08/2026 11:03"
+      },
+      {
+        "termo": "Defesa Civil monta gabinete de crise e alerta para ventos de até 100 km/h em SP a partir desta quinta - G1",
+        "fonte_nome": "G1",
+        "publicado": "Wed, 05 Aug 2026 21:55:00 GMT",
+        "fonte": "Google News BR",
+        "atualizado": "06/08/2026 11:03"
+      },
+      {
+        "termo": "Voepass: no voo anterior ao acidente, já com os tripulantes que morreram na tragédia, alerta de falha no sistema de degelo da asa direita tocou 8 vezes - G1",
+        "fonte_nome": "G1",
+        "publicado": "Wed, 05 Aug 2026 23:12:16 GMT",
+        "fonte": "Google News BR",
+        "atualizado": "06/08/2026 11:03"
+      },
+      {
+        "termo": "Covid: Por que Nikolas Ferreira e outros bolsonaristas voltaram a explorar desinformação sobre a pandemia às vésperas da eleição - BBC",
+        "fonte_nome": "BBC",
+        "publicado": "Wed, 05 Aug 2026 17:59:24 GMT",
+        "fonte": "Google News BR",
+        "atualizado": "06/08/2026 11:03"
+      },
+      {
+        "termo": "Transmissão ao vivo de Fortaleza x Palmeiras pela Copa do Brasil: veja onde assistir - UOL",
+        "fonte_nome": "UOL",
+        "publicado": "Wed, 05 Aug 2026 23:00:00 GMT",
+        "fonte": "Google News BR",
+        "atualizado": "06/08/2026 11:03"
+      },
+      {
+        "termo": "Os números da nova pesquisa Quaest para a Presidência em 1º turno - CartaCapital",
+        "fonte_nome": "CartaCapital",
+        "publicado": "Wed, 05 Aug 2026 10:17:00 GMT",
+        "fonte": "Google News BR",
+        "atualizado": "06/08/2026 11:03"
+      },
+      {
+        "termo": "Lula é o único candidato à Presidência apoiado por outros partidos - Poder360",
+        "fonte_nome": "Poder360",
+        "publicado": "Wed, 05 Aug 2026 22:32:33 GMT",
+        "fonte": "Google News BR",
+        "atualizado": "06/08/2026 11:03"
+      },
+      {
+        "termo": "Guerra no Irã esgotou quase toda a reserva de mísseis dos EUA - Poder360",
+        "fonte_nome": "Poder360",
+        "publicado": "Wed, 05 Aug 2026 19:06:56 GMT",
+        "fonte": "Google News BR",
+        "atualizado": "06/08/2026 11:03"
+      },
+      {
+        "termo": "El Niño provoca clima de extremos no Brasil, com ciclone a caminho e calor atípico em agosto - BBC",
+        "fonte_nome": "BBC",
+        "publicado": "Wed, 05 Aug 2026 08:24:49 GMT",
+        "fonte": "Google News BR",
+        "atualizado": "06/08/2026 11:03"
+      }
+    ],
+    "oportunidades_ecommerce": [],
+    "total_trends": 22,
+    "total_news": 20,
+    "total_oportunidades": 0
+  }
+}

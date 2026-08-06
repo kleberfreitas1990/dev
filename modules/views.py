@@ -30,6 +30,7 @@ from modules.grade_descoberta import (
     obter_indicadores_horario
 )
 
+from modules.o_que_postar_hoje import render_o_que_postar_hoje
 # Importa para verificar data do cache e dados dinâmicos
 from modules.produtos_dinamicos import verificar_data_cache, obter_produtos_dinamicos
 
@@ -620,6 +621,14 @@ def render_dashboard():
     
     st.markdown("---")
 
+    # ===== O QUE POSTAR HOJE (Dados Reais) =====
+    try:
+        render_o_que_postar_hoje()
+    except Exception as e:
+        st.warning(f"⚠️ Sugestões do dia indisponíveis: {str(e)[:100]}")
+    
+    st.markdown("---")
+    
     # ===== TENDÊNCIAS TIKTOK =====
     try:
         render_tiktok_dashboard()
