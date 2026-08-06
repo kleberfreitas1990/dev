@@ -23,19 +23,19 @@ CACHE_TTL_HORAS = 6
 
 # ============================================================
 # DADOS REAIS EXTRAÍDOS DO PRINT DO USUÁRIO (Prioridade Máxima)
-# Atualizado em: 28/07/2026 — Buscas em Alta Shopee
+# Atualizado em: 06/08/2026 — Buscas em Alta Shopee (Dados Reais)
 # ============================================================
 TERMOS_HOT_TRENDS = [
-    "Tênis", "Rack para TV Até 75 Polegadas", "Tênis Feminino",
-    "Vibrador", "Nintendo Switch Desbloqueado", "Pênis de borracha",
-    "Carabina PCP", "Capacete", "Pote Acrílico 3L",
-    "Descanso de Talher Cerâmica", "Fantasia Paquita", "100 Pacotes de Figurinhas da Copa",
-    "Micro-ondas Panasonic 27 Litros", "Tablet", "Masturbador Masculino",
-    "Treliche Madeira", "Caixa Organizadora", "Mila Rose",
-    "bicicleta elétrica", "Controle PC", "Geladeira 70 cm",
-    "NT 3000", "Janela de Alumínio", "Notebook Apple MacBook Pro",
-    "Geladeira Electrolux IF41S", "Microondas Inox", "Máquina de Lavar Lava e Seca",
-    "Notebook Dell 1TB", "Kit 10 Receptores", "Freezer 2 Portas 220V"
+    "Relógio Masculino", "Extensor Peniano", "Papel de Parede",
+    "Lego", "Moto Elétrica Scooter", "Sapateira",
+    "Pênis de borracha", "Bolo Cenoura", "Mila Rose",
+    "Bicicleta Ergométrica", "Bicicleta", "Nintendo Switch Desbloqueado",
+    "Nintendo 3DS", "Decoração", "Caixa Cacau Show Branca",
+    "Chopp", "Escova Progressiva Everk", "PS5",
+    "Ar Condicionado Midea Inverter Ecomaster", "Carabina PCP", "Encadernadora Mimo Binding",
+    "Desktop", "Escapamento CB 300F", "Cumeeira PVC",
+    "Cortador de Grama", "Microondas Inox", "Janela de Alumínio",
+    "Cruze", "Fatiador de Frios", "Travessa Melamina"
 ]
 
 def _cache_valido(arquivo: str) -> bool:

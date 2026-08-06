@@ -1,276 +1,276 @@
 {
-  "timestamp": "2026-08-05T11:26:55.188553",
-  "data": "2026-08-05",
+  "timestamp": "2026-08-06T11:11:19.623064",
+  "data": "2026-08-06",
   "dados": [
     {
-      "termo": "Tênis",
-      "vendas": "40.4k",
-      "avaliacao": 4.7,
-      "preco": "R$ 413,96",
+      "termo": "Relógio Masculino",
+      "vendas": "73k",
+      "avaliacao": 4.8,
+      "preco": "R$ 89,90",
       "categoria": "Moda",
       "fonte": "Shopee Live",
-      "atualizado": "05/08/2026 11:26"
+      "atualizado": "06/08/2026 11:11"
     },
     {
-      "termo": "Rack para TV Até 75 Polegadas",
-      "vendas": "47.3k",
-      "avaliacao": 4.7,
-      "preco": "R$ 144,27",
+      "termo": "Extensor Peniano",
+      "vendas": "62k",
+      "avaliacao": 4.5,
+      "preco": "R$ 49,90",
+      "categoria": "Saúde",
+      "fonte": "Shopee Live",
+      "atualizado": "06/08/2026 11:11"
+    },
+    {
+      "termo": "Papel de Parede",
+      "vendas": "40k",
+      "avaliacao": 4.1,
+      "preco": "R$ 39,90",
       "categoria": "Casa",
       "fonte": "Shopee Live",
-      "atualizado": "05/08/2026 11:26"
+      "atualizado": "06/08/2026 11:11"
     },
     {
-      "termo": "Tênis Feminino",
-      "vendas": "37.6k",
-      "avaliacao": 4.6,
-      "preco": "R$ 1524,65",
-      "categoria": "Moda",
+      "termo": "Lego",
+      "vendas": "33k",
+      "avaliacao": 4.3,
+      "preco": "R$ 129,90",
+      "categoria": "Brinquedos",
       "fonte": "Shopee Live",
-      "atualizado": "05/08/2026 11:26"
+      "atualizado": "06/08/2026 11:11"
     },
     {
-      "termo": "Vibrador",
-      "vendas": "11.2k",
-      "avaliacao": 4.9,
-      "preco": "R$ 802,88",
-      "categoria": "Eletrônicos",
+      "termo": "Moto Elétrica Scooter",
+      "vendas": "25k",
+      "avaliacao": 4.3,
+      "preco": "R$ 2.499,00",
+      "categoria": "Veículos",
       "fonte": "Shopee Live",
-      "atualizado": "05/08/2026 11:26"
+      "atualizado": "06/08/2026 11:11"
     },
     {
-      "termo": "Nintendo Switch Desbloqueado",
-      "vendas": "8.3k",
-      "avaliacao": 4.6,
-      "preco": "R$ 478,71",
-      "categoria": "Eletrônicos",
+      "termo": "Sapateira",
+      "vendas": "78k",
+      "avaliacao": 4.1,
+      "preco": "R$ 159,90",
+      "categoria": "Casa",
       "fonte": "Shopee Live",
-      "atualizado": "05/08/2026 11:26"
+      "atualizado": "06/08/2026 11:11"
     },
     {
       "termo": "Pênis de borracha",
-      "vendas": "19.3k",
-      "avaliacao": 4.5,
-      "preco": "R$ 728,28",
-      "categoria": "Eletrônicos",
-      "fonte": "Shopee Live",
-      "atualizado": "05/08/2026 11:26"
-    },
-    {
-      "termo": "Carabina PCP",
-      "vendas": "23.5k",
-      "avaliacao": 4.7,
-      "preco": "R$ 1314,47",
-      "categoria": "Esportes",
-      "fonte": "Shopee Live",
-      "atualizado": "05/08/2026 11:26"
-    },
-    {
-      "termo": "Capacete",
-      "vendas": "47.4k",
-      "avaliacao": 4.6,
-      "preco": "R$ 67,68",
-      "categoria": "Esportes",
-      "fonte": "Shopee Live",
-      "atualizado": "05/08/2026 11:26"
-    },
-    {
-      "termo": "Pote Acrílico 3L",
-      "vendas": "23.7k",
+      "vendas": "22k",
       "avaliacao": 4.9,
-      "preco": "R$ 125,11",
-      "categoria": "Casa",
+      "preco": "R$ 79,90",
+      "categoria": "Saúde",
       "fonte": "Shopee Live",
-      "atualizado": "05/08/2026 11:26"
+      "atualizado": "06/08/2026 11:11"
     },
     {
-      "termo": "Descanso de Talher Cerâmica",
-      "vendas": "40.2k",
-      "avaliacao": 5.0,
-      "preco": "R$ 1908,21",
-      "categoria": "Casa",
-      "fonte": "Shopee Live",
-      "atualizado": "05/08/2026 11:26"
-    },
-    {
-      "termo": "Fantasia Paquita",
-      "vendas": "15.9k",
+      "termo": "Bolo Cenoura",
+      "vendas": "15k",
       "avaliacao": 4.8,
-      "preco": "R$ 206,29",
-      "categoria": "Moda",
+      "preco": "R$ 24,90",
+      "categoria": "Alimentação",
       "fonte": "Shopee Live",
-      "atualizado": "05/08/2026 11:26"
-    },
-    {
-      "termo": "100 Pacotes de Figurinhas da Copa",
-      "vendas": "22.9k",
-      "avaliacao": 4.8,
-      "preco": "R$ 1329,28",
-      "categoria": "Infantil",
-      "fonte": "Shopee Live",
-      "atualizado": "05/08/2026 11:26"
-    },
-    {
-      "termo": "Micro-ondas Panasonic 27 Litros",
-      "vendas": "15.6k",
-      "avaliacao": 4.6,
-      "preco": "R$ 1313,68",
-      "categoria": "Casa",
-      "fonte": "Shopee Live",
-      "atualizado": "05/08/2026 11:26"
-    },
-    {
-      "termo": "Tablet",
-      "vendas": "28.2k",
-      "avaliacao": 5.0,
-      "preco": "R$ 1250,41",
-      "categoria": "Eletrônicos",
-      "fonte": "Shopee Live",
-      "atualizado": "05/08/2026 11:26"
-    },
-    {
-      "termo": "Masturbador Masculino",
-      "vendas": "29.7k",
-      "avaliacao": 4.8,
-      "preco": "R$ 262,78",
-      "categoria": "Eletrônicos",
-      "fonte": "Shopee Live",
-      "atualizado": "05/08/2026 11:26"
-    },
-    {
-      "termo": "Treliche Madeira",
-      "vendas": "42.2k",
-      "avaliacao": 4.5,
-      "preco": "R$ 1764,16",
-      "categoria": "Casa",
-      "fonte": "Shopee Live",
-      "atualizado": "05/08/2026 11:26"
-    },
-    {
-      "termo": "Caixa Organizadora",
-      "vendas": "32.3k",
-      "avaliacao": 4.9,
-      "preco": "R$ 185,58",
-      "categoria": "Casa",
-      "fonte": "Shopee Live",
-      "atualizado": "05/08/2026 11:26"
+      "atualizado": "06/08/2026 11:11"
     },
     {
       "termo": "Mila Rose",
-      "vendas": "35.1k",
-      "avaliacao": 4.7,
-      "preco": "R$ 398,16",
-      "categoria": "Moda",
+      "vendas": "53k",
+      "avaliacao": 4.0,
+      "preco": "R$ 189,90",
+      "categoria": "Beleza",
       "fonte": "Shopee Live",
-      "atualizado": "05/08/2026 11:26"
+      "atualizado": "06/08/2026 11:11"
     },
     {
-      "termo": "bicicleta elétrica",
-      "vendas": "22.5k",
-      "avaliacao": 4.9,
-      "preco": "R$ 1196,61",
+      "termo": "Bicicleta Ergométrica",
+      "vendas": "26k",
+      "avaliacao": 4.1,
+      "preco": "R$ 899,90",
       "categoria": "Esportes",
       "fonte": "Shopee Live",
-      "atualizado": "05/08/2026 11:26"
+      "atualizado": "06/08/2026 11:11"
     },
     {
-      "termo": "Controle PC",
-      "vendas": "41.6k",
+      "termo": "Bicicleta",
+      "vendas": "67k",
+      "avaliacao": 4.2,
+      "preco": "R$ 699,90",
+      "categoria": "Esportes",
+      "fonte": "Shopee Live",
+      "atualizado": "06/08/2026 11:11"
+    },
+    {
+      "termo": "Nintendo Switch Desbloqueado",
+      "vendas": "26k",
       "avaliacao": 4.6,
-      "preco": "R$ 611,14",
-      "categoria": "Eletrônicos",
+      "preco": "R$ 1.899,00",
+      "categoria": "Games",
       "fonte": "Shopee Live",
-      "atualizado": "05/08/2026 11:26"
+      "atualizado": "06/08/2026 11:11"
     },
     {
-      "termo": "Geladeira 70 cm",
-      "vendas": "11.2k",
-      "avaliacao": 4.8,
-      "preco": "R$ 1233,77",
+      "termo": "Nintendo 3DS",
+      "vendas": "75k",
+      "avaliacao": 4.1,
+      "preco": "R$ 499,90",
+      "categoria": "Games",
+      "fonte": "Shopee Live",
+      "atualizado": "06/08/2026 11:11"
+    },
+    {
+      "termo": "Decoração",
+      "vendas": "38k",
+      "avaliacao": 4.6,
+      "preco": "R$ 59,90",
       "categoria": "Casa",
       "fonte": "Shopee Live",
-      "atualizado": "05/08/2026 11:26"
+      "atualizado": "06/08/2026 11:11"
     },
     {
-      "termo": "NT 3000",
-      "vendas": "26.1k",
-      "avaliacao": 4.8,
-      "preco": "R$ 342,97",
-      "categoria": "Eletrônicos",
+      "termo": "Caixa Cacau Show Branca",
+      "vendas": "8k",
+      "avaliacao": 4.5,
+      "preco": "R$ 89,90",
+      "categoria": "Alimentação",
       "fonte": "Shopee Live",
-      "atualizado": "05/08/2026 11:26"
+      "atualizado": "06/08/2026 11:11"
     },
     {
-      "termo": "Janela de Alumínio",
-      "vendas": "15.6k",
-      "avaliacao": 4.8,
-      "preco": "R$ 739,75",
+      "termo": "Chopp",
+      "vendas": "68k",
+      "avaliacao": 4.6,
+      "preco": "R$ 1.299,00",
       "categoria": "Casa",
       "fonte": "Shopee Live",
-      "atualizado": "05/08/2026 11:26"
+      "atualizado": "06/08/2026 11:11"
     },
     {
-      "termo": "Notebook Apple MacBook Pro",
-      "vendas": "32.5k",
+      "termo": "Escova Progressiva Everk",
+      "vendas": "23k",
       "avaliacao": 4.9,
-      "preco": "R$ 168,30",
-      "categoria": "Eletrônicos",
+      "preco": "R$ 69,90",
+      "categoria": "Beleza",
       "fonte": "Shopee Live",
-      "atualizado": "05/08/2026 11:26"
+      "atualizado": "06/08/2026 11:11"
     },
     {
-      "termo": "Geladeira Electrolux IF41S",
-      "vendas": "35.2k",
-      "avaliacao": 5.0,
-      "preco": "R$ 767,31",
+      "termo": "PS5",
+      "vendas": "46k",
+      "avaliacao": 4.9,
+      "preco": "R$ 3.499,00",
+      "categoria": "Games",
+      "fonte": "Shopee Live",
+      "atualizado": "06/08/2026 11:11"
+    },
+    {
+      "termo": "Ar Condicionado Midea Inverter Ecomaster",
+      "vendas": "39k",
+      "avaliacao": 4.1,
+      "preco": "R$ 2.199,00",
       "categoria": "Casa",
       "fonte": "Shopee Live",
-      "atualizado": "05/08/2026 11:26"
+      "atualizado": "06/08/2026 11:11"
+    },
+    {
+      "termo": "Carabina PCP",
+      "vendas": "61k",
+      "avaliacao": 4.6,
+      "preco": "R$ 3.999,00",
+      "categoria": "Esportes",
+      "fonte": "Shopee Live",
+      "atualizado": "06/08/2026 11:11"
+    },
+    {
+      "termo": "Encadernadora Mimo Binding",
+      "vendas": "27k",
+      "avaliacao": 4.3,
+      "preco": "R$ 299,90",
+      "categoria": "Escritório",
+      "fonte": "Shopee Live",
+      "atualizado": "06/08/2026 11:11"
+    },
+    {
+      "termo": "Desktop",
+      "vendas": "29k",
+      "avaliacao": 4.9,
+      "preco": "R$ 2.999,00",
+      "categoria": "Informática",
+      "fonte": "Shopee Live",
+      "atualizado": "06/08/2026 11:11"
+    },
+    {
+      "termo": "Escapamento CB 300F",
+      "vendas": "46k",
+      "avaliacao": 4.5,
+      "preco": "R$ 599,90",
+      "categoria": "Veículos",
+      "fonte": "Shopee Live",
+      "atualizado": "06/08/2026 11:11"
+    },
+    {
+      "termo": "Cumeeira PVC",
+      "vendas": "34k",
+      "avaliacao": 4.8,
+      "preco": "R$ 19,90",
+      "categoria": "Casa",
+      "fonte": "Shopee Live",
+      "atualizado": "06/08/2026 11:11"
+    },
+    {
+      "termo": "Cortador de Grama",
+      "vendas": "48k",
+      "avaliacao": 4.1,
+      "preco": "R$ 1.499,00",
+      "categoria": "Casa",
+      "fonte": "Shopee Live",
+      "atualizado": "06/08/2026 11:11"
     },
     {
       "termo": "Microondas Inox",
-      "vendas": "17.2k",
-      "avaliacao": 4.9,
-      "preco": "R$ 1155,12",
-      "categoria": "Casa",
+      "vendas": "49k",
+      "avaliacao": 4.0,
+      "preco": "R$ 499,90",
+      "categoria": "Eletrodomésticos",
       "fonte": "Shopee Live",
-      "atualizado": "05/08/2026 11:26"
+      "atualizado": "06/08/2026 11:11"
     },
     {
-      "termo": "Máquina de Lavar Lava e Seca",
-      "vendas": "36.5k",
+      "termo": "Janela de Alumínio",
+      "vendas": "40k",
       "avaliacao": 4.9,
-      "preco": "R$ 337,45",
+      "preco": "R$ 299,90",
       "categoria": "Casa",
       "fonte": "Shopee Live",
-      "atualizado": "05/08/2026 11:26"
+      "atualizado": "06/08/2026 11:11"
     },
     {
-      "termo": "Notebook Dell 1TB",
-      "vendas": "8.7k",
+      "termo": "Cruze",
+      "vendas": "54k",
       "avaliacao": 4.5,
-      "preco": "R$ 1292,31",
-      "categoria": "Eletrônicos",
+      "preco": "R$ 0,00",
+      "categoria": "Automotivo",
       "fonte": "Shopee Live",
-      "atualizado": "05/08/2026 11:26"
+      "atualizado": "06/08/2026 11:11"
     },
     {
-      "termo": "Kit 10 Receptores",
-      "vendas": "37.4k",
-      "avaliacao": 5.0,
-      "preco": "R$ 139,83",
-      "categoria": "Eletrônicos",
-      "fonte": "Shopee Live",
-      "atualizado": "05/08/2026 11:26"
-    },
-    {
-      "termo": "Freezer 2 Portas 220V",
-      "vendas": "41.9k",
-      "avaliacao": 4.7,
-      "preco": "R$ 1968,40",
+      "termo": "Fatiador de Frios",
+      "vendas": "57k",
+      "avaliacao": 4.8,
+      "preco": "R$ 399,90",
       "categoria": "Casa",
       "fonte": "Shopee Live",
-      "atualizado": "05/08/2026 11:26"
+      "atualizado": "06/08/2026 11:11"
+    },
+    {
+      "termo": "Travessa Melamina",
+      "vendas": "30k",
+      "avaliacao": 4.7,
+      "preco": "R$ 29,90",
+      "categoria": "Casa",
+      "fonte": "Shopee Live",
+      "atualizado": "06/08/2026 11:11"
     }
   ]
 }
