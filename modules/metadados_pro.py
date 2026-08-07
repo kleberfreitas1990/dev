@@ -535,79 +535,88 @@ def render_metadados_pro():
 
     with st.expander(titulo_expander, expanded=expandir_expander):
         if detectado_wm:
-            st.success(f"🤖 **Detecção Inteligente:** Identificamos padrão/texto de marca d'água Shopee no vídeo! ({confianca_det}). A opção de remoção foi marcada automaticamente para você.")
+            st.success(f"🤖 **Detecção Inteligente:** Identificamos marca d'água Shopee no vídeo! A remoção será feita **100% de forma automática** ({preset_sugerido}).")
+        else:
+            st.info("ℹ️ Nenhuma marca d'água Shopee óbvia foi detectada automaticamente, mas você pode ativar a remoção manual se desejar.")
         
         remover_wm = st.checkbox("Remover marca d'água do vídeo antes de limpar metadados", value=detectado_wm)
         
+        # Valores padrão caso remova automaticamente
+        p_info = PRESETS_SHOPEE[preset_sugerido]
+        wm_x_pct = p_info['x_percent']
+        wm_y_pct = p_info['y_percent']
+        wm_w_pct = p_info['width_percent']
+        wm_h_pct = p_info['height_percent']
+        wm_algoritmo = cv2.INPAINT_TELEA
+        wm_raio = 3
+        
         if remover_wm:
-            with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as tmp_ref2:
-                tmp_ref2.write(uploaded_file.getbuffer())
-                caminho_ref2 = tmp_ref2.name
-            
-            try:
-                info_vid = obter_informacoes_video(caminho_ref2)
-                primeiro_frm = extrair_primeiro_frame(caminho_ref2)
+            # Opção avançada recolhida por padrão para não poluir a tela do usuário
+            with st.expander("⚙️ Ajuste Manual Avançado (Opcional - Apenas se necessário)", expanded=False):
+                with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as tmp_ref2:
+                    tmp_ref2.write(uploaded_file.getbuffer())
+                    caminho_ref2 = tmp_ref2.name
                 
-                # Exibe miniatura do primeiro frame
-                h_disp = 300
-                prop = h_disp / (primeiro_frm.shape[0] or 1)
-                w_disp = int(primeiro_frm.shape[1] * prop)
-                frm_disp = cv2.resize(primeiro_frm, (w_disp, h_disp))
-                
-                st.image(
-                    cv2.cvtColor(frm_disp, cv2.COLOR_BGR2RGB),
-                    caption=f"📸 Primeiro frame de referência ({info_vid['largura']}×{info_vid['altura']})",
-                    use_column_width=True
-                )
-                
-                # Seleciona automaticamente o preset sugerido
-                indices_presets = list(PRESETS_SHOPEE.keys())
-                idx_default = indices_presets.index(preset_sugerido) if preset_sugerido in indices_presets else 0
-                
-                preset_nome = st.selectbox(
-                    "Selecione o Preset de Posição da Logo Shopee:",
-                    indices_presets,
-                    index=idx_default,
-                    key="meta_pro_preset"
-                )
-                
-                p_info = PRESETS_SHOPEE[preset_nome]
-                st.markdown(f"**{p_info['icone']} {p_info['descricao']}**")
-                
-                if "Personalizado" in preset_nome:
-                    col_x, col_y = st.columns(2)
-                    with col_x:
-                        wm_x_pct = st.slider("Posição X (% da largura)", 0.0, 1.0, p_info['x_percent'], 0.01, key="meta_x")
-                    with col_y:
-                        wm_y_pct = st.slider("Posição Y (% da altura)", 0.0, 1.0, p_info['y_percent'], 0.01, key="meta_y")
+                try:
+                    info_vid = obter_informacoes_video(caminho_ref2)
+                    primeiro_frm = extrair_primeiro_frame(caminho_ref2)
                     
-                    col_w, col_h = st.columns(2)
-                    with col_w:
-                        wm_w_pct = st.slider("Largura (% da largura)", 0.01, 0.5, p_info['width_percent'], 0.01, key="meta_w")
-                    with col_h:
-                        wm_h_pct = st.slider("Altura (% da altura)", 0.01, 0.5, p_info['height_percent'], 0.01, key="meta_h")
-                else:
-                    wm_x_pct = p_info['x_percent']
-                    wm_y_pct = p_info['y_percent']
-                    wm_w_pct = p_info['width_percent']
-                    wm_h_pct = p_info['height_percent']
-                
-                col_algo, col_raio = st.columns(2)
-                with col_algo:
-                    algo_nome = st.selectbox("Algoritmo de Inpainting:", list(ALGORITMOS_INPAINTING.keys()), key="meta_algo")
-                    wm_algoritmo = ALGORITMOS_INPAINTING[algo_nome]
-                with col_raio:
-                    wm_raio = st.slider("Raio de Inpainting (pixels):", 1, 10, 3, key="meta_raio")
-                
-            except Exception as e:
-                st.error(f"Erro ao carregar pré-visualização do vídeo: {e}")
-                remover_wm = False
-            finally:
-                if os.path.exists(caminho_ref):
-                    try:
-                        os.remove(caminho_ref)
-                    except:
-                        pass
+                    h_disp = 250
+                    prop = h_disp / (primeiro_frm.shape[0] or 1)
+                    w_disp = int(primeiro_frm.shape[1] * prop)
+                    frm_disp = cv2.resize(primeiro_frm, (w_disp, h_disp))
+                    
+                    st.image(
+                        cv2.cvtColor(frm_disp, cv2.COLOR_BGR2RGB),
+                        caption=f"📸 Referência ({info_vid['largura']}×{info_vid['altura']})",
+                        use_column_width=True
+                    )
+                    
+                    indices_presets = list(PRESETS_SHOPEE.keys())
+                    idx_default = indices_presets.index(preset_sugerido) if preset_sugerido in indices_presets else 0
+                    
+                    preset_nome = st.selectbox(
+                        "Alterar Preset de Posição:",
+                        indices_presets,
+                        index=idx_default,
+                        key="meta_pro_preset"
+                    )
+                    
+                    p_info = PRESETS_SHOPEE[preset_nome]
+                    
+                    if "Personalizado" in preset_nome:
+                        col_x, col_y = st.columns(2)
+                        with col_x:
+                            wm_x_pct = st.slider("Posição X (% da largura)", 0.0, 1.0, p_info['x_percent'], 0.01, key="meta_x")
+                        with col_y:
+                            wm_y_pct = st.slider("Posição Y (% da altura)", 0.0, 1.0, p_info['y_percent'], 0.01, key="meta_y")
+                        
+                        col_w, col_h = st.columns(2)
+                        with col_w:
+                            wm_w_pct = st.slider("Largura (% da largura)", 0.01, 0.5, p_info['width_percent'], 0.01, key="meta_w")
+                        with col_h:
+                            wm_h_pct = st.slider("Altura (% da altura)", 0.01, 0.5, p_info['height_percent'], 0.01, key="meta_h")
+                    else:
+                        wm_x_pct = p_info['x_percent']
+                        wm_y_pct = p_info['y_percent']
+                        wm_w_pct = p_info['width_percent']
+                        wm_h_pct = p_info['height_percent']
+                    
+                    col_algo, col_raio = st.columns(2)
+                    with col_algo:
+                        algo_nome = st.selectbox("Algoritmo:", list(ALGORITMOS_INPAINTING.keys()), key="meta_algo")
+                        wm_algoritmo = ALGORITMOS_INPAINTING[algo_nome]
+                    with col_raio:
+                        wm_raio = st.slider("Raio:", 1, 10, 3, key="meta_raio")
+                    
+                except Exception as e:
+                    st.error(f"Erro ao carregar pré-visualização: {e}")
+                finally:
+                    if os.path.exists(caminho_ref2):
+                        try:
+                            os.remove(caminho_ref2)
+                        except:
+                            pass
         else:
             st.caption("ℹ️ A remoção de marca d'água está desativada. O vídeo será processado apenas com antiduplicação e metadados.")
 
