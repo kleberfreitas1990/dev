@@ -142,6 +142,72 @@ def extrair_primeiro_frame(caminho_video: str) -> np.ndarray:
     return frame
 
 
+def detectar_marca_dagua_shopee(frame: np.ndarray) -> tuple:
+    """
+    Analisa o frame em busca da marca d'água Shopee (ou Shopee Video)
+    nas regiões dos presets usando OCR e análise de contornos.
+    Retorna (detectado: bool, preset_sugerido: str, confianca: str).
+    """
+    try:
+        import pytesseract
+        h, w = frame.shape[:2]
+        
+        # Testa cada preset comum
+        presets_para_testar = [
+            ("Canto Inferior Direito (Padrão Shopee)", PRESETS_SHOPEE["Canto Inferior Direito (Padrão Shopee)"]),
+            ("Canto Superior Esquerdo", PRESETS_SHOPEE["Canto Superior Esquerdo"]),
+            ("Centro Inferior", PRESETS_SHOPEE["Centro Inferior"]),
+            ("Canto Superior Direito", PRESETS_SHOPEE["Canto Superior Direito"])
+        ]
+        
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        
+        for nome_preset, p in presets_para_testar:
+            rx, ry, rw, rh = calcular_coordenadas_reais(h, w, p['x_percent'], p['y_percent'], p['width_percent'], p['height_percent'])
+            roi = gray[ry:ry+rh, rx:rx+rw]
+            
+            if roi.size == 0:
+                continue
+                
+            # Equalização de histograma e limiarização para melhorar OCR
+            roi_proc = cv2.resize(roi, (0, 0), fx=2, fy=2)
+            roi_proc = cv2.threshold(roi_proc, 150, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
+            
+            texto = pytesseract.image_to_string(roi_proc, config='--psm 6').strip().lower()
+            
+            # Palavras-chave Shopee
+            keywords = ["shopee", "shop", "video", "shope", "sho"]
+            if any(kw in texto for kw in keywords):
+                return True, nome_preset, "Alta (OCR Detectado)"
+                
+        # Heurística secundária por presença de logomarca laranja/vermelha comum da Shopee
+        # A Shopee usa tom característico vermelho/laranja (#EE4D2D)
+        for nome_preset, p in presets_para_testar:
+            rx, ry, rw, rh = calcular_coordenadas_reais(h, w, p['x_percent'], p['y_percent'], p['width_percent'], p['height_percent'])
+            roi_bgr = frame[ry:ry+rh, rx:rx+rw]
+            if roi_bgr.size == 0:
+                continue
+            hsv = cv2.cvtColor(roi_bgr, cv2.COLOR_BGR2HSV)
+            # Intervalo de vermelho/laranja vivo
+            lower_red1 = np.array([0, 120, 70])
+            upper_red1 = np.array([10, 255, 255])
+            lower_red2 = np.array([170, 120, 70])
+            upper_red2 = np.array([180, 255, 255])
+            
+            mask1 = cv2.inRange(hsv, lower_red1, upper_red1)
+            mask2 = cv2.inRange(hsv, lower_red2, upper_red2)
+            mask = mask1 | mask2
+            
+            ratio = np.count_nonzero(mask) / (roi_bgr.shape[0] * roi_bgr.shape[1] + 1)
+            if ratio > 0.05: # mais de 5% de pixels vermelhos/laranjas característicos
+                return True, nome_preset, "Média (Padrão de Cor Shopee)"
+                
+        return False, "Canto Inferior Direito (Padrão Shopee)", "Nenhuma"
+    except Exception as e:
+        # Fallback se pytesseract não estiver totalmente configurado
+        return False, "Canto Inferior Direito (Padrão Shopee)", "Erro OCR"
+
+
 def obter_informacoes_video(caminho_video: str) -> dict:
     """Extrai informações técnicas do vídeo."""
     cap = cv2.VideoCapture(caminho_video)
@@ -436,20 +502,51 @@ def render_metadados_pro():
         return
 
     # ============================================================
+    # DETECÇÃO AUTOMÁTICA DE MARCA D'ÁGUA (AO SUBIR O VÍDEO)
+    # ============================================================
+    with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as tmp_ref:
+        tmp_ref.write(uploaded_file.getbuffer())
+        caminho_ref = tmp_ref.name
+    
+    detectado_wm = False
+    preset_sugerido = "Canto Inferior Direito (Padrão Shopee)"
+    confianca_det = "Nenhuma"
+    
+    try:
+        info_vid = obter_informacoes_video(caminho_ref)
+        primeiro_frm = extrair_primeiro_frame(caminho_ref)
+        detectado_wm, preset_sugerido, confianca_det = detectar_marca_dagua_shopee(primeiro_frm)
+    except Exception:
+        pass
+    finally:
+        if os.path.exists(caminho_ref):
+            try:
+                os.remove(caminho_ref)
+            except:
+                pass
+
+    # ============================================================
     # MÓDULO OPCIONAL: REMOÇÃO DE MARCA D'ÁGUA
     # ============================================================
-    with st.expander("💧 Remoção de Marca d'Água Shopee (Opcional)", expanded=False):
-        remover_wm = st.checkbox("Remover marca d'água do vídeo antes de limpar metadados", value=False)
+    expandir_expander = detectado_wm
+    titulo_expander = "💧 Remoção de Marca d'Água Shopee (Opcional)"
+    if detectado_wm:
+        titulo_expander = f"💧 Remoção de Marca d'Água Shopee (🎯 Detectado automaticamente: {preset_sugerido}!)"
+
+    with st.expander(titulo_expander, expanded=expandir_expander):
+        if detectado_wm:
+            st.success(f"🤖 **Detecção Inteligente:** Identificamos padrão/texto de marca d'água Shopee no vídeo! ({confianca_det}). A opção de remoção foi marcada automaticamente para você.")
+        
+        remover_wm = st.checkbox("Remover marca d'água do vídeo antes de limpar metadados", value=detectado_wm)
         
         if remover_wm:
-            # Salva temporário para ler o frame
-            with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as tmp_ref:
-                tmp_ref.write(uploaded_file.getbuffer())
-                caminho_ref = tmp_ref.name
+            with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as tmp_ref2:
+                tmp_ref2.write(uploaded_file.getbuffer())
+                caminho_ref2 = tmp_ref2.name
             
             try:
-                info_vid = obter_informacoes_video(caminho_ref)
-                primeiro_frm = extrair_primeiro_frame(caminho_ref)
+                info_vid = obter_informacoes_video(caminho_ref2)
+                primeiro_frm = extrair_primeiro_frame(caminho_ref2)
                 
                 # Exibe miniatura do primeiro frame
                 h_disp = 300
@@ -463,9 +560,14 @@ def render_metadados_pro():
                     use_column_width=True
                 )
                 
+                # Seleciona automaticamente o preset sugerido
+                indices_presets = list(PRESETS_SHOPEE.keys())
+                idx_default = indices_presets.index(preset_sugerido) if preset_sugerido in indices_presets else 0
+                
                 preset_nome = st.selectbox(
                     "Selecione o Preset de Posição da Logo Shopee:",
-                    list(PRESETS_SHOPEE.keys()),
+                    indices_presets,
+                    index=idx_default,
                     key="meta_pro_preset"
                 )
                 
