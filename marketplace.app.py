@@ -83,6 +83,9 @@ from modules.calendar import render_calendar
 # Importa módulo Metadados Pro
 from modules.metadados_pro import render_metadados_pro
 
+# Importa módulo Remoção de Marca d'Água
+from modules.watermark_remover import render_watermark_remover
+
 # Importa módulo Divulga Shop
 from modules.divulgashop import render_divulga_shop
 
@@ -132,9 +135,10 @@ st.markdown("---")
 # ============================================================
 # TABS (REORGANIZADAS)
 # ============================================================
-tab1, tab_meta, tab_divulga, tab_auto, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs([
+tab1, tab_meta, tab_watermark, tab_divulga, tab_auto, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs([
     "📊 Dashboard",
     "🎬 Metadados Pro",
+    "🎥 Remover Marca d'Água",
     "🛒 Divulga Shop",
     "🔄 Atualização Auto",
     "📅 Calendário de Conteúdo",
@@ -164,7 +168,16 @@ with tab_meta:
         st.error(f"❌ Erro ao carregar Metadados Pro: {str(e)}")
 
 # ============================================================
-# TAB 3: DIVULGA SHOP
+# TAB 3: REMOVER MARCA D'ÁGUA
+# ============================================================
+with tab_watermark:
+    try:
+        render_watermark_remover()
+    except Exception as e:
+        st.error(f"❌ Erro ao carregar Remoção de Marca d'Água: {str(e)}")
+
+# ============================================================
+# TAB 4: DIVULGA SHOP
 # ============================================================
 with tab_divulga:
     try:
@@ -173,19 +186,19 @@ with tab_divulga:
         st.error(f"❌ Erro ao carregar Divulga Shop: {str(e)}")
 
 # ============================================================
-# TAB 4: ATUALIZAÇÃO AUTOMÁTICA
+# TAB 5: ATUALIZAÇÃO AUTOMÁTICA
 # ============================================================
 with tab_auto:
     render_painel_atualizacao_automatica()
 
 # ============================================================
-# TAB 5: CALENDÁRIO
+# TAB 6: CALENDÁRIO
 # ============================================================
 with tab2:
     render_calendar()
 
 # ============================================================
-# TAB 6: CRIAR VÍDEO IA
+# TAB 7: CRIAR VÍDEO IA
 # ============================================================
 with tab3:
     st.markdown("## 🎬 Criar Vídeo com IA (9:16)")
@@ -222,7 +235,7 @@ with tab3:
                     st.video("https://placehold.co/600x400/000000/FFFFFF?text=Video+Gerado+por+IA")
 
 # ============================================================
-# TAB 7: CRIAR CONTEÚDO IA
+# TAB 8: CRIAR CONTEÚDO IA
 # ============================================================
 with tab4:
     st.markdown("## 🤖 Assistente de Conteúdo para Criadores")
