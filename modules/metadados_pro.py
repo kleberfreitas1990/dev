@@ -1,13 +1,13 @@
 """
-Módulo Metadados Pro v10.0 + Remoção de Marca d'Água Shopee
-=============================================================
+Módulo Metadados Pro v10.0 + Download TikTok/Instagram + Antiduplicação
+=====================================================================
 Interface Streamlit unificada para:
-1. Remoção de marca d'água de vídeos Shopee (opcional) com presets de posição e OpenCV inpainting
+1. Upload manual de arquivo ou download direto via link (TikTok / Instagram / YouTube)
 2. Antiduplicação visual e sonora (micro-zoom, espelhamento, áudio morphing)
 3. Limpeza cirúrgica de metadados, remoção de GPS e injeção de perfil de câmera realista
 
 Autor: Manus AI
-Versão: 10.0.1
+Versão: 10.1.0
 """
 
 import random
@@ -37,57 +37,6 @@ LOCALIZACOES_REAIS = [
     {"cidade": "Brasília, DF", "lat": -15.7801, "lon": -47.9292, "alt": 1170},
 ]
 
-# ============================================================
-# PRESETS DE MARCA D'ÁGUA SHOPEE
-# ============================================================
-PRESETS_SHOPEE = {
-    "Canto Inferior Direito (Padrão Shopee)": {
-        "descricao": "Logo Shopee no canto inferior direito (posição mais comum)",
-        "x_percent": 0.75,
-        "y_percent": 0.85,
-        "width_percent": 0.20,
-        "height_percent": 0.12,
-        "icone": "📍"
-    },
-    "Canto Superior Esquerdo": {
-        "descricao": "Logo Shopee no canto superior esquerdo",
-        "x_percent": 0.02,
-        "y_percent": 0.02,
-        "width_percent": 0.18,
-        "height_percent": 0.10,
-        "icone": "📍"
-    },
-    "Centro Inferior": {
-        "descricao": "Logo Shopee centralizada na parte inferior",
-        "x_percent": 0.40,
-        "y_percent": 0.80,
-        "width_percent": 0.20,
-        "height_percent": 0.15,
-        "icone": "📍"
-    },
-    "Canto Superior Direito": {
-        "descricao": "Logo Shopee no canto superior direito",
-        "x_percent": 0.78,
-        "y_percent": 0.02,
-        "width_percent": 0.20,
-        "height_percent": 0.10,
-        "icone": "📍"
-    },
-    "Personalizado (Ajuste Manual)": {
-        "descricao": "Defina manualmente as coordenadas da marca d'água",
-        "x_percent": 0.75,
-        "y_percent": 0.85,
-        "width_percent": 0.20,
-        "height_percent": 0.12,
-        "icone": "⚙️"
-    }
-}
-
-ALGORITMOS_INPAINTING = {
-    "TELEA (Rápido)": cv2.INPAINT_TELEA,
-    "NS (Qualidade)": cv2.INPAINT_NS,
-}
-
 
 def gerar_nome_arquivo_limpo(extensao: str = ".mp4") -> str:
     """Gera um nome que simula o padrão de uma câmara real."""
@@ -110,273 +59,22 @@ def validar_url_video(url: str) -> bool:
         return False
 
 
-def calcular_coordenadas_reais(
-    altura_frame: int,
-    largura_frame: int,
-    x_percent: float,
-    y_percent: float,
-    width_percent: float,
-    height_percent: float
-) -> tuple:
-    """Converte percentuais em coordenadas reais do frame."""
-    x = int(largura_frame * x_percent)
-    y = int(altura_frame * y_percent)
-    width = int(largura_frame * width_percent)
-    height = int(altura_frame * height_percent)
-    
-    x = max(0, min(x, largura_frame - 1))
-    y = max(0, min(y, altura_frame - 1))
-    width = min(width, largura_frame - x)
-    height = min(height, altura_frame - y)
-    
-    return (x, y, width, height)
-
-
-def extrair_primeiro_frame(caminho_video: str) -> np.ndarray:
-    """Extrai o primeiro frame do vídeo para visualização."""
-    cap = cv2.VideoCapture(caminho_video)
-    ret, frame = cap.read()
-    cap.release()
-    if not ret:
-        raise ValueError("Não foi possível ler o primeiro frame do vídeo")
-    return frame
-
-
-def detectar_marca_dagua_shopee(frame: np.ndarray) -> tuple:
-    """
-    Analisa o frame em busca da marca d'água Shopee (ou Shopee Video)
-    nas regiões dos presets usando OCR e análise de contornos.
-    Retorna (detectado: bool, preset_sugerido: str, confianca: str).
-    """
-    try:
-        import pytesseract
-        h, w = frame.shape[:2]
-        
-        # Testa cada preset comum
-        presets_para_testar = [
-            ("Canto Inferior Direito (Padrão Shopee)", PRESETS_SHOPEE["Canto Inferior Direito (Padrão Shopee)"]),
-            ("Canto Superior Esquerdo", PRESETS_SHOPEE["Canto Superior Esquerdo"]),
-            ("Centro Inferior", PRESETS_SHOPEE["Centro Inferior"]),
-            ("Canto Superior Direito", PRESETS_SHOPEE["Canto Superior Direito"])
-        ]
-        
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        
-        for nome_preset, p in presets_para_testar:
-            rx, ry, rw, rh = calcular_coordenadas_reais(h, w, p['x_percent'], p['y_percent'], p['width_percent'], p['height_percent'])
-            roi = gray[ry:ry+rh, rx:rx+rw]
-            
-            if roi.size == 0:
-                continue
-                
-            # Equalização de histograma e limiarização para melhorar OCR
-            roi_proc = cv2.resize(roi, (0, 0), fx=2, fy=2)
-            roi_proc = cv2.threshold(roi_proc, 150, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
-            
-            texto = pytesseract.image_to_string(roi_proc, config='--psm 6').strip().lower()
-            
-            # Palavras-chave Shopee
-            keywords = ["shopee", "shop", "video", "shope", "sho"]
-            if any(kw in texto for kw in keywords):
-                return True, nome_preset, "Alta (OCR Detectado)"
-                
-        # Heurística secundária por presença de logomarca laranja/vermelha comum da Shopee
-        # A Shopee usa tom característico vermelho/laranja (#EE4D2D)
-        for nome_preset, p in presets_para_testar:
-            rx, ry, rw, rh = calcular_coordenadas_reais(h, w, p['x_percent'], p['y_percent'], p['width_percent'], p['height_percent'])
-            roi_bgr = frame[ry:ry+rh, rx:rx+rw]
-            if roi_bgr.size == 0:
-                continue
-            hsv = cv2.cvtColor(roi_bgr, cv2.COLOR_BGR2HSV)
-            # Intervalo de vermelho/laranja vivo
-            lower_red1 = np.array([0, 120, 70])
-            upper_red1 = np.array([10, 255, 255])
-            lower_red2 = np.array([170, 120, 70])
-            upper_red2 = np.array([180, 255, 255])
-            
-            mask1 = cv2.inRange(hsv, lower_red1, upper_red1)
-            mask2 = cv2.inRange(hsv, lower_red2, upper_red2)
-            mask = mask1 | mask2
-            
-            ratio = np.count_nonzero(mask) / (roi_bgr.shape[0] * roi_bgr.shape[1] + 1)
-            if ratio > 0.05: # mais de 5% de pixels vermelhos/laranjas característicos
-                return True, nome_preset, "Média (Padrão de Cor Shopee)"
-                
-        return False, "Canto Inferior Direito (Padrão Shopee)", "Nenhuma"
-    except Exception as e:
-        # Fallback se pytesseract não estiver totalmente configurado
-        return False, "Canto Inferior Direito (Padrão Shopee)", "Erro OCR"
-
-
-def obter_informacoes_video(caminho_video: str) -> dict:
-    """Extrai informações técnicas do vídeo."""
-    cap = cv2.VideoCapture(caminho_video)
-    info = {
-        "largura": int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)),
-        "altura": int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)),
-        "fps": cap.get(cv2.CAP_PROP_FPS),
-        "total_frames": int(cap.get(cv2.CAP_PROP_FRAME_COUNT)),
-        "duracao_segundos": int(cap.get(cv2.CAP_PROP_FRAME_COUNT) / (cap.get(cv2.CAP_PROP_FPS) or 30))
+def baixar_video_yt_dlp(url: str, caminho_destino: str) -> bool:
+    """Baixa vídeo de TikTok, Instagram, YouTube ou outras plataformas usando yt-dlp."""
+    ydl_opts = {
+        'format': 'best[ext=mp4]/best',
+        'outtmpl': caminho_destino,
+        'quiet': True,
+        'no_warnings': True,
+        'socket_timeout': 30,
     }
-    cap.release()
-    return info
-
-
-def extrair_audio(caminho_video: str, caminho_audio: str) -> bool:
-    """Extrai o áudio do vídeo usando FFmpeg."""
     try:
-        cmd = ["ffmpeg", "-i", caminho_video, "-q:a", "9", "-y", caminho_audio]
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
-        return result.returncode == 0 and os.path.exists(caminho_audio)
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([url])
+        return os.path.exists(caminho_destino) and os.path.getsize(caminho_destino) > 0
     except Exception as e:
-        print(f"Exception em metadados_pro: {e}")
+        print(f"Erro ao baixar via yt-dlp: {e}")
         return False
-
-
-def remover_marca_dagua_cv(
-    caminho_video: str,
-    caminho_saida: str,
-    x: int,
-    y: int,
-    width: int,
-    height: int,
-    algoritmo: int = cv2.INPAINT_TELEA,
-    raio_inpainting: int = 3,
-    callback_progresso=None
-) -> bool:
-    """Remove marca d'água usando OpenCV inpainting."""
-    try:
-        cap = cv2.VideoCapture(caminho_video)
-        if not cap.isOpened():
-            return False
-        
-        largura = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-        altura = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        fps = cap.get(cv2.CAP_PROP_FPS) or 30
-        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT)) or 1
-        
-        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        out = cv2.VideoWriter(caminho_saida, fourcc, fps, (largura, altura))
-        
-        if not out.isOpened():
-            cap.release()
-            return False
-        
-        mascara = np.zeros((altura, largura), dtype=np.uint8)
-        mascara[y:y+height, x:x+width] = 255
-        
-        frame_count = 0
-        while True:
-            ret, frame = cap.read()
-            if not ret:
-                break
-            
-            frame_processado = cv2.inpaint(frame, mascara, raio_inpainting, algoritmo)
-            out.write(frame_processado)
-            frame_count += 1
-            
-            if callback_progresso and total_frames > 0:
-                callback_progresso(frame_count / total_frames)
-        
-        cap.release()
-        out.release()
-        return os.path.exists(caminho_saida) and os.path.getsize(caminho_saida) > 0
-    except Exception as e:
-        print(f"Exception em metadados_pro: {e}")
-        return False
-
-
-def muxar_audio_video(
-    caminho_video_sem_audio: str,
-    caminho_audio: str,
-    caminho_saida_final: str
-) -> bool:
-    """Mescla o vídeo processado sem áudio com o áudio original."""
-    try:
-        cmd = [
-            "ffmpeg",
-            "-i", caminho_video_sem_audio,
-            "-i", caminho_audio,
-            "-c:v", "copy",
-            "-c:a", "aac",
-            "-map", "0:v:0",
-            "-map", "1:a:0",
-            "-shortest",
-            "-y",
-            caminho_saida_final
-        ]
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
-        return result.returncode == 0 and os.path.exists(caminho_saida_final)
-    except Exception as e:
-        print(f"Exception em metadados_pro: {e}")
-        return False
-
-
-def processar_remocao_marca_dagua(
-    caminho_video: str,
-    x: int,
-    y: int,
-    width: int,
-    height: int,
-    algoritmo: int = cv2.INPAINT_TELEA,
-    raio_inpainting: int = 3,
-    status_callback=None
-) -> str:
-    """Executa o pipeline completo de remoção de marca d'água preservando áudio."""
-    caminho_temp_audio = None
-    caminho_temp_video = None
-    caminho_final = None
-    
-    try:
-        with tempfile.NamedTemporaryFile(suffix=".aac", delete=False) as tmp_audio:
-            caminho_temp_audio = tmp_audio.name
-        
-        if status_callback:
-            status_callback("🔊 Extraindo áudio original...", 0.1)
-        if not extrair_audio(caminho_video, caminho_temp_audio):
-            # Se falhar extração de áudio, prossegue sem áudio
-            caminho_temp_audio = None
-        
-        with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as tmp_video:
-            caminho_temp_video = tmp_video.name
-        
-        if status_callback:
-            status_callback("🎬 Removendo marca d'água quadro a quadro...", 0.3)
-        
-        def prog_cb(p):
-            if status_callback:
-                status_callback(f"🎬 Removendo marca d'água: {int(p*100)}%", 0.3 + (p * 0.4))
-        
-        if not remover_marca_dagua_cv(
-            caminho_video,
-            caminho_temp_video,
-            x, y, width, height,
-            algoritmo,
-            raio_inpainting,
-            prog_cb
-        ):
-            return caminho_video  # Retorna original se falhar
-        
-        with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as tmp_final:
-            caminho_final = tmp_final.name
-        
-        if caminho_temp_audio and os.path.exists(caminho_temp_audio) and os.path.getsize(caminho_temp_audio) > 0:
-            if status_callback:
-                status_callback("🔗 Mesclando áudio e vídeo...", 0.8)
-            if muxar_audio_video(caminho_temp_video, caminho_temp_audio, caminho_final):
-                return caminho_final
-        
-        # Fallback se mux falhar
-        return caminho_temp_video
-        
-    except Exception:
-        return caminho_video
-    finally:
-        if caminho_temp_audio and os.path.exists(caminho_temp_audio):
-            try:
-                os.remove(caminho_temp_audio)
-            except:
-                pass
 
 
 def construir_comando_ffmpeg(
@@ -423,7 +121,6 @@ def construir_comando_ffmpeg(
         if config.get("audio_morph", True):
             pitch = config.get("pitch", 1.005)
             tempo = config.get("tempo", 1.001)
-            # aresample para pitch/tempo shift imperceptível
             sample_rate = int(44100 * pitch)
             audio_args = [
                 "-af", f"atempo={tempo},aresample={sample_rate}"
@@ -467,12 +164,9 @@ def construir_comando_ffmpeg(
             timeout=300
         )
         
-        if resultado.returncode != 0:
-            print(f"FFmpeg stderr: {resultado.stderr}")
-            
         return resultado.returncode == 0 and os.path.exists(output_path) and os.path.getsize(output_path) > 0
     except Exception as e:
-        print(f"Exception em metadados_pro: {e}")
+        print(f"Exception em construir_comando_ffmpeg: {e}")
         return False
 
 
@@ -488,137 +182,36 @@ def limpar_metadados_ffmpeg(
 
 
 def render_metadados_pro():
-    st.markdown("## 🎬 Metadata Pro v10.0 — Antiduplicação & Limpeza Shopee")
+    st.markdown("## 🎬 Metadata Pro v10.0 — Antiduplicação & Limpeza")
     st.caption(
-        "A Shopee pune vídeos duplicados e com marca d'água. Esta ferramenta remove a marca d'água (opcional), "
-        "altera a assinatura digital (hash), aplica micro-ajustes visuais/sonoros e injeta metadados de câmera realistas."
+        "Envie um arquivo de vídeo ou cole o link do **TikTok / Instagram / YouTube**. "
+        "O sistema altera a assinatura digital (hash), aplica micro-ajustes visuais/sonoros e injeta metadados de câmera realistas."
     )
 
-    with st.container(border=True):
-        uploaded_file = st.file_uploader("Envie o vídeo Shopee (MP4, MOV, MKV)", type=["mp4", "mov", "mkv"], key="uploader_meta_pro")
-
-    if not uploaded_file:
-        st.info("Aguardando upload de vídeo para processamento.")
-        return
-
     # ============================================================
-    # DETECÇÃO AUTOMÁTICA DE MARCA D'ÁGUA (AO SUBIR O VÍDEO)
+    # ESCOLHA DE ENTRADA: UPLOAD OU LINK
     # ============================================================
-    with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as tmp_ref:
-        tmp_ref.write(uploaded_file.getbuffer())
-        caminho_ref = tmp_ref.name
-    
-    detectado_wm = False
-    preset_sugerido = "Canto Inferior Direito (Padrão Shopee)"
-    confianca_det = "Nenhuma"
-    
-    try:
-        info_vid = obter_informacoes_video(caminho_ref)
-        primeiro_frm = extrair_primeiro_frame(caminho_ref)
-        detectado_wm, preset_sugerido, confianca_det = detectar_marca_dagua_shopee(primeiro_frm)
-    except Exception:
-        pass
-    finally:
-        if os.path.exists(caminho_ref):
-            try:
-                os.remove(caminho_ref)
-            except:
-                pass
+    tipo_entrada = st.radio(
+        "Selecione a forma de envio do vídeo:",
+        ["📁 Upload de Arquivo (MP4, MOV, MKV)", "🔗 Colar Link (TikTok / Instagram / YouTube)"],
+        horizontal=True,
+        key="radio_tipo_entrada"
+    )
 
-    # ============================================================
-    # MÓDULO OPCIONAL: REMOÇÃO DE MARCA D'ÁGUA
-    # ============================================================
-    expandir_expander = detectado_wm
-    titulo_expander = "💧 Remoção de Marca d'Água Shopee (Opcional)"
-    if detectado_wm:
-        titulo_expander = f"💧 Remoção de Marca d'Água Shopee (🎯 Detectado automaticamente: {preset_sugerido}!)"
+    caminho_video_origem = None
+    uploaded_file = None
+    video_url = ""
 
-    with st.expander(titulo_expander, expanded=expandir_expander):
-        if detectado_wm:
-            st.success(f"🤖 **Detecção Inteligente:** Identificamos marca d'água Shopee no vídeo! A remoção será feita **100% de forma automática** ({preset_sugerido}).")
-        else:
-            st.info("ℹ️ Nenhuma marca d'água Shopee óbvia foi detectada automaticamente, mas você pode ativar a remoção manual se desejar.")
-        
-        remover_wm = st.checkbox("Remover marca d'água do vídeo antes de limpar metadados", value=detectado_wm)
-        
-        # Valores padrão caso remova automaticamente
-        p_info = PRESETS_SHOPEE[preset_sugerido]
-        wm_x_pct = p_info['x_percent']
-        wm_y_pct = p_info['y_percent']
-        wm_w_pct = p_info['width_percent']
-        wm_h_pct = p_info['height_percent']
-        wm_algoritmo = cv2.INPAINT_TELEA
-        wm_raio = 3
-        
-        if remover_wm:
-            # Opção avançada recolhida por padrão para não poluir a tela do usuário
-            with st.expander("⚙️ Ajuste Manual Avançado (Opcional - Apenas se necessário)", expanded=False):
-                with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as tmp_ref2:
-                    tmp_ref2.write(uploaded_file.getbuffer())
-                    caminho_ref2 = tmp_ref2.name
-                
-                try:
-                    info_vid = obter_informacoes_video(caminho_ref2)
-                    primeiro_frm = extrair_primeiro_frame(caminho_ref2)
-                    
-                    h_disp = 250
-                    prop = h_disp / (primeiro_frm.shape[0] or 1)
-                    w_disp = int(primeiro_frm.shape[1] * prop)
-                    frm_disp = cv2.resize(primeiro_frm, (w_disp, h_disp))
-                    
-                    st.image(
-                        cv2.cvtColor(frm_disp, cv2.COLOR_BGR2RGB),
-                        caption=f"📸 Referência ({info_vid['largura']}×{info_vid['altura']})",
-                        use_column_width=True
-                    )
-                    
-                    indices_presets = list(PRESETS_SHOPEE.keys())
-                    idx_default = indices_presets.index(preset_sugerido) if preset_sugerido in indices_presets else 0
-                    
-                    preset_nome = st.selectbox(
-                        "Alterar Preset de Posição:",
-                        indices_presets,
-                        index=idx_default,
-                        key="meta_pro_preset"
-                    )
-                    
-                    p_info = PRESETS_SHOPEE[preset_nome]
-                    
-                    if "Personalizado" in preset_nome:
-                        col_x, col_y = st.columns(2)
-                        with col_x:
-                            wm_x_pct = st.slider("Posição X (% da largura)", 0.0, 1.0, p_info['x_percent'], 0.01, key="meta_x")
-                        with col_y:
-                            wm_y_pct = st.slider("Posição Y (% da altura)", 0.0, 1.0, p_info['y_percent'], 0.01, key="meta_y")
-                        
-                        col_w, col_h = st.columns(2)
-                        with col_w:
-                            wm_w_pct = st.slider("Largura (% da largura)", 0.01, 0.5, p_info['width_percent'], 0.01, key="meta_w")
-                        with col_h:
-                            wm_h_pct = st.slider("Altura (% da altura)", 0.01, 0.5, p_info['height_percent'], 0.01, key="meta_h")
-                    else:
-                        wm_x_pct = p_info['x_percent']
-                        wm_y_pct = p_info['y_percent']
-                        wm_w_pct = p_info['width_percent']
-                        wm_h_pct = p_info['height_percent']
-                    
-                    col_algo, col_raio = st.columns(2)
-                    with col_algo:
-                        algo_nome = st.selectbox("Algoritmo:", list(ALGORITMOS_INPAINTING.keys()), key="meta_algo")
-                        wm_algoritmo = ALGORITMOS_INPAINTING[algo_nome]
-                    with col_raio:
-                        wm_raio = st.slider("Raio:", 1, 10, 3, key="meta_raio")
-                    
-                except Exception as e:
-                    st.error(f"Erro ao carregar pré-visualização: {e}")
-                finally:
-                    if os.path.exists(caminho_ref2):
-                        try:
-                            os.remove(caminho_ref2)
-                        except:
-                            pass
-        else:
-            st.caption("ℹ️ A remoção de marca d'água está desativada. O vídeo será processado apenas com antiduplicação e metadados.")
+    if "Upload" in tipo_entrada:
+        with st.container(border=True):
+            uploaded_file = st.file_uploader("Envie o vídeo", type=["mp4", "mov", "mkv"], key="uploader_meta_pro")
+    else:
+        with st.container(border=True):
+            video_url = st.text_input(
+                "Cole o link do vídeo (TikTok, Instagram Reels, YouTube Shorts, etc.):",
+                placeholder="https://www.tiktok.com/@usuario/video/...",
+                key="input_url_video"
+            )
 
     # ============================================================
     # PAINEL DE ANTIDUPLICAÇÃO
@@ -649,59 +242,45 @@ def render_metadados_pro():
         "tempo": tempo_val,
     }
 
-    if st.button("🚀 Processar Vídeo Completo (Marca d'Água + Metadados)", type="primary", use_container_width=True):
+    # Validação de prontidão para processar
+    pronto = False
+    if "Upload" in tipo_entrada and uploaded_file is not None:
+        pronto = True
+    elif "Link" in tipo_entrada and video_url and validar_url_video(video_url):
+        pronto = True
+
+    if not pronto:
+        st.info("Aguardando o envio do arquivo ou inserção de um link válido para prosseguir.")
+        return
+
+    if st.button("🚀 Processar e Limpar Metadados", type="primary", use_container_width=True):
         barra_status = st.progress(0, text="Iniciando processamento...")
         
         with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as temp_in:
             caminho_in = temp_in.name
-        
-        caminho_sem_wm = None
-        caminho_out = None
+        with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as temp_out:
+            caminho_out = temp_out.name
         
         try:
-            # 1. Salva arquivo enviado
-            barra_status.progress(10, text="Carregando arquivo enviado...")
-            with open(caminho_in, "wb") as f:
-                f.write(uploaded_file.getbuffer())
+            # 1. Obtenção do vídeo (Upload ou Download via Link)
+            if "Upload" in tipo_entrada:
+                barra_status.progress(20, text="Salvando arquivo enviado...")
+                with open(caminho_in, "wb") as f:
+                    f.write(uploaded_file.getbuffer())
+            else:
+                barra_status.progress(10, text="Baixando vídeo da plataforma (TikTok/Instagram)...")
+                if not baixar_video_yt_dlp(video_url, caminho_in):
+                    st.error("❌ Falha ao baixar o vídeo do link fornecido. Verifique se o link é público e válido.")
+                    return
+                barra_status.progress(40, text="Download concluído com sucesso!")
             
-            caminho_atual = caminho_in
-            
-            # 2. Remove marca d'água se solicitado (sem reescrever o upload original do usuário)
-            if remover_wm:
-                barra_status.progress(20, text="Removendo marca d'água do vídeo...")
-                info_v = obter_informacoes_video(caminho_in)
-                rx, ry, rw, rh = calcular_coordenadas_reais(
-                    info_v['altura'], info_v['largura'],
-                    wm_x_pct, wm_y_pct, wm_w_pct, wm_h_pct
-                )
-                
-                def status_cb(msg, prog):
-                    barra_status.progress(int(prog * 50), text=msg)
-                
-                with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as tmp_wm:
-                    caminho_sem_wm = tmp_wm.name
-                
-                caminho_processado_wm = processar_remocao_marca_dagua(
-                    caminho_in,
-                    rx, ry, rw, rh,
-                    wm_algoritmo,
-                    wm_raio,
-                    status_cb
-                )
-                
-                if caminho_processado_wm and os.path.exists(caminho_processado_wm):
-                    caminho_atual = caminho_processado_wm
-            
-            # 3. Limpeza de metadados e antiduplicação (FFmpeg)
+            # 2. Processamento FFmpeg (Antiduplicação e Limpeza)
             barra_status.progress(60, text="Aplicando Antiduplicação e Limpando Metadados...")
             loc = random.choice(LOCALIZACOES_REAIS)
             coordenadas = (loc["lat"], loc["lon"])
             
-            with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as temp_final:
-                caminho_out = temp_final.name
-            
-            sucesso_meta = limpar_metadados_ffmpeg(
-                caminho_atual,
+            sucesso = limpar_metadados_ffmpeg(
+                caminho_in,
                 caminho_out,
                 coordenadas,
                 loc["alt"],
@@ -710,7 +289,7 @@ def render_metadados_pro():
             
             barra_status.progress(100, text="✅ Processamento concluído com sucesso!")
             
-            if sucesso_meta and os.path.exists(caminho_out) and os.path.getsize(caminho_out) > 0:
+            if sucesso and os.path.exists(caminho_out) and os.path.getsize(caminho_out) > 0:
                 nome_final = gerar_nome_arquivo_limpo()
                 with open(caminho_out, "rb") as f:
                     dados_saida = f.read()
@@ -722,19 +301,14 @@ def render_metadados_pro():
                     mime="video/mp4",
                     use_container_width=True
                 )
-                
-                if remover_wm:
-                    st.success("🎉 Marca d'água removida + Assinatura digital alterada + Metadados limpos com sucesso!")
-                else:
-                    st.success("🎉 Assinatura digital alterada + Metadados limpos com sucesso!")
+                st.success("🎉 Vídeo processado com sucesso! Assinatura digital alterada e metadados limpos.")
             else:
-                st.error("❌ Falha ao aplicar antiduplicação no FFmpeg.")
+                st.error("❌ Falha ao processar o vídeo no FFmpeg.")
                 
         except Exception as e:
-            st.error(f"❌ Erro durante o processamento unificado: {str(e)}")
+            st.error(f"❌ Erro durante o processamento: {str(e)}")
         finally:
-            # Limpeza de arquivos temporários
-            for p in [caminho_in, caminho_sem_wm, caminho_out]:
+            for p in [caminho_in, caminho_out]:
                 if p and os.path.exists(p):
                     try:
                         os.remove(p)
