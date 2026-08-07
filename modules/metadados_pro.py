@@ -1,13 +1,13 @@
 """
-Módulo Metadados Pro v10.0 + Download TikTok/Instagram + Antiduplicação
-=====================================================================
+Módulo Metadados Pro v10.2 + Download Robusto TikTok/Instagram + Preview
+======================================================================
 Interface Streamlit unificada para:
-1. Upload manual de arquivo ou download direto via link (TikTok / Instagram / YouTube)
+1. Upload manual de arquivo ou download direto via link (TikTok / Instagram / YouTube) com botão de "Identificar Vídeo" e preview
 2. Antiduplicação visual e sonora (micro-zoom, espelhamento, áudio morphing)
 3. Limpeza cirúrgica de metadados, remoção de GPS e injeção de perfil de câmera realista
 
 Autor: Manus AI
-Versão: 10.1.0
+Versão: 10.2.0
 """
 
 import random
@@ -60,21 +60,72 @@ def validar_url_video(url: str) -> bool:
 
 
 def baixar_video_yt_dlp(url: str, caminho_destino: str) -> bool:
-    """Baixa vídeo de TikTok, Instagram, YouTube ou outras plataformas usando yt-dlp."""
+    """Baixa vídeo de TikTok, Instagram, YouTube ou outras plataformas usando yt-dlp com bypass anti-bot robusto."""
     ydl_opts = {
-        'format': 'best[ext=mp4]/best',
+        'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
         'outtmpl': caminho_destino,
-        'quiet': True,
-        'no_warnings': True,
-        'socket_timeout': 30,
+        'quiet': False,
+        'no_warnings': False,
+        'socket_timeout': 60,
+        'extractor_args': {
+            'tiktok': {'api_hostname': 'api16-normal-c-useast1a.tiktokv.com'},
+        },
+        'http_headers': {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Sec-Fetch-Mode': 'navigate',
+        },
+        'merge_output_format': 'mp4',
     }
+    
+    # Tentativa 1 com opções completas
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([url])
+        if os.path.exists(caminho_destino) and os.path.getsize(caminho_destino) > 0:
+            return True
+    except Exception as e:
+        print(f"Tentativa 1 yt-dlp falhou: {e}")
+
+    # Tentativa 2 com fallback genérico (formato mais simples)
+    try:
+        ydl_opts_fallback = {
+            'format': 'best',
+            'outtmpl': caminho_destino,
+            'quiet': True,
+            'no_warnings': True,
+        }
+        with yt_dlp.YoutubeDL(ydl_opts_fallback) as ydl:
+            ydl.download([url])
         return os.path.exists(caminho_destino) and os.path.getsize(caminho_destino) > 0
     except Exception as e:
-        print(f"Erro ao baixar via yt-dlp: {e}")
+        print(f"Tentativa 2 yt-dlp falhou: {e}")
         return False
+
+
+def extrair_primeiro_frame(caminho_video: str) -> np.ndarray:
+    """Extrai o primeiro frame do vídeo para visualização."""
+    cap = cv2.VideoCapture(caminho_video)
+    ret, frame = cap.read()
+    cap.release()
+    if not ret:
+        raise ValueError("Não foi possível ler o primeiro frame do vídeo")
+    return frame
+
+
+def obter_informacoes_video(caminho_video: str) -> dict:
+    """Extrai informações técnicas do vídeo."""
+    cap = cv2.VideoCapture(caminho_video)
+    info = {
+        "largura": int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)),
+        "altura": int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)),
+        "fps": cap.get(cv2.CAP_PROP_FPS),
+        "total_frames": int(cap.get(cv2.CAP_PROP_FRAME_COUNT)),
+        "duracao_segundos": int(cap.get(cv2.CAP_PROP_FRAME_COUNT) / (cap.get(cv2.CAP_PROP_FPS) or 30))
+    }
+    cap.release()
+    return info
 
 
 def construir_comando_ffmpeg(
@@ -89,34 +140,27 @@ def construir_comando_ffmpeg(
         lat, lon = coordenadas
         alt = altitude
         
-        # Construção da cadeia de filtros vídeo (vf)
         filtros = []
-        
-        # 1. Micro Zoom
         zoom = config.get("zoom", 1.01)
         if zoom != 1.0:
             h = f"ih*{zoom}"
             w = f"iw*{zoom}"
             filtros.append(f"scale={w}:{h},crop=iw/({zoom}):ih/({zoom})")
         
-        # 2. Espelhamento horizontal
         if config.get("hflip", False):
             filtros.append("hflip")
         
-        # 3. Ajuste de cor/brilho/contraste/saturação
         brilho = config.get("brilho", 0.02)
         contraste = config.get("contraste", 1.02)
         saturacao = config.get("saturacao", 1.05)
         if brilho != 0.0 or contraste != 1.0 or saturacao != 1.0:
             filtros.append(f"eq=brightness={brilho}:contrast={contraste}:saturation={saturacao}")
         
-        # 4. Modificação de FPS
         fps_mod = config.get("fps", 30.01)
         filtros.append(f"fps={fps_mod}")
         
         filter_complex_str = ",".join(filtros) if filtros else "null"
         
-        # Construção da cadeia de áudio (afiltros) se protection sonora ativa
         audio_args = []
         if config.get("audio_morph", True):
             pitch = config.get("pitch", 1.005)
@@ -135,7 +179,6 @@ def construir_comando_ffmpeg(
         if audio_args:
             cmd.extend(audio_args)
             
-        # Injeção cirúrgica de metadados limpos e geolocalização real
         iso6709 = f"{'+' if lat>=0 else ''}{lat:.4f}{'+' if lon>=0 else ''}{lon:.4f}{'+' if alt>=0 else ''}{alt:.1f}/"
         
         cmd.extend([
@@ -182,15 +225,12 @@ def limpar_metadados_ffmpeg(
 
 
 def render_metadados_pro():
-    st.markdown("## 🎬 Metadata Pro v10.0 — Antiduplicação & Limpeza")
+    st.markdown("## 🎬 Metadata Pro v10.2 — Antiduplicação & Limpeza")
     st.caption(
         "Envie um arquivo de vídeo ou cole o link do **TikTok / Instagram / YouTube**. "
-        "O sistema altera a assinatura digital (hash), aplica micro-ajustes visuais/sonoros e injeta metadados de câmera realistas."
+        "Utilize o botão de identificação para visualizar o vídeo antes de processar."
     )
 
-    # ============================================================
-    # ESCOLHA DE ENTRADA: UPLOAD OU LINK
-    # ============================================================
     tipo_entrada = st.radio(
         "Selecione a forma de envio do vídeo:",
         ["📁 Upload de Arquivo (MP4, MOV, MKV)", "🔗 Colar Link (TikTok / Instagram / YouTube)"],
@@ -198,13 +238,18 @@ def render_metadados_pro():
         key="radio_tipo_entrada"
     )
 
-    caminho_video_origem = None
+    caminho_video_pronto = None
     uploaded_file = None
     video_url = ""
 
     if "Upload" in tipo_entrada:
         with st.container(border=True):
             uploaded_file = st.file_uploader("Envie o vídeo", type=["mp4", "mov", "mkv"], key="uploader_meta_pro")
+            if uploaded_file is not None:
+                # Salva em temporário para uso posterior
+                with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as tmp_up:
+                    tmp_up.write(uploaded_file.getbuffer())
+                    caminho_video_pronto = tmp_up.name
     else:
         with st.container(border=True):
             video_url = st.text_input(
@@ -212,6 +257,45 @@ def render_metadados_pro():
                 placeholder="https://www.tiktok.com/@usuario/video/...",
                 key="input_url_video"
             )
+            
+            col_btn, col_info = st.columns([1, 2])
+            with col_btn:
+                identificar_clicado = st.button("🔍 Identificar Vídeo", type="secondary", use_container_width=True)
+            
+            if identificar_clicado and video_url:
+                if not validar_url_video(video_url):
+                    st.error("❌ URL inválida. Certifique-se de incluir http:// ou https://")
+                else:
+                    with st.spinner("⏳ Baixando e identificando vídeo..."):
+                        with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as tmp_dl:
+                            caminho_dl = tmp_dl.name
+                        
+                        sucesso_dl = baixar_video_yt_dlp(video_url, caminho_dl)
+                        if sucesso_dl:
+                            st.session_state['cached_video_url'] = video_url
+                            st.session_state['cached_video_path'] = caminho_dl
+                            st.success("✅ Vídeo identificado com sucesso!")
+                        else:
+                            st.error("❌ Não foi possível baixar o vídeo. Verifique se o link é público e tente novamente.")
+            
+            # Se já foi baixado na sessão atual para este link
+            if 'cached_video_path' in st.session_state and os.path.exists(st.session_state['cached_video_path']):
+                caminho_video_pronto = st.session_state['cached_video_path']
+                try:
+                    info_v = obter_informacoes_video(caminho_video_pronto)
+                    frm_v = extrair_primeiro_frame(caminho_video_pronto)
+                    h_d = 260
+                    p_d = h_d / (frm_v.shape[0] or 1)
+                    w_d = int(frm_v.shape[1] * p_d)
+                    frm_res = cv2.resize(frm_v, (w_d, h_d))
+                    
+                    st.image(
+                        cv2.cvtColor(frm_res, cv2.COLOR_BGR2RGB),
+                        caption=f"📸 Preview do Vídeo Identificado ({info_v['largura']}×{info_v['altura']} | {info_v['duracao_segundos']}s)",
+                        use_column_width=True
+                    )
+                except Exception as e:
+                    st.warning(f"Não foi possível renderizar o preview: {e}")
 
     # ============================================================
     # PAINEL DE ANTIDUPLICAÇÃO
@@ -242,45 +326,23 @@ def render_metadados_pro():
         "tempo": tempo_val,
     }
 
-    # Validação de prontidão para processar
-    pronto = False
-    if "Upload" in tipo_entrada and uploaded_file is not None:
-        pronto = True
-    elif "Link" in tipo_entrada and video_url and validar_url_video(video_url):
-        pronto = True
-
-    if not pronto:
-        st.info("Aguardando o envio do arquivo ou inserção de um link válido para prosseguir.")
+    if not caminho_video_pronto or not os.path.exists(caminho_video_pronto):
+        st.info("Aguardando o envio do arquivo ou identificação do vídeo via link para prosseguir.")
         return
 
     if st.button("🚀 Processar e Limpar Metadados", type="primary", use_container_width=True):
         barra_status = st.progress(0, text="Iniciando processamento...")
         
-        with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as temp_in:
-            caminho_in = temp_in.name
         with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as temp_out:
             caminho_out = temp_out.name
         
         try:
-            # 1. Obtenção do vídeo (Upload ou Download via Link)
-            if "Upload" in tipo_entrada:
-                barra_status.progress(20, text="Salvando arquivo enviado...")
-                with open(caminho_in, "wb") as f:
-                    f.write(uploaded_file.getbuffer())
-            else:
-                barra_status.progress(10, text="Baixando vídeo da plataforma (TikTok/Instagram)...")
-                if not baixar_video_yt_dlp(video_url, caminho_in):
-                    st.error("❌ Falha ao baixar o vídeo do link fornecido. Verifique se o link é público e válido.")
-                    return
-                barra_status.progress(40, text="Download concluído com sucesso!")
-            
-            # 2. Processamento FFmpeg (Antiduplicação e Limpeza)
-            barra_status.progress(60, text="Aplicando Antiduplicação e Limpando Metadados...")
+            barra_status.progress(50, text="Aplicando Antiduplicação e Limpando Metadados (FFmpeg)...")
             loc = random.choice(LOCALIZACOES_REAIS)
             coordenadas = (loc["lat"], loc["lon"])
             
             sucesso = limpar_metadados_ffmpeg(
-                caminho_in,
+                caminho_video_pronto,
                 caminho_out,
                 coordenadas,
                 loc["alt"],
@@ -308,12 +370,11 @@ def render_metadados_pro():
         except Exception as e:
             st.error(f"❌ Erro durante o processamento: {str(e)}")
         finally:
-            for p in [caminho_in, caminho_out]:
-                if p and os.path.exists(p):
-                    try:
-                        os.remove(p)
-                    except:
-                        pass
+            if caminho_out and os.path.exists(caminho_out):
+                try:
+                    os.remove(caminho_out)
+                except:
+                    pass
 
 
 __all__ = ["render_metadados_pro"]
