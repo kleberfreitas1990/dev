@@ -252,21 +252,21 @@ def render_metadados_pro():
                     caminho_video_pronto = tmp_up.name
     else:
         with st.container(border=True):
+            st.markdown("### 🔗 Download de Vídeo por Link")
             video_url = st.text_input(
                 "Cole o link do vídeo (TikTok, Instagram Reels, YouTube Shorts, etc.):",
                 placeholder="https://www.tiktok.com/@usuario/video/...",
                 key="input_url_video"
             )
             
-            col_btn, col_info = st.columns([1, 2])
-            with col_btn:
-                identificar_clicado = st.button("🔍 Identificar Vídeo", type="secondary", use_container_width=True)
+            # Botão destacado logo abaixo da URL com largura total
+            identificar_clicado = st.button("🔍 Clique Aqui para Identificar e Baixar Vídeo", type="primary", use_container_width=True)
             
-            if identificar_clicado and video_url:
-                if not validar_url_video(video_url):
-                    st.error("❌ URL inválida. Certifique-se de incluir http:// ou https://")
+            if identificar_clicado:
+                if not video_url or not validar_url_video(video_url):
+                    st.error("❌ Por favor, cole uma URL válida (com http:// ou https://) antes de clicar em identificar.")
                 else:
-                    with st.spinner("⏳ Baixando e identificando vídeo..."):
+                    with st.spinner("⏳ Baixando vídeo da rede social e gerando preview..."):
                         with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as tmp_dl:
                             caminho_dl = tmp_dl.name
                         
@@ -274,24 +274,27 @@ def render_metadados_pro():
                         if sucesso_dl:
                             st.session_state['cached_video_url'] = video_url
                             st.session_state['cached_video_path'] = caminho_dl
-                            st.success("✅ Vídeo identificado com sucesso!")
+                            st.success("✅ Vídeo baixado e identificado com sucesso!")
+                            st.rerun()
                         else:
                             st.error("❌ Não foi possível baixar o vídeo. Verifique se o link é público e tente novamente.")
             
-            # Se já foi baixado na sessão atual para este link
+            # Se já foi baixado na sessão atual
             if 'cached_video_path' in st.session_state and os.path.exists(st.session_state['cached_video_path']):
                 caminho_video_pronto = st.session_state['cached_video_path']
                 try:
                     info_v = obter_informacoes_video(caminho_video_pronto)
                     frm_v = extrair_primeiro_frame(caminho_video_pronto)
-                    h_d = 260
+                    h_d = 280
                     p_d = h_d / (frm_v.shape[0] or 1)
                     w_d = int(frm_v.shape[1] * p_d)
                     frm_res = cv2.resize(frm_v, (w_d, h_d))
                     
+                    st.markdown("---")
+                    st.success(f"✅ **Vídeo Carregado com Sucesso!** Resolução: `{info_v['largura']}×{info_v['altura']}` | Duração: `{info_v['duracao_segundos']}s`")
                     st.image(
                         cv2.cvtColor(frm_res, cv2.COLOR_BGR2RGB),
-                        caption=f"📸 Preview do Vídeo Identificado ({info_v['largura']}×{info_v['altura']} | {info_v['duracao_segundos']}s)",
+                        caption="📸 Miniatura (Primeiro Frame) do Vídeo",
                         use_column_width=True
                     )
                 except Exception as e:
