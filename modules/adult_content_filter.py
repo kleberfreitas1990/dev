@@ -11,6 +11,7 @@ Data: 2026-08-11
 """
 
 import logging
+import unicodedata
 from typing import List, Set, Optional
 
 logger = logging.getLogger(__name__)
@@ -22,6 +23,8 @@ logger = logging.getLogger(__name__)
 BLACKLIST_ADULTO = {
     # Produtos sexuais
     "consolo", "dildo", "vibrador", "boneco sexual", "pênis de borracha",
+    "penis de borracha", "extensor peniano", "extensor penis", "pênis", "penis",
+    "órgão sexual", "orgao sexual", "masturbador", "masturbação", "masturbacao",
     "vibrador feminino", "vibrador masculino", "plug anal", "vibrador anal",
     "vibrador de próstata", "strap-on", "cinto de castidade", "vibrador de língua",
     
@@ -87,6 +90,10 @@ def normalizar_termo(termo: str) -> str:
         return ""
     
     termo = termo.lower().strip()
+    termo = "".join(
+        caractere for caractere in unicodedata.normalize("NFKD", termo)
+        if not unicodedata.combining(caractere)
+    )
     
     # Remover múltiplos espaços
     while "  " in termo:
@@ -105,13 +112,14 @@ def eh_termo_adulto(termo: str) -> bool:
         return False
     
     termo_normalizado = normalizar_termo(termo)
+    blacklist_normalizada = {normalizar_termo(item) for item in BLACKLIST_COMPLETA}
     
     # Verificação exata
-    if termo_normalizado in BLACKLIST_COMPLETA:
+    if termo_normalizado in blacklist_normalizada:
         return True
     
     # Verificação parcial (substring)
-    for termo_bloqueado in BLACKLIST_COMPLETA:
+    for termo_bloqueado in blacklist_normalizada:
         if termo_bloqueado in termo_normalizado or termo_normalizado in termo_bloqueado:
             # Evitar falsos positivos: só bloquear se for match significativo
             if len(termo_normalizado) > 3 and len(termo_bloqueado) > 3:

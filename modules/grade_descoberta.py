@@ -8,6 +8,7 @@ import logging
 from datetime import datetime, timedelta
 from typing import List, Dict
 from modules.produtos_dinamicos import obter_produtos_marketplace_v49
+from modules.adult_content_filter import eh_termo_adulto
 
 logger = logging.getLogger(__name__)
 
@@ -240,6 +241,21 @@ def descobrir_produtos_grade(categoria: str = None, quantidade: int = 10) -> Lis
     """
     produtos = []
     termos_usados = []
+
+    def termo_permitido(termo: str, dados: Dict = None) -> bool:
+        """Última barreira antes da grade: somente produto válido."""
+        if not termo or eh_termo_adulto(str(termo)):
+            return False
+        dados = dados or {}
+        texto_origem = " ".join(
+            str(dados.get(chave, "")).lower()
+            for chave in ("fonte", "origem_coleta", "tipo", "categoria")
+        )
+        bloqueios_editoriais = (
+            "google news", "google rss", "google_news", "google_rss",
+            "news", "notícia", "noticia", "editorial", "manchete"
+        )
+        return not any(item in texto_origem for item in bloqueios_editoriais)
     
     # 1. PRIORIDADE MÁXIMA: DADOS REAIS MULTI-FONTE (ML, SHOPEE, AMAZON)
     dados_dinamicos = obter_produtos_marketplace_v49()
@@ -256,9 +272,9 @@ def descobrir_produtos_grade(categoria: str = None, quantidade: int = 10) -> Lis
     for fonte, limite_fonte in fontes_prioritarias:
         itens_fonte = [t for t, d in dados_dinamicos.items() if d.get("fonte") == fonte]
         for termo in itens_fonte[:limite_fonte]:
-            if termo not in termos_usados and len(produtos) < quantidade:
+            dados = dados_dinamicos.get(termo, {})
+            if termo_permitido(termo, dados) and termo not in termos_usados and len(produtos) < quantidade:
                 termos_usados.append(termo)
-                dados = dados_dinamicos.get(termo, {})
                 produtos.append({
                     "produto": termo,
                     "fonte": dados.get("fonte", "Real-Time"),
@@ -271,7 +287,7 @@ def descobrir_produtos_grade(categoria: str = None, quantidade: int = 10) -> Lis
     # 2. SEGUNDA PRIORIDADE: PRODUTOS DE MARKETPLACE (GRADE LEGADA)
     if len(produtos) < quantidade and "geral" in GRADE_PRODUTOS:
         for termo in GRADE_PRODUTOS["geral"]["termos"]:
-            if termo not in termos_usados and len(produtos) < quantidade:
+            if termo_permitido(termo) and termo not in termos_usados and len(produtos) < quantidade:
                 termos_usados.append(termo)
                 indicadores = obter_indicadores_horario(termo)
                 produtos.append({
@@ -286,7 +302,7 @@ def descobrir_produtos_grade(categoria: str = None, quantidade: int = 10) -> Lis
     # 2. PEGA PRODUTOS SAZONAIS (COMO COMPLEMENTO)
     sazonais = get_produtos_sazonais()
     for produto in sazonais:
-        if produto not in termos_usados and len(produtos) < quantidade:
+        if termo_permitido(produto) and produto not in termos_usados and len(produtos) < quantidade:
             termos_usados.append(produto)
             indicadores = obter_indicadores_horario(produto)
             produtos.append({

@@ -75,7 +75,7 @@ def _carregar_shopee_live() -> Dict[str, Any]:
         if not isinstance(item, dict):
             continue
         nome = str(item.get("termo", "")).strip()
-        if not nome:
+        if not nome or filtrar_termo(nome) is None:
             continue
 
         produtos[nome] = {
@@ -160,11 +160,33 @@ def _carregar_shopee_legacy() -> Dict[str, Any]:
         return {}
 
 
+def _eh_item_marketplace(nome: str, dados: Dict[str, Any]) -> bool:
+    """Valida produto antes da grade, inclusive quando veio de cache legado.
+
+    Notícias, manchetes e resultados editoriais do Google não são produtos e
+    não podem ocupar a grade de marketplace. O filtro adulto é aplicado aqui
+    como segunda barreira para caches antigos.
+    """
+    fonte = str(dados.get("fonte", "")).lower()
+    origem = str(dados.get("origem_coleta", "")).lower()
+    categoria = str(dados.get("categoria", "")).lower()
+    tipo = str(dados.get("tipo", "")).lower()
+    marcadores_editoriais = ("google news", "google rss", "google_news", "google_rss", "news", "notícia", "noticia", "editorial", "manchete")
+    if any(marcador in valor for marcador in marcadores_editoriais for valor in (fonte, origem, categoria, tipo)):
+        return False
+    return filtrar_termo(nome) is not None
+
+
 def _adicionar_produtos(destino: Dict[str, Any], origem: Dict[str, Any]) -> None:
-    """Acrescenta entradas íntegras, preservando a prioridade da fonte anterior."""
+    """Acrescenta somente itens válidos de marketplace, preservando prioridade."""
     for nome, dados in origem.items():
         nome_limpo = str(nome).strip()
-        if nome_limpo and nome_limpo not in destino and isinstance(dados, dict):
+        if (
+            nome_limpo
+            and nome_limpo not in destino
+            and isinstance(dados, dict)
+            and _eh_item_marketplace(nome_limpo, dados)
+        ):
             destino[nome_limpo] = dados
 
 
@@ -255,8 +277,22 @@ def obter_produtos_dinamicos(forcar_atualizacao: bool = False) -> Dict[str, Any]
 
 
 def obter_produtos_marketplace_v49(forcar_atualizacao: bool = False) -> Dict[str, Any]:
-    """Alias legado usado pelas telas existentes do dashboard."""
-    return obter_produtos_dinamicos(forcar_atualizacao=forcar_atualizacao)
+    """Fonte única das telas: retorna apenas produtos permitidos."""
+    produtos = obter_produtos_dinamicos(forcar_atualizacao=forcar_atualizacao)
+    bloqueados = {"extensor peniano", "extensor penis", "pênis de borracha", "penis de borracha"}
+    resultado = {}
+    for nome, dados in produtos.items():
+        nome_normalizado = " ".join(str(nome).strip().lower().split())
+        if nome_normalizado in bloqueados or filtrar_termo(str(nome)) is None:
+            continue
+        origem = " ".join(
+            str(dados.get(chave, "")).lower()
+            for chave in ("fonte", "origem_coleta", "tipo", "categoria")
+        )
+        if any(marcador in origem for marcador in ("google news", "google rss", "google_news", "google_rss", "editorial", "manchete")):
+            continue
+        resultado[nome] = dados
+    return resultado
 
 
 # Compatibilidade para módulos que importam esta constante. Não dispara coleta

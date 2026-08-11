@@ -14,6 +14,8 @@ import feedparser
 from datetime import datetime, timedelta
 from typing import List, Dict, Optional, Any
 
+from modules.adult_content_filter import filtrar_lista_termos
+
 logger = logging.getLogger(__name__)
 
 # Configurações de Cache
@@ -26,9 +28,9 @@ CACHE_TTL_HORAS = 6
 # Atualizado em: 06/08/2026 — Buscas em Alta Shopee (Dados Reais)
 # ============================================================
 TERMOS_HOT_TRENDS = [
-    "Relógio Masculino", "Extensor Peniano", "Papel de Parede",
+    "Relógio Masculino", "Papel de Parede",
     "Lego", "Moto Elétrica Scooter", "Sapateira",
-    "Pênis de borracha", "Bolo Cenoura", "Mila Rose",
+    "Bolo Cenoura", "Mila Rose",
     "Bicicleta Ergométrica", "Bicicleta", "Nintendo Switch Desbloqueado",
     "Nintendo 3DS", "Decoração", "Caixa Cacau Show Branca",
     "Chopp", "Escova Progressiva Everk", "PS5",
@@ -72,6 +74,11 @@ def _salvar_cache(arquivo: str, dados: List[Dict]):
     except Exception as e:
         logger.error(f"Erro ao salvar cache {arquivo}: {e}")
 
+def _termos_marketplace_validos(termos: List[str]) -> List[str]:
+    """Mantém somente termos de produto e remove conteúdo adulto antes do cache."""
+    return filtrar_lista_termos([str(termo).strip() for termo in termos if str(termo).strip()])
+
+
 def obter_google_trends(forcar_atualizacao: bool = False) -> List[Dict]:
     """
     Obtém dados do Google Trends priorizando os termos do print do usuário.
@@ -85,8 +92,9 @@ def obter_google_trends(forcar_atualizacao: bool = False) -> List[Dict]:
     
     dados = []
     
-    # 1. Injetar Termos do Print (Prioridade 1)
-    for termo in TERMOS_HOT_TRENDS:
+    # 1. Injetar apenas termos de produtos do marketplace (Prioridade 1).
+    # O Google RSS/news não entra nesta coleção de produtos.
+    for termo in _termos_marketplace_validos(TERMOS_HOT_TRENDS):
         dados.append({
             "termo": termo,
             "interesse": random.randint(85, 100),
@@ -97,24 +105,8 @@ def obter_google_trends(forcar_atualizacao: bool = False) -> List[Dict]:
             "atualizado": datetime.now().strftime("%d/%m/%Y %H:%M"),
         })
 
-    # 2. Complementar com RSS do Google Trends (Brasil)
-    try:
-        url = "https://trends.google.com/trends/trendingsearches/daily/rss?geo=BR"
-        feed = feedparser.parse(url)
-        for entry in feed.entries[:10]:
-            titulo = entry.get("title", "")
-            if titulo and titulo not in [d['termo'] for d in dados]:
-                dados.append({
-                    "termo": titulo,
-                    "interesse": random.randint(60, 85),
-                    "interesse_atual": random.randint(60, 85),
-                    "variacao": f"+{random.randint(20, 100)}%",
-                    "categoria": "Geral",
-                    "fonte": "Google RSS",
-                    "atualizado": datetime.now().strftime("%d/%m/%Y %H:%M"),
-                })
-    except Exception as e:
-        logger.warning(f"Erro ao buscar RSS: {e}")
+    # Notícias/editoriais do Google Trends RSS são deliberadamente ignorados:
+    # manchetes não são itens de marketplace e não devem aparecer na grade.
 
     _salvar_cache(CACHE_GOOGLE_TRENDS, dados)
     return dados
@@ -146,7 +138,7 @@ def obter_shopee_trending(forcar_atualizacao: bool = False) -> List[Dict]:
     dados = []
     categorias = ["Casa", "Eletrônicos", "Moda", "Esportes", "Beleza", "Infantil"]
     
-    for termo in TERMOS_HOT_TRENDS:
+    for termo in _termos_marketplace_validos(TERMOS_HOT_TRENDS):
         vendas_num = random.randint(1, 50)
         vendas_str = f"{vendas_num}.{random.randint(0,9)}k" if vendas_num > 5 else f"{random.randint(500, 999)}+"
         
@@ -166,7 +158,7 @@ def obter_shopee_trending(forcar_atualizacao: bool = False) -> List[Dict]:
 def _enriquecer_termos_shopee(termos: List[str]) -> List[Dict]:
     dados = []
     categorias = ["Casa", "Eletrônicos", "Moda", "Esportes", "Beleza", "Infantil"]
-    for termo in termos:
+    for termo in _termos_marketplace_validos(termos):
         vendas_num = random.randint(1, 50)
         vendas_str = f"{vendas_num}.{random.randint(0,9)}k" if vendas_num > 5 else f"{random.randint(500, 999)}+"
         dados.append({

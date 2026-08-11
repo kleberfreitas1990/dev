@@ -33,6 +33,7 @@ from modules.grade_descoberta import (
 from modules.o_que_postar_hoje import render_o_que_postar_hoje
 # Importa para verificar data do cache e dados dinâmicos
 from modules.produtos_dinamicos import verificar_data_cache, obter_produtos_dinamicos
+from modules.adult_content_filter import eh_termo_adulto
 
 # Importa Tendências de Moda Feminina via SerpApi
 from modules.tendencias_moda_serpapi import render_tendencias_moda_dashboard
@@ -237,12 +238,32 @@ def render_grade_descoberta(key_suffix: str = "main"):
             quantidade=quantidade if fonte_filtro == "Todas as Fontes" else quantidade * 2,
         )
 
+    # Barreira final da interface: nunca renderiza termos adultos ou
+    # resultados editoriais/noticiosos do Google, mesmo que tenham vindo de
+    # um cache antigo ou de uma fonte que não passou pelo agregador.
+    marcadores_editoriais = (
+        "google news", "google rss", "google_news", "google_rss",
+        "news", "notícia", "noticia", "editorial", "manchete"
+    )
+    produtos_descobrir = [
+        item for item in produtos_descobrir
+        if isinstance(item, dict)
+        and not eh_termo_adulto(str(item.get("produto", "")))
+        and not any(
+            marcador in str(item.get(chave, "")).lower()
+            for marcador in marcadores_editoriais
+            for chave in ("fonte", "origem_coleta", "tipo", "categoria")
+        )
+    ]
+
     # Aplica filtro de fonte
     if fonte_filtro != "Todas as Fontes":
         produtos_descobrir = [
             p for p in produtos_descobrir
             if p.get("fonte", "") == fonte_filtro
         ][:quantidade]
+    else:
+        produtos_descobrir = produtos_descobrir[:quantidade]
 
     if not produtos_descobrir:
         st.info("💭 Nenhum produto encontrado para os filtros selecionados.")
