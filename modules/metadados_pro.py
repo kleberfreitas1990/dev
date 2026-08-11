@@ -45,16 +45,9 @@ LOCALIZACOES_REAIS = [
 ]
 
 
-def gerar_nome_arquivo_limpo(extensao: str = ".mp4") -> str:
-    """Gera um nome que simula o padrão de uma câmara real."""
-    agora = datetime.now()
-    padroes = [
-        lambda: f"IMG_{random.randint(1000, 9999)}.MP4",
-        lambda: f"VID_{agora.strftime('%Y%m%d_%H%M%S')}.mp4",
-        lambda: f"DSC_{random.randint(1000, 9999)}.MP4",
-        lambda: f"CIMG{random.randint(1000, 9999)}.mp4",
-    ]
-    return random.choice(padroes)()
+def gerar_nome_arquivo_limpo(extensao: str = ".MOV") -> str:
+    """Gera o nome obrigatório de câmera: IMG_XXXX.MOV."""
+    return f"IMG_{random.randint(0, 9999):04d}.MOV"
 
 
 def normalizar_fps(valor: float) -> float:
@@ -187,9 +180,9 @@ def obter_informacoes_video(caminho_video: str) -> dict:
 
 
 def normalizar_encoder_mp4(output_path: str) -> bool:
-    """Substitui a tag global automática do muxer sem recodificar o MP4."""
+    """Substitui a tag global automática do muxer sem recodificar MP4/MOV."""
     arquivo_saida = Path(output_path)
-    if arquivo_saida.suffix.lower() != ".mp4" or not arquivo_saida.is_file() or arquivo_saida.stat().st_size == 0:
+    if arquivo_saida.suffix.lower() not in {".mp4", ".mov"} or not arquivo_saida.is_file() or arquivo_saida.stat().st_size == 0:
         return False
 
     temporario = None
@@ -290,8 +283,12 @@ def construir_comando_ffmpeg(
             w = f"iw*{zoom}"
             filtros.append(f"scale={w}:{h},crop=iw/({zoom}):ih/({zoom})")
         
-        # Força redimensionamento exato para 1080x1920 para evitar desvios de pixels (ex: 1078x1920)
-        filtros.append("scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2")
+        # Força dimensões codificadas exatas e pixels quadrados, sem depender do
+        # SAR/DAR do arquivo de origem, que pode fazer leitores exibirem 1083/1084 px.
+        filtros.append(
+            "scale=1080:1920:force_original_aspect_ratio=decrease:flags=bicubic,"
+            "pad=1080:1920:(ow-iw)/2:(oh-ih)/2,setsar=1/1,setdar=9/16"
+        )
         
         if config.get("hflip", False):
             filtros.append("hflip")
@@ -386,6 +383,7 @@ def construir_comando_ffmpeg(
             "-x264-params", "info=0",
             
             "-movflags", "+faststart+use_metadata_tags",
+            "-f", "mov",
             "-y",
             output_path
         ])
@@ -546,7 +544,7 @@ def render_metadados_pro():
     if st.button("🚀 Processar e Limpar Metadados", type="primary", use_container_width=True):
         barra_status = st.progress(0, text="Iniciando processamento...")
         
-        with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as temp_out:
+        with tempfile.NamedTemporaryFile(suffix=".mov", delete=False) as temp_out:
             caminho_out = temp_out.name
         
         try:
@@ -574,7 +572,7 @@ def render_metadados_pro():
                     label=f"📥 Baixar Vídeo Pronto para Postar ({nome_final})",
                     data=dados_saida,
                     file_name=nome_final,
-                    mime="video/mp4",
+                    mime="video/quicktime",
                     use_container_width=True
                 )
                 st.success("🎉 Vídeo processado com sucesso! Assinatura digital alterada e metadados limpos.")
