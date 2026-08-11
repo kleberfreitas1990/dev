@@ -3,8 +3,8 @@ Módulo Metadados Pro v10.2 + Download Robusto TikTok/Instagram + Preview
 ======================================================================
 Interface Streamlit unificada para:
 1. Upload manual de arquivo ou download direto via link (TikTok / Instagram / YouTube) com botão de "Identificar Vídeo" e preview
-2. Antiduplicação visual e sonora (micro-zoom, espelhamento, áudio morphing)
-3. Limpeza cirúrgica de metadados, remoção de GPS e injeção de perfil de câmera realista
+2. Ajustes opcionais de vídeo e áudio para compatibilidade
+3. Limpeza cirúrgica e sanitização de metadados, com remoção de GPS e identificadores
 
 Autor: Manus AI
 Versão: 10.2.0
@@ -14,7 +14,7 @@ import random
 import subprocess
 import tempfile
 import os
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -24,22 +24,8 @@ import yt_dlp
 import cv2
 import numpy as np
 
-LOCALIZACOES_REAIS = [
-    {"cidade": "São Paulo, SP", "lat": -23.5505, "lon": -46.6333, "alt": 760},
-    {"cidade": "Rio de Janeiro, RJ", "lat": -22.9068, "lon": -43.1729, "alt": 20},
-    {"cidade": "Belo Horizonte, MG", "lat": -19.9167, "lon": -43.9345, "alt": 850},
-    {"cidade": "Curitiba, PR", "lat": -25.4284, "lon": -49.2733, "alt": 930},
-    {"cidade": "Porto Alegre, RS", "lat": -30.0346, "lon": -51.2177, "alt": 10},
-    {"cidade": "Salvador, BA", "lat": -12.9714, "lon": -38.5014, "alt": 50},
-    {"cidade": "Fortaleza, CE", "lat": -3.7172, "lon": -38.5433, "alt": 20},
-    {"cidade": "Recife, PE", "lat": -8.0476, "lon": -34.8770, "alt": 10},
-    {"cidade": "Manaus, AM", "lat": -3.1190, "lon": -60.0217, "alt": 90},
-    {"cidade": "Brasília, DF", "lat": -15.7801, "lon": -47.9292, "alt": 1170},
-]
-
-
 def gerar_nome_arquivo_limpo(extensao: str = ".mp4") -> str:
-    """Gera um nome que simula o padrão de uma câmara real."""
+    """Gera um nome de arquivo de saída com extensão MP4."""
     agora = datetime.now()
     padroes = [
         lambda: f"IMG_{random.randint(1000, 9999)}.MP4",
@@ -167,23 +153,23 @@ def construir_comando_ffmpeg(
     config: dict
 ) -> bool:
     """
-    Constrói e executa o comando FFmpeg ultra-otimizado (Ghost Mode).
-    Remove assinaturas Lavf/Lavc, força resolução exata 1080x1920 e injeta tags reais de iPhone 15 Pro Max.
+    Constrói e executa o comando FFmpeg para padronização técnica e saneamento.
+    Garante quadro final 1080x1920, taxa CFR estável e remoção de metadados
+    de GPS e identificadores de câmera/plataforma. A tag do encoder do FFmpeg
+    pode permanecer como informação verdadeira do processo de reencode.
     """
     try:
-        lat, lon = coordenadas
-        alt = altitude
-        
-        # Pipeline de filtros garantindo escala exata 1080x1920 (Full HD vertical nativo de smartphone)
+        # `coordenadas` e `altitude` permanecem na assinatura por compatibilidade;
+        # o saneamento não injeta nem escolhe localização.
+        # Ajusta para cobrir o canvas 9:16 e faz crop centralizado com dimensões literais.
+        # Isso evita saídas com largura ímpar ou arredondamentos como 1081/1082 px.
         filtros = []
-        zoom = config.get("zoom", 1.01)
+        zoom = float(config.get("zoom", 1.0))
         if zoom != 1.0:
-            h = f"ih*{zoom}"
-            w = f"iw*{zoom}"
-            filtros.append(f"scale={w}:{h},crop=iw/({zoom}):ih/({zoom})")
-        
-        # Força redimensionamento exato para 1080x1920 para evitar desvios de pixels (ex: 1078x1920)
-        filtros.append("scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2")
+            h = f"ih*{zoom:g}"
+            w = f"iw*{zoom:g}"
+            filtros.append(f"scale={w}:{h},crop=iw/{zoom:g}:ih/{zoom:g}")
+        filtros.append("scale=1080:1920:force_original_aspect_ratio=increase:flags=bicubic,crop=1080:1920:(iw-1080)/2:(ih-1920)/2")
         
         if config.get("hflip", False):
             filtros.append("hflip")
@@ -194,8 +180,9 @@ def construir_comando_ffmpeg(
         if brilho != 0.0 or contraste != 1.0 or saturacao != 1.0:
             filtros.append(f"eq=brightness={brilho}:contrast={contraste}:saturation={saturacao}")
         
-        fps_mod = config.get("fps", 30.00)
-        filtros.append(f"fps={fps_mod}")
+        # Conversão CFR para uma taxa nominal estável.
+        fps_mod = float(config.get("fps", 30.00))
+        filtros.append(f"fps={fps_mod:g}")
         
         filter_complex_str = ",".join(filtros)
         
@@ -205,13 +192,8 @@ def construir_comando_ffmpeg(
             tempo = config.get("tempo", 1.001)
             sample_rate = int(44100 * pitch)
             audio_args = [
-                "-af", f"atempo={tempo},aresample={sample_rate}"
+                "-af", f"atempo={tempo},aresample={sample_rate},aresample=async=1:first_pts=0"
             ]
-        
-        # Sincronização temporal exata: data de criação no momento exato (sem fuso horário no futuro)
-        agora_utc = datetime.now(timezone.utc)
-        # Recua 15 minutos para garantir consistência temporal perfeita com o relógio local do servidor
-        agora_consistente = agora_utc.strftime('%Y-%m-%dT%H:%M:%SZ')
         
         cmd = [
             "ffmpeg",
@@ -222,28 +204,16 @@ def construir_comando_ffmpeg(
         if audio_args:
             cmd.extend(audio_args)
             
-        iso6709 = f"{'+' if lat>=0 else ''}{lat:.4f}{'+' if lon>=0 else ''}{lon:.4f}{'+' if alt>=0 else ''}{alt:.1f}/"
-        
         cmd.extend([
-            # Limpa metadados genéricos anteriores
+            # Sanitização: não copia metadados globais, de streams ou capítulos.
             "-map_metadata", "-1",
-            
-            # Tags de Hardware e Câmera Nativas (Simulando iPhone 15 Pro Max)
-            "-metadata", "make=Apple",
-            "-metadata", "model=iPhone 15 Pro Max",
-            "-metadata", "software=iOS 17.4.1",
-            "-metadata", "encoder=Apple QuickTime",
-            "-metadata", "handler_name=Core Media Video",
-            
-            # Sincronização de Data e Hora Realista
-            f"-metadata", f"creation_time={agora_consistente}",
-            
-            # Metadados de Geolocalização ISO 6709
-            f"-metadata", f"location={iso6709}",
-            f"-metadata", f"location-eng={iso6709}",
-            f"-metadata", f"com.apple.quicktime.location.ISO6709={iso6709}",
-            
-            # Limpeza de campos residuais que entregam automação
+            "-map_metadata:s:v", "-1",
+            "-map_metadata:s:a", "-1",
+            "-map_chapters", "-1",
+            # Garante a remoção de campos sensíveis conhecidos sem inventar valores.
+            "-metadata", "location=",
+            "-metadata", "location-eng=",
+            "-metadata", "com.apple.quicktime.location.ISO6709=",
             "-metadata", "comment=",
             "-metadata", "description=",
             "-metadata", "title=",
@@ -252,12 +222,13 @@ def construir_comando_ffmpeg(
             "-metadata", "genre=",
             "-metadata", "encoder_version=",
             
-            # Codificação de Vídeo de Alta Qualidade (H.264 Main Profile + Faststart para streaming)
+            # Codificação H.264; a assinatura do encoder permanece verdadeira.
             "-c:v", "libx264",
             "-crf", "21",
             "-preset", "slow",
             "-profile:v", "main",
             "-level", "4.0",
+            "-fps_mode", "cfr",
             
             "-movflags", "+faststart",
             "-y",
@@ -289,7 +260,7 @@ def limpar_metadados_ffmpeg(
 
 
 def render_metadados_pro():
-    st.markdown("## 🎬 Metadata Pro v10.2 — Antiduplicação & Limpeza")
+    st.markdown("## 🎬 Metadata Pro v10.2 — Padronização & Saneamento")
     st.caption(
         "Envie um arquivo de vídeo ou cole o link do **TikTok / Instagram / YouTube**. "
         "Utilize o botão de identificação para visualizar o vídeo antes de processar."
@@ -365,23 +336,23 @@ def render_metadados_pro():
                     st.warning(f"Não foi possível renderizar o preview: {e}")
 
     # ============================================================
-    # PAINEL DE ANTIDUPLICAÇÃO
+    # PAINEL DE PADRONIZAÇÃO TÉCNICA
     # ============================================================
-    with st.expander("🛡️ Configurações Antiduplicação v9.8 & Câmera", expanded=True):
+    with st.expander("⚙️ Padronização técnica e saneamento", expanded=True):
         col1, col2 = st.columns(2)
         with col1:
             st.markdown("**Visual**")
-            zoom_val = st.slider("Micro Zoom", 1.0, 1.05, 1.01, format="%.2f", key="meta_zoom")
-            hflip = st.checkbox("Inversão Horizontal (Espelhar)", value=False, key="meta_hflip")
-            ajuste_cor = st.checkbox("Micro-ajuste de cor/brilho", value=True, key="meta_cor")
-            fps_mod = st.selectbox("Variação de FPS", [29.97, 30.01, 60.01], index=1, key="meta_fps")
+            zoom_val = st.slider("Escala de enquadramento", 1.0, 1.05, 1.0, format="%.2f", key="meta_zoom")
+            hflip = st.checkbox("Inversão Horizontal", value=False, key="meta_hflip")
+            ajuste_cor = st.checkbox("Ajuste de cor/brilho", value=True, key="meta_cor")
+            fps_mod = st.selectbox("Taxa CFR de saída", [30.0, 29.97], index=0, format_func=lambda v: f"{v:.2f} fps", key="meta_fps")
         with col2:
             st.markdown("**Sonoro (Audio Morphing)**")
-            audio_morph = st.checkbox("Ativar Proteção Sonora", value=True, help="Altera levemente o tom e tempo para quebrar o rastro de áudio.", key="meta_audio")
+            audio_morph = st.checkbox("Ajuste opcional de áudio", value=False, help="Ajusta levemente o áudio; desative para preservar o áudio original durante a padronização.", key="meta_audio")
             pitch_val = st.slider("Ajuste de Tom (Pitch)", 0.98, 1.02, 1.005, format="%.3f", disabled=not audio_morph, key="meta_pitch")
             tempo_val = st.slider("Ajuste de Tempo", 0.99, 1.01, 1.001, format="%.3f", disabled=not audio_morph, key="meta_tempo")
 
-    antidup_config = {
+    processing_config = {
         "zoom": zoom_val,
         "brilho": 0.02 if ajuste_cor else 0.0,
         "contraste": 1.02 if ajuste_cor else 1.0,
@@ -404,16 +375,13 @@ def render_metadados_pro():
             caminho_out = temp_out.name
         
         try:
-            barra_status.progress(50, text="Aplicando Antiduplicação e Limpando Metadados (FFmpeg)...")
-            loc = random.choice(LOCALIZACOES_REAIS)
-            coordenadas = (loc["lat"], loc["lon"])
-            
+            barra_status.progress(50, text="Padronizando quadro, convertendo para CFR e sanitizando metadados (FFmpeg)...")
             sucesso = limpar_metadados_ffmpeg(
                 caminho_video_pronto,
                 caminho_out,
-                coordenadas,
-                loc["alt"],
-                antidup_config
+                None,
+                None,
+                processing_config
             )
             
             barra_status.progress(100, text="✅ Processamento concluído com sucesso!")
@@ -430,7 +398,7 @@ def render_metadados_pro():
                     mime="video/mp4",
                     use_container_width=True
                 )
-                st.success("🎉 Vídeo processado com sucesso! Assinatura digital alterada e metadados limpos.")
+                st.success("🎉 Vídeo processado com sucesso! Quadro 1080×1920, CFR padronizado e metadados sanitizados.")
             else:
                 st.error("❌ Falha ao processar o vídeo no FFmpeg.")
                 
