@@ -11,9 +11,17 @@ import json
 import logging
 import os
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
+
+# Importa filtro adulto
+try:
+    from modules.adult_content_filter import filtrar_termo, filtrar_lista_termos
+except ImportError:
+    logger.warning("Filtro adulto não encontrado, usando fallback pass-through")
+    def filtrar_termo(t): return t
+    def filtrar_lista_termos(l): return l
 
 # Mantidas vazias somente para compatibilidade com importações legadas. A grade
 # não pode usar listas estáticas como se fossem resultados de fontes oficiais.
@@ -24,11 +32,13 @@ ARQUIVO_PRODUTOS_CACHE = "produtos_cache_v48.json"
 ARQUIVO_SHOPEE_CACHE = "shopee_trends.json"
 ARQUIVO_AMAZON_CACHE = "amazon_trends.json"  # Compatibilidade com integrações legadas.
 ARQUIVO_SHOPEE_LIVE_CACHE = "shopee_live_cache.json"
+ARQUIVO_SHOPEE_DAILY_CACHE = "shopee_daily_cache.json"
 DIRETORIO_RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CAMINHO_PRODUTOS_CACHE = os.path.join(DIRETORIO_RAIZ, ARQUIVO_PRODUTOS_CACHE)
 CAMINHO_SHOPEE_CACHE = os.path.join(DIRETORIO_RAIZ, ARQUIVO_SHOPEE_CACHE)
 CAMINHO_AMAZON_CACHE = os.path.join(DIRETORIO_RAIZ, ARQUIVO_AMAZON_CACHE)
 CAMINHO_SHOPEE_LIVE_CACHE = os.path.join(DIRETORIO_RAIZ, ARQUIVO_SHOPEE_LIVE_CACHE)
+CAMINHO_SHOPEE_DAILY_CACHE = os.path.join(DIRETORIO_RAIZ, ARQUIVO_SHOPEE_DAILY_CACHE)
 
 
 def _ler_cache_produtos() -> Dict[str, Any]:
@@ -91,6 +101,52 @@ def _carregar_shopee_live() -> Dict[str, Any]:
     return produtos
 
 
+def _carregar_shopee_daily() -> Dict[str, Any]:
+    """Carrega o cache da rotina diária da Shopee com filtro adulto."""
+    if not os.path.exists(CAMINHO_SHOPEE_DAILY_CACHE):
+        return {}
+
+    try:
+        with open(CAMINHO_SHOPEE_DAILY_CACHE, "r", encoding="utf-8") as arquivo:
+            payload = json.load(arquivo)
+    except (OSError, json.JSONDecodeError, TypeError) as erro:
+        logger.warning("Não foi possível carregar o cache Shopee Daily: %s", erro)
+        return {}
+
+    itens = payload.get("termos", []) if isinstance(payload, dict) else []
+    if not isinstance(itens, list):
+        return {}
+
+    # Filtrar conteúdo adulto na origem
+    itens_filtrados = filtrar_lista_termos(itens)
+
+    produtos: Dict[str, Any] = {}
+    for posicao, nome in enumerate(itens_filtrados):
+        nome_limpo = str(nome).strip()
+        if not nome_limpo:
+            continue
+
+        produtos[nome_limpo] = {
+            "pins": 0,
+            "pins_historico": 0,
+            "crescimento": max(50, 200 - (posicao * 5)),
+            "views_tiktok": 0,
+            "resultados_ml": 0,
+            "buscas_mes": 0,
+            "buscas_historico": 0,
+            "categoria": "Buscas em Alta",
+            "evento": "Tendência Diária Shopee",
+            "variacao": max(30, 100 - (posicao * 3)),
+            "tendencia": "Em destaque",
+            "score": max(2, 10 - (posicao // 5)),
+            "fonte": "Shopee Daily",
+            "origem_coleta": "rotina_diaria",
+            "atualizado": payload.get("timestamp"),
+        }
+
+    return produtos
+
+
 def _carregar_shopee_legacy() -> Dict[str, Any]:
     """Carrega o cache legado da Shopee sem afetar a proveniência das outras fontes."""
     if not os.path.exists(CAMINHO_SHOPEE_CACHE):
@@ -122,6 +178,13 @@ def _forcar_atualizacao_google_shopee() -> Any:
 def _atualizar_fontes_automaticas() -> None:
     """Solicita renovação aos coletores, que validam a origem antes de gravar cache."""
     try:
+        from modules.shopee_daily_trends import executar_coleta_diaria
+        executar_coleta_diaria(forcar_atualizacao=True)
+        logger.info("Rotina diária Shopee atualizada.")
+    except Exception as erro:
+        logger.warning("Falha ao atualizar rotina diária Shopee: %s", erro)
+
+    try:
         _forcar_atualizacao_google_shopee()
     except Exception as erro:
         logger.warning("Falha ao atualizar fontes Google/Shopee: %s", erro)
@@ -149,7 +212,11 @@ def obter_produtos_dinamicos(forcar_atualizacao: bool = False) -> Dict[str, Any]
     produtos: Dict[str, Any] = {}
 
     # A Shopee mantém sua prioridade operacional já existente.
+    # Prioridade 1: Rotina Diária Filtrada
+    _adicionar_produtos(produtos, _carregar_shopee_daily())
+    # Prioridade 2: Live Cache
     _adicionar_produtos(produtos, _carregar_shopee_live())
+    # Prioridade 3: Legado
     _adicionar_produtos(produtos, _carregar_shopee_legacy())
 
     # Mercado Livre: somente página oficial ou cache da mesma página já validado.

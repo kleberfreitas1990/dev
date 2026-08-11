@@ -43,7 +43,6 @@ USER_AGENTS = [
 # Atualizado em: 06/08/2026 — Buscas em Alta Shopee (Dados Reais do Usuário)
 # ============================================================
 TERMOS_REAIS_SHOPEE = [
-    "Consolo",
     "Moto Elétrica Scooter",
     "Espelho",
     "Fantasia Homem Aranha",
@@ -61,7 +60,6 @@ TERMOS_REAIS_SHOPEE = [
     "PS5",
     "100 Pacotes de Figurinhas da Copa",
     "Camisa Tailandesa",
-    "Boneco Sexual",
     "Crocs Relâmpago Mcqueen",
     "Celular Redmi Note 14 5G 256GB",
     "Tablet Lenovo M10",

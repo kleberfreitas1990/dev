@@ -147,17 +147,26 @@ def render_sidebar_categorias(key_suffix: str = "") -> str:
 
     try:
         from modules.google_shopee_trends import obter_status_cache
+        from modules.shopee_daily_trends import obter_resumo_diario
+        
         status_geral = obter_status_cache()
         s_google = status_geral.get("google_trends", {})
         s_shopee = status_geral.get("shopee", {})
+        
+        hoje = datetime.now().strftime("%Y-%m-%d")
+        s_daily = obter_resumo_diario(hoje)
+        
         icone_g = "✅" if s_google.get("valido") else "⚠️"
         icone_s = "✅" if s_shopee.get("valido") else "⚠️"
+        icone_d = "✅" if s_daily else "⚠️"
+        
         st.sidebar.markdown(
             f"{icone_g} **Google Trends** — {s_google.get('total', 0)} itens  \n"
-            f"{icone_s} **Shopee** — {s_shopee.get('total', 0)} itens"
+            f"{icone_s} **Shopee Live** — {s_shopee.get('total', 0)} itens  \n"
+            f"{icone_d} **Shopee Daily** — {s_daily.get('total_termos', 0) if s_daily else 0} itens (Filtrados: {s_daily.get('termos_filtrados', 0) if s_daily else 0})"
         )
     except Exception:
-        st.sidebar.markdown("⚠️ **Google/Shopee** — indisponível")
+        st.sidebar.markdown("⚠️ **Fontes Shopee/Google** — indisponível")
 
     st.sidebar.markdown("---")
 
@@ -207,7 +216,7 @@ def render_grade_descoberta(key_suffix: str = "main"):
     with col_ctrl2:
         fonte_filtro = st.selectbox(
             "📶 Filtrar por Fonte",
-            ["Todas as Fontes", "Shopee Live", "Amazon Bestsellers", "Mercado Livre Trends", "Shopee Real-Time Scraping"],
+            ["Todas as Fontes", "Shopee Daily", "Shopee Live", "Amazon Bestsellers", "Mercado Livre Trends", "Shopee Real-Time Scraping"],
             key=f"grade_fonte_filtro_{key_suffix}",
         )
     with col_ctrl3:

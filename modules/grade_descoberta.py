@@ -246,6 +246,7 @@ def descobrir_produtos_grade(categoria: str = None, quantidade: int = 10) -> Lis
     
     # Prioriza a fonte renovada automaticamente, sem perder diversidade.
     fontes_prioritarias = [
+        ("Shopee Daily", 15),
         ("Shopee Live", 10),
         ("Amazon Bestsellers", 6),
         ("Shopee Real-Time Scraping", 4),

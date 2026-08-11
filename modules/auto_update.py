@@ -117,10 +117,18 @@ def executar_atualizacao_google_shopee(forcar: bool = False, intervalo_horas: in
         status_gs = obter_status_cache()
         status_ml = obter_status_cache_ml()
         dados_amazon = obter_amazon_trends_cache()
+        
+        from modules.shopee_daily_trends import obter_resumo_diario
+        hoje = datetime.now().strftime("%Y-%m-%d")
+        status_daily = obter_resumo_diario(hoje)
 
         resultado = {
             "google_trends": {"total": status_gs.get("google_trends", {}).get("total", 0)},
             "shopee": {"total": status_gs.get("shopee", {}).get("total", 0)},
+            "shopee_daily": {
+                "total": status_daily.get("total_termos", 0) if status_daily else 0,
+                "filtrados": status_daily.get("termos_filtrados", 0) if status_daily else 0
+            },
             "mercadolivre": status_ml.get("total", 0),
             "amazon": len(dados_amazon),
             "produtos": len(produtos),
