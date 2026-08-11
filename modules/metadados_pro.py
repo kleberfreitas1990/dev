@@ -15,7 +15,8 @@ import random
 import shutil
 import subprocess
 import tempfile
-from datetime import datetime, timezone
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -26,6 +27,8 @@ import cv2
 import numpy as np
 
 ENCODER_METADATA = "Apple H.264 Camcorder"
+FPS_PERMITIDOS = (30.0, 29.97)
+LOCAL_TIMEZONE = ZoneInfo("America/Sao_Paulo")
 
 
 LOCALIZACOES_REAIS = [
@@ -52,6 +55,26 @@ def gerar_nome_arquivo_limpo(extensao: str = ".mp4") -> str:
         lambda: f"CIMG{random.randint(1000, 9999)}.mp4",
     ]
     return random.choice(padroes)()
+
+
+def normalizar_fps(valor: float) -> float:
+    """Restringe a saída aos dois padrões aceitos: 30.00 ou 29.97 fps."""
+    try:
+        fps = float(valor)
+    except (TypeError, ValueError):
+        return FPS_PERMITIDOS[0]
+
+    if abs(fps - 29.97) < 0.001:
+        return 29.97
+    if abs(fps - 30.0) < 0.001:
+        return 30.0
+    return FPS_PERMITIDOS[0]
+
+
+def formatar_localizacao_iso6709(coordenadas: tuple, altitude: float) -> str:
+    """Gera a forma ISO 6709 usada pela chave QuickTime de localização."""
+    lat, lon = coordenadas
+    return f"{float(lat):+.5f}{float(lon):+010.5f}{float(altitude):+.1f}/"
 
 
 def validar_url_video(url: str) -> bool:
@@ -201,6 +224,47 @@ def normalizar_encoder_mp4(output_path: str) -> bool:
                 pass
 
 
+def normalizar_location_information_quicktime(
+    output_path: str,
+    coordenadas: tuple,
+    altitude: float,
+    nome_localizacao: str,
+) -> bool:
+    """Escreve o campo QuickTime legado que o ExifTool exibe como LocationInformation."""
+    exiftool = shutil.which("exiftool")
+    if not exiftool:
+        print("ExifTool não encontrado; não foi possível gravar LocationInformation.")
+        return False
+
+    lat, lon = coordenadas
+    iso6709 = formatar_localizacao_iso6709((lat, lon), altitude)
+    location_value = (
+        f"{nome_localizacao} Role=shooting "
+        f"Lat={float(lat):+.5f} Lon={float(lon):+.5f} "
+        f"Alt={float(altitude):.2f} Body=earth Notes="
+    )
+    try:
+        resultado = subprocess.run(
+            [
+                exiftool,
+                "-overwrite_original",
+                f"-LocationInformation={location_value}",
+                f"-Keys:GPSCoordinates={iso6709}",
+                f"-Keys:LocationName={nome_localizacao}",
+                "-Keys:LocationBody=earth",
+                "-Keys:LocationRole#=0",
+                output_path,
+            ],
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+        return resultado.returncode == 0 and os.path.exists(output_path) and os.path.getsize(output_path) > 0
+    except (OSError, subprocess.SubprocessError) as exc:
+        print(f"Falha ao gravar LocationInformation no QuickTime: {exc}")
+        return False
+
+
 def construir_comando_ffmpeg(
     input_path: str,
     output_path: str,
@@ -238,8 +302,9 @@ def construir_comando_ffmpeg(
         if brilho != 0.0 or contraste != 1.0 or saturacao != 1.0:
             filtros.append(f"eq=brightness={brilho}:contrast={contraste}:saturation={saturacao}")
         
-        fps_mod = config.get("fps", 30.00)
-        filtros.append(f"fps={fps_mod}")
+        fps_mod = normalizar_fps(config.get("fps", 30.0))
+        fps_filter = "30000/1001" if fps_mod == 29.97 else "30"
+        filtros.append(f"fps={fps_filter}")
         
         filter_complex_str = ",".join(filtros)
         
@@ -252,10 +317,11 @@ def construir_comando_ffmpeg(
                 "-af", f"atempo={tempo},aresample={sample_rate}"
             ]
         
-        # Sincronização temporal exata: data de criação no momento exato (sem fuso horário no futuro)
-        agora_utc = datetime.now(timezone.utc)
-        # Recua 15 minutos para garantir consistência temporal perfeita com o relógio local do servidor
-        agora_consistente = agora_utc.strftime('%Y-%m-%dT%H:%M:%SZ')
+        # O contêiner armazena creation_time em UTC, mas o valor local explícito
+        # mantém o horário correto de São Paulo/Brasília para leitores Apple.
+        agora_local = datetime.now(LOCAL_TIMEZONE)
+        agora_consistente = agora_local.isoformat(timespec="seconds")
+        creationdate_local = agora_consistente
         
         cmd = [
             "ffmpeg",
@@ -266,7 +332,8 @@ def construir_comando_ffmpeg(
         if audio_args:
             cmd.extend(audio_args)
             
-        iso6709 = f"{'+' if lat>=0 else ''}{lat:.4f}{'+' if lon>=0 else ''}{lon:.4f}{'+' if alt>=0 else ''}{alt:.1f}/"
+        iso6709 = formatar_localizacao_iso6709((lat, lon), alt)
+        nome_localizacao = str(config.get("location_name", "Brasil")).strip() or "Brasil"
         
         cmd.extend([
             # Limpa metadados globais, de streams e capítulos anteriores.
@@ -285,13 +352,17 @@ def construir_comando_ffmpeg(
             "-metadata", "software=iOS 17.4.1",
             "-metadata", "handler_name=Core Media Video",
             
-            # Sincronização de Data e Hora Realista
-            f"-metadata", f"creation_time={agora_consistente}",
+            # Horário do instante de gravação: o MOV normaliza creation_time
+            # para UTC; creationdate preserva explicitamente o offset local -03:00.
+            "-metadata", f"creation_time={agora_consistente}",
+            "-metadata", f"com.apple.quicktime.creationdate={creationdate_local}",
             
-            # Metadados de Geolocalização ISO 6709
-            f"-metadata", f"location={iso6709}",
-            f"-metadata", f"location-eng={iso6709}",
-            f"-metadata", f"com.apple.quicktime.location.ISO6709={iso6709}",
+            # Localização Apple/QuickTime em ISO 6709. A flag use_metadata_tags
+            # cria a chave mdta com.apple.quicktime.location.ISO6709.
+            "-metadata", f"location={iso6709}",
+            "-metadata", f"location-eng={iso6709}",
+            "-metadata", f"com.apple.quicktime.location.ISO6709={iso6709}",
+            "-metadata", f"com.apple.quicktime.location.name={nome_localizacao}",
             
             # Limpeza de campos residuais que entregam automação
             "-metadata", "comment=",
@@ -314,7 +385,7 @@ def construir_comando_ffmpeg(
             # Evita que o x264 injete a string Lavc no SEI do bitstream H.264.
             "-x264-params", "info=0",
             
-            "-movflags", "+faststart",
+            "-movflags", "+faststart+use_metadata_tags",
             "-y",
             output_path
         ])
@@ -331,7 +402,14 @@ def construir_comando_ffmpeg(
             and os.path.exists(output_path)
             and os.path.getsize(output_path) > 0
         )
-        return ffmpeg_sucesso and normalizar_encoder_mp4(output_path)
+        if not ffmpeg_sucesso or not normalizar_encoder_mp4(output_path):
+            return False
+        return normalizar_location_information_quicktime(
+            output_path,
+            (lat, lon),
+            alt,
+            nome_localizacao,
+        )
 
     except Exception as e:
         print(f"Exception em construir_comando_ffmpeg: {e}")
@@ -435,7 +513,13 @@ def render_metadados_pro():
             zoom_val = st.slider("Micro Zoom", 1.0, 1.05, 1.01, format="%.2f", key="meta_zoom")
             hflip = st.checkbox("Inversão Horizontal (Espelhar)", value=False, key="meta_hflip")
             ajuste_cor = st.checkbox("Micro-ajuste de cor/brilho", value=True, key="meta_cor")
-            fps_mod = st.selectbox("Variação de FPS", [29.97, 30.01, 60.01], index=1, key="meta_fps")
+            fps_mod = st.selectbox(
+                "Taxa de quadros da saída",
+                [30.0, 29.97],
+                index=0,
+                format_func=lambda valor: f"{valor:.2f} fps",
+                key="meta_fps",
+            )
         with col2:
             st.markdown("**Sonoro (Audio Morphing)**")
             audio_morph = st.checkbox("Ativar Proteção Sonora", value=True, help="Altera levemente o tom e tempo para quebrar o rastro de áudio.", key="meta_audio")
@@ -452,6 +536,7 @@ def render_metadados_pro():
         "audio_morph": audio_morph,
         "pitch": pitch_val,
         "tempo": tempo_val,
+        "location_name": "",
     }
 
     if not caminho_video_pronto or not os.path.exists(caminho_video_pronto):
@@ -468,6 +553,7 @@ def render_metadados_pro():
             barra_status.progress(50, text="Aplicando Antiduplicação e Limpando Metadados (FFmpeg)...")
             loc = random.choice(LOCALIZACOES_REAIS)
             coordenadas = (loc["lat"], loc["lon"])
+            antidup_config["location_name"] = loc["cidade"]
             
             sucesso = limpar_metadados_ffmpeg(
                 caminho_video_pronto,
