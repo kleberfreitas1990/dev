@@ -27,6 +27,7 @@ import cv2
 import numpy as np
 
 ENCODER_METADATA = "Apple H.264 Camcorder"
+QUICKTIME_VENDOR_ID = b"appl"
 FPS_PERMITIDOS = (30.0, 29.97)
 LOCAL_TIMEZONE = ZoneInfo("America/Sao_Paulo")
 
@@ -258,6 +259,37 @@ def normalizar_location_information_quicktime(
         return False
 
 
+def normalizar_vendor_id_quicktime(output_path: str) -> bool:
+    """Troca apenas o VendorID automático FFMP pelo FourCC Apple `appl`."""
+    arquivo_saida = Path(output_path)
+    if not arquivo_saida.is_file() or arquivo_saida.stat().st_size == 0:
+        return False
+
+    temporario = None
+    try:
+        dados = arquivo_saida.read_bytes()
+        ocorrencias_ffmp = dados.count(b"FFMP")
+        if ocorrencias_ffmp == 0:
+            return b"appl" in dados
+        if ocorrencias_ffmp != 1:
+            print(f"VendorID FFMP ambíguo: {ocorrencias_ffmp} ocorrências encontradas.")
+            return False
+
+        dados_corrigidos = dados.replace(b"FFMP", QUICKTIME_VENDOR_ID, 1)
+        temporario = arquivo_saida.with_name(f".{arquivo_saida.name}.vendor.tmp")
+        temporario.write_bytes(dados_corrigidos)
+        os.replace(temporario, arquivo_saida)
+        return True
+    except (OSError, ValueError) as exc:
+        print(f"Falha ao normalizar VendorID QuickTime: {exc}")
+        if temporario is not None:
+            try:
+                temporario.unlink(missing_ok=True)
+            except OSError:
+                pass
+        return False
+
+
 def construir_comando_ffmpeg(
     input_path: str,
     output_path: str,
@@ -402,12 +434,14 @@ def construir_comando_ffmpeg(
         )
         if not ffmpeg_sucesso or not normalizar_encoder_mp4(output_path):
             return False
-        return normalizar_location_information_quicktime(
+        if not normalizar_location_information_quicktime(
             output_path,
             (lat, lon),
             alt,
             nome_localizacao,
-        )
+        ):
+            return False
+        return normalizar_vendor_id_quicktime(output_path)
 
     except Exception as e:
         print(f"Exception em construir_comando_ffmpeg: {e}")
