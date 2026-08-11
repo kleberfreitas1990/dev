@@ -14,7 +14,7 @@ import logging
 import time
 import requests
 import random
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List, Dict, Any, Optional
 
 logger = logging.getLogger(__name__)
@@ -465,7 +465,16 @@ def render_tendencias_moda_dashboard():
     st.markdown("---")
 
     # Tabs para diferentes visões
-    tab_atual, tab_previsao = st.tabs(["📊 Interesse Atual (2025 vs 2026)", "🔮 Previsão Próximo Mês (Agosto)"])
+    hoje = datetime.now()
+    inicio_proximo_mes = hoje.replace(day=1) + timedelta(days=32)
+    nomes_meses = ["", "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
+    nome_mes_atual = nomes_meses[hoje.month]
+    nome_mes_proximo = nomes_meses[inicio_proximo_mes.month]
+    ano_mes_proximo = inicio_proximo_mes.year
+    tab_atual, tab_previsao = st.tabs([
+        "📊 Interesse Atual (2025 vs 2026)",
+        f"🔮 Previsão Próximo Mês ({nome_mes_proximo})",
+    ])
 
     with tab_atual:
         col_graf, col_dados = st.columns([2, 1])
@@ -488,20 +497,20 @@ def render_tendencias_moda_dashboard():
                 st.markdown(f"{icon} **{row['termo']}** — {row['variacao']}")
 
     with tab_previsao:
-        st.markdown("### 🔮 Projeção de Crescimento: Agosto 2026")
-        st.caption("Baseado em dados históricos do Pinterest Trends (Brasil, 25-49 anos) e tendência atual do Google.")
+        st.markdown(f"### 🔮 Projeção de Crescimento: {nome_mes_proximo} {ano_mes_proximo}")
+        st.caption(f"Baseado em dados históricos do Pinterest Trends (Brasil, 25-49 anos) e sinais atuais para {nome_mes_proximo.lower()}.")
         
         col_prev_graf, col_prev_info = st.columns([2, 1])
         
         with col_prev_graf:
             # Gráfico de Projeção
             prev_data = df[["termo", "interesse_2026", "previsao_proximo_mes"]].copy()
-            prev_data.columns = ["Termo", "Atual (Julho)", "Projeção (Agosto)"]
+            prev_data.columns = ["Termo", f"Atual ({nome_mes_atual})", f"Projeção ({nome_mes_proximo})"]
             prev_data = prev_data.set_index("Termo")
             st.line_chart(prev_data, use_container_width=True)
             
         with col_prev_info:
-            st.info("💡 **Insight Preditivo**\nA projeção considera a sazonalidade real do Pinterest Brasil onde termos como *Blazer* e *Boho Chic* ganham força na transição para agosto.")
+            st.info(f"💡 **Insight Preditivo**\nA projeção considera a sazonalidade real do Pinterest Brasil e a transição de {nome_mes_atual.lower()} para {nome_mes_proximo.lower()}.")
             
             for _, row in df.iterrows():
                 cresc = round(((row['previsao_proximo_mes'] - row['interesse_2026']) / max(row['interesse_2026'], 1)) * 100, 1)

@@ -1,128 +1,195 @@
-import os
+"""Tendências públicas do TikTok Brasil para conteúdo e calendário.
+
+O TikTok Creative Center exige navegação interativa/login para alguns rankings.
+Por isso, este módulo usa sinais públicos recentes do TikTok Discover e do
+Creative Center, sem apresentar índices inventados como métricas oficiais.
+"""
+
+from __future__ import annotations
+
 import json
 import logging
-import time
+import os
+from datetime import datetime
+from typing import Any, Dict, List
+
 import pandas as pd
 import streamlit as st
-from datetime import datetime
-from typing import List, Dict, Any
 
-# Configuração de logs
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 CACHE_FILE = "tiktok_trends_cache.json"
+DATA_REFERENCIA = "2026-08-11"
+FONTE_CENTRAL = "https://ads.tiktok.com/creative/creativeCenter/trends"
+
+SINAIS_PUBLICOS = [
+    {
+        "termo": "Moda primavera/verão 2026",
+        "categoria": "Moda",
+        "prioridade": 9.4,
+        "sinal_publico": "Conteúdos públicos destacam cores suaves, texturas metalizadas e rendas.",
+        "dica_conteudo": "Monte três looks de transição de estação e compare cores, textura e preço.",
+        "hashtags": ["#modaprimavera", "#modaverao2026", "#lookfeminino", "#modabrasileira"],
+        "fonte_url": "https://www.tiktok.com/discover/tendencias-primavera-verano-2026-en-brasil",
+    },
+    {
+        "termo": "Vestido floral",
+        "categoria": "Moda",
+        "prioridade": 9.2,
+        "sinal_publico": "Tema recorrente nas buscas públicas de primavera/verão no Brasil.",
+        "dica_conteudo": "Faça um vídeo de transição do look de inverno para o vestido floral de primavera.",
+        "hashtags": ["#vestidofloral", "#lookprimavera", "#lookdodia", "#modafeminina"],
+        "fonte_url": "https://www.tiktok.com/discover/tendencias-primavera-verano-2026-en-brasil",
+    },
+    {
+        "termo": "Cores pastel e azul claro",
+        "categoria": "Moda",
+        "prioridade": 9.0,
+        "sinal_publico": "Buscas públicas citam amarelo manteiga, azul claro, pistache, rosa bebê e lavanda.",
+        "dica_conteudo": "Compare cinco combinações pastel usando uma mesma peça-chave.",
+        "hashtags": ["#azulclaro", "#amarelomanteiga", "#lookpastel", "#tendenciamoda"],
+        "fonte_url": "https://www.tiktok.com/discover/colores-en-tendencias-2026-en-brasil",
+    },
+    {
+        "termo": "Penteados diferentões",
+        "categoria": "Beleza",
+        "prioridade": 8.9,
+        "sinal_publico": "A busca pública de penteados tendência 2026 registra forte volume de publicações.",
+        "dica_conteudo": "Publique tutorial rápido de penteado, antes/depois e versão para cabelo cacheado.",
+        "hashtags": ["#penteados", "#penteadocriativo", "#cabelos", "#hairtok"],
+        "fonte_url": "https://www.tiktok.com/discover/penteados-tend%C3%AAncia-de-2026-de-bf",
+    },
+    {
+        "termo": "Unhas decoradas e vampíricas",
+        "categoria": "Beleza",
+        "prioridade": 8.7,
+        "sinal_publico": "Tema de unhas aparece simultaneamente nos sinais públicos atuais de Pinterest e TikTok.",
+        "dica_conteudo": "Mostre a aplicação em três etapas e finalize com close da textura e do brilho.",
+        "hashtags": ["#unhasdecoradas", "#nailart", "#nailtok", "#unhasvampiricas"],
+        "fonte_url": "https://br.pinterest.com/today/",
+    },
+    {
+        "termo": "Looks com brilho, metalizados e rendas",
+        "categoria": "Moda",
+        "prioridade": 8.6,
+        "sinal_publico": "Buscas públicas de primavera/verão destacam metalizados e rendas como direções de estilo.",
+        "dica_conteudo": "Use o formato ‘uma peça, três ocasiões’ para demonstrar versatilidade.",
+        "hashtags": ["#metalizado", "#rendafashion", "#lookbrilho", "#styletok"],
+        "fonte_url": "https://www.tiktok.com/discover/tendencias-primavera-verano-2026-en-brasil",
+    },
+    {
+        "termo": "Outfit check Brasil",
+        "categoria": "Moda",
+        "prioridade": 8.2,
+        "sinal_publico": "Conteúdos públicos de moda no Brasil destacam outfit checks e peças amarelas.",
+        "dica_conteudo": "Grave três outfit checks de 7 segundos com texto na tela e preço da composição.",
+        "hashtags": ["#outfitcheck", "#lookbrasil", "#modabrasil", "#achadinhos"],
+        "fonte_url": "https://www.tiktok.com/discover/summer-fashion-trends-in-brazil",
+    },
+    {
+        "termo": "Organização de quarto e apartamento pequeno",
+        "categoria": "Casa",
+        "prioridade": 8.0,
+        "sinal_publico": "Organização e quartos pequenos aparecem como temas atuais nas buscas públicas de inspiração.",
+        "dica_conteudo": "Faça transformação antes/depois com três produtos e custo total na tela.",
+        "hashtags": ["#organizacao", "#quartopequeno", "#apartamentopequeno", "#casatok"],
+        "fonte_url": "https://br.pinterest.com/today/",
+    },
+]
+
 
 def obter_tendencias_tiktok(forcar_atualizacao: bool = False) -> List[Dict[str, Any]]:
-    """
-    Captura tendências do TikTok (Tech, Beleza, Lifestyle).
-    Como o TikTok não tem uma API de tendências pública e gratuita como o Google,
-    esta função utiliza uma base de dados real capturada via pesquisa e 
-    mantém a lógica de comparação 2025 vs 2026.
-    """
-    # Tenta carregar do cache primeiro
+    """Retorna sinais públicos recentes sem simular métricas de viralidade."""
     if not forcar_atualizacao and os.path.exists(CACHE_FILE):
         try:
-            with open(CACHE_FILE, "r", encoding="utf-8") as f:
-                cache_data = json.load(f)
-                # Verifica se o cache tem menos de 24h
-                timestamp = datetime.fromisoformat(cache_data.get("timestamp", datetime.now().isoformat()))
-                if (datetime.now() - timestamp).total_seconds() < 86400:
-                    logger.info("📱 TikTok Trends: dados do cache (válido)")
-                    return cache_data.get("dados", [])
-        except Exception as e:
-            logger.error(f"Erro ao ler cache do TikTok: {e}")
-
-    # Dados reais baseados na pesquisa (TikTok Brasil 2025 vs 2026)
-    # Valores representam 'Índice de Viralidade' (0-100)
-    dados_tiktok = [
-        {"termo": "Mini Projetor Portátil", "cat": "Tech", "2025": 45, "2026": 92, "dica": "Unboxing e review de 'cinema em casa'"},
-        {"termo": "Gloss Volumizador", "cat": "Beleza", "2025": 30, "2026": 88, "dica": "Vídeos de 'antes e depois' sem cortes"},
-        {"termo": "Organizador Acrílico", "cat": "Casa", "2025": 65, "2026": 75, "dica": "ASMR de organização e limpeza"},
-        {"termo": "Fone Noise Cancelling", "cat": "Tech", "2025": 55, "2026": 82, "dica": "Conteúdo de 'estude comigo' ou 'foco'"},
-        {"termo": "Copo Stanley", "cat": "Lifestyle", "2025": 95, "2026": 60, "dica": "Customização e teste de temperatura"},
-        {"termo": "Luz de Leitura Clip", "cat": "Lifestyle", "2025": 20, "2026": 85, "dica": "Vibes de 'leitura noturna' e estética"},
-        {"termo": "Skincare Minimalista", "cat": "Beleza", "2025": 40, "2026": 78, "dica": "Rotina de 3 passos rápida"},
-        {"termo": "Carregador Magnético", "cat": "Tech", "2025": 25, "2026": 89, "dica": "Demonstração de praticidade no dia a dia"},
-        {"termo": "Velas Esculturais", "cat": "Casa", "2025": 50, "2026": 42, "dica": "Decoração estética para o quarto"},
-        {"termo": "Sacola Tote Bag", "cat": "Moda", "2025": 60, "2026": 95, "dica": "O que tem na minha bolsa (versão faculdade)"}
-    ]
+            with open(CACHE_FILE, "r", encoding="utf-8") as arquivo:
+                cache_data = json.load(arquivo)
+            if cache_data.get("data_referencia") == DATA_REFERENCIA:
+                dados = cache_data.get("dados", [])
+                if isinstance(dados, list) and dados:
+                    logger.info("TikTok Trends: dados atuais do cache")
+                    return dados
+        except (OSError, json.JSONDecodeError, TypeError) as erro:
+            logger.error("Erro ao ler cache do TikTok: %s", erro)
 
     dados_finais = []
-    for item in dados_tiktok:
-        int_2025 = item["2025"]
-        int_2026 = item["2026"]
-        
-        # Lógica de Status
-        variacao = round(((int_2026 - int_2025) / max(int_2025, 1)) * 100, 1)
-        if variacao > 50:
-            status = "🚀 Viral"
-        elif variacao > 0:
-            status = "📈 Em Alta"
-        else:
-            status = "📉 Flopando"
-            
-        dados_finais.append({
-            "termo": item["termo"],
-            "categoria": item["cat"],
-            "interesse_2025": int_2025,
-            "interesse_2026": int_2026,
-            "status": status,
-            "variacao": f"{variacao:+.1f}%",
-            "variacao_num": variacao,
-            "dica_conteudo": item["dica"],
-            "fonte": "TikTok Creative Center + Research",
-            "atualizado": datetime.now().strftime("%d/%m/%Y %H:%M")
-        })
+    for item in SINAIS_PUBLICOS:
+        registro = dict(item)
+        registro.update(
+            {
+                "status": "Sinal público",
+                "prioridade_editorial": item["prioridade"],
+                "metrica_verificada": False,
+                "fonte": "TikTok Discover / Creative Center + sinais públicos",
+                "fonte_central": FONTE_CENTRAL,
+                "origem_coleta": "pagina_publica_sem_login",
+                "data_referencia": DATA_REFERENCIA,
+                "atualizado": DATA_REFERENCIA,
+            }
+        )
+        dados_finais.append(registro)
 
-    # Salva no cache
     try:
-        with open(CACHE_FILE, "w", encoding="utf-8") as f:
-            json.dump({
-                "timestamp": datetime.now().isoformat(),
-                "dados": dados_finais
-            }, f, ensure_ascii=False, indent=2)
-    except Exception as e:
-        logger.error(f"Erro ao salvar cache do TikTok: {e}")
+        with open(CACHE_FILE, "w", encoding="utf-8") as arquivo:
+            json.dump(
+                {
+                    "timestamp": datetime.now().isoformat(),
+                    "data_referencia": DATA_REFERENCIA,
+                    "dados": dados_finais,
+                    "fonte": FONTE_CENTRAL,
+                    "metrica_verificada": False,
+                },
+                arquivo,
+                ensure_ascii=False,
+                indent=2,
+            )
+    except OSError as erro:
+        logger.error("Erro ao salvar cache do TikTok: %s", erro)
 
     return dados_finais
 
+
 def render_tiktok_dashboard():
-    """
-    Renderiza a secção do TikTok no Streamlit.
-    """
-    st.markdown("## 📱 Tendências TikTok — Viralidade 2025 vs 2026")
-    st.caption("Produtos e temas que estão dominando o algoritmo no Brasil (Tech, Beleza, Lifestyle).")
-    
+    """Renderiza a seção do TikTok no Streamlit."""
+    st.markdown("## 📱 Tendências TikTok — Sinais públicos atuais")
+    st.caption(
+        "Temas públicos observados para Brasil e primavera/verão 2026. "
+        "A prioridade abaixo é editorial, não uma métrica oficial de alcance."
+    )
+
     dados = obter_tendencias_tiktok()
     if not dados:
         st.warning("Nenhum dado do TikTok disponível no momento.")
         return
 
     df = pd.DataFrame(dados)
+    df_grafico = df[["termo", "prioridade_editorial"]].set_index("termo")
+    df_grafico.columns = ["Prioridade editorial"]
 
-    # Tabs para o TikTok
-    tab_graf, tab_tabela = st.tabs(["📊 Gráfico de Viralidade", "📋 Grade Detalhada"])
-
+    tab_graf, tab_tabela = st.tabs(["📊 Prioridades de conteúdo", "📋 Grade detalhada"])
     with tab_graf:
-        # Gráfico de barras horizontais para comparar interesse
-        chart_data = df[["termo", "interesse_2025", "interesse_2026"]].copy()
-        chart_data.columns = ["Produto", "Interesse 2025", "Interesse 2026"]
-        chart_data = chart_data.set_index("Produto")
-        st.bar_chart(chart_data, use_container_width=True)
+        st.bar_chart(df_grafico, use_container_width=True)
+        st.info(
+            "Os rankings oficiais por país do TikTok Creative Center podem exigir login "
+            "ou filtros interativos; por isso não são tratados como métricas nesta tela."
+        )
 
     with tab_tabela:
-        # Tabela estilizada
-        def colorir_status(val):
-            if "Viral" in val: return 'background-color: #ff4b4b; color: white; font-weight: bold'
-            if "Alta" in val: return 'background-color: #2ecc71; color: white'
-            if "Flopando" in val: return 'background-color: #95a5a6; color: white'
-            return ''
-
         st.dataframe(
-            df[["termo", "categoria", "status", "variacao", "dica_conteudo"]].style.applymap(colorir_status, subset=['status']),
+            df[
+                [
+                    "termo",
+                    "categoria",
+                    "status",
+                    "prioridade_editorial",
+                    "sinal_publico",
+                    "dica_conteudo",
+                    "data_referencia",
+                ]
+            ],
             use_container_width=True,
-            hide_index=True
+            hide_index=True,
         )
-        
-    st.markdown("---")
+
+    st.caption(f"Fonte central: {FONTE_CENTRAL} | Referência: {DATA_REFERENCIA}")

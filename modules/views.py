@@ -38,6 +38,7 @@ from modules.adult_content_filter import eh_termo_adulto
 # Importa Tendências de Moda Feminina via SerpApi
 from modules.tendencias_moda_serpapi import render_tendencias_moda_dashboard
 from modules.tiktok_trends import render_tiktok_dashboard
+from modules.tiktok_crescimento import render_tiktok_crescimento
 
 # Tenta importar serper, se falhar usa fallback
 try:
@@ -664,6 +665,12 @@ def render_dashboard():
         render_tiktok_dashboard()
     except Exception as e:
         st.warning(f"⚠️ Tendências TikTok indisponíveis: {str(e)[:100]}")
+
+    try:
+        with st.expander("📈 Planejamento TikTok para o próximo mês", expanded=False):
+            render_tiktok_crescimento()
+    except Exception as e:
+        st.warning(f"⚠️ Projeção TikTok indisponível: {str(e)[:100]}")
     
     st.markdown("---")
     

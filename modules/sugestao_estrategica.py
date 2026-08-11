@@ -270,6 +270,18 @@ CALENDARIO_EVENTOS = {
             ]
         },
         {
+            "dia": 15,
+            "nome": "Dia do Cliente",
+            "emoji": "🛍️",
+            "tipo": "data_comemorativa",
+            "urgencia": "alta",
+            "produtos": [
+                {"nome": "kits promocionais", "categoria": "Presentes", "score": 9, "motivo": "Data comercial — oportunidade para kits, cupons e ofertas de recompra"},
+                {"nome": "ofertas de beleza", "categoria": "Beleza", "score": 8, "motivo": "Campanhas de fidelização — kits de skincare, gloss e unhas"},
+                {"nome": "organizador de quarto", "categoria": "Casa", "score": 8, "motivo": "Oferta demonstrável em vídeo antes/depois"},
+            ]
+        },
+        {
             "dia": 22,
             "nome": "Início da Primavera",
             "emoji": "🌺",

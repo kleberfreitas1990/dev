@@ -1,18 +1,17 @@
-"""
-TikTok Crescimento — Previsão para o Próximo Mês
-=================================================
-Módulo que analisa tendências atuais do TikTok Brasil e projeta
-o crescimento estimado para o próximo mês (agosto/2026),
-com base em dados históricos de viralidade, sazonalidade e
-padrões de comportamento do algoritmo.
+"""TikTok Crescimento — planejamento editorial para setembro de 2026.
+
+Os índices deste módulo são prioridades editoriais internas baseadas em sinais
+públicos e sazonalidade brasileira. Eles não são métricas oficiais de alcance,
+visualizações ou viralidade do TikTok.
 """
 
-import os
+from __future__ import annotations
+
 import json
 import logging
-import random
+import os
 from datetime import datetime, timedelta
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 
 import pandas as pd
 import streamlit as st
@@ -20,196 +19,157 @@ import streamlit as st
 logger = logging.getLogger(__name__)
 
 CACHE_FILE = "tiktok_crescimento_cache.json"
+DATA_REFERENCIA = "2026-08-11"
 
-# ============================================================
-# BASE DE DADOS — PROJEÇÃO AGOSTO/2026
-# Metodologia: Índice atual (julho) + tendência sazonal + fator viral
-# Escala: 0–100 (índice de viralidade estimado)
-# ============================================================
-PROJECAO_AGOSTO = [
+# Índices internos de prioridade editorial, escala 0–100.
+PROJECAO_SETEMBRO = [
     {
-        "termo": "Kit Presente Dia dos Pais",
-        "cat": "Presentes",
-        "julho": 72,
-        "agosto_proj": 95,
-        "motivo": "Dia dos Pais (10/ago) — pico máximo esperado",
-        "tipo_conteudo": "Unboxing + 'presente surpresa para o pai'",
-        "urgencia": "🔥 URGENTE",
-        "janela": "01–10/ago",
-    },
-    {
-        "termo": "Arma de Gel",
-        "cat": "Brinquedos",
-        "julho": 80,
-        "agosto_proj": 88,
-        "motivo": "Férias escolares + calor — conteúdo de batalha ao ar livre",
-        "tipo_conteudo": "Vídeos de batalha em grupo / review de modelos",
-        "urgencia": "🚀 Alta",
-        "janela": "Todo agosto",
-    },
-    {
-        "termo": "Ar Condicionado Midea Inverter Ecomaster",
-        "cat": "Eletrodomésticos",
-        "julho": 65,
-        "agosto_proj": 85,
-        "motivo": "Pico de calor no verão brasileiro — demanda crescente",
-        "tipo_conteudo": "Review + comparativo de consumo de energia",
-        "urgencia": "🚀 Alta",
-        "janela": "Todo agosto",
-    },
-    {
-        "termo": "Kettlebell Acte Sports",
-        "cat": "Esportes",
-        "julho": 70,
-        "agosto_proj": 82,
-        "motivo": "Retomada de treinos pós-férias + tendência fitness",
-        "tipo_conteudo": "Treino em casa / desafio de 30 dias",
-        "urgencia": "📈 Crescendo",
-        "janela": "15–31/ago",
-    },
-    {
-        "termo": "Escova Progressiva Everk",
-        "cat": "Beleza",
-        "julho": 68,
-        "agosto_proj": 80,
-        "motivo": "Volta às aulas — cuidados com o cabelo em alta",
-        "tipo_conteudo": "Transformação antes/depois + tutorial passo a passo",
-        "urgencia": "📈 Crescendo",
-        "janela": "10–25/ago",
-    },
-    {
-        "termo": "Kindle",
-        "cat": "Eletrônicos",
-        "julho": 60,
-        "agosto_proj": 78,
-        "motivo": "Volta às aulas + tendência 'BookTok' crescente no Brasil",
-        "tipo_conteudo": "BookTok / 'o que estou lendo' / setup de leitura",
-        "urgencia": "📈 Crescendo",
-        "janela": "Todo agosto",
-    },
-    {
-        "termo": "Airsoft",
-        "cat": "Esportes",
-        "julho": 55,
-        "agosto_proj": 75,
-        "motivo": "Férias de julho impulsionam interesse — mantém em agosto",
-        "tipo_conteudo": "Gameplay POV / review de equipamentos",
-        "urgencia": "📈 Crescendo",
-        "janela": "01–20/ago",
-    },
-    {
-        "termo": "Corretivo Franciny Ehlke",
-        "cat": "Beleza",
-        "julho": 58,
-        "agosto_proj": 74,
-        "motivo": "Lançamento recente + influência de micro-criadores de beleza",
-        "tipo_conteudo": "Review honesto + comparativo com concorrentes",
-        "urgencia": "📈 Crescendo",
-        "janela": "Todo agosto",
-    },
-    {
-        "termo": "Nintendo 3DS",
-        "cat": "Games",
-        "julho": 62,
-        "agosto_proj": 72,
-        "motivo": "Nostalgia em alta + colecionadores ativos no TikTok",
-        "tipo_conteudo": "Unboxing retro / 'comprei um 3DS em 2026'",
-        "urgencia": "📊 Estável",
-        "janela": "Todo agosto",
-    },
-    {
-        "termo": "Casaco Brilho",
+        "termo": "Vestido Floral Primavera",
         "cat": "Moda",
-        "julho": 50,
-        "agosto_proj": 70,
-        "motivo": "Tendência de moda festiva antecipada para o inverno",
-        "tipo_conteudo": "Outfit do dia / 'como usar no dia a dia'",
-        "urgencia": "📊 Estável",
-        "janela": "15–31/ago",
+        "agosto": 72,
+        "setembro_proj": 95,
+        "motivo": "Início da primavera em 22/09 e sinais públicos de moda primavera/verão no Brasil.",
+        "tipo_conteudo": "Transição de look de inverno para vestido floral, com três combinações e preço na tela.",
+        "urgencia": "🔥 URGENTE",
+        "janela": "08–22/set",
     },
     {
-        "termo": "Magnesio Pro",
-        "cat": "Saúde",
-        "julho": 55,
-        "agosto_proj": 68,
-        "motivo": "Conteúdo de saúde e bem-estar em crescimento contínuo",
-        "tipo_conteudo": "Depoimento pessoal + benefícios comprovados",
-        "urgencia": "📊 Estável",
-        "janela": "Todo agosto",
+        "termo": "Cores Pastel e Azul Claro",
+        "cat": "Moda",
+        "agosto": 80,
+        "setembro_proj": 94,
+        "motivo": "Sinais públicos destacam azul claro, amarelo manteiga, pistache, rosa bebê e lavanda.",
+        "tipo_conteudo": "Compare cinco combinações pastel usando uma mesma peça-chave.",
+        "urgencia": "🚀 Alta",
+        "janela": "01–30/set",
     },
     {
-        "termo": "Armazenador de Energia",
-        "cat": "Eletrônicos",
-        "julho": 48,
-        "agosto_proj": 65,
-        "motivo": "Crise energética + apagões — interesse crescente em soluções",
-        "tipo_conteudo": "Review + 'quanto economizei na conta de luz'",
+        "termo": "Penteados Diferentões",
+        "cat": "Beleza",
+        "agosto": 70,
+        "setembro_proj": 90,
+        "motivo": "Penteados aparecem entre os sinais públicos atuais do Pinterest e do TikTok Discover.",
+        "tipo_conteudo": "Tutorial rápido, antes/depois e uma versão para cabelo cacheado.",
+        "urgencia": "📈 Crescendo",
+        "janela": "01–30/set",
+    },
+    {
+        "termo": "Unhas Decoradas e Vampíricas",
+        "cat": "Beleza",
+        "agosto": 68,
+        "setembro_proj": 88,
+        "motivo": "Unhas decoradas e vampíricas aparecem como temas visuais recentes em Pinterest e TikTok.",
+        "tipo_conteudo": "Aplicação em três etapas com close da textura, do brilho e do acabamento.",
+        "urgencia": "📈 Crescendo",
+        "janela": "01–22/set",
+    },
+    {
+        "termo": "BookTok e Luz de Leitura",
+        "cat": "Lifestyle",
+        "agosto": 60,
+        "setembro_proj": 82,
+        "motivo": "Conteúdo de leitura e organização de estudos funciona como pauta de rotina e volta às atividades.",
+        "tipo_conteudo": "Setup de leitura, ‘o que estou lendo’ e teste de luz de leitura portátil.",
+        "urgencia": "📈 Crescendo",
+        "janela": "01–15/set",
+    },
+    {
+        "termo": "Outfit Check Brasil",
+        "cat": "Moda",
+        "agosto": 55,
+        "setembro_proj": 80,
+        "motivo": "Buscas públicas de moda no Brasil destacam outfit checks e referências de estilo brasileiro.",
+        "tipo_conteudo": "Três outfit checks de sete segundos, com texto na tela e valor da composição.",
+        "urgencia": "📈 Crescendo",
+        "janela": "01–07/set",
+    },
+    {
+        "termo": "Metalizados e Rendas",
+        "cat": "Moda",
+        "agosto": 50,
+        "setembro_proj": 78,
+        "motivo": "Sinais públicos de primavera/verão destacam texturas metalizadas e rendas.",
+        "tipo_conteudo": "Uma peça, três ocasiões: casual, trabalho e evento.",
         "urgencia": "📊 Estável",
-        "janela": "Todo agosto",
+        "janela": "15–30/set",
+    },
+    {
+        "termo": "Quarto Estilo Jardim",
+        "cat": "Casa",
+        "agosto": 48,
+        "setembro_proj": 76,
+        "motivo": "Quartos estilo jardim e organização de espaços pequenos aparecem nos sinais atuais do Pinterest.",
+        "tipo_conteudo": "Transformação antes/depois com três produtos e custo total na tela.",
+        "urgencia": "📊 Estável",
+        "janela": "15–30/set",
     },
 ]
 
 
 def obter_projecao_crescimento(forcar_atualizacao: bool = False) -> List[Dict[str, Any]]:
-    """
-    Retorna a projeção de crescimento TikTok para o próximo mês.
-    Usa cache de 24h para evitar recálculos desnecessários.
-    """
+    """Retorna a prioridade editorial projetada para setembro de 2026."""
     if not forcar_atualizacao and os.path.exists(CACHE_FILE):
         try:
-            with open(CACHE_FILE, "r", encoding="utf-8") as f:
-                cache_data = json.load(f)
-            timestamp = datetime.fromisoformat(cache_data.get("timestamp", "2000-01-01"))
-            if (datetime.now() - timestamp).total_seconds() < 86400:
-                logger.info("📱 TikTok Crescimento: dados do cache (válido)")
-                return cache_data.get("dados", [])
-        except Exception as e:
-            logger.error(f"Erro ao ler cache de crescimento: {e}")
+            with open(CACHE_FILE, "r", encoding="utf-8") as arquivo:
+                cache_data = json.load(arquivo)
+            if cache_data.get("data_referencia") == DATA_REFERENCIA:
+                dados = cache_data.get("dados", [])
+                if isinstance(dados, list) and dados:
+                    logger.info("TikTok Crescimento: cache atual de setembro")
+                    return dados
+        except (OSError, json.JSONDecodeError, TypeError) as erro:
+            logger.error("Erro ao ler cache de crescimento do TikTok: %s", erro)
 
-    dados_finais = []
-    for item in PROJECAO_AGOSTO:
-        jul = item["julho"]
-        ago = item["agosto_proj"]
-        crescimento_pct = round(((ago - jul) / max(jul, 1)) * 100, 1)
+    dados_finais: List[Dict[str, Any]] = []
+    for item in PROJECAO_SETEMBRO:
+        agosto = item["agosto"]
+        setembro = item["setembro_proj"]
+        crescimento_pct = round(((setembro - agosto) / max(agosto, 1)) * 100, 1)
+        dados_finais.append(
+            {
+                "termo": item["termo"],
+                "categoria": item["cat"],
+                "indice_agosto": agosto,
+                "indice_setembro_proj": setembro,
+                "crescimento_pct": crescimento_pct,
+                "crescimento_fmt": f"+{crescimento_pct:.1f}%",
+                "motivo": item["motivo"],
+                "tipo_conteudo": item["tipo_conteudo"],
+                "urgencia": item["urgencia"],
+                "janela_ideal": item["janela"],
+                "fonte": "TikTok Discover / Creative Center + Análise Sazonal Brasil",
+                "fonte_url": "https://ads.tiktok.com/creative/creativeCenter/trends",
+                "metrica_verificada": False,
+                "tipo_indice": "prioridade_editorial",
+                "data_referencia": DATA_REFERENCIA,
+                "gerado_em": datetime.now().strftime("%d/%m/%Y %H:%M"),
+            }
+        )
 
-        dados_finais.append({
-            "termo": item["termo"],
-            "categoria": item["cat"],
-            "indice_julho": jul,
-            "indice_agosto_proj": ago,
-            "crescimento_pct": crescimento_pct,
-            "crescimento_fmt": f"+{crescimento_pct:.1f}%" if crescimento_pct >= 0 else f"{crescimento_pct:.1f}%",
-            "motivo": item["motivo"],
-            "tipo_conteudo": item["tipo_conteudo"],
-            "urgencia": item["urgencia"],
-            "janela_ideal": item["janela"],
-            "fonte": "TikTok Creative Center + Análise Sazonal BR",
-            "gerado_em": datetime.now().strftime("%d/%m/%Y %H:%M"),
-        })
-
-    # Ordena por crescimento projetado (maior primeiro)
-    dados_finais.sort(key=lambda x: x["crescimento_pct"], reverse=True)
-
+    dados_finais.sort(key=lambda item: item["crescimento_pct"], reverse=True)
     try:
-        with open(CACHE_FILE, "w", encoding="utf-8") as f:
+        with open(CACHE_FILE, "w", encoding="utf-8") as arquivo:
             json.dump(
-                {"timestamp": datetime.now().isoformat(), "dados": dados_finais},
-                f,
+                {
+                    "timestamp": datetime.now().isoformat(),
+                    "data_referencia": DATA_REFERENCIA,
+                    "mes_alvo": "09/2026",
+                    "metrica_verificada": False,
+                    "dados": dados_finais,
+                },
+                arquivo,
                 ensure_ascii=False,
                 indent=2,
             )
-    except Exception as e:
-        logger.error(f"Erro ao salvar cache de crescimento: {e}")
+    except OSError as erro:
+        logger.error("Erro ao salvar cache de crescimento do TikTok: %s", erro)
 
     return dados_finais
 
 
 def render_tiktok_crescimento():
-    """
-    Renderiza a aba de Crescimento TikTok — Próximo Mês no Streamlit.
-    """
+    """Renderiza a aba de crescimento editorial do TikTok para o próximo mês."""
     proximo_mes = (datetime.now().replace(day=1) + timedelta(days=32)).strftime("%B/%Y")
-    # Tradução manual para português
     meses_pt = {
         "January": "Janeiro", "February": "Fevereiro", "March": "Março",
         "April": "Abril", "May": "Maio", "June": "Junho",
@@ -219,129 +179,97 @@ def render_tiktok_crescimento():
     for en, pt in meses_pt.items():
         proximo_mes = proximo_mes.replace(en, pt)
 
-    st.markdown(f"## 📈 TikTok — Crescimento Previsto: {proximo_mes}")
+    st.markdown(f"## 📈 TikTok — Prioridades editoriais: {proximo_mes}")
     st.caption(
-        "Projeção de viralidade baseada em tendências atuais, sazonalidade brasileira e "
-        "padrões do algoritmo TikTok. Índice de 0–100."
+        "Prioridade editorial baseada em sinais públicos, sazonalidade brasileira e calendário de setembro. "
+        "Não representa métrica oficial de alcance do TikTok."
     )
 
     col_atualizar, col_info = st.columns([1, 3])
     with col_atualizar:
-        if st.button("🔄 Recalcular Projeção", key="btn_recalcular_crescimento", use_container_width=True):
+        if st.button("🔄 Atualizar projeção", key="btn_recalcular_crescimento", use_container_width=True):
             if os.path.exists(CACHE_FILE):
                 os.remove(CACHE_FILE)
             st.rerun()
     with col_info:
         st.info(
-            f"📅 Projeção gerada para **{proximo_mes}** | "
-            f"Atualizada em: {datetime.now().strftime('%d/%m/%Y %H:%M')}"
+            f"📅 Planejamento para **{proximo_mes}** | "
+            f"Referência dos sinais: {DATA_REFERENCIA}"
         )
 
     dados = obter_projecao_crescimento()
     if not dados:
-        st.warning("⚠️ Nenhum dado de projeção disponível.")
+        st.warning("⚠️ Nenhuma prioridade editorial disponível.")
         return
 
     df = pd.DataFrame(dados)
-
-    # ── Métricas de destaque ──────────────────────────────────────────────────
     st.markdown("### 🏆 Destaques do Próximo Mês")
     col1, col2, col3, col4 = st.columns(4)
     top = df.iloc[0]
     urgentes = df[df["urgencia"].str.contains("URGENTE|Alta", na=False)]
 
     with col1:
-        st.metric("🥇 Maior Crescimento", top["termo"][:25], delta=top["crescimento_fmt"])
+        st.metric("🥇 Maior prioridade", top["termo"][:25], delta=top["crescimento_fmt"])
     with col2:
-        st.metric("🔥 Oportunidades Urgentes", f"{len(urgentes)} produtos")
+        st.metric("🔥 Pautas prioritárias", f"{len(urgentes)} temas")
     with col3:
-        media_crescimento = df["crescimento_pct"].mean()
-        st.metric("📊 Crescimento Médio", f"+{media_crescimento:.1f}%")
+        st.metric("📊 Crescimento editorial médio", f"+{df['crescimento_pct'].mean():.1f}%")
     with col4:
-        max_indice = df["indice_agosto_proj"].max()
-        st.metric("🚀 Índice Máximo Proj.", f"{max_indice}/100")
+        st.metric("🚀 Maior índice editorial", f"{df['indice_setembro_proj'].max()}/100")
 
     st.markdown("---")
-
-    # ── Tabs internas ─────────────────────────────────────────────────────────
     tab_grafico, tab_tabela, tab_estrategia = st.tabs([
-        "📊 Gráfico de Crescimento",
-        "📋 Tabela Detalhada",
-        "🎯 Estratégia de Conteúdo",
+        "📊 Prioridades", "📋 Tabela detalhada", "🎯 Estratégia de conteúdo"
     ])
 
-    # ── Gráfico ───────────────────────────────────────────────────────────────
     with tab_grafico:
-        st.markdown("#### Comparativo: Julho (atual) vs Agosto (projetado)")
-        chart_df = df[["termo", "indice_julho", "indice_agosto_proj"]].copy()
-        chart_df.columns = ["Produto", "Julho (atual)", "Agosto (projetado)"]
-        chart_df = chart_df.set_index("Produto")
+        st.markdown("#### Comparativo: agosto (base editorial) vs setembro (prioridade)")
+        chart_df = df[["termo", "indice_agosto", "indice_setembro_proj"]].set_index("termo")
+        chart_df.columns = ["Agosto (base)", "Setembro (prioridade)"]
         st.bar_chart(chart_df, use_container_width=True)
 
-        st.markdown("#### % de Crescimento Projetado por Produto")
-        cresc_df = df[["termo", "crescimento_pct"]].copy()
-        cresc_df.columns = ["Produto", "Crescimento (%)"]
-        cresc_df = cresc_df.set_index("Produto")
-        st.bar_chart(cresc_df, use_container_width=True, color="#ff4b4b")
-
-    # ── Tabela ────────────────────────────────────────────────────────────────
     with tab_tabela:
-        def colorir_urgencia(val):
-            if "URGENTE" in str(val):
-                return "background-color: #ff4b4b; color: white; font-weight: bold"
-            if "Alta" in str(val):
-                return "background-color: #e67e22; color: white; font-weight: bold"
-            if "Crescendo" in str(val):
-                return "background-color: #2ecc71; color: white"
-            return "background-color: #95a5a6; color: white"
-
-        colunas_exibir = [
-            "urgencia", "termo", "categoria",
-            "indice_julho", "indice_agosto_proj", "crescimento_fmt",
-            "janela_ideal",
-        ]
-        df_display = df[colunas_exibir].rename(columns={
-            "urgencia": "Prioridade",
-            "termo": "Produto / Tendência",
-            "categoria": "Categoria",
-            "indice_julho": "Índice Jul",
-            "indice_agosto_proj": "Índice Ago (proj.)",
-            "crescimento_fmt": "Crescimento",
-            "janela_ideal": "Janela Ideal",
-        })
-
         st.dataframe(
-            df_display.style.applymap(colorir_urgencia, subset=["Prioridade"]),
+            df[
+                [
+                    "urgencia", "termo", "categoria", "indice_agosto",
+                    "indice_setembro_proj", "crescimento_fmt", "janela_ideal",
+                    "metrica_verificada",
+                ]
+            ].rename(
+                columns={
+                    "urgencia": "Prioridade",
+                    "termo": "Tema",
+                    "categoria": "Categoria",
+                    "indice_agosto": "Índice Ago (base)",
+                    "indice_setembro_proj": "Índice Set (prioridade)",
+                    "crescimento_fmt": "Variação editorial",
+                    "janela_ideal": "Janela ideal",
+                    "metrica_verificada": "Métrica oficial",
+                }
+            ),
             use_container_width=True,
             hide_index=True,
         )
 
-    # ── Estratégia ────────────────────────────────────────────────────────────
     with tab_estrategia:
-        st.markdown("#### 🎬 Guia de Conteúdo — O que Produzir em Agosto")
-        st.caption(
-            "Produtos ordenados por urgência. Produza o conteúdo dentro da janela ideal "
-            "para maximizar o alcance orgânico."
-        )
-
+        st.markdown("#### 🎬 Guia de conteúdo — Setembro")
+        st.caption("Priorize as pautas dentro da janela ideal e valide métricas nativas após publicar.")
         for _, row in df.iterrows():
-            with st.expander(
-                f"{row['urgencia']} **{row['termo']}** — {row['crescimento_fmt']} | Janela: {row['janela_ideal']}"
-            ):
+            with st.expander(f"{row['urgencia']} **{row['termo']}** — {row['crescimento_fmt']} | {row['janela_ideal']}"):
                 col_a, col_b = st.columns([1, 1])
                 with col_a:
-                    st.markdown(f"**📦 Produto:** {row['termo']}")
                     st.markdown(f"**🏷️ Categoria:** {row['categoria']}")
-                    st.markdown(f"**📅 Janela Ideal:** {row['janela_ideal']}")
-                    st.markdown(f"**📈 Crescimento:** {row['crescimento_fmt']}")
+                    st.markdown(f"**📅 Janela ideal:** {row['janela_ideal']}")
+                    st.markdown(f"**📈 Variação editorial:** {row['crescimento_fmt']}")
                 with col_b:
-                    st.markdown(f"**💡 Por que vai crescer:**")
+                    st.markdown("**💡 Fundamentação:**")
                     st.info(row["motivo"])
-                    st.markdown(f"**🎬 Tipo de Conteúdo Sugerido:**")
+                    st.markdown("**🎬 Tipo de conteúdo:**")
                     st.success(row["tipo_conteudo"])
 
     st.markdown("---")
     st.caption(
-        f"🔍 Fonte: TikTok Creative Center + Análise Sazonal Brasil | "
-        f"Gerado em: {datetime.now().strftime('%d/%m/%Y %H:%M')}"
+        "🔍 Fonte: TikTok Discover / Creative Center + Análise Sazonal Brasil | "
+        f"Referência: {DATA_REFERENCIA} | Métricas oficiais: não verificadas nesta sessão"
     )
