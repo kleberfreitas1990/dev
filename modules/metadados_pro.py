@@ -10,10 +10,11 @@ Autor: Manus AI
 Versão: 10.2.0
 """
 
+import os
 import random
+import shutil
 import subprocess
 import tempfile
-import os
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlparse
@@ -23,6 +24,9 @@ import streamlit as st
 import yt_dlp
 import cv2
 import numpy as np
+
+ENCODER_METADATA = "Apple H.264 Camcorder"
+
 
 LOCALIZACOES_REAIS = [
     {"cidade": "São Paulo, SP", "lat": -23.5505, "lon": -46.6333, "alt": 760},
@@ -159,6 +163,44 @@ def obter_informacoes_video(caminho_video: str) -> dict:
     return info
 
 
+def normalizar_encoder_mp4(output_path: str) -> bool:
+    """Substitui a tag global automática do muxer sem recodificar o MP4."""
+    arquivo_saida = Path(output_path)
+    if arquivo_saida.suffix.lower() != ".mp4" or not arquivo_saida.is_file() or arquivo_saida.stat().st_size == 0:
+        return False
+
+    temporario = None
+    try:
+        from mutagen.mp4 import MP4, MP4Tags
+
+        with tempfile.NamedTemporaryFile(
+            prefix=f".{arquivo_saida.name}.",
+            suffix=".tmp",
+            dir=arquivo_saida.parent,
+            delete=False,
+        ) as arquivo_tmp:
+            temporario = Path(arquivo_tmp.name)
+
+        shutil.copy2(arquivo_saida, temporario)
+        mp4 = MP4(str(temporario))
+        tags = mp4.tags or MP4Tags()
+        tags["©too"] = [ENCODER_METADATA]
+        mp4.tags = tags
+        mp4.save()
+        os.replace(temporario, arquivo_saida)
+        temporario = None
+        return True
+    except Exception as exc:
+        print(f"Falha ao normalizar a tag global do MP4: {exc}")
+        return False
+    finally:
+        if temporario is not None:
+            try:
+                temporario.unlink(missing_ok=True)
+            except OSError:
+                pass
+
+
 def construir_comando_ffmpeg(
     input_path: str,
     output_path: str,
@@ -168,7 +210,9 @@ def construir_comando_ffmpeg(
 ) -> bool:
     """
     Constrói e executa o comando FFmpeg ultra-otimizado (Ghost Mode).
-    Remove assinaturas Lavf/Lavc, força resolução exata 1080x1920 e injeta tags reais de iPhone 15 Pro Max.
+    Limpa metadados, força resolução exata 1080x1920 e aplica uma identificação
+    explícita de encoder no stream de vídeo; a tag global do MP4 é normalizada
+    depois da codificação porque o muxer costuma recriá-la automaticamente.
     """
     try:
         lat, lon = coordenadas
@@ -225,14 +269,20 @@ def construir_comando_ffmpeg(
         iso6709 = f"{'+' if lat>=0 else ''}{lat:.4f}{'+' if lon>=0 else ''}{lon:.4f}{'+' if alt>=0 else ''}{alt:.1f}/"
         
         cmd.extend([
-            # Limpa metadados genéricos anteriores
+            # Limpa metadados globais, de streams e capítulos anteriores.
             "-map_metadata", "-1",
+            "-map_metadata:s:v", "-1",
+            "-map_metadata:s:a", "-1",
+            "-map_chapters", "-1",
             
-            # Tags de Hardware e Câmera Nativas (Simulando iPhone 15 Pro Max)
+            # Identificação explícita da codificação de vídeo.
+            "-metadata", f"encoder={ENCODER_METADATA}",
+            "-metadata:s:v:0", f"encoder={ENCODER_METADATA}",
+            # Não deixa o encoder de áudio regravado pelo FFmpeg aparecer como Lavc.
+            "-metadata:s:a:0", "encoder=",
             "-metadata", "make=Apple",
             "-metadata", "model=iPhone 15 Pro Max",
             "-metadata", "software=iOS 17.4.1",
-            "-metadata", "encoder=Apple QuickTime",
             "-metadata", "handler_name=Core Media Video",
             
             # Sincronização de Data e Hora Realista
@@ -252,12 +302,17 @@ def construir_comando_ffmpeg(
             "-metadata", "genre=",
             "-metadata", "encoder_version=",
             
-            # Codificação de Vídeo de Alta Qualidade (H.264 Main Profile + Faststart para streaming)
+            # Codificação H.264 e supressão das assinaturas automáticas do FFmpeg.
             "-c:v", "libx264",
             "-crf", "21",
             "-preset", "slow",
             "-profile:v", "main",
             "-level", "4.0",
+            "-fflags", "+bitexact",
+            "-flags:v", "+bitexact",
+            "-flags:a", "+bitexact",
+            # Evita que o x264 injete a string Lavc no SEI do bitstream H.264.
+            "-x264-params", "info=0",
             
             "-movflags", "+faststart",
             "-y",
@@ -271,7 +326,13 @@ def construir_comando_ffmpeg(
             timeout=300
         )
         
-        return resultado.returncode == 0 and os.path.exists(output_path) and os.path.getsize(output_path) > 0
+        ffmpeg_sucesso = (
+            resultado.returncode == 0
+            and os.path.exists(output_path)
+            and os.path.getsize(output_path) > 0
+        )
+        return ffmpeg_sucesso and normalizar_encoder_mp4(output_path)
+
     except Exception as e:
         print(f"Exception em construir_comando_ffmpeg: {e}")
         return False

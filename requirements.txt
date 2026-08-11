@@ -20,6 +20,7 @@ gunicorn==21.2.0
 
 # Force rebuild v6.0 - Google Trends + Shopee Live - 14/07/2026
 yt-dlp
+mutagen>=1.47.0
 
 # Dependências para Remoção de Marca d'Água (v10.0+)
 opencv-python>=4.8.0
