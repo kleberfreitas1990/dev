@@ -259,9 +259,6 @@ def construir_comando_ffmpeg(
             "-profile:v", "main",
             "-level", "4.0",
             
-            # Flag crucial: Oculta a assinatura do encoder Lavf/Lavc no bitstream H.264
-            "-bsf:v", "filter_units=remove_types=sps_pps",
-            
             "-movflags", "+faststart",
             "-y",
             output_path
