@@ -1,4 +1,3 @@
-import streamlit as st
 import requests
 import re
 import json
@@ -17,7 +16,6 @@ from modules.validation import (
     sanitizar_json
 )
 from modules.logger import registrar_busca
-from modules.selenium_client import capturar_buscas_selenium, verificar_status_selenium
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +23,7 @@ logger = logging.getLogger(__name__)
 # ARQUIVO DE CACHE (NA RAIZ)
 # ============================================================
 ARQUIVO_SHOPEE_CACHE = "shopee_trends_cache.json"
-CACHE_VERSION = "v3_06082026"  # Bump quando TERMOS_REAIS_SHOPEE for atualizado
+CACHE_VERSION = "v4_14082026"  # Atualizado com a curadoria de buscas em alta de 14/08/2026
 
 # ============================================================
 # USER AGENTS ROTATIVOS
@@ -39,38 +37,41 @@ USER_AGENTS = [
 ]
 
 # ============================================================
-# TERMOS REAIS DA SHOPEE (FALLBACK)
-# Atualizado em: 06/08/2026 — Buscas em Alta Shopee (Dados Reais do Usuário)
+# TERMOS REAIS DA SHOPEE (FALLBACK CURADO)
+# Atualizado em: 14/08/2026 — buscas em alta fornecidas pelo usuário.
+# O item de cunho sexual informado na lista de origem foi deliberadamente
+# excluído antes da persistência; o filtro do fluxo mantém uma segunda barreira.
 # ============================================================
 TERMOS_REAIS_SHOPEE = [
-    "Moto Elétrica Scooter",
-    "Espelho",
-    "Fantasia Homem Aranha",
-    "Armário de Cozinha 1 Porta",
+    "Chopp",
+    "Serra Circular Madeira 220V",
     "Bolsa Longchamp",
-    "Lembrancinha Dia dos Pais",
-    "iPhone",
-    "Travessa Melamina",
-    "Sapateira",
-    "Sofá Casas Bahia",
-    "Sofá",
+    "Nintendo Switch Desbloqueado",
+    "Spray de Pimenta",
+    "Drone",
+    "Tapete Sala",
+    "Biquíni",
     "Bloqueador de Sinal Bluetooth",
-    "Papel de Parede",
-    "Cumeeira PVC",
     "PS5",
-    "100 Pacotes de Figurinhas da Copa",
-    "Camisa Tailandesa",
+    "Tênis",
+    "Mangueira Jardim 50 Metros",
     "Crocs Relâmpago Mcqueen",
-    "Celular Redmi Note 14 5G 256GB",
-    "Tablet Lenovo M10",
-    "Bomba Submersa Placa Solar",
-    "Combo Filaneto",
-    "Livro Trilhas",
-    "Lâmpada Automotiva Hilux",
-    "Armário de Cozinha 1,90 m",
-    "Aquecedor Diesel",
-    "Kit Embreagem Honda Fit",
-    "Poltrona do Papai"
+    "Kindle",
+    "Gabinete",
+    "Crocs",
+    "Tênis Feminino",
+    "Photocard",
+    "Garrafa Térmica",
+    "Sela Freio de Ouro",
+    "Pedal de Guitarra",
+    "Trocador de Bebê Portátil",
+    "Capa de Bengala",
+    "Pente de Aleta",
+    "Celular Xiaomi Redmi 15C 256GB 8GB",
+    "Pneu 205/60 Aro 16",
+    "Multimídia Fiat Mobi",
+    "Impressora Epson Workforce",
+    "Capa de Botijão",
 ]
 
 # ============================================================
@@ -83,9 +84,13 @@ def capturar_buscas_shopee(max_tentativas: int = 3) -> List[str]:
     """
     inicio = time.time()
     termos = []
+    fonte = "fallback"
     
-    # ESTRATÉGIA 0: Selenium Real (Servidor Render)
+    # ESTRATÉGIA 0: Selenium Real (Servidor Render). A importação é tardia
+    # para que o fallback diário rode em CI sem dependências de interface.
     try:
+        from modules.selenium_client import capturar_buscas_selenium, verificar_status_selenium
+
         status = verificar_status_selenium()
         if status.get("online"):
             logger.info("📡 Usando Selenium Real para capturar buscas...")
@@ -101,6 +106,7 @@ def capturar_buscas_shopee(max_tentativas: int = 3) -> List[str]:
                         detalhes=f"Capturados {len(termos)} termos via Selenium Real",
                         tempo_execucao=time.time() - inicio
                     )
+                    capturar_buscas_shopee.ultima_fonte = "selenium"
                     return termos[:20]
     except Exception as e:
         logger.warning(f"Erro ao usar Selenium Real: {e}")
@@ -136,6 +142,7 @@ def capturar_buscas_shopee(max_tentativas: int = 3) -> List[str]:
                             detalhes=f"Capturados {len(termos)} termos do rodapé",
                             tempo_execucao=time.time() - inicio
                         )
+                        capturar_buscas_shopee.ultima_fonte = "raspagem_direta"
                         return termos[:20]
             except Exception as e:
                 logger.warning(f"Erro na raspagem direta (tentativa {tentativa+1}): {e}")
@@ -165,6 +172,7 @@ def capturar_buscas_shopee(max_tentativas: int = 3) -> List[str]:
                         detalhes=f"Capturados {len(termos)} termos via API",
                         tempo_execucao=time.time() - inicio
                     )
+                    capturar_buscas_shopee.ultima_fonte = "api_sugestoes"
                     return termos[:20]
         except Exception as e:
             logger.error(f"Erro na API: {e}")
@@ -197,8 +205,14 @@ def capturar_buscas_shopee(max_tentativas: int = 3) -> List[str]:
             tempo_execucao=time.time() - inicio,
             erro="Nenhum termo encontrado"
         )
-    
-    return termos[:20]
+
+    capturar_buscas_shopee.ultima_fonte = fonte
+    return termos
+
+
+# Origem da última coleta, usada pelo módulo diário para auditoria do cache.
+capturar_buscas_shopee.ultima_fonte = "fallback"
+
 
 def capturar_buscas_shopee_com_cache(ignorar_cache: bool = False) -> List[str]:
     """

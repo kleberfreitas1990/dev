@@ -6,7 +6,11 @@ test_shopee_daily_trends.py — Teste do módulo de coleta diária
 import logging
 import json
 import sys
+import tempfile
 from datetime import datetime
+from pathlib import Path
+
+import modules.shopee_daily_trends as daily_trends
 
 logging.basicConfig(
     level=logging.INFO,
@@ -40,6 +44,7 @@ def teste_filtro_adulto():
         "Consolo",
         "Moto Elétrica Scooter",
         "Boneco Sexual",
+        "Brinquedo Sexual Masculino",
         "iPhone",
         "Vibrador",
         "PS5",
@@ -65,6 +70,8 @@ def teste_filtro_adulto():
     print(f"  Taxa de bloqueio: {stats['taxa_bloqueio']}%")
     print(f"  Termos bloqueados: {stats['termos_bloqueados']}")
     
+    assert "Brinquedo Sexual Masculino" in stats["termos_bloqueados"]
+    assert "Brinquedo Sexual Masculino" not in termos_filtrados
     return len(stats['termos_bloqueados']) > 0
 
 
@@ -99,15 +106,11 @@ def teste_normalizacao():
 
 
 def teste_persistencia():
-    """Testa a persistência em SQLite."""
+    """Testa a persistência em SQLite em banco temporário isolado."""
     print("\n" + "="*60)
-    print("TESTE 3: Persistência em SQLite")
+    print("TESTE 3: Persistência SQLite isolada")
     print("="*60)
-    
-    # Inicializar banco
-    _inicializar_banco()
-    
-    # Dados de teste
+
     hoje = datetime.now().strftime("%Y-%m-%d")
     termos_teste = [
         "iPhone",
@@ -116,53 +119,62 @@ def teste_persistencia():
         "Sofá",
         "Tablet Lenovo M10",
     ]
-    
-    print(f"\nPersistindo {len(termos_teste)} termos para {hoje}...")
-    persistir_tendencias_sqlite(hoje, termos_teste, "teste", 2)
-    
-    # Consultar
-    termos_recuperados = obter_termos_do_dia(hoje)
-    resumo = obter_resumo_diario(hoje)
-    
+
+    caminho_original = daily_trends.DB_PATH
+    with tempfile.TemporaryDirectory() as diretorio:
+        daily_trends.DB_PATH = Path(diretorio) / "teste_trends.db"
+        try:
+            _inicializar_banco()
+            print(f"\nPersistindo {len(termos_teste)} termos para {hoje}...")
+            persistir_tendencias_sqlite(hoje, termos_teste, "teste", 2)
+            termos_recuperados = obter_termos_do_dia(hoje)
+            resumo = obter_resumo_diario(hoje)
+        finally:
+            daily_trends.DB_PATH = caminho_original
+
     print(f"\nTermos recuperados ({len(termos_recuperados)}):")
     for termo in termos_recuperados:
         print(f"  - {termo}")
-    
-    print(f"\nResumo do dia:")
+
+    print("\nResumo do dia:")
     if resumo:
         print(f"  Data: {resumo.get('data_coleta')}")
         print(f"  Total: {resumo.get('total_termos')}")
         print(f"  Bloqueados: {resumo.get('termos_filtrados')}")
         print(f"  Fonte: {resumo.get('fonte_primaria')}")
-    
+
     return len(termos_recuperados) == len(termos_teste)
 
 
 def teste_cache():
-    """Testa o cache diário em JSON."""
+    """Testa o cache diário em arquivo temporário isolado."""
     print("\n" + "="*60)
-    print("TESTE 4: Cache Diário (JSON)")
+    print("TESTE 4: Cache Diário isolado (JSON)")
     print("="*60)
-    
+
     hoje = datetime.now().strftime("%Y-%m-%d")
     termos_teste = ["iPhone", "PS5", "Sofá"]
-    
-    print(f"\nSalvando cache para {hoje}...")
-    _salvar_cache_diario(hoje, termos_teste, "teste", 0)
-    
-    print("Carregando cache...")
-    cache = _carregar_cache_diario()
-    
+    caminho_original = daily_trends.CACHE_DIARIO
+    with tempfile.TemporaryDirectory() as diretorio:
+        daily_trends.CACHE_DIARIO = Path(diretorio) / "cache_teste.json"
+        try:
+            print(f"\nSalvando cache para {hoje}...")
+            _salvar_cache_diario(hoje, termos_teste, "teste", 0)
+            print("Carregando cache...")
+            cache = _carregar_cache_diario()
+        finally:
+            daily_trends.CACHE_DIARIO = caminho_original
+
     if cache:
-        print(f"\nCache carregado:")
+        print("\nCache carregado:")
         print(f"  Data: {cache.get('data_coleta')}")
         print(f"  Total: {cache.get('total')}")
         print(f"  Fonte: {cache.get('fonte')}")
         print(f"  Termos: {cache.get('termos')}")
         return True
-    else:
-        print("❌ Falha ao carregar cache")
-        return False
+
+    print("❌ Falha ao carregar cache")
+    return False
 
 
 def main():

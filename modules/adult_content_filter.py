@@ -68,8 +68,9 @@ BLACKLIST_VARIAÇÕES = {
     # Vibrador
     "vibrador de clitóris", "vibrador externo",
     # Genérico
-    "brinquedo sexual", "brinquedos sexuais", "sex toy", "sex toys",
-    "artigo adulto", "artigos adultos",
+    "brinquedo sexual", "brinquedos sexuais", "brinquedo sexual masculino",
+    "brinquedo sexual feminino", "masturbador masculino", "masturbador feminino",
+    "sex toy", "sex toys", "artigo adulto", "artigos adultos",
 }
 
 # Combinar ambas as listas
@@ -113,11 +114,11 @@ def eh_termo_adulto(termo: str) -> bool:
     
     termo_normalizado = normalizar_termo(termo)
     blacklist_normalizada = {normalizar_termo(item) for item in BLACKLIST_COMPLETA}
-    
+
     # Verificação exata
     if termo_normalizado in blacklist_normalizada:
         return True
-    
+
     # Verificação parcial (substring)
     for termo_bloqueado in blacklist_normalizada:
         if termo_bloqueado in termo_normalizado or termo_normalizado in termo_bloqueado:

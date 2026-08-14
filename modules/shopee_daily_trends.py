@@ -136,8 +136,8 @@ def coletar_tendencias_diarias(forcar_atualizacao: bool = False) -> Tuple[List[s
         
         if termos_brutos and len(termos_brutos) > 5:
             termos = termos_brutos
-            fonte = "shopee_api"  # Será refinado por capturar_buscas_shopee
-            logger.info(f"✅ Coletados {len(termos)} termos via API/Scraping")
+            fonte = getattr(capturar_buscas_shopee, "ultima_fonte", "coleta_shopee")
+            logger.info(f"✅ Coletados {len(termos)} termos via {fonte}")
         else:
             logger.warning("⚠️ Coleta via API/Scraping retornou poucos termos, usando fallback")
             termos = list(TERMOS_REAIS_SHOPEE)
@@ -371,21 +371,55 @@ def executar_coleta_diaria(forcar_atualizacao: bool = False) -> Dict:
     # Coletar
     termos, fonte = coletar_tendencias_diarias(forcar_atualizacao)
     
-    # Obter estatísticas
-    stats = obter_estatisticas_filtro(list(TERMOS_REAIS_SHOPEE))
-    
-    # Persistir
+    # Recuperar a contagem efetiva de bloqueios da coleta corrente.
+    # O cache é atualizado tanto no sucesso quanto no fallback e evita que o
+    # resumo reporte estatísticas de uma lista diferente da que foi processada.
     hoje = datetime.now().strftime("%Y-%m-%d")
-    persistir_tendencias_sqlite(hoje, termos, fonte, stats["total_bloqueado"])
-    
+    cache_atual = _carregar_cache_diario() or {}
+    termos_bloqueados = (
+        int(cache_atual.get("termos_bloqueados", 0))
+        if cache_atual.get("data_coleta") == hoje
+        else 0
+    )
+
+    # Persistir
+    persistir_tendencias_sqlite(hoje, termos, fonte, termos_bloqueados)
+
     # Retornar resumo
     return {
         "data": hoje,
         "total_termos": len(termos),
-        "termos_bloqueados": stats["total_bloqueado"],
+        "termos_bloqueados": termos_bloqueados,
         "fonte": fonte,
         "timestamp": datetime.now().isoformat(),
         "termos": termos[:10],  # Primeiros 10 para preview
+        "termos_completos": termos,
+    }
+
+
+def executar_coleta_curada(termos_brutos: List[str], fonte: str = "curadoria_manual") -> Dict:
+    """Persiste uma lista curada no mesmo fluxo seguro da coleta automática.
+
+    Este caminho atende atualizações fornecidas por uma fonte humana confiável
+    sem permitir que termos adultos cheguem ao cache, ao banco ou à grade.
+    """
+    _inicializar_banco()
+    hoje = datetime.now().strftime("%Y-%m-%d")
+    termos_normalizados = normalizar_termos(termos_brutos)
+    termos = filtrar_lista_termos(termos_normalizados)
+    termos_bloqueados = len(termos_normalizados) - len(termos)
+
+    _salvar_cache_diario(hoje, termos, fonte, termos_bloqueados)
+    persistir_tendencias_sqlite(hoje, termos, fonte, termos_bloqueados)
+
+    return {
+        "data": hoje,
+        "total_termos": len(termos),
+        "termos_bloqueados": termos_bloqueados,
+        "fonte": fonte,
+        "timestamp": datetime.now().isoformat(),
+        "termos": termos[:10],
+        "termos_completos": termos,
     }
 
 

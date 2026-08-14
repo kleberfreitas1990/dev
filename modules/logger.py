@@ -6,9 +6,14 @@ Registra todas as tentativas de busca e seus resultados
 import json
 import os
 import logging
-import streamlit as st
-import pandas as pd
 from datetime import datetime
+
+try:
+    import streamlit as st
+    import pandas as pd
+except ImportError:  # Execução de backend/CI não precisa da camada visual.
+    st = None
+    pd = None
 from typing import Dict, List, Any
 
 logger = logging.getLogger(__name__)
@@ -151,8 +156,14 @@ def obter_estatisticas_logs() -> Dict:
 
 def render_painel_logs():
     """
-    Renderiza o painel de logs e monitoramento
+    Renderiza o painel de logs e monitoramento.
+
+    A rotina de coleta pode importar este módulo sem Streamlit; somente a
+    renderização visual exige as dependências da interface.
     """
+    if st is None or pd is None:
+        raise RuntimeError("A visualização de logs requer streamlit e pandas instalados.")
+
     st.markdown("## 📊 Monitor de Buscas")
     st.caption("Veja todas as tentativas de busca e seus resultados")
     

@@ -1,15 +1,17 @@
-name: Update Marketplace Trends
+name: Atualização diária de tendências de marketplace
 
 on:
   schedule:
-    - cron: '0 */12 * * *'
+    # 08:00 no horário de Brasília (UTC-3).
+    - cron: '0 11 * * *'
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   update-trends:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
 
     steps:
       - name: Checkout repository
@@ -20,15 +22,10 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install dependencies
+      - name: Install runtime dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install requests beautifulsoup4 selenium
-
-      - name: Install Chrome for Shopee collection
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y google-chrome-stable
+          python -m pip install requests beautifulsoup4
 
       - name: Refresh official Mercado Livre and Amazon sources
         run: |
@@ -48,19 +45,20 @@ jobs:
           print(f"Amazon oficial ou último cache validado: {len(amazon)} produtos")
           PY
 
-      - name: Refresh Shopee source
+      - name: Refresh filtered Shopee daily trends
         run: python scraping_shopee_v2.py
 
-      - name: Verify source provenance
+      - name: Verify source provenance and adult-content exclusion
         run: |
           python - <<'PY'
           import json
+          from datetime import date
+          from modules.adult_content_filter import eh_termo_adulto
 
           expected = {
               "ml_trends_cache.json": "https://tendencias.mercadolivre.com.br/",
               "amazon_trends.json": "https://www.amazon.com.br/gp/bestsellers/",
           }
-
           for path, source_url in expected.items():
               with open(path, encoding="utf-8") as file:
                   payload = json.load(file)
@@ -68,13 +66,22 @@ jobs:
               assert payload.get("origem_coleta") == "pagina_oficial", f"Origem inválida em {path}"
               assert payload.get("status_coleta") == "sucesso", f"Status inválido em {path}"
               assert isinstance(payload.get("produtos"), dict) and payload["produtos"], f"Sem produtos em {path}"
-          PY
-          test -s shopee_trends.json
 
-      - name: Commit and push changes
+          with open("shopee_daily_cache.json", encoding="utf-8") as file:
+              shopee = json.load(file)
+          termos = shopee.get("termos", [])
+          assert shopee.get("data_coleta") == date.today().isoformat(), "Cache Shopee não é do dia"
+          assert termos, "Nenhuma tendência Shopee válida foi registrada"
+          assert all(not eh_termo_adulto(termo) for termo in termos), "Conteúdo adulto chegou ao cache"
+          assert "Brinquedo Sexual Masculino" not in termos, "Termo adulto não foi excluído"
+          print(f"Shopee diária: {len(termos)} termos seguros; {shopee.get('termos_bloqueados', 0)} bloqueados")
+          PY
+
+      - name: Commit refreshed data
         run: |
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
-          git add .github/workflows/update_ml_trends.yml atualizar_ml_trends.py scraping_amazon.py modules/mercadolivre_scraper.py modules/amazon_scraper.py modules/produtos_dinamicos.py modules/grade_descoberta.py ml_trends_cache.json shopee_trends.json amazon_trends.json
-          git commit -m "fix: valida fontes oficiais e categorias da grade" || exit 0
+          git add ml_trends_cache.json amazon_trends.json
+          git add -f shopee_daily_cache.json shopee_trends.json
+          git commit -m "chore(data): atualização diária de tendências" || exit 0
           git push
