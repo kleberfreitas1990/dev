@@ -1,452 +1,275 @@
-#!/usr/bin/env python3
 """
-O Que Postar Hoje — Dados Reais Inteligentes (v2)
-==================================================
-Módulo que coleta dados REAIS de tendências do dia e os filtra/categoriza
-inteligentemente para direcionar o conteúdo do usuário.
+O Que Postar Hoje — Oportunidades de Marketplace.
 
-Princípios:
-- NUNCA mostrar tragédias, crimes, política polêmica, acidentes ou conteúdo negativo
-- PRIORIZAR tendências de moda, beleza, lifestyle, compras e entretenimento leve
-- CLASSIFICAR cada trend por potencial comercial (Moda, Beleza, Casa, Games, etc.)
-- GERAR sugestões de post específicas com hashtags e formato
-
-Fontes:
-- Google Trends Brasil (via scraping do HTML renderizado)
-- Google News Brasil (RSS)
-- Termos de e-commerce do TERMOS_REAIS_SHOPEE (cruzamento)
-
-Atualizado automaticamente a cada acesso (cache de 4h).
+A tela é deliberadamente limitada a dados de compra e busca com proveniência
+identificada. Notícias, Google Trends, Pinterest, TikTok e métricas simuladas
+não são exibidos como oportunidade comercial.
 """
 
-import os
+from __future__ import annotations
+
 import json
 import logging
-import re
+import os
 from datetime import datetime, timedelta
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
 
-import requests
-from bs4 import BeautifulSoup
+from modules.adult_content_filter import filtrar_lista_termos
 
 logger = logging.getLogger(__name__)
 
-CACHE_FILE = "o_que_postar_hoje_cache.json"
-CACHE_TTL_HORAS = 4  # Cache válido por 4 horas
+DIRETORIO_RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CACHE_FILE = os.path.join(DIRETORIO_RAIZ, "o_que_postar_hoje_cache.json")
+CACHE_TTL_HORAS = 2
+MAX_IDADE_FONTE_HORAS = 48
 
-HEADERS = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-    'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8',
-}
+FONTES_MARKETPLACE = (
+    {
+        "chave": "shopee",
+        "arquivo": "shopee_daily_cache.json",
+        "nome": "Shopee — Buscas em Alta",
+        "origem_esperada": None,
+        "url": "https://help.shopee.com.br/portal/10/article/163263-Como-encontrar-produtos-em-alta",
+    },
+    {
+        "chave": "mercado_livre",
+        "arquivo": "ml_trends_cache.json",
+        "nome": "Mercado Livre — Tendências",
+        "origem_esperada": "pagina_oficial",
+        "url": "https://tendencias.mercadolivre.com.br/",
+    },
+    {
+        "chave": "amazon",
+        "arquivo": "amazon_trends.json",
+        "nome": "Amazon Brasil — Mais Vendidos",
+        "origem_esperada": "pagina_oficial",
+        "url": "https://www.amazon.com.br/gp/bestsellers/",
+    },
+)
 
-# ============================================================
-# FILTRO ANTI-NEGATIVO — Palavras-chave que NUNCA devem aparecer
-# ============================================================
-TERMOS_NEGATIVOS = [
-    # Tragédias e desastres
-    'ciclone', 'furacão', 'enchente', 'inundação', 'terremoto', 'tsunami',
-    'incêndio', 'desabamento', ' deslizamento', 'bomba', 'tragédia',
-    # Crimes e violência
-    'estupro', 'assassinato', 'homicídio', 'latrocínio', 'roubo', 'assalto',
-    'crime', 'prisão', 'preso', 'polícia', 'delegado', 'tribunal', 'júri',
-    'julgamento', 'sentença', 'condenado', 'vítima', 'cadáver', 'corpo',
-    # Política polêmica
-    'lula', 'bolsonaro', 'câmara', 'senado', 'stj', 'stf', 'ministro',
-    'impeachment', 'denúncia', 'corrupção', 'petralha', 'bolsonarista',
-    # Acidentes e emergências
-    'acidente', 'morte', 'mortos', 'feridos', 'atropelamento', 'capotamento',
-    # Guerra e conflitos
-    'guerra', 'ataque', 'bomba', 'míssil', 'invasão', 'conflito',
-    # Saúde negativa
-    'surto', 'epidemia', 'pandemia', 'doença terminal', 'câncer',
-    # Clima severo
-    'alerta', 'vendaval', 'temporal', 'severo', 'emergência',
-    # Outros negativos
-    'triste', 'lamentável', 'revolta', 'indignação', 'pânico', 'alerta máximo',
-]
-
-# ============================================================
-# CATEGORIZAÇÃO COMERCIAL — Palavras-chave por nicho
-# ============================================================
 CATEGORIAS_COMERCIAIS = {
-    '👗 Moda': {
-        'palavras': ['tênis', 'moda', 'look', 'outfit', 'vestido', 'sapato', 'bolsa',
-                     'relógio', 'óculos', 'acessório', 'camisa', 'calça', 'jaqueta',
-                     'roupa', 'estilo', 'outono', 'inverno', 'verão', 'tendência'],
-        'dica': 'Poste look do dia + produto da Shopee. Use hashtags #LookDoDia #ModaFeminina',
-        'formato': 'Reels/Vídeo curto mostrando o look completo',
-    },
-    '💄 Beleza': {
-        'palavras': ['make', 'maquiagem', 'unha', 'cabelo', 'progressiva', 'hidratação',
-                     'skincare', 'perfume', 'canela', 'pele', 'rosa', 'botox', 'lábios',
-                     'milrose', 'escova', 'pente', 'tratamento'],
-        'dica': 'Antes/Depois + produto usado. Alto engajamento com tutorial.',
-        'formato': 'Reels com transição antes/depois',
-    },
-    '🏠 Casa & Decoração': {
-        'palavras': ['casa', 'decoração', 'papel de parede', 'sala', 'quarto', 'cozinha',
-                     'vaso', 'quadro', 'almofada', 'luminária', 'organização', 'sapateira',
-                     'travessa', 'cumeeira', 'janela', 'aluminio'],
-        'dica': 'Transformação do ambiente + link para produto. Conteúdo que salva.',
-        'formato': 'Carrossel ou Reels mostrando antes/depois do ambiente',
-    },
-    '🎮 Games & Tech': {
-        'palavras': ['nintendo', 'ps5', 'switch', '3ds', 'notebook', 'tablet', 'desktop',
-                     'game', 'videogame', 'controle', 'fobos', 'steam', 'playstation'],
-        'dica': 'Review/Comparativo + link de compra. Conteúdo que converte direto.',
-        'formato': 'Vídeo review ou carrossel de unboxing',
-    },
-    '🏋️ Esportes & Fitness': {
-        'palavras': ['bicicleta', 'ergométrica', 'academia', 'treino', 'fitness',
-                     'corrida', 'crossfit', 'saúde', 'bem-estar', 'moto', 'scooter',
-                     'carabina', 'escapamento', 'cruze', 'automotivo'],
-        'dica': 'Dica de treino/equipamento + produto da Shopee. Engaja muito com homens.',
-        'formato': 'Reels com demonstração do equipamento',
-    },
-    '🧸 Brinquedos & Infantil': {
-        'palavras': ['lego', 'brinquedo', 'fantasia', 'paquita', 'copa', 'figurinhas',
-                     'infantil', 'criança', 'boneca', 'carrinho'],
-        'dica': 'Unboxing + reação das crianças. Conteúdo viral por natureza.',
-        'formato': 'Reels de unboxing com reação genuína',
-    },
-    '🍫 Alimentação & Casa': {
-        'palavras': ['cacau', 'chocolate', 'chopp', 'fatiador', 'bolo', 'cenoura',
-                     'microondas', 'micro-ondas', 'geladeira', 'freezer', 'ar condicionado',
-                     'cortador', 'grama', 'liquidificador', 'panela'],
-        'dica': 'Receita rápida usando o produto + link. Conteúdo compartilhável.',
-        'formato': 'Reels de receita ou demonstração do eletrodoméstico',
-    },
-    '🎁 Presentes & Datas Especiais': {
-        'palavras': ['dia dos pais', 'presente', 'kit', 'caixa', 'vale', 'especial',
-                     'aniversário', 'data', 'comemorativa', 'namorados', 'natal'],
-        'dica': 'Sugestão de presente com preço. Poste 2-3 semanas antes da data.',
-        'formato': 'Carrossel com 3-5 opções de presente por faixa de preço',
-    },
-}
-
-CATEGORIA_PADRAO = {
-    'palavras': [],
-    'dica': 'Conteúdo geral — conecte ao seu nicho com humor ou curiosidade.',
-    'formato': 'Reels curto ou carrossel informativo',
+    "Moda": ("tênis", "tenis", "bolsa", "crocs", "biquíni", "biquini", "roupa", "sapato", "casaco"),
+    "Beleza": ("pente", "perfume", "maquiagem", "cabelo", "skincare", "unha"),
+    "Casa e Jardim": ("tapete", "mangueira", "garrafa", "botijão", "botijao", "cozinha", "sala", "jardim"),
+    "Tecnologia e Games": ("nintendo", "switch", "ps5", "kindle", "celular", "xiaomi", "gabinete", "impressora", "drone"),
+    "Automotivo": ("pneu", "multimídia", "multimidia", "fiat", "carro"),
+    "Ferramentas": ("serra", "pedal", "ferramenta"),
+    "Infantil": ("bebê", "bebe", "brinquedo", "photocard"),
 }
 
 
-def _classificar_trend(termo: str) -> Dict[str, str]:
-    """Classifica uma trend por categoria comercial."""
-    termo_lower = termo.lower()
+def _ler_json(caminho: str) -> Dict[str, Any]:
+    """Lê um cache estruturado sem fabricar dados quando a origem falha."""
+    try:
+        with open(caminho, "r", encoding="utf-8") as arquivo:
+            conteudo = json.load(arquivo)
+        return conteudo if isinstance(conteudo, dict) else {}
+    except (OSError, json.JSONDecodeError, TypeError) as erro:
+        logger.warning("Não foi possível ler cache de marketplace %s: %s", caminho, erro)
+        return {}
 
-    for categoria, dados in CATEGORIAS_COMERCIAIS.items():
-        for palavra in dados['palavras']:
-            if palavra in termo_lower:
-                return {
-                    'categoria': categoria,
-                    'dica': dados['dica'],
-                    'formato': dados['formato'],
-                }
 
+def _parse_data(valor: Any) -> Optional[datetime]:
+    """Converte os formatos de data dos caches para uma data comparável."""
+    if not valor:
+        return None
+    texto = str(valor).strip()
+    for formato in (
+        "%Y-%m-%dT%H:%M:%S.%f",
+        "%Y-%m-%dT%H:%M:%S",
+        "%Y-%m-%d %H:%M:%S",
+        "%Y-%m-%d",
+        "%d/%m/%Y %H:%M",
+        "%d/%m/%Y",
+    ):
+        try:
+            return datetime.strptime(texto, formato)
+        except ValueError:
+            continue
+    return None
+
+
+def _data_payload(payload: Dict[str, Any]) -> Optional[datetime]:
+    return _parse_data(payload.get("timestamp") or payload.get("data_coleta") or payload.get("data"))
+
+
+def _formatar_data(data: Optional[datetime]) -> str:
+    return data.strftime("%d/%m/%Y %H:%M") if data else "Data não informada"
+
+
+def _fonte_atual(payload: Dict[str, Any]) -> bool:
+    data = _data_payload(payload)
+    return bool(data and (datetime.now() - data) <= timedelta(hours=MAX_IDADE_FONTE_HORAS))
+
+
+def _classificar_produto(nome: str, categoria_origem: str = "") -> str:
+    if categoria_origem and categoria_origem not in {"Não informada pela página de tendências", "Outros"}:
+        return categoria_origem
+    nome_normalizado = nome.lower()
+    for categoria, palavras in CATEGORIAS_COMERCIAIS.items():
+        if any(palavra in nome_normalizado for palavra in palavras):
+            return categoria
+    return "Outros"
+
+
+def _dica_de_conteudo(nome: str, categoria: str) -> str:
+    """Sugere um formato sem alegar sinais inexistentes de redes sociais."""
+    if categoria == "Tecnologia e Games":
+        return f"Mostre uso real, compatibilidade e comparação de {nome}."
+    if categoria == "Casa e Jardim":
+        return f"Demonstre a utilidade de {nome} em um problema do dia a dia."
+    if categoria == "Moda":
+        return f"Mostre variações, tamanho e combinação de {nome}."
+    return f"Faça demonstração objetiva de {nome}, com benefício e chamada para a oferta."
+
+
+def _status_fonte(configuracao: Dict[str, Any], payload: Dict[str, Any]) -> Dict[str, Any]:
+    data = _data_payload(payload)
+    if not payload:
+        situacao = "Indisponível"
+        criterio = "Sem cache de origem"
+    elif configuracao["origem_esperada"] and payload.get("origem_coleta") != configuracao["origem_esperada"]:
+        situacao = "Não verificada"
+        criterio = "Origem oficial não confirmada"
+    elif not _fonte_atual(payload):
+        situacao = "Desatualizada"
+        criterio = f"Cache acima de {MAX_IDADE_FONTE_HORAS}h"
+    elif payload.get("status_coleta") not in (None, "sucesso"):
+        situacao = "Indisponível"
+        criterio = "Última coleta não foi bem-sucedida"
+    else:
+        situacao = "Atualizada"
+        criterio = "Origem e data verificadas"
+
+    itens = payload.get("termos") if configuracao["chave"] == "shopee" else payload.get("produtos", {})
+    total = len(itens) if isinstance(itens, (list, dict)) else 0
     return {
-        'categoria': '🔥 Viral Geral',
-        'dica': 'Conteúdo viral — poste rápido antes que esfrie. Use CTA para engajamento.',
-        'formato': 'Reels de 15-30s ou post estático com pergunta',
+        "fonte": configuracao["nome"],
+        "situacao": situacao,
+        "atualizado": _formatar_data(data),
+        "itens_disponiveis": total,
+        "criterio": criterio,
+        "url": configuracao["url"],
     }
 
 
-def _filtrar_negativo(termo: str) -> bool:
-    """Retorna True se o termo contém conteúdo negativo (deve ser EXCLUÍDO)."""
-    termo_lower = termo.lower()
-    for palavra in TERMOS_NEGATIVOS:
-        if palavra in termo_lower:
-            return True
-    return False
-
-
-def _parse_trending_volume(text: str) -> int:
-    """Extrai o número de buscas. Suporta inglês (1M+, 500K+) e português (1 mi+, 500 mil+).
-    O Google usa \xa0 (non-breaking space) entre número e unidade."""
-    text_norm = text.replace('\xa0', ' ')
-    match_en = re.search(r'\b(\d+\.?\d*)\s*([KkMm])\+', text_norm)
-    if match_en:
-        num = float(match_en.group(1))
-        suffix = match_en.group(2).upper()
-        if suffix == 'M':
-            return int(num * 1_000_000)
-        elif suffix == 'K':
-            return int(num * 1_000)
-    match_pt = re.search(r'\b(\d+\.?\d*)\s*(mi|mil)\+', text_norm, re.IGNORECASE)
-    if match_pt:
-        num = float(match_pt.group(1))
-        suffix = match_pt.group(2).lower()
-        if suffix == 'mi':
-            return int(num * 1_000_000)
-        else:
-            return int(num * 1_000)
-    return 0
-
-
-def _parse_variacao(text: str) -> int:
-    """Extrai a variação percentual de uma string tipo '+1,000%' ou '+1.000%'."""
-    match = re.search(r'([\d.,]+)%', text)
-    if match:
-        return int(match.group(1).replace(',', '').replace('.', ''))
-    return 0
-
-
-def _obter_google_trends_reais() -> List[Dict[str, Any]]:
-    """Extrai trending searches REAIS do Google Trends Brasil via scraping.
-    Aplica filtro anti-negativo e categorização comercial."""
-    trends = []
-    try:
-        url = 'https://trends.google.com/trending?geo=BR'
-        r = requests.get(url, timeout=20, headers=HEADERS)
-        if r.status_code != 200:
-            logger.warning(f"Google Trends retornou {r.status_code}")
-            return trends
-
-        soup = BeautifulSoup(r.text, 'html.parser')
-        rows = soup.find_all('tr')
-
-        for row in rows:
-            cells = row.find_all('td')
-            if len(cells) < 3:
-                continue
-
-            cell_1 = cells[1].get_text(' ', strip=True) if len(cells) > 1 else ''
-            cell_2 = cells[2].get_text(' ', strip=True) if len(cells) > 2 else ''
-            cell_3 = cells[3].get_text(' ', strip=True) if len(cells) > 3 else ''
-
-            # Extrair termo limpo
-            cell_1_norm = cell_1.replace('\xa0', ' ')
-            termo_match = re.match(
-                r'^([a-zA-ZÀ-ÿ0-9\s]+?)(?=\s*\d+\s*(?:[KkMm]|mi|mil)\+)', cell_1_norm
-            )
-            if not termo_match:
-                continue
-
-            termo = termo_match.group(1).strip()
-            if not termo or len(termo) < 2:
-                continue
-
-            # FILTRO ANTI-NEGATIVO: pular tragédias, crimes, política polêmica
-            if _filtrar_negativo(termo):
-                logger.info(f"  🚫 Filtrado (negativo): {termo}")
-                continue
-
-            volume = _parse_trending_volume(cell_1)
-
-            variacao = 0
-            var_match = re.search(r'arrow_upward\s*([\d.]+)%', cell_2)
-            if var_match:
-                variacao = int(var_match.group(1).replace('.', '').replace(',', ''))
-            else:
-                variacao = _parse_variacao(cell_2)
-
-            tempo = ''
-            tempo_match = re.search(r'(\d+\s*(?:horas?|minutos?|dias?)\s*(?:atrás|ago))', cell_3, re.IGNORECASE)
-            if tempo_match:
-                tempo = tempo_match.group(1)
-            else:
-                tempo_match2 = re.search(r'(\d+\s*h\s*(?:atrás|ago))', cell_3, re.IGNORECASE)
-                if tempo_match2:
-                    tempo = tempo_match2.group(1)
-                else:
-                    tempo_match3 = re.search(r'há\s*(\d+\s*h?)', cell_3)
-                    if tempo_match3:
-                        tempo = tempo_match3.group(0)
-
-            if termo.isdigit() or len(termo) < 3:
-                continue
-
-            # Categorizar por nicho comercial
-            classificacao = _classificar_trend(termo)
-
-            trends.append({
-                'termo': termo,
-                'volume_buscas': volume,
-                'variacao_pct': variacao,
-                'tempo': tempo,
-                'categoria': classificacao['categoria'],
-                'dica_post': classificacao['dica'],
-                'formato_sugerido': classificacao['formato'],
-                'fonte': 'Google Trends BR',
-                'atualizado': datetime.now().strftime('%d/%m/%Y %H:%M'),
-            })
-
-            if len(trends) >= 25:
-                break
-
-    except Exception as e:
-        logger.error(f"Erro ao buscar Google Trends: {e}")
-
-    return trends
-
-
-def _obter_google_news_destaques() -> List[Dict[str, Any]]:
-    """Extrai headlines em destaque do Google News Brasil via RSS.
-    Filtra conteúdo negativo e prioriza temas comerciais/lifestyle."""
-    noticias = []
-    try:
-        url = 'https://news.google.com/rss/topics/CAAqJggKIiBDQkFTRWdvSUwyMHZNRFZxYUdjU0FtVnVHZ0pWVXlnQVAB?hl=pt-BR&gl=BR&ceid=BR:pt-150'
-        r = requests.get(url, timeout=15, headers=HEADERS)
-        if r.status_code != 200:
-            return noticias
-
-        soup = BeautifulSoup(r.text, 'lxml-xml')
-        items = soup.find_all('item')[:20]
-
-        for item in items:
-            title_tag = item.find('title')
-            pub_date_tag = item.find('pubDate')
-            source_tag = item.find('source')
-
-            title = title_tag.text if title_tag else ''
-            title_clean = re.sub(r'\s*-\s*[A-ZÀ-Ú][a-zà-ú]+(?:\s+[A-ZÀ-Ú][a-zà-ú]+)*$', '', title).strip()
-
-            if not title_clean or len(title_clean) < 5:
-                continue
-
-            # FILTRO ANTI-NEGATIVO
-            if _filtrar_negativo(title_clean):
-                continue
-
-            # Priorizar notícias com potencial comercial/lifestyle
-            classificacao = _classificar_trend(title_clean)
-
-            pub_date = pub_date_tag.text if pub_date_tag else ''
-            source = source_tag.text if source_tag else 'Google News'
-
-            noticias.append({
-                'termo': title_clean,
-                'fonte_nome': source,
-                'publicado': pub_date,
-                'categoria': classificacao['categoria'],
-                'dica_post': classificacao['dica'],
-                'formato_sugerido': classificacao['formato'],
-                'fonte': 'Google News BR',
-                'atualizado': datetime.now().strftime('%d/%m/%Y %H:%M'),
-            })
-
-    except Exception as e:
-        logger.error(f"Erro ao buscar Google News: {e}")
-
-    return noticias
-
-
-def _cruzamento_ecommerce(termos_trends: List[Dict]) -> List[Dict[str, Any]]:
-    """
-    Cruza os termos do Google Trends com a lista de produtos Shopee
-    para encontrar oportunidades de e-commerce.
-    """
-    try:
-        from modules.shopee import TERMOS_REAIS_SHOPEE
-        termos_shopee = [t.lower() for t in TERMOS_REAIS_SHOPEE]
-    except Exception:
+def _itens_shopee(payload: Dict[str, Any]) -> List[Dict[str, Any]]:
+    termos = payload.get("termos", [])
+    if not isinstance(termos, list):
         return []
+    termos_filtrados = filtrar_lista_termos(termos)
+    atualizado = _formatar_data(_data_payload(payload))
+    resultado = []
+    for posicao, termo in enumerate(termos_filtrados, start=1):
+        nome = str(termo).strip()
+        if not nome:
+            continue
+        categoria = _classificar_produto(nome)
+        resultado.append({
+            "produto": nome,
+            "fonte": "Shopee — Buscas em Alta",
+            "indicador": "Termo de busca em alta",
+            "posicao": posicao,
+            "categoria": categoria,
+            "atualizado": atualizado,
+            "origem": payload.get("fonte", "Rotina diária Shopee"),
+            "dica_post": _dica_de_conteudo(nome, categoria),
+        })
+    return resultado
 
-    cruzamentos = []
-    for t in termos_trends:
-        termo_lower = t['termo'].lower()
-        for produto in termos_shopee:
-            if produto in termo_lower or termo_lower in produto:
-                cruzamentos.append({
-                    'termo_trend': t['termo'],
-                    'produto_relacionado': produto,
-                    'volume_buscas': t.get('volume_buscas', 0),
-                    'variacao_pct': t.get('variacao_pct', 0),
-                    'categoria': t.get('categoria', 'Geral'),
-                    'dica_post': t.get('dica_post', 'Poste sobre esse produto trendando'),
-                    'formato_sugerido': t.get('formato_sugerido', 'Reels de review'),
-                    'fonte': 'Cruzamento Trends + Shopee',
-                    'atualizado': datetime.now().strftime('%d/%m/%Y %H:%M'),
-                })
 
-    return cruzamentos
+def _itens_ranking(payload: Dict[str, Any], nome_fonte: str) -> List[Dict[str, Any]]:
+    produtos = payload.get("produtos", {})
+    if not isinstance(produtos, dict):
+        return []
+    atualizado = _formatar_data(_data_payload(payload))
+    resultado = []
+    for nome, dados in produtos.items():
+        if not isinstance(dados, dict):
+            continue
+        produto = str(nome).strip()
+        if not produto:
+            continue
+        categoria = _classificar_produto(produto, str(dados.get("categoria", "")))
+        posicao = dados.get("posicao_ranking")
+        indicador = f"Posição #{posicao} no ranking" if posicao else str(dados.get("evento", "Destaque de marketplace"))
+        resultado.append({
+            "produto": produto,
+            "fonte": nome_fonte,
+            "indicador": indicador,
+            "posicao": posicao if isinstance(posicao, int) else 9999,
+            "categoria": categoria,
+            "atualizado": atualizado,
+            "origem": dados.get("origem_coleta", payload.get("origem_coleta", "Página oficial")),
+            "dica_post": _dica_de_conteudo(produto, categoria),
+        })
+    return sorted(resultado, key=lambda item: item["posicao"])
 
 
 def _cache_valido() -> bool:
-    if not os.path.exists(CACHE_FILE):
-        return False
+    payload = _ler_json(CACHE_FILE)
+    data = _parse_data(payload.get("timestamp"))
+    return bool(data and (datetime.now() - data) < timedelta(hours=CACHE_TTL_HORAS))
+
+
+def _salvar_cache(dados: Dict[str, Any]) -> None:
     try:
-        with open(CACHE_FILE, 'r', encoding='utf-8') as f:
-            cache = json.load(f)
-        timestamp = datetime.fromisoformat(cache.get('timestamp', '2000-01-01'))
-        return (datetime.now() - timestamp) < timedelta(hours=CACHE_TTL_HORAS)
-    except Exception:
-        return False
+        with open(CACHE_FILE, "w", encoding="utf-8") as arquivo:
+            json.dump({"timestamp": datetime.now().isoformat(), "dados": dados}, arquivo, ensure_ascii=False, indent=2)
+    except OSError as erro:
+        logger.error("Não foi possível salvar cache da tela comercial: %s", erro)
 
 
-def _salvar_cache(dados: Dict):
-    cache = {
-        'timestamp': datetime.now().isoformat(),
-        'data': datetime.now().strftime('%Y-%m-%d'),
-        'dados': dados,
-    }
-    try:
-        with open(CACHE_FILE, 'w', encoding='utf-8') as f:
-            json.dump(cache, f, ensure_ascii=False, indent=2)
-    except Exception as e:
-        logger.error(f"Erro ao salvar cache: {e}")
-
-
-def _carregar_cache() -> Optional[Dict]:
-    if not os.path.exists(CACHE_FILE):
-        return None
-    try:
-        with open(CACHE_FILE, 'r', encoding='utf-8') as f:
-            cache = json.load(f)
-        return cache.get('dados')
-    except Exception:
-        return None
+def _carregar_cache() -> Optional[Dict[str, Any]]:
+    return _ler_json(CACHE_FILE).get("dados")
 
 
 def obter_sugestoes_do_dia(forcar_atualizacao: bool = False) -> Dict[str, Any]:
-    """
-    Retorna sugestões do dia para postar nas redes sociais.
-    Filtra conteúdo negativo e categoriza por potencial comercial.
-    """
+    """Retorna oportunidades comerciais apenas de fontes de marketplace atuais."""
     if not forcar_atualizacao and _cache_valido():
-        dados = _carregar_cache()
-        if dados:
-            return dados
+        dados_em_cache = _carregar_cache()
+        if dados_em_cache:
+            return dados_em_cache
 
-    logger.info("🔥 Coletando sugestões inteligentes para postar hoje...")
+    status_fontes: List[Dict[str, Any]] = []
+    itens_marketplace: List[Dict[str, Any]] = []
 
-    # 1. Google Trends reais (com filtro anti-negativo)
-    trends_reais = _obter_google_trends_reais()
-    logger.info(f"  Google Trends: {len(trends_reais)} tendências comerciais")
-
-    # 2. Google News destaques (com filtro anti-negativo)
-    news_destaques = _obter_google_news_destaques()
-    logger.info(f"  Google News: {len(news_destaques)} destaques positivos")
-
-    # 3. Cruzamento com e-commerce
-    cruzamentos = _cruzamento_ecommerce(trends_reais)
-    logger.info(f"  Cruzamentos e-commerce: {len(cruzamentos)} oportunidades")
+    for configuracao in FONTES_MARKETPLACE:
+        caminho = os.path.join(DIRETORIO_RAIZ, configuracao["arquivo"])
+        payload = _ler_json(caminho)
+        status = _status_fonte(configuracao, payload)
+        status_fontes.append(status)
+        if status["situacao"] != "Atualizada":
+            logger.info("Fonte %s excluída da tela: %s", configuracao["nome"], status["criterio"])
+            continue
+        if configuracao["chave"] == "shopee":
+            itens_marketplace.extend(_itens_shopee(payload))
+        else:
+            itens_marketplace.extend(_itens_ranking(payload, configuracao["nome"]))
 
     resultado = {
-        'data': datetime.now().strftime('%d/%m/%Y'),
-        'hora_geracao': datetime.now().strftime('%H:%M'),
-        'trends_google': trends_reais,
-        'news_destaques': news_destaques,
-        'oportunidades_ecommerce': cruzamentos,
-        'total_trends': len(trends_reais),
-        'total_news': len(news_destaques),
-        'total_oportunidades': len(cruzamentos),
+        "data": datetime.now().strftime("%d/%m/%Y"),
+        "hora_geracao": datetime.now().strftime("%H:%M"),
+        "itens_marketplace": itens_marketplace,
+        "status_fontes": status_fontes,
+        "total_oportunidades": len(itens_marketplace),
+        "fontes_atualizadas": sum(1 for status in status_fontes if status["situacao"] == "Atualizada"),
     }
-
     _salvar_cache(resultado)
     return resultado
 
 
-def render_o_que_postar_hoje():
-    """Renderiza a seção 'O que Postar Hoje' no Streamlit."""
+def render_o_que_postar_hoje() -> None:
+    """Renderiza a tela exclusiva de oportunidades de marketplace."""
+    import pandas as pd
     import streamlit as st
 
-    st.markdown("## 🎯 O Que Postar Hoje")
-    st.caption("Tendências reais filtradas — sem tragédias, só conteúdo que vende e engaja")
+    st.markdown("## 🛒 O Que Vender e Postar Hoje")
+    st.caption("Oportunidades de marketplace com origem e data verificáveis, atualizadas somente por fontes comerciais.")
 
     col_atualizar, col_info = st.columns([1, 3])
     with col_atualizar:
-        if st.button("🔄 Atualizar Agora", key="btn_atualizar_postar", use_container_width=True):
+        if st.button("🔄 Atualizar fontes", key="btn_atualizar_postar", use_container_width=True):
             if os.path.exists(CACHE_FILE):
                 os.remove(CACHE_FILE)
             st.rerun()
@@ -454,92 +277,51 @@ def render_o_que_postar_hoje():
         dados = obter_sugestoes_do_dia()
         st.info(
             f"📅 {dados.get('data', '?')} às {dados.get('hora_geracao', '?')} | "
-            f"📊 {dados.get('total_trends', 0)} trends comerciais + "
-            f"📰 {dados.get('total_news', 0)} notícias positivas + "
-            f"🛒 {dados.get('total_oportunidades', 0)} oportunidades e-commerce"
+            f"🛒 {dados.get('total_oportunidades', 0)} oportunidades verificadas | "
+            f"✅ {dados.get('fontes_atualizadas', 0)} fonte(s) atualizada(s)"
         )
 
     st.markdown("---")
+    st.markdown("### 🔥 Oportunidades de Marketplace")
+    st.caption("Cada linha indica a fonte, o tipo de sinal comercial e a data da coleta. Nenhum volume, crescimento ou engajamento é inventado.")
 
-    # === SEÇÃO 1: TRENDING SEARCHES FILTRADAS E CATEGORIZADAS ===
-    st.markdown("### 🔥 Tendências Comerciais do Dia")
-    st.caption("Google Trends Brasil — filtrado para mostrar apenas tendências com potencial comercial. Categoria, dica de post e formato sugerido incluídos.")
+    itens = dados.get("itens_marketplace", [])
+    if itens:
+        destaques = itens[:5]
+        colunas = st.columns(min(5, len(destaques)))
+        for indice, item in enumerate(destaques):
+            with colunas[indice]:
+                st.metric(f"#{indice + 1} {item['produto'][:20]}", item["indicador"], item["fonte"].split(" — ")[0])
 
-    trends = dados.get('trends_google', [])
-    if trends:
-        # Top 5 destaques
-        top_trends = sorted(trends, key=lambda x: x.get('volume_buscas', 0), reverse=True)[:5]
-        cols = st.columns(min(5, len(top_trends)))
-        for i, trend in enumerate(top_trends):
-            with cols[i]:
-                st.metric(
-                    f"#{i+1} {trend['termo'][:20]}",
-                    trend.get('volume_buscas', 0),
-                    f"+{trend.get('variacao_pct', 0):,}%",
-                )
-
-        # Tabela completa com categoria e dica
-        df_trends = []
-        for idx, t in enumerate(trends, 1):
-            df_trends.append({
-                '#': idx,
-                'O que estão buscando': t['termo'],
-                'Categoria': t.get('categoria', 'Geral'),
-                'Buscas': f"{t.get('volume_buscas', 0):,}".replace(',', '.'),
-                'Variação': f"+{t.get('variacao_pct', 0):,}%".replace(',', '.'),
-                'Quando começou': t.get('tempo', ''),
-                '💡 Dica de Post': t.get('dica_post', ''),
-                '📱 Formato': t.get('formato_sugerido', ''),
+        tabela = []
+        for indice, item in enumerate(itens, start=1):
+            tabela.append({
+                "#": indice,
+                "Produto / busca": item["produto"],
+                "Marketplace": item["fonte"],
+                "Sinal confirmado": item["indicador"],
+                "Categoria": item["categoria"],
+                "Atualizado em": item["atualizado"],
+                "Ideia de conteúdo": item["dica_post"],
             })
-
-        import pandas as pd
-        df = pd.DataFrame(df_trends)
-        st.dataframe(df, use_container_width=True, hide_index=True)
+        st.dataframe(pd.DataFrame(tabela), use_container_width=True, hide_index=True)
     else:
-        st.warning("⚠️ Nenhuma tendência comercial encontrada agora. Tentando novamente...")
-        dados = obter_sugestoes_do_dia(forcar_atualizacao=True)
-        trends = dados.get('trends_google', [])
-        if trends:
-            st.rerun()
+        st.warning("Nenhuma fonte de marketplace atual e verificável está disponível neste momento. A tela não usa substitutos genéricos.")
 
     st.markdown("---")
-
-    # === SEÇÃO 2: NOTÍCIAS POSITIVAS OPORTUNAS ===
-    st.markdown("### 📰 Notícias com Potencial Comercial")
-    st.caption("Headlines filtradas — apenas temas com potencial de conexão com produtos e lifestyle.")
-
-    news = dados.get('news_destaques', [])
-    if news:
-        for n in news[:10]:
-            with st.expander(f"{n.get('categoria', '📌')} {n['termo'][:60]}"):
-                st.markdown(f"**Fonte:** {n.get('fonte_nome', 'Google News')}")
-                st.markdown(f"**Publicado:** {n.get('publicado', '?')}")
-                st.markdown(f"**💡 Como usar:** {n.get('dica_post', 'Conecte ao seu nicho')}")
-                st.markdown(f"**📱 Formato sugerido:** {n.get('formato_sugerido', 'Reels ou carrossel')}")
-    else:
-        st.info("📰 Nenhuma notícia comercial encontrada hoje. Foque nas tendências acima.")
+    st.markdown("### 🔎 Status das fontes comerciais")
+    st.caption("Fontes desatualizadas ou sem origem oficial confirmada são exibidas aqui, mas não entram nas oportunidades.")
+    status_fontes = dados.get("status_fontes", [])
+    if status_fontes:
+        tabela_status = [{
+            "Fonte": status["fonte"],
+            "Situação": status["situacao"],
+            "Última coleta": status["atualizado"],
+            "Itens no cache": status["itens_disponiveis"],
+            "Critério": status["criterio"],
+        } for status in status_fontes]
+        st.dataframe(pd.DataFrame(tabela_status), use_container_width=True, hide_index=True)
 
     st.markdown("---")
-
-    # === SEÇÃO 3: OPORTUNIDADES E-COMMERCE ===
-    st.markdown("### 🛒 Oportunidades de E-commerce (Trends × Shopee)")
-    st.caption("Termos que estão trendando E são produtos da Shopee. Maior chance de viralizar e converter.")
-
-    oportunidades = dados.get('oportunidades_ecommerce', [])
-    if oportunidades:
-        for opp in oportunidades:
-            st.success(
-                f"🔥 **{opp['termo_trend']}** → Produto Shopee: **{opp['produto_relacionado']}** "
-                f"({opp.get('volume_buscas', 0):,} buscas, +{opp.get('variacao_pct', 0):,}% variação)\n"
-                f"💡 {opp.get('dica_post', '')}"
-            )
-    else:
-        st.info(
-            "Nenhum cruzamento direto hoje. "
-            "Dica: Use as tendências da tabela acima e conecte com os produtos da Grade de Descoberta."
-        )
-        for t in trends[:5]:
-            st.markdown(f"- **{t['termo']}** — {t.get('volume_buscas', 0):,} buscas (+{t.get('variacao_pct', 0):,}%) — {t.get('categoria', '')}")
-
-    st.markdown("---")
-    st.caption("📊 Dados reais: Google Trends BR + Google News | Filtrado: sem tragédias, crimes ou política polêmica")
+    st.markdown("### ✍️ Como transformar o sinal em post")
+    st.caption("Use o produto e a fonte mostrados acima. Faça demonstração, comparação ou lista de benefícios e mantenha a comunicação vinculada ao sinal comercial disponível.")
