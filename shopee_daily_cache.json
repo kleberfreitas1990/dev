@@ -1,5 +1,5 @@
 {
-  "data_coleta": "2026-08-14",
+  "data_coleta": "2026-08-15",
   "termos": [
     "Biquíni",
     "Bloqueador de Sinal Bluetooth",
@@ -32,7 +32,7 @@
     "Tênis Feminino"
   ],
   "total": 29,
-  "fonte": "curadoria_manual_2026-08-14",
+  "fonte": "fallback",
   "termos_bloqueados": 0,
-  "timestamp": "2026-08-14T11:20:31.262345"
+  "timestamp": "2026-08-15T11:07:50.255667"
 }
