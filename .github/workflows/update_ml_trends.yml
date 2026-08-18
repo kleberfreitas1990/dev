@@ -48,6 +48,26 @@ jobs:
       - name: Refresh filtered Shopee daily trends
         run: python scraping_shopee_v2.py
 
+      - name: Refresh verified Google Shopping fashion trends
+        env:
+          SERPAPI_KEY: ${{ secrets.SERPAPI_KEY }}
+        run: |
+          if [ -z "$SERPAPI_KEY" ]; then
+            echo "SERPAPI_KEY não configurada; removendo cache antigo de moda para não exibir dados vencidos."
+            rm -f moda_trends_serpapi_cache.json
+          else
+            python - <<'PY'
+            from modules.tendencias_moda_serpapi import obter_tendencias_moda_serpapi
+
+            dados = obter_tendencias_moda_serpapi(forcar_atualizacao=True)
+            if not dados:
+                raise SystemExit("Google Shopping não retornou dados confirmados para moda.")
+            if not all(item.get("metrica_verificada") for item in dados):
+                raise SystemExit("A coleta de moda contém item sem métrica verificada.")
+            print(f"Google Shopping moda: {len(dados)} termos confirmados")
+            PY
+          fi
+
       - name: Verify source provenance and adult-content exclusion
         run: |
           python - <<'PY'
@@ -82,6 +102,7 @@ jobs:
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
           git add ml_trends_cache.json amazon_trends.json
+          git add -A -- moda_trends_serpapi_cache.json
           git add -f shopee_daily_cache.json shopee_trends.json
           git commit -m "chore(data): atualização diária de tendências" || exit 0
           git push

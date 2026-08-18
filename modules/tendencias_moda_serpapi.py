@@ -1,96 +1,27 @@
-"""
-Módulo de Tendências de Moda Feminina — SerpApi Google Trends
-=============================================================
-Captura dados REAIS do Google Trends via API SerpApi (google_trends endpoint).
-Calcula médias 2025 vs 2026, classifica tendências (Em Alta / Em Queda),
-e injeta dados diretamente no dashboard Streamlit.
+"""Tendências de moda feminina baseadas em Google Shopping via SerpApi.
 
-NÃO gera planilha — injeta na tela do dashboard.
+Este módulo não usa fallback estático, Pinterest ou projeções sazonais como se
+fossem dados coletados. Sem uma resposta válida da API, a tela permanece sem
+dados confirmados e informa o motivo ao usuário.
 """
+
+from __future__ import annotations
 
 import json
-import os
 import logging
-import time
-import requests
-import random
+import os
 from datetime import datetime, timedelta
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional, Tuple
+
+import requests
 
 logger = logging.getLogger(__name__)
 
-def buscar_sugestoes_pinterest(termo):
-    """Busca sugestões de busca em tempo real no Pinterest."""
-    # Tenta vários User-Agents para evitar bloqueios
-    user_agents = [
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
-        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36"
-    ]
-    
-    url = "https://www.pinterest.com/resource/BaseSearchResource/get/"
-    params = {
-        "source_url": f"/search/pins/?q={termo}",
-        "data": json.dumps({
-            "options": {
-                "isPrefetch": False,
-                "term": termo,
-                "scope": "pins",
-                "count": 10
-            },
-            "context": {}
-        })
-    }
-    
-    headers = {
-        "User-Agent": random.choice(user_agents),
-        "X-Requested-With": "XMLHttpRequest",
-        "Accept": "application/json, text/javascript, */*; q=0.01",
-        "Referer": f"https://www.pinterest.com/search/pins/?q={termo}"
-    }
-    
-    try:
-        response = requests.get(url, params=params, headers=headers, timeout=10)
-        if response.status_code == 200:
-            try:
-                dados = response.json()
-                # O Pinterest às vezes muda a estrutura, tentamos caminhos comuns
-                results = dados.get('resource_response', {}).get('data', {}).get('results', [])
-                if not results:
-                    # Tenta outro caminho
-                    results = dados.get('resource_response', {}).get('data', [])
-                
-                termos = []
-                for item in results:
-                    if isinstance(item, dict):
-                        # Pode estar em 'term' ou 'query'
-                        t = item.get('term') or item.get('query')
-                        if t and t.lower() != termo.lower():
-                            termos.append(t)
-                
-                return list(dict.fromkeys(termos))[:3] # Remove duplicados
-            except:
-                return []
-    except Exception as e:
-        logger.error(f"Erro ao acessar Pinterest para o termo '{termo}': {e}")
-    
-    # Fallback simples se a API falhar: simular termos relacionados comuns de moda
-    fallbacks = {
-        "Saia Balonê": ["Saia balonê curta", "Look saia balonê", "Saia balonê branca"],
-        "Estilo Boho": ["Vestido boho chic", "Estilo boho feminino", "Acessórios boho"],
-        "Quiet Luxury": ["Looks quiet luxury", "Quiet luxury marcas", "Estilo minimalista"],
-        "Calça Cargo": ["Calça cargo feminina", "Look calça cargo", "Calça cargo bege"],
-        "Blazer Alfaiataria": ["Blazer feminino look", "Blazer alfaiataria cores", "Blazer oversized"],
-    }
-    return fallbacks.get(termo, [])[:3]
-
-# ============================================================
-# CONFIGURAÇÕES
-# ============================================================
 CACHE_FILE = "moda_trends_serpapi_cache.json"
 CACHE_TTL_HORAS = 6
+SERPAPI_ENDPOINT = "https://serpapi.com/search.json"
+SERPAPI_DOCS_URL = "https://serpapi.com/google-trends-api"
 
-# Termos de moda feminina para monitorar
 TERMOS_MODA_FEMININA = [
     "Saia Balonê",
     "Estilo Boho",
@@ -101,448 +32,266 @@ TERMOS_MODA_FEMININA = [
     "Jeans Wide Leg",
     "Crop Top",
     "Mochila de Couro",
-    "Tênis Branco"
+    "Tênis Branco",
 ]
 
-# Configuração Shopee (para integração futura)
-SHOPEE_APP_ID = "18372330665"
-SHOPEE_SECRET = "YKHI6WJBBXZW2JNCX3IRPMEYJHZKUW6N"
-SHOPEE_BASE_URL = "https://partner.shopeemobile.com"
 
-
-# ============================================================
-# FUNÇÕES DE CACHE
-# ============================================================
 def _cache_valido() -> bool:
-    """Verifica se o cache existe e ainda é válido."""
+    """Retorna True somente para cache recente e confirmado pela API."""
     if not os.path.exists(CACHE_FILE):
         return False
     try:
-        with open(CACHE_FILE, "r", encoding="utf-8") as f:
-            cache = json.load(f)
+        with open(CACHE_FILE, "r", encoding="utf-8") as arquivo:
+            cache = json.load(arquivo)
         timestamp = cache.get("timestamp")
-        if not timestamp:
-            return False
-        ts = datetime.fromisoformat(timestamp)
-        return (datetime.now() - ts).total_seconds() < CACHE_TTL_HORAS * 3600
-    except Exception:
+        return bool(
+            timestamp
+            and cache.get("status_coleta") == "sucesso"
+            and cache.get("fonte") == "Google Shopping (SerpApi)"
+            and datetime.now() - datetime.fromisoformat(timestamp)
+            < timedelta(hours=CACHE_TTL_HORAS)
+        )
+    except (OSError, TypeError, ValueError, json.JSONDecodeError):
         return False
 
 
-def _carregar_cache() -> Optional[List[Dict]]:
-    """Carrega dados do cache."""
+def _carregar_cache() -> Optional[List[Dict[str, Any]]]:
+    """Carrega somente dados já confirmados, sem renovar a rede."""
     try:
-        with open(CACHE_FILE, "r", encoding="utf-8") as f:
-            cache = json.load(f)
-        return cache.get("dados", [])
-    except Exception:
+        with open(CACHE_FILE, "r", encoding="utf-8") as arquivo:
+            cache = json.load(arquivo)
+        if cache.get("status_coleta") != "sucesso":
+            return None
+        dados = cache.get("dados")
+        return dados if isinstance(dados, list) and dados else None
+    except (OSError, TypeError, json.JSONDecodeError):
         return None
 
 
-def _salvar_cache(dados: List[Dict]):
-    """Salva dados no cache com timestamp."""
-    try:
-        cache = {
-            "timestamp": datetime.now().isoformat(),
-            "data_coleta": datetime.now().strftime("%d/%m/%Y %H:%M"),
-            "dados": dados
-        }
-        with open(CACHE_FILE, "w", encoding="utf-8") as f:
-            json.dump(cache, f, ensure_ascii=False, indent=2)
-        logger.info(f"✅ Cache salvo: {CACHE_FILE} ({len(dados)} termos)")
-    except Exception as e:
-        logger.error(f"❌ Erro ao salvar cache: {e}")
-
-
-# ============================================================
-# FUNÇÃO PRINCIPAL — CAPTURA VIA SERPAPI
-# ============================================================
-def calcular_previsao_proximo_mes(termo, int_2025_atual, int_2026_atual):
-    """
-    Calcula a projeção de interesse para o próximo mês (Agosto)
-    baseado no crescimento atual e comportamento sazonal de 2025.
-    """
-    # Fatores sazonais reais baseados no Pinterest Trends (Brasil) para Agosto
-    # 1.0 = estável, >1.0 = tendência de subida sazonal
-    fatores_sazonais = {
-        "Saia Balonê": 1.45,       # Forte em eventos de agosto
-        "Estilo Boho": 1.30,       # Transição de estação
-        "Quiet Luxury": 1.15,      # Estilo perene, leve subida
-        "Calça Cargo": 1.10,       # Estável
-        "Blazer Alfaiataria": 1.50, # Início de clima mais fresco
-        "Vestido Midi": 1.05,      # Estável
-        "Jeans Wide Leg": 1.20,    # Crescimento constante
-        "Crop Top": 0.85,          # Leve queda com fim do auge do calor
-        "Mochila de Couro": 1.40,  # Volta às aulas/trabalho pós-férias
-        "Tênis Branco": 1.10,      # Estável
+def _salvar_cache(
+    dados: List[Dict[str, Any]],
+    periodo_base: str,
+    periodo_atual: str,
+) -> None:
+    """Persiste a resposta confirmada, com proveniência e períodos consultados."""
+    payload = {
+        "timestamp": datetime.now().isoformat(timespec="seconds"),
+        "data_coleta": datetime.now().strftime("%d/%m/%Y %H:%M"),
+        "status_coleta": "sucesso",
+        "fonte": "Google Shopping (SerpApi)",
+        "fonte_url": SERPAPI_DOCS_URL,
+        "periodo_base": periodo_base,
+        "periodo_atual": periodo_atual,
+        "dados": dados,
     }
-    
-    fator = fatores_sazonais.get(termo, 1.10)
-    
-    # Taxa de crescimento atual (2026 vs 2025)
-    crescimento_base = (int_2026_atual / max(int_2025_atual, 1))
-    
-    # Projeção: Interesse Atual * Fator Sazonal * Tendência de Crescimento Suavizada
-    projeção = int_2026_atual * fator * (1 + (crescimento_base - 1) * 0.2)
-    
-    return round(min(projeção, 100.0), 2)
+    try:
+        with open(CACHE_FILE, "w", encoding="utf-8") as arquivo:
+            json.dump(payload, arquivo, ensure_ascii=False, indent=2)
+        logger.info("Cache de moda salvo: %s (%s termos)", CACHE_FILE, len(dados))
+    except OSError as erro:
+        logger.error("Erro ao salvar cache de moda: %s", erro)
 
-def obter_tendencias_moda_serpapi(forcar_atualizacao: bool = False) -> List[Dict[str, Any]]:
-    """
-    Captura tendências de moda feminina via SerpApi (Google Trends API).
-    
-    Faz requisições REAIS à API, calcula médias 2025 vs 2026,
-    classifica como 'Em Alta' ou 'Em Queda', e retorna os dados.
-    
-    Args:
-        forcar_atualizacao: Se True, ignora o cache e faz nova requisição.
-    
-    Returns:
-        Lista de dicionários com dados de cada tendência.
-    """
-    # Verifica cache primeiro
+
+def _periodos_comparacao() -> Tuple[str, str]:
+    """Retorna períodos completos do ano anterior e do ano corrente até hoje."""
+    hoje = datetime.now()
+    ano_atual = hoje.year
+    periodo_base = f"{ano_atual - 1}-01-01 {ano_atual - 1}-12-31"
+    periodo_atual = f"{ano_atual}-01-01 {hoje.strftime('%Y-%m-%d')}"
+    return periodo_base, periodo_atual
+
+
+def _chave_serpapi() -> str:
+    """Lê a chave sem gravá-la no código, cache ou logs."""
+    chave = os.environ.get("SERPAPI_KEY", "")
+    if chave:
+        return chave
+    try:
+        import streamlit as st
+
+        return st.secrets.get("SERPAPI_KEY", "")
+    except Exception:
+        return ""
+
+
+def _consultar_google_shopping(
+    query_string: str,
+    periodo: str,
+    chave: str,
+) -> Dict[str, Any]:
+    """Consulta o interesse no Google Shopping por até cinco termos."""
+    resposta = requests.get(
+        SERPAPI_ENDPOINT,
+        params={
+            "engine": "google_trends",
+            "q": query_string,
+            "date": periodo,
+            "geo": "BR",
+            "hl": "pt-br",
+            "tz": "-180",
+            "gprop": "froogle",
+            "data_type": "TIMESERIES",
+            "api_key": chave,
+        },
+        timeout=30,
+    )
+    resposta.raise_for_status()
+    payload = resposta.json()
+    if payload.get("error"):
+        raise RuntimeError(str(payload["error"]))
+    return payload
+
+
+def _extrair_medias(payload: Dict[str, Any]) -> Dict[str, float]:
+    """Extrai as médias documentadas pelo endpoint de interesse ao longo do tempo."""
+    medias: Dict[str, float] = {}
+    for item in payload.get("interest_over_time", {}).get("averages", []):
+        termo = item.get("query")
+        valor = item.get("extracted_value", item.get("value", 0))
+        if not termo:
+            continue
+        try:
+            medias[termo] = float(valor)
+        except (TypeError, ValueError):
+            medias[termo] = 0.0
+    return medias
+
+
+def _registro(termo: str, base: float, atual: float) -> Dict[str, Any]:
+    if base <= 0 and atual <= 0:
+        status = "Sem dados"
+        variacao = "N/D"
+        variacao_num = None
+    elif atual > base:
+        status = "Em Alta"
+        variacao_num = round(((atual - base) / max(base, 1)) * 100, 1)
+        variacao = f"+{variacao_num:.1f}%"
+    else:
+        status = "Em Queda"
+        variacao_num = round(((atual - base) / max(base, 1)) * 100, 1)
+        variacao = f"{variacao_num:.1f}%"
+
+    return {
+        "termo": termo,
+        "interesse_ano_anterior": round(base, 2),
+        "interesse_ano_atual": round(atual, 2),
+        "status": status,
+        "variacao": variacao,
+        "variacao_num": variacao_num,
+        "categoria": "Moda Feminina",
+        "fonte": "Google Shopping (SerpApi)",
+        "fonte_url": SERPAPI_DOCS_URL,
+        "metrica_verificada": True,
+        "atualizado": datetime.now().strftime("%d/%m/%Y %H:%M"),
+    }
+
+
+def obter_tendencias_moda_serpapi(
+    forcar_atualizacao: bool = False,
+) -> List[Dict[str, Any]]:
+    """Obtém dados reais do Google Shopping ou retorna lista vazia, sem fallback."""
     if not forcar_atualizacao and _cache_valido():
         dados_cache = _carregar_cache()
         if dados_cache:
-            logger.info("♻️ Tendências de Moda: dados do cache (válido)")
+            logger.info("Tendências de moda: cache recente confirmado")
             return dados_cache
 
-    logger.info("🔍 Buscando tendências de Moda Feminina via SerpApi...")
+    chave = _chave_serpapi()
+    if not chave:
+        logger.warning("SERPAPI_KEY não configurada; nenhum dado de moda será inventado")
+        return []
 
-    # Obtém a chave da API SerpApi
-    serpapi_key = os.environ.get("SERPAPI_KEY", "")
-    if not serpapi_key:
-        logger.warning("⚠️ SERPAPI_KEY não configurada. Tentando via st.secrets...")
-        try:
-            import streamlit as st
-            serpapi_key = st.secrets.get("SERPAPI_KEY", "")
-        except Exception:
-            pass
+    periodo_base, periodo_atual = _periodos_comparacao()
+    medias_base: Dict[str, float] = {}
+    medias_atual: Dict[str, float] = {}
+    lotes = [
+        TERMOS_MODA_FEMININA[indice : indice + 5]
+        for indice in range(0, len(TERMOS_MODA_FEMININA), 5)
+    ]
 
-    if not serpapi_key:
-        logger.warning("⚠️ SERPAPI_KEY não encontrada. Usando Fallback Automático.")
-        return _dados_fallback()
-
-    dados_finais = []
-
-    # A SerpApi aceita até 5 queries por requisição
-    # Dividimos os termos em lotes de 5
-    lotes = [TERMOS_MODA_FEMININA[i:i+5] for i in range(0, len(TERMOS_MODA_FEMININA), 5)]
-
-    for lote in lotes:
-        query_string = ",".join(lote)
-        logger.info(f"📡 Requisitando: {query_string}")
-
-        try:
-            import serpapi
-            client = serpapi.Client(api_key=serpapi_key)
-
-            # Requisição para o período 2025 completo
-            search_2025 = client.search(
-                engine="google_trends",
-                q=query_string,
-                date="2025-01-01 2025-12-31",
-                geo="BR",
-                tz="-180",  # Horário de Brasília
-                data_type="TIMESERIES",
-            )
-
-            # Requisição para o período 2026 (até agora)
-            search_2026 = client.search(
-                engine="google_trends",
-                q=query_string,
-                date="2026-01-01 2026-07-26",
-                geo="BR",
-                tz="-180",  # Horário de Brasília
-                data_type="TIMESERIES",
-            )
-
-            # Extrai médias da resposta 2025
-            media_2025 = {}
-            if search_2025.get("interest_over_time", {}).get("averages"):
-                for avg in search_2025["interest_over_time"]["averages"]:
-                    media_2025[avg["query"]] = avg.get("value", 0)
-
-            # Extrai médias da resposta 2026
-            media_2026 = {}
-            if search_2026.get("interest_over_time", {}).get("averages"):
-                for avg in search_2026["interest_over_time"]["averages"]:
-                    media_2026[avg["query"]] = avg.get("value", 0)
-
-            # Processa cada termo do lote
-            for termo in lote:
-                int_2025 = round(media_2025.get(termo, 0), 2)
-                int_2026 = round(media_2026.get(termo, 0), 2)
-
-                # Classificação: se 2026 > 2025 → Em Alta, senão → Em Queda
-                if int_2026 > int_2025:
-                    status = "Em Alta"
-                    variacao = round(((int_2026 - int_2025) / max(int_2025, 1)) * 100, 1)
-                    variacao_str = f"+{variacao:.1f}%"
-                    dica = f"Termo em crescimento ({int_2026} vs {int_2025}). Foco imediato em conteúdo."
-                else:
-                    status = "Em Queda"
-                    if int_2025 > 0:
-                        variacao = round(((int_2026 - int_2025) / int_2025) * 100, 1)
-                    else:
-                        variacao = 0.0
-                    variacao_str = f"{variacao:.1f}%"
-                    dica = f"Termo em declínio ({int_2026} vs {int_2025}). Conteúdo de transição."
-
-                # Busca sugestões do Pinterest em tempo real
-                ideias_pinterest = buscar_sugestoes_pinterest(termo)
-                ideias_formatadas = ", ".join(ideias_pinterest) if ideias_pinterest else "Nenhuma sugestão recente"
-
-                # Calcula previsão para o próximo mês
-                previsao_agosto = calcular_previsao_proximo_mes(termo, int_2025, int_2026)
-
-                dados_finais.append({
-                    "termo": termo,
-                    "interesse_2025": int_2025,
-                    "interesse_2026": int_2026,
-                    "previsao_proximo_mes": previsao_agosto,
-                    "status": status,
-                    "variacao": variacao_str,
-                    "variacao_num": variacao,
-                    "dica_conteudo": dica,
-                    "pinterest_sugestoes": ideias_formatadas,
-                    "categoria": "Moda Feminina",
-                    "fonte": "Google Trends (SerpApi)",
-                    "atualizado": datetime.now().strftime("%d/%m/%Y %H:%M"),
-                })
-
-            # Pausa entre requisições para respeitar rate limits
-            time.sleep(1.5)
-
-        except Exception as e:
-            logger.error(f"❌ Erro ao buscar {query_string}: {e}")
-            # Adiciona dados de fallback para este lote
-            for termo in lote:
-                dados_finais.append({
-                    "termo": termo,
-                    "interesse_2025": 0,
-                    "interesse_2026": 0,
-                    "status": "Indisponível",
-                    "variacao": "0.0%",
-                    "variacao_num": 0.0,
-                    "dica_conteudo": f"Erro ao buscar dados: {str(e)[:80]}",
-                    "categoria": "Moda Feminina",
-                    "fonte": "Erro API",
-                    "atualizado": datetime.now().strftime("%d/%m/%Y %H:%M"),
-                })
-
-    # Salva no cache
-    _salvar_cache(dados_finais)
-
-    return dados_finais
-
-
-# ============================================================
-# FALLBACK — Dados reais via pytrends (backup)
-# ============================================================
-def _dados_fallback() -> List[Dict[str, Any]]:
-    """
-    Fallback usando pytrends caso SerpApi falhe.
-    Ainda usa dados reais, não simulados.
-    """
-    logger.warning("⚠️ Usando fallback pytrends (SerpApi indisponível)")
-
-    dados = []
     try:
-        from pytrends.request import TrendReq
-        import pandas as pd
+        for lote in lotes:
+            query_string = ",".join(lote)
+            medias_base.update(
+                _extrair_medias(
+                    _consultar_google_shopping(query_string, periodo_base, chave)
+                )
+            )
+            medias_atual.update(
+                _extrair_medias(
+                    _consultar_google_shopping(query_string, periodo_atual, chave)
+                )
+            )
+    except (requests.RequestException, RuntimeError, ValueError, TypeError) as erro:
+        logger.error("Google Shopping indisponível: %s", erro)
+        return []
 
-        pytrends = TrendReq(hl='pt-BR', tz=180)
-        pytrends.build_payload(
-            TERMOS_MODA_FEMININA,
-            cat=185,  # Moda
-            timeframe='2025-01-01 2026-07-26',
-            geo='BR'
-        )
-        df_trends = pytrends.interest_over_time()
+    dados = [
+        _registro(termo, medias_base.get(termo, 0), medias_atual.get(termo, 0))
+        for termo in TERMOS_MODA_FEMININA
+    ]
+    if not any(item["status"] != "Sem dados" for item in dados):
+        logger.warning("Google Shopping retornou zero dados para os termos de moda")
+        return []
 
-        if not df_trends.empty:
-            media_2025 = df_trends.loc['2025'].mean() if '2025' in df_trends.index.year else pd.Series([0]*len(TERMOS_MODA_FEMININA))
-            media_2026 = df_trends.loc['2026'].mean() if '2026' in df_trends.index.year else pd.Series([0]*len(TERMOS_MODA_FEMININA))
-
-            for termo in TERMOS_MODA_FEMININA:
-                int_2025 = round(float(media_2025.get(termo, 0)), 2)
-                int_2026 = round(float(media_2026.get(termo, 0)), 2)
-
-                if int_2026 > int_2025:
-                    status = "Em Alta"
-                    variacao = round(((int_2026 - int_2025) / max(int_2025, 1)) * 100, 1)
-                else:
-                    status = "Em Queda"
-                    variacao = round(((int_2026 - int_2025) / max(int_2025, 1)) * 100, 1) if int_2025 > 0 else 0.0
-
-                # Calcula previsão para o próximo mês
-                previsao_agosto = calcular_previsao_proximo_mes(termo, int_2025, int_2026)
-
-                dados.append({
-                    "termo": termo,
-                    "interesse_2025": int_2025,
-                    "interesse_2026": int_2026,
-                    "previsao_proximo_mes": previsao_agosto,
-                    "status": status,
-                    "variacao": f"{variacao:+.1f}%",
-                    "variacao_num": variacao,
-                    "dica_conteudo": f"Termo {'em crescimento' if status == 'Em Alta' else 'em declínio'}. Foco em conteúdo.",
-                    "categoria": "Moda Feminina",
-                    "fonte": "Google Trends (pytrends)",
-                    "atualizado": datetime.now().strftime("%d/%m/%Y %H:%M"),
-                })
-    except Exception as e:
-        logger.error(f"❌ Fallback pytrends também falhou: {e}")
-
-    if dados:
-        _salvar_cache(dados)
-
+    _salvar_cache(dados, periodo_base, periodo_atual)
     return dados
 
 
-# ============================================================
-# INTEGRAÇÃO COM DASHBOARD — Injeta na tela
-# ============================================================
-def render_tendencias_moda_dashboard():
-    """
-    Renderiza a secção de Tendências de Moda Feminina no dashboard Streamlit.
-    Chama esta função dentro da tab do dashboard para exibir os dados.
-    """
-    import streamlit as st
+def render_tendencias_moda_dashboard() -> None:
+    """Renderiza apenas dados confirmados, sem gráficos ou previsões artificiais."""
     import pandas as pd
+    import streamlit as st
 
-    st.markdown("## 👗 Tendências de Moda Feminina — Dados Reais")
-    st.caption("Comparação de interesse Google Trends: 2025 vs 2026 (Brasil)")
+    st.markdown("## 👗 Tendências de Moda Feminina — Google Shopping")
+    st.caption(
+        "Dados coletados do Google Trends com propriedade Google Shopping (SerpApi), "
+        "sem fallback estático ou previsão editorial apresentada como tendência real."
+    )
 
-    # Botão de atualização manual
     col_btn, col_info = st.columns([1, 4])
     with col_btn:
-        atualizar = st.button("🔄 Atualizar Agora", use_container_width=True)
+        atualizar = st.button("🔄 Atualizar dados", use_container_width=True)
     with col_info:
         cache_info = ""
         if os.path.exists(CACHE_FILE):
             try:
-                with open(CACHE_FILE, "r", encoding="utf-8") as f:
-                    cache = json.load(f)
-                cache_info = f"Última coleta: {cache.get('data_coleta', 'N/A')}"
-            except Exception:
+                with open(CACHE_FILE, "r", encoding="utf-8") as arquivo:
+                    cache = json.load(arquivo)
+                cache_info = (
+                    f"Última coleta confirmada: {cache.get('data_coleta', 'N/A')} | "
+                    f"Período atual: {cache.get('periodo_atual', 'N/A')}"
+                )
+            except (OSError, TypeError, json.JSONDecodeError):
                 pass
-        st.caption(cache_info if cache_info else "Nenhuma coleta realizada")
+        st.caption(cache_info or "Nenhuma coleta confirmada")
 
-    # Captura os dados
-    try:
-        dados = obter_tendencias_moda_serpapi(forcar_atualizacao=atualizar)
-    except Exception as e:
-        st.error(f"Erro ao carregar tendências: {e}")
-        dados = []
-
+    dados = obter_tendencias_moda_serpapi(forcar_atualizacao=atualizar)
     if not dados:
-        # Tenta carregar o cache mesmo que expirado como última tentativa
-        dados = _carregar_cache()
-        if not dados:
-            st.warning("⚠️ Nenhum dado disponível no momento. Verifique a conexão com a API ou tente atualizar.")
-            return
+        st.warning(
+            "Nenhum dado confirmado de Google Shopping está disponível agora. "
+            "A tela não usa cache antigo, Pinterest ou números estimados. "
+            "Configure SERPAPI_KEY e execute a coleta diária."
+        )
+        return
 
-    # Cria DataFrame
     df = pd.DataFrame(dados)
-
-    # Resumo em métricas
-    col_m1, col_m2, col_m3 = st.columns(3)
-    with col_m1:
-        em_alta = len(df[df["status"] == "Em Alta"])
-        st.metric("🚀 Em Alta", f"{em_alta}/{len(df)}")
-    with col_m2:
-        em_queda = len(df[df["status"] == "Em Queda"])
-        st.metric("📉 Em Queda", f"{em_queda}/{len(df)}")
-    with col_m3:
-        indisp = len(df[df["status"] == "Indisponível"])
-        if indisp > 0:
-            st.metric("⚠️ Indisponível", f"{indisp}/{len(df)}")
-        else:
-            st.metric("✅ Dados OK", f"{len(df)} termos")
-
-    st.markdown("---")
-
-    # Tabs para diferentes visões
-    hoje = datetime.now()
-    inicio_proximo_mes = hoje.replace(day=1) + timedelta(days=32)
-    nomes_meses = ["", "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
-    nome_mes_atual = nomes_meses[hoje.month]
-    nome_mes_proximo = nomes_meses[inicio_proximo_mes.month]
-    ano_mes_proximo = inicio_proximo_mes.year
-    tab_atual, tab_previsao = st.tabs([
-        "📊 Interesse Atual (2025 vs 2026)",
-        f"🔮 Previsão Próximo Mês ({nome_mes_proximo})",
-    ])
-
-    with tab_atual:
-        col_graf, col_dados = st.columns([2, 1])
-        with col_graf:
-            st.markdown("### 📊 Comparativo Histórico")
-            termos_x = df["termo"].tolist()
-            valores_2025 = df["interesse_2025"].tolist()
-            valores_2026 = df["interesse_2026"].tolist()
-            chart_data = pd.DataFrame({
-                "Termo": termos_x,
-                "2025": valores_2025,
-                "2026": valores_2026,
-            }).set_index("Termo")
-            st.bar_chart(chart_data, use_container_width=True)
-        
-        with col_dados:
-            st.markdown("### 📋 Resumo Rápido")
-            for _, row in df.iterrows():
-                icon = "🚀" if row["status"] == "Em Alta" else "📉"
-                st.markdown(f"{icon} **{row['termo']}** — {row['variacao']}")
-
-    with tab_previsao:
-        st.markdown(f"### 🔮 Projeção de Crescimento: {nome_mes_proximo} {ano_mes_proximo}")
-        st.caption(f"Baseado em dados históricos do Pinterest Trends (Brasil, 25-49 anos) e sinais atuais para {nome_mes_proximo.lower()}.")
-        
-        col_prev_graf, col_prev_info = st.columns([2, 1])
-        
-        with col_prev_graf:
-            # Gráfico de Projeção
-            prev_data = df[["termo", "interesse_2026", "previsao_proximo_mes"]].copy()
-            prev_data.columns = ["Termo", f"Atual ({nome_mes_atual})", f"Projeção ({nome_mes_proximo})"]
-            prev_data = prev_data.set_index("Termo")
-            st.line_chart(prev_data, use_container_width=True)
-            
-        with col_prev_info:
-            st.info(f"💡 **Insight Preditivo**\nA projeção considera a sazonalidade real do Pinterest Brasil e a transição de {nome_mes_atual.lower()} para {nome_mes_proximo.lower()}.")
-            
-            for _, row in df.iterrows():
-                cresc = round(((row['previsao_proximo_mes'] - row['interesse_2026']) / max(row['interesse_2026'], 1)) * 100, 1)
-                cor = "green" if cresc > 0 else "red"
-                st.markdown(f"**{row['termo']}**: :{cor}[{cresc:+.1f}% esperado]")
-
-    st.markdown("---")
-
-    # Tabela completa
-    st.markdown("### 📋 Relatório Completo")
-
-    # Formata a tabela para exibição
-    df_display = df[["termo", "interesse_2025", "interesse_2026", "status", "variacao", "pinterest_sugestoes", "dica_conteudo"]].copy()
-    df_display.columns = [
-        "Tendência", "Interesse 2025", "Interesse 2026",
-        "Status", "Variação", "Buscas Pinterest (HOJE)", "Estratégia de Conteúdo"
-    ]
-
-    # Colora status
-    def colorir_status(val):
-        if "Alta" in str(val):
-            return "color: #00aa44; font-weight: bold;"
-        elif "Queda" in str(val):
-            return "color: #cc3333; font-weight: bold;"
-        else:
-            return "color: #999999;"
-
+    colunas = {
+        "termo": "Busca",
+        "interesse_ano_anterior": "Interesse ano anterior",
+        "interesse_ano_atual": "Interesse ano atual",
+        "status": "Status",
+        "variacao": "Variação",
+        "categoria": "Categoria",
+        "atualizado": "Coletado em",
+    }
     st.dataframe(
-        df_display.style.applymap(colorir_status, subset=["Status"]),
+        df[list(colunas)].rename(columns=colunas),
         use_container_width=True,
         hide_index=True,
     )
-
-    # Legenda
-    st.caption("Dados reais do Google Trends via SerpApi. Classificação baseada na média de interesse semanal.")
+    st.caption(
+        f"Fonte: Google Shopping via SerpApi | "
+        f"[documentação da API]({SERPAPI_DOCS_URL}) | "
+        f"{len(df)} termos confirmados"
+    )
