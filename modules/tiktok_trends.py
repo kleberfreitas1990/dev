@@ -164,32 +164,21 @@ def render_tiktok_dashboard():
         return
 
     df = pd.DataFrame(dados)
-    df_grafico = df[["termo", "prioridade_editorial"]].set_index("termo")
-    df_grafico.columns = ["Prioridade editorial"]
-
-    tab_graf, tab_tabela = st.tabs(["📊 Prioridades de conteúdo", "📋 Grade detalhada"])
-    with tab_graf:
-        st.bar_chart(df_grafico, use_container_width=True)
-        st.info(
-            "Os rankings oficiais por país do TikTok Creative Center podem exigir login "
-            "ou filtros interativos; por isso não são tratados como métricas nesta tela."
-        )
-
-    with tab_tabela:
-        st.dataframe(
-            df[
-                [
-                    "termo",
-                    "categoria",
-                    "status",
-                    "prioridade_editorial",
-                    "sinal_publico",
-                    "dica_conteudo",
-                    "data_referencia",
-                ]
-            ],
-            use_container_width=True,
-            hide_index=True,
-        )
+    st.markdown("### 📋 Tabela de sinais públicos")
+    st.dataframe(
+        df[
+            [
+                "termo",
+                "categoria",
+                "status",
+                "prioridade_editorial",
+                "sinal_publico",
+                "dica_conteudo",
+                "data_referencia",
+            ]
+        ],
+        use_container_width=True,
+        hide_index=True,
+    )
 
     st.caption(f"Fonte central: {FONTE_CENTRAL} | Referência: {DATA_REFERENCIA}")

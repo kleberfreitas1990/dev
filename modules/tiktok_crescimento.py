@@ -203,70 +203,29 @@ def render_tiktok_crescimento():
         return
 
     df = pd.DataFrame(dados)
-    st.markdown("### 🏆 Destaques do Próximo Mês")
-    col1, col2, col3, col4 = st.columns(4)
-    top = df.iloc[0]
-    urgentes = df[df["urgencia"].str.contains("URGENTE|Alta", na=False)]
-
-    with col1:
-        st.metric("🥇 Maior prioridade", top["termo"][:25], delta=top["crescimento_fmt"])
-    with col2:
-        st.metric("🔥 Pautas prioritárias", f"{len(urgentes)} temas")
-    with col3:
-        st.metric("📊 Crescimento editorial médio", f"+{df['crescimento_pct'].mean():.1f}%")
-    with col4:
-        st.metric("🚀 Maior índice editorial", f"{df['indice_setembro_proj'].max()}/100")
-
-    st.markdown("---")
-    tab_grafico, tab_tabela, tab_estrategia = st.tabs([
-        "📊 Prioridades", "📋 Tabela detalhada", "🎯 Estratégia de conteúdo"
-    ])
-
-    with tab_grafico:
-        st.markdown("#### Comparativo: agosto (base editorial) vs setembro (prioridade)")
-        chart_df = df[["termo", "indice_agosto", "indice_setembro_proj"]].set_index("termo")
-        chart_df.columns = ["Agosto (base)", "Setembro (prioridade)"]
-        st.bar_chart(chart_df, use_container_width=True)
-
-    with tab_tabela:
-        st.dataframe(
-            df[
-                [
-                    "urgencia", "termo", "categoria", "indice_agosto",
-                    "indice_setembro_proj", "crescimento_fmt", "janela_ideal",
-                    "metrica_verificada",
-                ]
-            ].rename(
-                columns={
-                    "urgencia": "Prioridade",
-                    "termo": "Tema",
-                    "categoria": "Categoria",
-                    "indice_agosto": "Índice Ago (base)",
-                    "indice_setembro_proj": "Índice Set (prioridade)",
-                    "crescimento_fmt": "Variação editorial",
-                    "janela_ideal": "Janela ideal",
-                    "metrica_verificada": "Métrica oficial",
-                }
-            ),
-            use_container_width=True,
-            hide_index=True,
-        )
-
-    with tab_estrategia:
-        st.markdown("#### 🎬 Guia de conteúdo — Setembro")
-        st.caption("Priorize as pautas dentro da janela ideal e valide métricas nativas após publicar.")
-        for _, row in df.iterrows():
-            with st.expander(f"{row['urgencia']} **{row['termo']}** — {row['crescimento_fmt']} | {row['janela_ideal']}"):
-                col_a, col_b = st.columns([1, 1])
-                with col_a:
-                    st.markdown(f"**🏷️ Categoria:** {row['categoria']}")
-                    st.markdown(f"**📅 Janela ideal:** {row['janela_ideal']}")
-                    st.markdown(f"**📈 Variação editorial:** {row['crescimento_fmt']}")
-                with col_b:
-                    st.markdown("**💡 Fundamentação:**")
-                    st.info(row["motivo"])
-                    st.markdown("**🎬 Tipo de conteúdo:**")
-                    st.success(row["tipo_conteudo"])
+    st.markdown("### 📋 Tabela de prioridades editoriais")
+    st.dataframe(
+        df[
+            [
+                "urgencia", "termo", "categoria", "indice_agosto",
+                "indice_setembro_proj", "crescimento_fmt", "janela_ideal",
+                "metrica_verificada",
+            ]
+        ].rename(
+            columns={
+                "urgencia": "Prioridade",
+                "termo": "Tema",
+                "categoria": "Categoria",
+                "indice_agosto": "Índice Ago (base)",
+                "indice_setembro_proj": "Índice Set (prioridade)",
+                "crescimento_fmt": "Variação editorial",
+                "janela_ideal": "Janela ideal",
+                "metrica_verificada": "Métrica oficial",
+            }
+        ),
+        use_container_width=True,
+        hide_index=True,
+    )
 
     st.markdown("---")
     st.caption(
