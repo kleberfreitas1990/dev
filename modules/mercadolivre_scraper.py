@@ -297,6 +297,11 @@ def obter_tendencias_ml_cache() -> Dict[str, Any]:
     return capturar_tendencias_ml(forcar=False)
 
 
+def obter_tendencias_ml_cache_local() -> Dict[str, Any]:
+    """Lê somente o último cache oficial, sem realizar chamadas de rede."""
+    return _produtos_cache_oficial()
+
+
 def forcar_atualizacao_ml() -> Dict[str, Any]:
     """Força uma nova leitura da página oficial de tendências."""
     return capturar_tendencias_ml(forcar=True)

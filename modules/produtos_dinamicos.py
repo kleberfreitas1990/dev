@@ -243,9 +243,9 @@ def obter_produtos_dinamicos(forcar_atualizacao: bool = False) -> Dict[str, Any]
 
     # Mercado Livre: somente página oficial ou cache da mesma página já validado.
     try:
-        from modules.mercadolivre_scraper import obter_tendencias_ml_cache
+        from modules.mercadolivre_scraper import obter_tendencias_ml_cache_local
 
-        dados_ml = obter_tendencias_ml_cache()
+        dados_ml = obter_tendencias_ml_cache_local()
         _adicionar_produtos(produtos, dados_ml)
         if dados_ml:
             logger.info("Mercado Livre oficial: %d termos carregados.", len(dados_ml))
@@ -254,9 +254,9 @@ def obter_produtos_dinamicos(forcar_atualizacao: bool = False) -> Dict[str, Any]
 
     # Amazon: somente Best Sellers oficial ou cache da mesma página já validado.
     try:
-        from modules.amazon_scraper import obter_amazon_trends_cache
+        from modules.amazon_scraper import obter_amazon_trends_cache_local
 
-        dados_amazon = obter_amazon_trends_cache()
+        dados_amazon = obter_amazon_trends_cache_local()
         _adicionar_produtos(produtos, dados_amazon)
         if dados_amazon:
             logger.info("Amazon oficial: %d produtos carregados.", len(dados_amazon))

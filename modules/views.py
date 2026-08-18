@@ -30,15 +30,10 @@ from modules.grade_descoberta import (
     obter_indicadores_horario
 )
 
-from modules.o_que_postar_hoje import render_o_que_postar_hoje
+# Os painéis secundários são importados sob demanda dentro do Dashboard.
 # Importa para verificar data do cache e dados dinâmicos
 from modules.produtos_dinamicos import verificar_data_cache, obter_produtos_dinamicos
 from modules.adult_content_filter import eh_termo_adulto
-
-# Importa Tendências de Moda Feminina via SerpApi
-from modules.tendencias_moda_serpapi import render_tendencias_moda_dashboard
-from modules.tiktok_trends import render_tiktok_dashboard
-from modules.tiktok_crescimento import render_tiktok_crescimento
 
 # Tenta importar serper, se falhar usa fallback
 try:
@@ -457,7 +452,7 @@ def render_insights_estrategicos(produtos):
     """
     
     st.markdown("## 💡 Insights Estratégicos")
-    st.caption("Análise de mercado baseada em dados do Pinterest e Google Trends")
+    st.caption("Análise comercial baseada nos dados de marketplace disponíveis")
     
     # ============================================================
     # PRODUTOS SAZONAIS - TABELA
@@ -644,39 +639,45 @@ def render_dashboard():
     
     st.markdown("---")
     
-    # ===== TENDÊNCIAS DE MODA FEMININA (SERPAPI) =====
-    try:
-        render_tendencias_moda_dashboard()
-    except Exception as e:
-        st.warning(f"⚠️ Tendências de Moda indisponíveis: {str(e)[:100]}")
-    
+    # Painéis secundários são renderizados sob demanda. O Dashboard inicial
+    # permanece leve e não dispara gráficos/tabelas de fontes não selecionadas.
     st.markdown("---")
+    painel_dashboard = st.radio(
+        "Explorar painel",
+        [
+            "🛒 O Que Vender Hoje",
+            "📊 Grades Comerciais",
+            "👗 Tendências de Moda",
+            "🎵 Sinais do TikTok",
+        ],
+        horizontal=True,
+        key="painel_dashboard_ativo",
+    )
 
-    # ===== O QUE POSTAR HOJE (Dados Reais) =====
-    try:
-        render_o_que_postar_hoje()
-    except Exception as e:
-        st.warning(f"⚠️ Sugestões do dia indisponíveis: {str(e)[:100]}")
-    
-    st.markdown("---")
-    
-    # ===== TENDÊNCIAS TIKTOK =====
-    try:
-        render_tiktok_dashboard()
-    except Exception as e:
-        st.warning(f"⚠️ Tendências TikTok indisponíveis: {str(e)[:100]}")
+    if painel_dashboard == "🛒 O Que Vender Hoje":
+        try:
+            from modules.o_que_postar_hoje import render_o_que_postar_hoje
+            render_o_que_postar_hoje()
+        except Exception as e:
+            st.warning(f"⚠️ Sugestões do dia indisponíveis: {str(e)[:100]}")
+    elif painel_dashboard == "📊 Grades Comerciais":
+        render_grades_unificadas()
+    elif painel_dashboard == "👗 Tendências de Moda":
+        try:
+            from modules.tendencias_moda_serpapi import render_tendencias_moda_dashboard
+            render_tendencias_moda_dashboard()
+        except Exception as e:
+            st.warning(f"⚠️ Tendências de Moda indisponíveis: {str(e)[:100]}")
+    elif painel_dashboard == "🎵 Sinais do TikTok":
+        try:
+            from modules.tiktok_trends import render_tiktok_dashboard
+            from modules.tiktok_crescimento import render_tiktok_crescimento
+            render_tiktok_dashboard()
+            with st.expander("📈 Planejamento TikTok para o próximo mês", expanded=False):
+                render_tiktok_crescimento()
+        except Exception as e:
+            st.warning(f"⚠️ Tendências TikTok indisponíveis: {str(e)[:100]}")
 
-    try:
-        with st.expander("📈 Planejamento TikTok para o próximo mês", expanded=False):
-            render_tiktok_crescimento()
-    except Exception as e:
-        st.warning(f"⚠️ Projeção TikTok indisponível: {str(e)[:100]}")
-    
-    st.markdown("---")
-    
-    # ===== GRADES UNIFICADAS COM SUB-ABAS =====
-    render_grades_unificadas()
-    
     st.markdown("---")
     
     # ===== APOIADORES COMPACTOS =====

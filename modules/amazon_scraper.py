@@ -400,6 +400,11 @@ def obter_amazon_trends_cache() -> Dict[str, Any]:
     return capturar_bestsellers_amazon(forcar=False)
 
 
+def obter_amazon_trends_cache_local() -> Dict[str, Any]:
+    """Lê somente o último cache oficial, sem realizar chamadas de rede."""
+    return _produtos_cache_oficial(_carregar_cache_amazon())
+
+
 def obter_status_cache_amazon() -> Dict[str, Any]:
     """Expõe o estado do cache oficial para o painel de atualização."""
     cache = _carregar_cache_amazon()
